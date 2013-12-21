@@ -34,7 +34,7 @@
  * @author S.C. Chen <me578022@gmail.com>
  * @author John Schlick
  * @author Rus Carroll
- * @version 1.5 ($Rev: 208 $)
+ * @version 1.5 ($Rev: 209 $)
  * @package PlaceLocalInclude
  * @subpackage simple_html_dom
  */
@@ -1228,7 +1228,7 @@ class simple_html_dom
 
 				if (!empty($fullvalue))
 				{
-					$success = preg_match('/charset=(.+)/', $fullvalue, $matches);
+					$success = preg_match('/charset=(.+)/i', $fullvalue, $matches);
 					if ($success)
 					{
 						$charset = $matches[1];

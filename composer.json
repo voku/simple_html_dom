@@ -1,5 +1,5 @@
 {
-	"name": "shark/simple_html_dom",
+	"name": "voku/simple_html_dom",
 	"description": "Simple HTML DOM package.",
 	"keywords": ["dom", "php dom"],
 	"homepage": "http://simplehtmldom.sourceforge.net/",
