@@ -1,3 +1,7 @@
+[![SensioLabsInsight](https://insight.sensiolabs.com/projects/be3e4851-272f-4499-9fc4-4b2704a43301/big.png)](https://insight.sensiolabs.com/projects/be3e4851-272f-4499-9fc4-4b2704a43301)
+[![Total Downloads](https://poser.pugx.org/voku/simple_html_dom/downloads.svg)](https://packagist.org/packages/voku/simple_html_dom)
+
+
 simple_html_dom
 ===============
 
