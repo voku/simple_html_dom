@@ -5,26 +5,24 @@
 simple_html_dom
 ===============
 
-A copy of the [PHP Simple HTML DOM Parser project](http://simplehtmldom.sourceforge.net/) usable as a [Composer](http://getcomposer.org/) package.
+Adaptation for Composer and PSR-0 of: [PHP Simple HTML DOM Parser project](http://simplehtmldom.sourceforge.net/) usable as a [Composer](http://getcomposer.org/) package.
+
+Check the [official documentation at SourceForge](http://simplehtmldom.sourceforge.net/manual.htm).
+
+- A HTML DOM parser written in PHP5+ let you manipulate HTML in a very easy way!
+- Require PHP 5+.
+- Supports invalid HTML.
+- Find tags on an HTML page with selectors just like jQuery.
+- Extract contents from HTML in a single line.
+
 
 ## Installation
 
 First, you need to add this repository at the root of your `composer.json`:
 
 ```json
-"repositories": [
-    {
-        "type": "vcs",
-        "url": "https://github.com/voku/simple_html_dom"
-    }
-]
-```
-
-Then, require this package in the same way as any other package:
-
-```json
 "require": {
-    "simple_html_dom/simple_html_dom": "*"
+    "simple_html_dom/simple_html_dom": "1.*"
 }
 ```
 
@@ -34,10 +32,15 @@ And voilà, you’re ready to `composer update`.
 
 ## Usage
 
-Since this library doesn’t use namespaces, it lives in the global namespace.
-
 ```php
-$instance = new \simple_html_dom();
-```
+use voku\helper\HtmlDomParser;
 
-Check the [official documentation at SourceForge](http://simplehtmldom.sourceforge.net/manual.htm).
+...
+$dom = HtmlDomParser::str_get_html( $str );
+// or 
+$dom = HtmlDomParser::file_get_html( $file_name );
+
+$elems = $dom->find($elem_name);
+...
+
+```

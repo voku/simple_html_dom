@@ -1,22 +1,22 @@
 {
-	"name": "voku/simple_html_dom",
-	"description": "Simple HTML DOM package.",
-	"keywords": ["dom", "php dom"],
-	"homepage": "http://simplehtmldom.sourceforge.net/",
-	"type": "library",
-	"version": "1.5",
-	"require":{
-		"php":">=5.2.4"
-	},
-	"authors": [
-		{
-			"name": "S.C. Chen",
-			"email": "me578022@gmail.com",
-			"homepage": "http://simplehtmldom.sourceforge.net/"
-		}
-	],
-	"autoload": {
-		"classmap":["simple_html_dom.php"],
-		"files": ["simple_html_dom.php"]
-	}
+  "name": "voku/simple_html_dom",
+  "description": "Simple HTML DOM package.",
+  "keywords": ["dom", "php dom"],
+  "homepage": "http://simplehtmldom.sourceforge.net/",
+  "type": "library",
+  "require":{
+    "php": ">=5.3.2"
+  },
+  "authors": [
+    {
+      "name": "S.C. Chen",
+      "email": "me578022@gmail.com",
+      "homepage": "http://simplehtmldom.sourceforge.net/"
+    }
+  ],
+  "autoload": {
+    "psr-0": {
+      "voku": "src"
+    }
+  }
 }

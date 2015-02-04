@@ -1,11 +1,16 @@
-#$Rev: 197 $
-[Updates - add some ability to insert and create nodes.]
-[1: add ability to search the "noise" array]
+
+
+[PHP Simple HTML Dom version 1.6.0 released.]
+1: fixed code-style
+2: removed debugging
+3: use Composer and PSR-0
+
 
 [PHP Simple HTML Dom version 1.5 released.]
 1: Memory leak fixed!
 2: Added support for detecting the source html character set.  This is used to convert characters when plaintext is requested.
 3: Other little fixes and features, too numerous to categorize.
+4: add ability to search the "noise" array
 
 [On going]
 1. Error of "file_get_contents()" will be thrown as an exception.

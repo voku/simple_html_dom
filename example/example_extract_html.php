@@ -1,5 +1,5 @@
 <?php
-include_once('../simple_html_dom.php');
 
-echo file_get_html('http://www.google.com/')->plaintext;
-?>
+require_once '../vendor/autoload.php';
+
+echo voku\helper\HtmlDomParser::file_get_html('http://www.google.com/')->plaintext;
