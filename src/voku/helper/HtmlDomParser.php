@@ -102,7 +102,7 @@ class HtmlDomParser
 
     // Paperg - use our own mechanism for getting the contents as we want to control the timeout.
     //$contents = retrieve_url_contents($url);
-    if (empty($contents) || strlen($contents) > MAX_FILE_SIZE) {
+    if (empty($contents) || UTF8::strlen($contents) > MAX_FILE_SIZE) {
       return false;
     }
 
@@ -129,7 +129,7 @@ class HtmlDomParser
   {
     $dom = new SimpleHtmlDom(null, $lowercase, $forceTagsClosed, $target_charset, $stripRN, $defaultBRText, $defaultSpanText);
 
-    if (empty($str) || strlen($str) > MAX_FILE_SIZE) {
+    if (empty($str) || UTF8::strlen($str) > MAX_FILE_SIZE) {
       $dom->clear();
       return false;
     }

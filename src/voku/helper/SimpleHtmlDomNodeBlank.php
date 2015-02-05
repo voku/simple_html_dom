@@ -20,4 +20,11 @@ class SimpleHtmlDomNodeBlank
   {
     return '';
   }
+
+  /**
+   * dummy clear
+   */
+  public function clear()
+  {
+  }
 }

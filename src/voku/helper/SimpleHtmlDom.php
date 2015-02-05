@@ -25,47 +25,110 @@ class SimpleHtmlDom
    */
   public $nodes = array();
 
+  /**
+   * @var null|string
+   */
   public $callback = null;
 
+  /**
+   * @var bool
+   */
   public $lowercase = false;
 
-  // Used to keep track of how large the text was when we started.
+  /**
+   * Used to keep track of how large the text was when we started.
+   *
+   * @var int
+   */
   public $original_size;
 
+  /**
+   * @var int
+   */
   public $size;
 
+  /**
+   * @var int
+   */
   protected $pos;
 
+  /**
+   * @var string
+   */
   protected $doc;
 
+  /**
+   * @var array
+   */
+  protected $docArray = array();
+
+  /**
+   * @var string
+   */
   protected $char;
 
+  /**
+   * @var int
+   */
   protected $cursor;
+
   /**
    * @var SimpleHtmlDom
    */
   protected $parent;
 
+  /**
+   * @var array
+   */
   protected $noise = array();
 
+  /**
+   * @var string
+   */
   protected $token_blank = " \t\r\n";
 
+  /**
+   * @var string
+   */
   protected $token_equal = ' =/>';
 
+  /**
+   * @var string
+   */
   protected $token_slash = " />\r\n\t";
 
+  /**
+   * @var string
+   */
   protected $token_attr = ' >';
 
-  // Note that this is referenced by a child node, and so it needs to be public for that node to see this information.
+  /**
+   * Note that this is referenced by a child node, and so it needs to be public for that node to see this information.
+   *
+   * @var string
+   */
   public $_charset = '';
 
+  /**
+   * @var string
+   */
   public $_target_charset = '';
 
-  protected $default_br_text = "";
+  /**
+   * @var string
+   */
+  protected $default_br_text = '';
 
-  public $default_span_text = "";
+  /**
+   * @var string
+   */
+  public $default_span_text = '';
 
-  // use isset instead of in_array, performance boost about 30%...
+  /**
+   * use isset instead of in_array, performance boost about 30%...
+   *
+   * @var array
+   */
   protected $self_closing_tags = array(
       'img'    => 1,
       'br'     => 1,
@@ -87,8 +150,13 @@ class SimpleHtmlDom
       'table' => 1
   );
 
-  // Known sourceforge issue #2977341
-  // B tags that are not closed cause us to return everything to the end of the document.
+  /**
+   * Known sourceforge issue #2977341
+   *
+   * B tags that are not closed cause us to return everything to the end of the document.
+   *
+   * @var array
+   */
   protected $optional_closing_tags = array(
       'tr'     => array(
           'tr' => 1,
@@ -136,17 +204,19 @@ class SimpleHtmlDom
         $this->load($str, $lowercase, $stripRN, $defaultBRText, $defaultSpanText);
       }
     }
+
     // Forcing tags to be closed implies that we don't trust the html, but it can lead to parsing errors if we SHOULD trust the html.
     if (!$forceTagsClosed) {
       $this->optional_closing_array = array();
     }
+
     $this->_target_charset = $target_charset;
   }
 
   /**
    * __destruct
    */
-  function __destruct()
+  public function __destruct()
   {
     $this->clear();
   }
@@ -162,7 +232,7 @@ class SimpleHtmlDom
    *
    * @return $this
    */
-  function load($str, $lowercase = true, $stripRN = true, $defaultBRText = DEFAULT_BR_TEXT, $defaultSpanText = DEFAULT_SPAN_TEXT)
+  public function load($str, $lowercase = true, $stripRN = true, $defaultBRText = DEFAULT_BR_TEXT, $defaultSpanText = DEFAULT_SPAN_TEXT)
   {
     // prepare
     $this->prepare($str, $lowercase, $stripRN, $defaultBRText, $defaultSpanText);
@@ -280,6 +350,7 @@ class SimpleHtmlDom
       $n->clear();
       $n = null;
     }
+
     // This add next line is documented in the sourceforge repository. 2977248 as a fix for ongoing memory leaks that occur even with the use of clear.
     if (isset($this->children)) {
       /** @noinspection PhpWrongForeachArgumentTypeInspection */
@@ -291,16 +362,22 @@ class SimpleHtmlDom
         $n = null;
       }
     }
+
     if (isset($this->parent)) {
       $this->parent->clear();
       unset($this->parent);
     }
+
     if (isset($this->root)) {
       $this->root->clear();
       unset($this->root);
     }
+
     unset($this->doc);
+    unset($this->docArray);
     unset($this->noise);
+    unset($this->parent);
+    unset($this->root);
   }
 
   /**
@@ -323,9 +400,10 @@ class SimpleHtmlDom
   protected function prepare($str, $lowercase = true, $stripRN = true, $defaultBRText = DEFAULT_BR_TEXT, $defaultSpanText = DEFAULT_SPAN_TEXT)
   {
     $this->clear();
+    $str = UTF8::cleanup($str);
 
     // set the length of content before we do anything to it.
-    $this->size = strlen($str);
+    $this->size = UTF8::strlen($str);
     // Save the original size of the html that we got in.  It might be useful to someone.
     $this->original_size = $this->size;
 
@@ -335,10 +413,11 @@ class SimpleHtmlDom
       $str = str_replace("\n", " ", $str);
 
       // set the length of content since we have changed it.
-      $this->size = strlen($str);
+      $this->size = UTF8::strlen($str);
     }
 
     $this->doc = $str;
+    $this->docArray = UTF8::split($this->doc);
     $this->pos = 0;
     $this->cursor = 1;
     $this->noise = array();
@@ -352,7 +431,7 @@ class SimpleHtmlDom
     $this->root->nodetype = HDOM_TYPE_ROOT;
     $this->parent = $this->root;
     if ($this->size > 0) {
-      $this->char = $this->doc[0];
+      $this->char = $this->docArray[0];
     }
   }
 
@@ -376,9 +455,11 @@ class SimpleHtmlDom
   }
 
   /**
-   * PAPERG - dkchou - added this to try to identify the character set of the page we have just parsed so we know better how to spit it out later.
-   * NOTE:  IF you provide a routine called get_last_retrieve_url_contents_content_type which returns the CURLINFO_CONTENT_TYPE from the last curl_exec
-   * (or the content_type header from the last transfer), we will parse THAT, and if a charset is specified, we will use it over any other mechanism.
+   * PAPERG - dkchou - added this to try to identify the character set of the page we have just parsed so we know
+   * better how to spit it out later. NOTE:  IF you provide a routine called
+   * get_last_retrieve_url_contents_content_type which returns the CURLINFO_CONTENT_TYPE from the last curl_exec
+   * (or the content_type header from the last transfer), we will parse THAT, and if a charset is specified, we will
+   * use it over any other mechanism.
    *
    * @return bool|null|string
    */
@@ -433,7 +514,13 @@ class SimpleHtmlDom
     }
 
     // Since CP1252 is a superset, if we get one of it's subsets, we want it instead.
-    if ((strtolower($charset) == strtolower('ISO-8859-1')) || (strtolower($charset) == strtolower('Latin1')) || (strtolower($charset) == strtolower('Latin-1'))) {
+    if (
+        (strtolower($charset) == strtolower('ISO-8859-1'))
+        ||
+        (strtolower($charset) == strtolower('Latin1'))
+        ||
+        (strtolower($charset) == strtolower('Latin-1'))
+    ) {
       $charset = 'CP1252';
     }
 
@@ -452,33 +539,33 @@ class SimpleHtmlDom
       return false;
     }
     $begin_tag_pos = $this->pos;
-    $this->char = (++$this->pos < $this->size) ? $this->doc[$this->pos] : null; // next
+    $this->char = (++$this->pos < $this->size) ? $this->docArray[$this->pos] : null; // next
 
     // end tag
     if ($this->char === '/') {
-      $this->char = (++$this->pos < $this->size) ? $this->doc[$this->pos] : null; // next
+      $this->char = (++$this->pos < $this->size) ? $this->docArray[$this->pos] : null; // next
       // This represents the change in the simple_html_dom trunk from revision 180 to 181.
       // $this->skip($this->token_blank_t);
       $this->skip($this->token_blank);
       $tag = $this->copy_until_char('>');
 
       // skip attributes in end tag
-      if (($pos = strpos($tag, ' ')) !== false) {
-        $tag = substr($tag, 0, $pos);
+      if (($pos = UTF8::strpos($tag, ' ')) !== false) {
+        $tag = UTF8::substr($tag, 0, $pos);
       }
 
-      $parent_lower = strtolower($this->parent->tag);
-      $tag_lower = strtolower($tag);
+      $parent_lower = UTF8::strtolower($this->parent->tag);
+      $tag_lower = UTF8::strtolower($tag);
 
       if ($parent_lower !== $tag_lower) {
         if (isset($this->optional_closing_tags[$parent_lower]) && isset($this->block_tags[$tag_lower])) {
           $this->parent->_[HDOM_INFO_END] = 0;
           $org_parent = $this->parent;
 
-          while (($this->parent->parent) && strtolower($this->parent->tag) !== $tag_lower)
+          while (($this->parent->parent) && UTF8::strtolower($this->parent->tag) !== $tag_lower)
             $this->parent = $this->parent->parent;
 
-          if (strtolower($this->parent->tag) !== $tag_lower) {
+          if (UTF8::strtolower($this->parent->tag) !== $tag_lower) {
             $this->parent = $org_parent; // restore origonal parent
             if ($this->parent->parent) {
               $this->parent = $this->parent->parent;
@@ -490,15 +577,15 @@ class SimpleHtmlDom
           $this->parent->_[HDOM_INFO_END] = 0;
           $org_parent = $this->parent;
 
-          while (($this->parent->parent) && strtolower($this->parent->tag) !== $tag_lower)
+          while (($this->parent->parent) && UTF8::strtolower($this->parent->tag) !== $tag_lower)
             $this->parent = $this->parent->parent;
 
-          if (strtolower($this->parent->tag) !== $tag_lower) {
+          if (UTF8::strtolower($this->parent->tag) !== $tag_lower) {
             $this->parent = $org_parent; // restore origonal parent
             $this->parent->_[HDOM_INFO_END] = $this->cursor;
             return $this->as_text_node($tag);
           }
-        } else if (($this->parent->parent) && strtolower($this->parent->parent->tag) === $tag_lower) {
+        } else if (($this->parent->parent) && UTF8::strtolower($this->parent->parent->tag) === $tag_lower) {
           $this->parent->_[HDOM_INFO_END] = 0;
           $this->parent = $this->parent->parent;
         } else {
@@ -511,7 +598,7 @@ class SimpleHtmlDom
         $this->parent = $this->parent->parent;
       }
 
-      $this->char = (++$this->pos < $this->size) ? $this->doc[$this->pos] : null; // next
+      $this->char = (++$this->pos < $this->size) ? $this->docArray[$this->pos] : null; // next
       return true;
     }
 
@@ -536,16 +623,16 @@ class SimpleHtmlDom
         $node->_[HDOM_INFO_TEXT] .= '>';
       }
       $this->link_nodes($node, true);
-      $this->char = (++$this->pos < $this->size) ? $this->doc[$this->pos] : null; // next
+      $this->char = (++$this->pos < $this->size) ? $this->docArray[$this->pos] : null; // next
       return true;
     }
 
     // text
-    if ($pos = strpos($tag, '<') !== false) {
-      $tag = '<' . substr($tag, 0, -1);
+    if ($pos = UTF8::strpos($tag, '<') !== false) {
+      $tag = '<' . UTF8::substr($tag, 0, -1);
       $node->_[HDOM_INFO_TEXT] = $tag;
       $this->link_nodes($node, false);
-      $this->char = $this->doc[--$this->pos]; // prev
+      $this->char = $this->docArray[--$this->pos]; // prev
       return true;
     }
 
@@ -560,18 +647,18 @@ class SimpleHtmlDom
         $node->_[HDOM_INFO_TEXT] .= '>';
       }
       $this->link_nodes($node, false);
-      $this->char = (++$this->pos < $this->size) ? $this->doc[$this->pos] : null; // next
+      $this->char = (++$this->pos < $this->size) ? $this->docArray[$this->pos] : null; // next
       return true;
     }
 
     // begin tag
     $node->nodetype = HDOM_TYPE_ELEMENT;
-    $tag_lower = strtolower($tag);
+    $tag_lower = UTF8::strtolower($tag);
     $node->tag = ($this->lowercase) ? $tag_lower : $tag;
 
     // handle optional closing tags
     if (isset($this->optional_closing_tags[$tag_lower])) {
-      while (isset($this->optional_closing_tags[$tag_lower][strtolower($this->parent->tag)])) {
+      while (isset($this->optional_closing_tags[$tag_lower][UTF8::strtolower($this->parent->tag)])) {
         $this->parent->_[HDOM_INFO_END] = 0;
         $this->parent = $this->parent->parent;
       }
@@ -592,7 +679,7 @@ class SimpleHtmlDom
       }
       $name = $this->copy_until($this->token_equal);
       if ($guard === $this->pos) {
-        $this->char = (++$this->pos < $this->size) ? $this->doc[$this->pos] : null; // next
+        $this->char = (++$this->pos < $this->size) ? $this->docArray[$this->pos] : null; // next
         continue;
       }
       $guard = $this->pos;
@@ -608,14 +695,14 @@ class SimpleHtmlDom
       }
 
       // handle mismatch '<'
-      if ($this->doc[$this->pos - 1] == '<') {
+      if ($this->docArray[$this->pos - 1] == '<') {
         $node->nodetype = HDOM_TYPE_TEXT;
         $node->tag = 'text';
         $node->attr = array();
         $node->_[HDOM_INFO_END] = 0;
-        $node->_[HDOM_INFO_TEXT] = substr($this->doc, $begin_tag_pos, $this->pos - $begin_tag_pos - 1);
+        $node->_[HDOM_INFO_TEXT] = UTF8::substr($this->doc, $begin_tag_pos, $this->pos - $begin_tag_pos - 1);
         $this->pos -= 2;
-        $this->char = (++$this->pos < $this->size) ? $this->doc[$this->pos] : null; // next
+        $this->char = (++$this->pos < $this->size) ? $this->docArray[$this->pos] : null; // next
         $this->link_nodes($node, false);
         return true;
       }
@@ -624,17 +711,17 @@ class SimpleHtmlDom
         $space[1] = $this->copy_skip($this->token_blank);
         $name = $this->restore_noise($name);
         if ($this->lowercase) {
-          $name = strtolower($name);
+          $name = UTF8::strtolower($name);
         }
         if ($this->char === '=') {
-          $this->char = (++$this->pos < $this->size) ? $this->doc[$this->pos] : null; // next
+          $this->char = (++$this->pos < $this->size) ? $this->docArray[$this->pos] : null; // next
           $this->parse_attr($node, $name, $space);
         } else {
           //no value attr: nowrap, checked selected...
           $node->_[HDOM_INFO_QUOTE][] = HDOM_QUOTE_NO;
           $node->attr[$name] = true;
           if ($this->char != '>') {
-            $this->char = $this->doc[--$this->pos];
+            $this->char = $this->docArray[--$this->pos];
           } // prev
         }
         $node->_[HDOM_INFO_SPACE][] = $space;
@@ -658,11 +745,11 @@ class SimpleHtmlDom
       $node->_[HDOM_INFO_END] = 0;
     } else {
       // reset parent
-      if (!isset($this->self_closing_tags[strtolower($node->tag)])) {
+      if (!isset($this->self_closing_tags[UTF8::strtolower($node->tag)])) {
         $this->parent = $node;
       }
     }
-    $this->char = (++$this->pos < $this->size) ? $this->doc[$this->pos] : null; // next
+    $this->char = (++$this->pos < $this->size) ? ($this->docArray[$this->pos]) : null; // next
 
     // If it's a BR tag, we need to set it's text to the default text.
     // This way when we see it in plaintext, we can generate formatting that the user wants.
@@ -693,23 +780,25 @@ class SimpleHtmlDom
     switch ($this->char) {
       case '"':
         $node->_[HDOM_INFO_QUOTE][] = HDOM_QUOTE_DOUBLE;
-        $this->char = (++$this->pos < $this->size) ? $this->doc[$this->pos] : null; // next
+        $this->char = (++$this->pos < $this->size) ? $this->docArray[$this->pos] : null; // next
         $node->attr[$name] = $this->restore_noise($this->copy_until_char_escape('"'));
-        $this->char = (++$this->pos < $this->size) ? $this->doc[$this->pos] : null; // next
+        $this->char = (++$this->pos < $this->size) ? $this->docArray[$this->pos] : null; // next
         break;
       case '\'':
         $node->_[HDOM_INFO_QUOTE][] = HDOM_QUOTE_SINGLE;
-        $this->char = (++$this->pos < $this->size) ? $this->doc[$this->pos] : null; // next
+        $this->char = (++$this->pos < $this->size) ? $this->docArray[$this->pos] : null; // next
         $node->attr[$name] = $this->restore_noise($this->copy_until_char_escape('\''));
-        $this->char = (++$this->pos < $this->size) ? $this->doc[$this->pos] : null; // next
+        $this->char = (++$this->pos < $this->size) ? $this->docArray[$this->pos] : null; // next
         break;
       default:
         $node->_[HDOM_INFO_QUOTE][] = HDOM_QUOTE_NO;
         $node->attr[$name] = $this->restore_noise($this->copy_until($this->token_attr));
     }
+
     // PaperG: Attributes should not have \r or \n in them, that counts as html whitespace.
     $node->attr[$name] = str_replace("\r", "", $node->attr[$name]);
     $node->attr[$name] = str_replace("\n", "", $node->attr[$name]);
+
     // PaperG: If this is a "class" selector, lets get rid of the preceeding and trailing space since some people leave it in the multi class case.
     if ($name == "class") {
       $node->attr[$name] = trim($node->attr[$name]);
@@ -744,7 +833,7 @@ class SimpleHtmlDom
     ++$this->cursor;
     $node->_[HDOM_INFO_TEXT] = '</' . $tag . '>';
     $this->link_nodes($node, false);
-    $this->char = (++$this->pos < $this->size) ? $this->doc[$this->pos] : null; // next
+    $this->char = (++$this->pos < $this->size) ? $this->docArray[$this->pos] : null; // next
     return true;
   }
 
@@ -755,8 +844,8 @@ class SimpleHtmlDom
    */
   protected function skip($chars)
   {
-    $this->pos += strspn($this->doc, $chars, $this->pos);
-    $this->char = ($this->pos < $this->size) ? $this->doc[$this->pos] : null; // next
+    $this->pos += UTF8::strspn($this->doc, $chars, $this->pos);
+    $this->char = ($this->pos < $this->size) ? $this->docArray[$this->pos] : null; // next
   }
 
   /**
@@ -769,13 +858,14 @@ class SimpleHtmlDom
   protected function copy_skip($chars)
   {
     $pos = $this->pos;
-    $len = strspn($this->doc, $chars, $pos);
+    $len = UTF8::strspn($this->doc, $chars, $pos);
     $this->pos += $len;
-    $this->char = ($this->pos < $this->size) ? $this->doc[$this->pos] : null; // next
+    $this->char = ($this->pos < $this->size) ? $this->docArray[$this->pos] : null; // next
     if ($len === 0) {
       return '';
     }
-    return substr($this->doc, $pos, $len);
+
+    return UTF8::substr($this->doc, $pos, $len);
   }
 
   /**
@@ -788,10 +878,11 @@ class SimpleHtmlDom
   protected function copy_until($chars)
   {
     $pos = $this->pos;
-    $len = strcspn($this->doc, $chars, $pos);
+    $len = UTF8::strcspn($this->doc, $chars, $pos);
     $this->pos += $len;
-    $this->char = ($this->pos < $this->size) ? $this->doc[$this->pos] : null; // next
-    return substr($this->doc, $pos, $len);
+    $this->char = ($this->pos < $this->size) ? $this->docArray[$this->pos] : null; // next
+
+    return UTF8::substr($this->doc, $pos, $len);
   }
 
   /**
@@ -807,8 +898,8 @@ class SimpleHtmlDom
       return '';
     }
 
-    if (($pos = strpos($this->doc, $char, $this->pos)) === false) {
-      $ret = substr($this->doc, $this->pos, $this->size - $this->pos);
+    if (($pos = UTF8::strpos($this->doc, $char, $this->pos)) === false) {
+      $ret = UTF8::substr($this->doc, $this->pos, $this->size - $this->pos);
       $this->char = null;
       $this->pos = $this->size;
       return $ret;
@@ -817,10 +908,12 @@ class SimpleHtmlDom
     if ($pos === $this->pos) {
       return '';
     }
+
     $pos_old = $this->pos;
-    $this->char = $this->doc[$pos];
+    $this->char = $this->docArray[$pos];
     $this->pos = $pos;
-    return substr($this->doc, $pos_old, $pos - $pos_old);
+
+    return UTF8::substr($this->doc, $pos_old, $pos - $pos_old);
   }
 
   /**
@@ -838,8 +931,8 @@ class SimpleHtmlDom
 
     $start = $this->pos;
     while (1) {
-      if (($pos = strpos($this->doc, $char, $start)) === false) {
-        $ret = substr($this->doc, $this->pos, $this->size - $this->pos);
+      if (($pos = UTF8::strpos($this->doc, $char, $start)) === false) {
+        $ret = UTF8::substr($this->doc, $this->pos, $this->size - $this->pos);
         $this->char = null;
         $this->pos = $this->size;
         return $ret;
@@ -849,16 +942,18 @@ class SimpleHtmlDom
         return '';
       }
 
-      if ($this->doc[$pos - 1] === '\\') {
+      if ($this->docArray[$pos - 1] === '\\') {
         $start = $pos + 1;
         continue;
       }
 
       $pos_old = $this->pos;
-      $this->char = $this->doc[$pos];
+      $this->char = $this->docArray[$pos];
       $this->pos = $pos;
-      return substr($this->doc, $pos_old, $pos - $pos_old);
+      return UTF8::substr($this->doc, $pos_old, $pos - $pos_old);
     }
+
+    return '';
   }
 
   /**
@@ -876,13 +971,13 @@ class SimpleHtmlDom
       $key = '___noise___' . sprintf('% 5d', count($this->noise) + 1000);
       $idx = ($remove_tag) ? 0 : 1;
       $this->noise[$key] = $matches[$i][$idx][0];
-      $this->doc = substr_replace($this->doc, $key, $matches[$i][$idx][1], strlen($matches[$i][$idx][0]));
+      $this->doc = UTF8::substr_replace($this->doc, $key, $matches[$i][$idx][1], UTF8::strlen($matches[$i][$idx][0]));
     }
 
     // reset the length of content
-    $this->size = strlen($this->doc);
+    $this->size = UTF8::strlen($this->doc);
     if ($this->size > 0) {
-      $this->char = $this->doc[0];
+      $this->char = $this->docArray[0];
     }
   }
 
@@ -895,20 +990,21 @@ class SimpleHtmlDom
    */
   public function restore_noise($text)
   {
-    while (($pos = strpos($text, '___noise___')) !== false) {
+    while (($pos = UTF8::strpos($text, '___noise___')) !== false) {
       // Sometimes there is a broken piece of markup, and we don't GET the pos+11 etc... token which indicates a problem outside of us...
-      if (strlen($text) > $pos + 15) {
+      if (UTF8::strlen($text) > $pos + 15) {
         $key = '___noise___' . $text[$pos + 11] . $text[$pos + 12] . $text[$pos + 13] . $text[$pos + 14] . $text[$pos + 15];
 
         if (isset($this->noise[$key])) {
-          $text = substr($text, 0, $pos) . $this->noise[$key] . substr($text, $pos + 16);
+          $text = UTF8::substr($text, 0, $pos) . $this->noise[$key] . UTF8::substr($text, $pos + 16);
         } else {
           // do this to prevent an infinite loop.
-          $text = substr($text, 0, $pos) . 'UNDEFINED NOISE FOR KEY: ' . $key . substr($text, $pos + 16);
+          $text = UTF8::substr($text, 0, $pos) . 'UNDEFINED NOISE FOR KEY: ' . $key . UTF8::substr($text, $pos + 16);
         }
+
       } else {
         // There is no valid key being given back to us... We must get rid of the ___noise___ or we will have a problem.
-        $text = substr($text, 0, $pos) . 'NO NUMERIC NOISE KEY' . substr($text, $pos + 11);
+        $text = UTF8::substr($text, 0, $pos) . 'NO NUMERIC NOISE KEY' . UTF8::substr($text, $pos + 11);
       }
     }
     return $text;
@@ -924,7 +1020,7 @@ class SimpleHtmlDom
   public function search_noise($text)
   {
     foreach ($this->noise as $noiseElement) {
-      if (strpos($noiseElement, $text) !== false) {
+      if (UTF8::strpos($noiseElement, $text) !== false) {
         return $noiseElement;
       }
     }
@@ -961,6 +1057,8 @@ class SimpleHtmlDom
       case 'target_charset':
         return $this->_target_charset;
     }
+
+    return '';
   }
 
   /**
