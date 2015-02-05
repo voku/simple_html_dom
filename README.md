@@ -3,18 +3,19 @@
 [![Total Downloads](https://poser.pugx.org/voku/simple_html_dom/downloads.svg)](https://packagist.org/packages/voku/simple_html_dom)
 
 
-simple_html_dom
+A HTML DOM parser written in PHP - let you manipulate HTML in a very easy way!
 ===============
 
 Adaptation for Composer and PSR-0 of: [PHP Simple HTML DOM Parser project](http://simplehtmldom.sourceforge.net/) usable as a [Composer](http://getcomposer.org/) package.
 
 Check the [official documentation at SourceForge](http://simplehtmldom.sourceforge.net/manual.htm).
 
-- A HTML DOM parser written in PHP5+ let you manipulate HTML in a very easy way!
-- Require PHP 5+.
-- Supports invalid HTML.
-- Find tags on an HTML page with selectors just like jQuery.
-- Extract contents from HTML in a single line.
+- PHP 5.3+ Support
+- Composer & PSR-0 Support
+- UTF-8 Support
+- Invalid HTML Support
+- Find tags on an HTML page with selectors just like jQuery
+- Extract contents from HTML in a single line
 
 
 ## Installation
