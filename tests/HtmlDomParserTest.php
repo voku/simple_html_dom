@@ -31,4 +31,33 @@ HTML;
     $this->assertEquals('checked', $checkboxArray['checkbox3']);
   }
 
+  public function testOutertext()
+  {
+    $str = <<<HTML
+<form name="form1" method="post" action=""><input type="checkbox" name="checkbox1" value="checkbox1" checked>中文空白</form>
+HTML;
+
+    $html = voku\helper\HtmlDomParser::str_get_html($str);
+
+    foreach ($html->find('input') as $e) {
+      $e->outertext = '[INPUT]';
+    }
+
+    $this->assertEquals('<form name="form1" method="post" action="">[INPUT]中文空白</form>', $html);
+  }
+
+  public function testInnertext()
+  {
+    $str = <<<HTML
+<div id="hello">Hello</div><div id="world">World</div>
+HTML;
+
+    $html = voku\helper\HtmlDomParser::str_get_html($str);
+
+    $html->find('div', 1)->class = 'bar';
+    $html->find('div[id=hello]', 0)->innertext = 'foo';
+
+    $this->assertEquals('<div id="hello">foo</div><div id="world" class="bar">World</div>', (string) $html);
+  }
+
 }
