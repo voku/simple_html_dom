@@ -255,12 +255,16 @@ class SimpleHtmlDom
     // strip smarty scripts
     $this->remove_noise("'(\{\w)(.*?)(\})'s", true);
 
-    // convert string to array
-    $this->docArray = UTF8::split($this->doc);
+    // reset the length of content
+    $this->size = UTF8::strlen($this->doc);
+    if ($this->size > 0) {
+      // string to array
+      $this->docArray = UTF8::split($this->doc);
+      $this->char = $this->docArray[0];
+    }
 
     // parsing
-    while ($this->parse())
-      ;
+    while ($this->parse());
 
     // end
     $this->root->_[HDOM_INFO_END] = $this->cursor;
@@ -404,6 +408,7 @@ class SimpleHtmlDom
   protected function prepare($str, $lowercase = true, $stripRN = true, $defaultBRText = DEFAULT_BR_TEXT, $defaultSpanText = DEFAULT_SPAN_TEXT)
   {
     $this->clear();
+    $str = (string) $str;
     $str = UTF8::cleanup($str);
 
     // set the length of content before we do anything to it.
@@ -975,13 +980,7 @@ class SimpleHtmlDom
       $key = '___noise___' . sprintf('% 5d', count($this->noise) + 1000);
       $idx = ($remove_tag) ? 0 : 1;
       $this->noise[$key] = $matches[$i][$idx][0];
-      $this->doc = UTF8::substr_replace($this->doc, $key, $matches[$i][$idx][1], UTF8::strlen($matches[$i][$idx][0]));
-    }
-
-    // reset the length of content
-    $this->size = UTF8::strlen($this->doc);
-    if ($this->size > 0) {
-      $this->char = $this->docArray[0];
+      $this->doc = substr_replace($this->doc, $key, $matches[$i][$idx][1], UTF8::strlen($matches[$i][$idx][0]));
     }
   }
 

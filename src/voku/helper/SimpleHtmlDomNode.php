@@ -514,6 +514,7 @@ class SimpleHtmlDomNode
   public function find($selector, $idx = null, $lowercase = false)
   {
     $selectors = $this->parse_selector($selector);
+
     if (($count = count($selectors)) === 0) {
       return array();
     }
