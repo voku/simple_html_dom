@@ -255,9 +255,13 @@ class SimpleHtmlDom
     // strip smarty scripts
     $this->remove_noise("'(\{\w)(.*?)(\})'s", true);
 
+    // convert string to array
+    $this->docArray = UTF8::split($this->doc);
+
     // parsing
     while ($this->parse())
       ;
+
     // end
     $this->root->_[HDOM_INFO_END] = $this->cursor;
     $this->parse_charset();

@@ -10,7 +10,7 @@ namespace voku\helper;
 class SimpleHtmlDomNodeBlank
 {
   /**
-   * magic get
+   * dummy get
    *
    * @param $name
    *
@@ -19,6 +19,16 @@ class SimpleHtmlDomNodeBlank
   public function __get($name)
   {
     return '';
+  }
+
+  /**
+   * dummy methode
+   *
+   * @param $name
+   * @param $arguments
+   */
+  public function __call($name, $arguments)
+  {
   }
 
   /**
