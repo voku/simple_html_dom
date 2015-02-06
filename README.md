@@ -12,6 +12,8 @@ Check the [official documentation at SourceForge](http://simplehtmldom.sourcefor
 
 - PHP 5.3+ Support
 - Composer & PSR-0 Support
+- PHPUnit testing via Travis CI
+- PHP-Quality testing via SensioLabsInsight
 - UTF-8 Support
 - Invalid HTML Support
 - Find tags on an HTML page with selectors just like jQuery
