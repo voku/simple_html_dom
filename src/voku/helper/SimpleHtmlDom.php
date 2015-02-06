@@ -409,7 +409,6 @@ class SimpleHtmlDom
   {
     $this->clear();
     $str = (string) $str;
-    $str = UTF8::cleanup($str);
 
     // set the length of content before we do anything to it.
     $this->size = UTF8::strlen($str);

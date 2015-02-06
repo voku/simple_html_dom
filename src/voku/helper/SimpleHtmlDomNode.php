@@ -926,7 +926,11 @@ class SimpleHtmlDomNode
     }
 
     if ($targetCharset == 'UTF-8') {
-      $converted_text = UTF8::toUTF8($text);
+
+      if (self::is_utf8($text) === false) {
+        $converted_text = UTF8::toUTF8($text);
+      }
+
       // Lets make sure that we don't have that silly BOM issue with any of the utf-8 text we output.
       $converted_text = UTF8::removeBOM($converted_text);
     }
