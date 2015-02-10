@@ -3,6 +3,7 @@
   "description": "Simple HTML DOM package.",
   "keywords": ["dom", "php dom"],
   "homepage": "http://simplehtmldom.sourceforge.net/",
+  "license": "MIT",
   "type": "library",
   "authors": [
     {
