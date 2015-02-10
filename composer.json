@@ -22,7 +22,8 @@
     "voku/portable-utf8": "~1.0"
   },
   "require-dev": {
-    "phpunit/phpunit": "4.*"
+    "phpunit/phpunit": "4.*",
+    "satooshi/php-coveralls": "0.7.*@dev"
   },
   "autoload": {
     "psr-0": {
