@@ -8,7 +8,11 @@ php:
 
 before_script:
   - composer self-update
-  - composer install --no-interaction --prefer-source --dev
+  - composer install --no-interaction --prefer-source
 
 script:
-  - phpunit --bootstrap tests/bootstrap.php --coverage-text --verbose
+  - mkdir -p build/logs
+  - php vendor/bin/phpunit -c phpunit.xml
+
+after_script:
+  - php vendor/bin/coveralls -v
