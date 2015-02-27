@@ -968,18 +968,14 @@ class SimpleHtmlDomNode
       if ((strcasecmp($targetCharset, 'UTF-8') == 0) && ($this->is_utf8($text))) {
         $converted_text = $text;
       } else {
+        UTF8::checkForSupport(); // polyfill for "iconv"
         $converted_text = iconv($sourceCharset, $targetCharset, $text);
       }
     }
 
     // Lets make sure that we don't have that silly BOM issue with any of the utf-8 text we output.
     if ($targetCharset == 'UTF-8') {
-      if (substr($converted_text, 0, 3) == "\xef\xbb\xbf") {
-        $converted_text = substr($converted_text, 3);
-      }
-      if (substr($converted_text, -3) == "\xef\xbb\xbf") {
-        $converted_text = substr($converted_text, 0, -3);
-      }
+      $converted_text = UTF8::removeBOM($converted_text);
     }
 
     return $converted_text;
