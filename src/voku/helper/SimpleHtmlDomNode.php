@@ -307,11 +307,19 @@ class SimpleHtmlDomNode
    */
   public function find_ancestor_tag($tag)
   {
+    global $debug_object;
+    if (is_object($debug_object)) {
+      $debug_object->debug_log_entry(1);
+    }
 
     // Start by including ourselves in the comparison.
     $returnDom = $this;
 
     while (!is_null($returnDom)) {
+      if (is_object($debug_object)) {
+        $debug_object->debug_log(2, "Current tag is: " . $returnDom->tag);
+      }
+
       if ($returnDom->tag == $tag) {
         break;
       }
@@ -417,10 +425,11 @@ class SimpleHtmlDomNode
       case HDOM_TYPE_UNKNOWN:
         return '';
     }
-
-    if ($this->tag == 'script') {
+    if (strcasecmp($this->tag, 'script') === 0) {
       return '';
-    } else if ($this->tag == 'style') {
+    }
+
+    if (strcasecmp($this->tag, 'style') === 0) {
       return '';
     }
 
@@ -582,6 +591,11 @@ class SimpleHtmlDomNode
    */
   protected function seek($selector, &$ret, $lowercase = false)
   {
+    global $debug_object;
+    if (is_object($debug_object)) {
+      $debug_object->debug_log_entry(1);
+    }
+
     list($tag, $key, $val, $exp, $no_key) = $selector;
 
     // xpath index
@@ -647,42 +661,48 @@ class SimpleHtmlDomNode
           // this is a normal search, we want the value of that attribute of the tag.
           $nodeKeyValue = $node->attr[$key];
         }
+        if (is_object($debug_object)) {
+          $debug_object->debug_log(2, "testing node: " . $node->tag . " for attribute: " . $key . $exp . $val . " where nodes value is: " . $nodeKeyValue);
+        }
 
         //PaperG - If lowercase is set, do a case insensitive test of the value of the selector.
         if ($lowercase) {
-          $check = $this->match($exp, UTF8::strtolower($val), UTF8::strtolower($nodeKeyValue));
+          $check = $this->match($exp, strtolower($val), strtolower($nodeKeyValue));
         } else {
           $check = $this->match($exp, $val, $nodeKeyValue);
         }
+        if (is_object($debug_object)) {
+          $debug_object->debug_log(2, "after match: " . ($check ? "true" : "false"));
+        }
 
         // handle multiple class
-        if (!$check && $key == 'class') {
+        if (!$check && strcasecmp($key, 'class') === 0) {
           foreach (explode(' ', $node->attr[$key]) as $k) {
             // Without this, there were cases where leading, trailing, or double spaces lead to our comparing blanks - bad form.
             if (!empty($k)) {
-
               if ($lowercase) {
-                $check = $this->match($exp, UTF8::strtolower($val), UTF8::strtolower($k));
+                $check = $this->match($exp, strtolower($val), strtolower($k));
               } else {
                 $check = $this->match($exp, $val, $k);
               }
-
               if ($check) {
                 break;
               }
             }
           }
         }
-
         if (!$check) {
           $pass = false;
         }
       }
-
       if ($pass) {
         $ret[$i] = 1;
       }
       unset($node);
+    }
+    // It's passed by reference so this is actually what this function returns.
+    if (is_object($debug_object)) {
+      $debug_object->debug_log(1, "EXIT - ret: ", $ret);
     }
   }
 
@@ -697,6 +717,11 @@ class SimpleHtmlDomNode
    */
   protected function match($exp, $pattern, $value)
   {
+    global $debug_object;
+    if (is_object($debug_object)) {
+      $debug_object->debug_log_entry(1);
+    }
+
     switch ($exp) {
       case '=':
         return ($value === $pattern);
@@ -724,6 +749,11 @@ class SimpleHtmlDomNode
    */
   protected function parse_selector($selector_string)
   {
+    global $debug_object;
+    if (is_object($debug_object)) {
+      $debug_object->debug_log_entry(1);
+    }
+
     // pattern of CSS selectors, modified from mootools
     // Paperg: Add the colon to the attrbute, so that it properly finds <tag attr:ibute="something" > like google does.
     // Note: if you try to look at this attribute, yo MUST use getAttribute since $dom->x:y will fail the php syntax check.
@@ -732,7 +762,11 @@ class SimpleHtmlDomNode
     // farther study is required to determine of this should be documented or removed.
     //		$pattern = "/([\w-:\*]*)(?:\#([\w-]+)|\.([\w-]+))?(?:\[@?(!?[\w-]+)(?:([!*^$]?=)[\"']?(.*?)[\"']?)?\])?([\/, ]+)/is";
     $pattern = "/([\w-:\*]*)(?:\#([\w-]+)|\.([\w-]+))?(?:\[@?(!?[\w-:]+)(?:([!*^$]?=)[\"']?(.*?)[\"']?)?\])?([\/, ]+)/is";
-    preg_match_all($pattern, UTF8::trim($selector_string) . ' ', $matches, PREG_SET_ORDER);
+    preg_match_all($pattern, trim($selector_string) . ' ', $matches, PREG_SET_ORDER);
+
+    if (is_object($debug_object)) {
+      $debug_object->debug_log(2, "Matches Array: ", $matches);
+    }
 
     $selectors = array();
     $result = array();
@@ -774,13 +808,12 @@ class SimpleHtmlDomNode
 
       // convert to lowercase
       if ($this->dom->lowercase) {
-        $tag = UTF8::strtolower($tag);
-        $key = UTF8::strtolower($key);
+        $tag = strtolower($tag);
+        $key = strtolower($key);
       }
-
-      // elements that do NOT have the specified attribute
+      //elements that do NOT have the specified attribute
       if (isset($key[0]) && $key[0] === '!') {
-        $key = UTF8::substr($key, 1);
+        $key = substr($key, 1);
         $no_key = true;
       }
 
@@ -842,6 +875,11 @@ class SimpleHtmlDomNode
    */
   public function __set($name, $value)
   {
+    global $debug_object;
+
+    if (is_object($debug_object)) {
+      $debug_object->debug_log_entry(1);
+    }
 
     switch ($name) {
       case 'outertext':
@@ -904,35 +942,44 @@ class SimpleHtmlDomNode
    *
    * @return string
    */
-  public function convert_text($text)
+  function convert_text($text)
   {
+    global $debug_object;
+    if (is_object($debug_object)) {
+      $debug_object->debug_log_entry(1);
+    }
+
     $converted_text = $text;
 
-    $sourceCharset = '';
-    $targetCharset = '';
+    $sourceCharset = "";
+    $targetCharset = "";
 
     if ($this->dom) {
       $sourceCharset = strtoupper($this->dom->_charset);
       $targetCharset = strtoupper($this->dom->_target_charset);
     }
 
-    // Check if the reported encoding could have been incorrect
-    if (
-        !empty($sourceCharset)
-        && !empty($targetCharset)
-        && $sourceCharset != $targetCharset
-    ) {
-      $converted_text = iconv($sourceCharset, $targetCharset, $text);
+    if (is_object($debug_object)) {
+      $debug_object->debug_log(3, "source charset: " . $sourceCharset . " target charaset: " . $targetCharset);
     }
 
-    if ($targetCharset == 'UTF-8') {
-
-      if (self::is_utf8($text) === false) {
-        $converted_text = UTF8::toUTF8($text);
+    if (!empty($sourceCharset) && !empty($targetCharset) && (strcasecmp($sourceCharset, $targetCharset) != 0)) {
+      // Check if the reported encoding could have been incorrect and the text is actually already UTF-8
+      if ((strcasecmp($targetCharset, 'UTF-8') == 0) && ($this->is_utf8($text))) {
+        $converted_text = $text;
+      } else {
+        $converted_text = iconv($sourceCharset, $targetCharset, $text);
       }
+    }
 
-      // Lets make sure that we don't have that silly BOM issue with any of the utf-8 text we output.
-      $converted_text = UTF8::removeBOM($converted_text);
+    // Lets make sure that we don't have that silly BOM issue with any of the utf-8 text we output.
+    if ($targetCharset == 'UTF-8') {
+      if (substr($converted_text, 0, 3) == "\xef\xbb\xbf") {
+        $converted_text = substr($converted_text, 3);
+      }
+      if (substr($converted_text, -3) == "\xef\xbb\xbf") {
+        $converted_text = substr($converted_text, 0, -3);
+      }
     }
 
     return $converted_text;
@@ -989,8 +1036,8 @@ class SimpleHtmlDomNode
       // If there is a width in the style attributes:
       if (isset($attributes['width']) && $width == -1) {
         // check that the last two characters are px (pixels)
-        if (UTF8::strtolower(UTF8::substr($attributes['width'], -2)) == 'px') {
-          $proposed_width = UTF8::substr($attributes['width'], 0, -2);
+        if (strtolower(substr($attributes['width'], -2)) == 'px') {
+          $proposed_width = substr($attributes['width'], 0, -2);
           // Now make sure that it's an integer and not something stupid.
           if (filter_var($proposed_width, FILTER_VALIDATE_INT)) {
             $width = $proposed_width;
@@ -1001,8 +1048,8 @@ class SimpleHtmlDomNode
       // If there is a width in the style attributes:
       if (isset($attributes['height']) && $height == -1) {
         // check that the last two characters are px (pixels)
-        if (UTF8::strtolower(UTF8::substr($attributes['height'], -2)) == 'px') {
-          $proposed_height = UTF8::substr($attributes['height'], 0, -2);
+        if (strtolower(substr($attributes['height'], -2)) == 'px') {
+          $proposed_height = substr($attributes['height'], 0, -2);
           // Now make sure that it's an integer and not something stupid.
           if (filter_var($proposed_height, FILTER_VALIDATE_INT)) {
             $height = $proposed_height;
