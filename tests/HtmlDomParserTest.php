@@ -1,5 +1,7 @@
 <?php
 
+use voku\helper\HtmlDomParser;
+
 class HtmlDomParserTest extends PHPUnit_Framework_TestCase
 {
 
@@ -60,4 +62,203 @@ HTML;
     $this->assertEquals('<div id="hello">foo</div><div id="world" class="bar">World</div>', (string) $html);
   }
 
+  public function testMail()
+  {
+    $str = <<<HTML
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <title></title>
+</head>
+<body bgcolor="#FF9900" leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+<center>
+  <style type="text/css">
+    body {
+      background: #f2f2f2;
+      margin: 0;
+      padding: 0;
+    }
+
+    td, p, span {
+      font-family: verdana, arial, sans-serif;
+      font-size: 14px;
+      line-height: 16px;
+      color: #666;
+    }
+
+    a {
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tbody>
+    <tr>
+      <td bgcolor="#FF9900">
+        <img src="/images/nl/transparent.gif" alt="" width="5" height="3" border="0"></td>
+    </tr>
+    </tbody>
+  </table>
+  <table width="620" border="0" cellspacing="0" cellpadding="0">
+    <tbody>
+    <tr>
+      <td>
+        <!-- HEADER -->
+        <table width="620" border="0" cellspacing="0" cellpadding="0">
+          <tbody>
+          <tr>
+            <td bgcolor="#ffffff">
+              <table width="620" border="0" cellspacing="0" cellpadding="0">
+                <tbody>
+                <tr>
+                  <td width="12">
+                    <img src="/images/nl/transparent.gif" alt="" width="12" height="43" border="0">
+                  </td>
+                  <td width="298" align="left" valign="middle">
+                    <font style="font-family:verdana,arial,sans-serif; font-size:12px; color:#666666;" face="verdana,arial,helvetica,sans-serif" size="2" color="#666666"></font>
+                  </td>
+                  <td width="298" align="right" valign="middle">
+                    <font style="font-family:verdana,arial,helvetica,sans-serif; font-size:18px; color:#FF9900;" face="verdana,arial,helvetica,sans-serif" size="3" color="#FF9900">test</font></td>
+                  <td width="12">
+                    <img src="/images/nl/transparent.gif" alt="" width="12" height="43" border="0">
+                  </td>
+                </tr>
+                </tbody>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <a href="test" target="_blank"><img src="/images/nl/default_header_visual2.jpg" width="620" alt="test" border="0"></a>
+            </td>
+          </tr>
+          <tr>
+            <td bgcolor="#FF9900">
+              <table width="620" border="0" cellspacing="0" cellpadding="0">
+                <tbody>
+                <tr>
+                  <td width="12">
+                    <img src="/images/nl/transparent.gif" alt="" width="12" height="5" border="0"></td>
+                  <td width="300" align="left">
+                    <font style="font-family:verdana,arial,sans-serif; font-size:14px; line-height:16px; color:#ffffff;" face="verdana,arial,helvetica,sans-serif" size="2" color="#ffffff">
+
+
+                      <b>this is a test öäü ... foobar ... <span class="utf8">דיעס איז אַ פּרובירן!</span>span></b>
+                      <br/><br/>
+                      <br/><br/>
+
+                      Lorem ipsum dolor sit amet, consectetur adipisicing elit. At commodi doloribus, esse inventore ipsam itaque laboriosam molestias nesciunt nihil reiciendis rem rerum? Aliquam aperiam doloremque ea harum laborum nam neque nostrum perferendis quas reiciendis. Ab accusamus, alias facilis labore minima molestiae nihil omnis quae quidem, reiciendis sint sit velit voluptatem!
+
+                      <br/><br/>
+                      <a href="test" style="font-family:\'Century Gothic\',verdana,sans-serif; font-size:22px; line-height:24px; color:#ffffff;" target="_blank"><img src="/images/nl/button_entdecken_de.jpg" border="0"></a>
+                      <br/><br/>
+                      Ihr Team
+                    </font></td>
+                  <td width="12">
+                    <img src="/images/nl/transparent.gif" alt="" width="12" height="5" border="0"></td>
+
+                </tr>
+                <tr>
+                  <td colspan="3">
+                    <img src="/images/nl/transparent.gif" alt="" width="5" height="30" border="0"></td>
+                </tr>
+                </tbody>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" valign="top">
+              <img src="/images/nl/teaser_shadow.jpg" alt="" width="620" height="16" border="0"></td>
+          </tr>
+          </tbody>
+        </table>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <!-- FOOTER -->
+        <table width="620" border="0" cellspacing="0" cellpadding="0">
+          <tbody>
+          <tr>
+            <td><img src="/images/nl/transparent.gif" alt="" width="5" height="25" border="0"></td>
+          </tr>
+          <tr>
+            <td align="center">
+              <font style="font-family:\'Century Gothic\',verdana,sans-serif; font-size:11px; line-height:14px; color:#cc0000;" face="\'Century Gothic\',verdana,sans-serif" size="1" color="#cc0000">
+                <a href="test" target="_blank" style="color:#666666;"><font style="font-family:\'Century Gothic\',verdana,sans-serif; font-size:11px; line-height:14px; color:#666666;" face="\'Century Gothic\',verdana,sans-serif" size="1" color="#666666">IMPRESSUM &amp; RECHTLICHES</font></a>
+              </font></td>
+          </tr>
+          <tr>
+            <td><img src="/images/nl/transparent.gif" alt="" width="5" height="10" border="0"></td>
+          </tr>
+          <tr>
+            <td align="center" valign="top">
+              <img src="/images/nl/footer_shadow.jpg" alt="" width="620" height="14" border="0"></td>
+          </tr>
+          <tr>
+            <td><img src="/images/i/nl/transparent.gif" alt="" width="5" height="10" border="0"></td>
+          </tr>
+          <tr>
+            <td>
+              <table width="620" border="0" cellspacing="0" cellpadding="0">
+                <tbody>
+                <tr>
+                  <td width="358" align="right" valign="middle">
+                    <font style="font-family:\'Century Gothic\',verdana,sans-serif; font-size:11px; line-height:14px; color:#666666;" face="\'Century Gothic\',verdana,sans-serif" size="1" color="#666666">© 2015 Test AG &amp; Co. KGaA</font>
+                  </td>
+                  <td width="12">
+                    <img src="/images/nl/transparent.gif" alt="" width="12" height="5" border="0"></td>
+                  <td width="250" align="left" valign="middle">
+                    <a href="test" target="_blank"><img src="/nl/footer_logo.jpg" alt="test" width="60" height="34" border="0"></a>
+                  </td>
+                </tr>
+                </tbody>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td><img src="/images/nl/transparent.gif" alt="" width="5" height="20" border="0"></td>
+          </tr>
+          </tbody>
+        </table>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+</center>
+
+</body>
+</html>
+HTML;
+
+    $htmlTmp = HtmlDomParser::str_get_html($str);
+    $this->assertInstanceOf('voku\helper\SimpleHtmlDom', $htmlTmp);
+
+    // replace all images with "foobar"
+    $tmpArray = array();
+    foreach ($htmlTmp->find('img') as $e) {
+      if ($e->src != "") {
+        $tmpArray[] = $e->src;
+
+        $e->src = 'foobar';
+      }
+    }
+
+    // get the content from the css-selector ".utf8"
+    $testStringUtf8_v1 = $htmlTmp->find('html .utf8');
+    $testStringUtf8_v2 = $htmlTmp->find('span.utf8');
+    $testStringUtf8_v3 = $htmlTmp->find('.utf8');
+    $this->assertEquals('דיעס איז אַ פּרובירן!', $testStringUtf8_v1[0]->innertext);
+    $this->assertEquals('דיעס איז אַ פּרובירן!', $testStringUtf8_v2[0]->innertext);
+    $this->assertEquals('דיעס איז אַ פּרובירן!', $testStringUtf8_v3[0]->innertext);
+
+    $htmlTmp = (string) $htmlTmp;
+
+    $this->assertEquals(16, count($tmpArray));
+    $this->assertContains('<img src="foobar" alt="" width="5" height="3" border="0">', $htmlTmp);
+    $this->assertContains('© 2015 Test', $htmlTmp);
+  }
 }
