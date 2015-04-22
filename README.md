@@ -3,7 +3,7 @@
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/voku/simple_html_dom/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/voku/simple_html_dom/?branch=master)
 [![SensioLabsInsight](https://insight.sensiolabs.com/projects/be3e4851-272f-4499-9fc4-4b2704a43301/mini.png)](https://insight.sensiolabs.com/projects/be3e4851-272f-4499-9fc4-4b2704a43301)
 [![Dependency Status](https://www.versioneye.com/php/voku:simple_html_dom/dev-master/badge.svg)](https://www.versioneye.com/php/voku:simple_html_dom/dev-master)
-[![Total Downloads](https://poser.pugx.org/voku/simple_html_dom/downloads.svg)](https://packagist.org/packages/voku/simple_html_dom)
+[![Total Downloads](https://poser.pugx.org/voku/simple_html_dom/downloads)](https://packagist.org/packages/voku/simple_html_dom)
 [![License](https://poser.pugx.org/voku/simple_html_dom/license.svg)](https://packagist.org/packages/voku/simple_html_dom)
 
 
