@@ -5,12 +5,16 @@ php:
   - 5.4
   - 5.5
   - 5.6
+  - 7.0
   - nightly
+  - hhvm
+  - hhvm-nightly
 
 before_script:
   - wget https://scrutinizer-ci.com/ocular.phar
-  - composer self-update
-  - composer install --no-interaction --prefer-source
+  - travis_retry composer self-update
+  - travis_retry composer install --no-interaction --prefer-source
+  - composer dump-autoload -o
 
 script:
   - mkdir -p build/logs
@@ -19,3 +23,8 @@ script:
 after_script:
   - php vendor/bin/coveralls -v
   - php ocular.phar code-coverage:upload --format=php-clover build/logs/clover.xml
+
+matrix:
+  allow_failures:
+    - php: hhvm
+    - php: hhvm-nightly
