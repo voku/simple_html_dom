@@ -70,6 +70,11 @@ class SimpleHtmlDomNode
     $this->clear();
   }
 
+  /**
+   * magic - toString
+   *
+   * @return string
+   */
   public function __toString()
   {
     return $this->outertext();
@@ -97,8 +102,9 @@ class SimpleHtmlDomNode
     echo $lead . $this->tag;
     if ($show_attr && count($this->attr) > 0) {
       echo '(';
-      foreach ($this->attr as $k => $v)
+      foreach ($this->attr as $k => $v) {
         echo "[$k]=>\"" . $this->$k . '", ';
+      }
       echo ')';
     }
     echo "\n";
@@ -164,6 +170,7 @@ class SimpleHtmlDomNode
 
     if ($echo) {
       echo $string;
+
       return '';
     } else {
       return $string;
@@ -309,14 +316,16 @@ class SimpleHtmlDomNode
   {
     global $debug_object;
     if (is_object($debug_object)) {
+      /** @noinspection PhpUndefinedMethodInspection */
       $debug_object->debug_log_entry(1);
     }
 
     // Start by including ourselves in the comparison.
     $returnDom = $this;
 
-    while (!is_null($returnDom)) {
+    while (null !== $returnDom) {
       if (is_object($debug_object)) {
+        /** @noinspection PhpUndefinedMethodInspection */
         $debug_object->debug_log(2, "Current tag is: " . $returnDom->tag);
       }
 
@@ -379,6 +388,7 @@ class SimpleHtmlDomNode
 
     // render begin tag
     if ($this->dom && $this->dom->nodes[$this->_[HDOM_INFO_BEGIN]]) {
+      /** @noinspection PhpUndefinedMethodInspection */
       $ret = $this->dom->nodes[$this->_[HDOM_INFO_BEGIN]]->makeup();
     } else {
       $ret = "";
@@ -437,7 +447,7 @@ class SimpleHtmlDomNode
     // In rare cases, (always node type 1 or HDOM_TYPE_ELEMENT - observed for some span tags, and some p tags) $this->nodes is set to NULL.
     // NOTE: This indicates that there is a problem where it's set to NULL without a clear happening.
     // WHY is this happening?
-    if (!is_null($this->nodes)) {
+    if (null !== $this->nodes) {
       foreach ($this->nodes as $n) {
         $ret .= $this->convert_text($n->text());
       }
@@ -461,6 +471,7 @@ class SimpleHtmlDomNode
     $ret = $this->innertext();
     $ret = str_ireplace('<![CDATA[', '', $ret);
     $ret = str_replace(']]>', '', $ret);
+
     return $ret;
   }
 
@@ -566,11 +577,12 @@ class SimpleHtmlDomNode
     ksort($found_keys);
 
     $found = array();
-    foreach ($found_keys as $k => $v)
+    foreach ($found_keys as $k => $v) {
       $found[] = $this->dom->nodes[$k];
+    }
 
     // return nth-element or array
-    if (is_null($idx)) {
+    if (null === $idx) {
       return $found;
     } else if ($idx < 0) {
       $idx = count($found) + $idx;
@@ -593,6 +605,7 @@ class SimpleHtmlDomNode
   {
     global $debug_object;
     if (is_object($debug_object)) {
+      /** @noinspection PhpUndefinedMethodInspection */
       $debug_object->debug_log_entry(1);
     }
 
@@ -605,10 +618,12 @@ class SimpleHtmlDomNode
         if ($tag === '*' || $tag === $c->tag) {
           if (++$count == $key) {
             $ret[$c->_[HDOM_INFO_BEGIN]] = 1;
+
             return;
           }
         }
       }
+
       return;
     }
 
@@ -623,6 +638,7 @@ class SimpleHtmlDomNode
     }
 
     for ($i = $this->_[HDOM_INFO_BEGIN] + 1; $i < $end; ++$i) {
+      /* @var SimpleHtmlDomNode $node */
       $node = $this->dom->nodes[$i];
 
       $pass = true;
@@ -662,6 +678,7 @@ class SimpleHtmlDomNode
           $nodeKeyValue = $node->attr[$key];
         }
         if (is_object($debug_object)) {
+          /** @noinspection PhpUndefinedMethodInspection */
           $debug_object->debug_log(2, "testing node: " . $node->tag . " for attribute: " . $key . $exp . $val . " where nodes value is: " . $nodeKeyValue);
         }
 
@@ -672,6 +689,7 @@ class SimpleHtmlDomNode
           $check = $this->match($exp, $val, $nodeKeyValue);
         }
         if (is_object($debug_object)) {
+          /** @noinspection PhpUndefinedMethodInspection */
           $debug_object->debug_log(2, "after match: " . ($check ? "true" : "false"));
         }
 
@@ -702,6 +720,7 @@ class SimpleHtmlDomNode
     }
     // It's passed by reference so this is actually what this function returns.
     if (is_object($debug_object)) {
+      /** @noinspection PhpUndefinedMethodInspection */
       $debug_object->debug_log(1, "EXIT - ret: ", $ret);
     }
   }
@@ -719,6 +738,7 @@ class SimpleHtmlDomNode
   {
     global $debug_object;
     if (is_object($debug_object)) {
+      /** @noinspection PhpUndefinedMethodInspection */
       $debug_object->debug_log_entry(1);
     }
 
@@ -735,8 +755,10 @@ class SimpleHtmlDomNode
         if ($pattern[0] == '/') {
           return preg_match($pattern, $value);
         }
+
         return preg_match("/" . $pattern . "/i", $value);
     }
+
     return false;
   }
 
@@ -751,6 +773,7 @@ class SimpleHtmlDomNode
   {
     global $debug_object;
     if (is_object($debug_object)) {
+      /** @noinspection PhpUndefinedMethodInspection */
       $debug_object->debug_log_entry(1);
     }
 
@@ -765,6 +788,7 @@ class SimpleHtmlDomNode
     preg_match_all($pattern, trim($selector_string) . ' ', $matches, PREG_SET_ORDER);
 
     if (is_object($debug_object)) {
+      /** @noinspection PhpUndefinedMethodInspection */
       $debug_object->debug_log(2, "Matches Array: ", $matches);
     }
 
@@ -786,7 +810,7 @@ class SimpleHtmlDomNode
           null,
           null,
           '=',
-          false
+          false,
       );
       if (!empty($m[2])) {
         $key = 'id';
@@ -822,7 +846,7 @@ class SimpleHtmlDomNode
           $key,
           $val,
           $exp,
-          $no_key
+          $no_key,
       );
 
       if (trim($m[7]) === ',') {
@@ -878,6 +902,7 @@ class SimpleHtmlDomNode
     global $debug_object;
 
     if (is_object($debug_object)) {
+      /** @noinspection PhpUndefinedMethodInspection */
       $debug_object->debug_log_entry(1);
     }
 
@@ -888,6 +913,7 @@ class SimpleHtmlDomNode
         if (isset($this->_[HDOM_INFO_TEXT])) {
           return $this->_[HDOM_INFO_TEXT] = $value;
         }
+
         return $this->_[HDOM_INFO_INNER] = $value;
     }
 
@@ -895,11 +921,14 @@ class SimpleHtmlDomNode
       $this->_[HDOM_INFO_SPACE][] = array(
           ' ',
           '',
-          ''
+          '',
       );
       $this->_[HDOM_INFO_QUOTE][] = HDOM_QUOTE_DOUBLE;
     }
+
     $this->attr[$name] = $value;
+
+    return '';
   }
 
   /**
@@ -919,6 +948,7 @@ class SimpleHtmlDomNode
       case 'plaintext':
         return true;
     }
+
     //no value attr: nowrap, checked selected...
     return (array_key_exists($name, $this->attr)) ? true : isset($this->attr[$name]);
   }
@@ -946,6 +976,7 @@ class SimpleHtmlDomNode
   {
     global $debug_object;
     if (is_object($debug_object)) {
+      /** @noinspection PhpUndefinedMethodInspection */
       $debug_object->debug_log_entry(1);
     }
 
@@ -960,12 +991,17 @@ class SimpleHtmlDomNode
     }
 
     if (is_object($debug_object)) {
+      /** @noinspection PhpUndefinedMethodInspection */
       $debug_object->debug_log(3, "source charset: " . $sourceCharset . " target charaset: " . $targetCharset);
     }
 
-    if (!empty($sourceCharset) && !empty($targetCharset) && (strcasecmp($sourceCharset, $targetCharset) != 0)) {
+    if (!empty($sourceCharset) && !empty($targetCharset) && strcasecmp($sourceCharset, $targetCharset) != 0) {
       // Check if the reported encoding could have been incorrect and the text is actually already UTF-8
-      if ((strcasecmp($targetCharset, 'UTF-8') == 0) && ($this->is_utf8($text))) {
+      if (
+          (strcasecmp($targetCharset, 'UTF-8') == 0)
+          &&
+          self::is_utf8($text)
+      ) {
         $converted_text = $text;
       } else {
         UTF8::checkForSupport(); // polyfill for "iconv"
@@ -974,7 +1010,7 @@ class SimpleHtmlDomNode
     }
 
     // Lets make sure that we don't have that silly BOM issue with any of the utf-8 text we output.
-    if ($targetCharset == 'UTF-8') {
+    if ((strcasecmp($targetCharset, 'UTF-8') != 0)) {
       $converted_text = UTF8::removeBOM($converted_text);
     }
 
@@ -1067,8 +1103,9 @@ class SimpleHtmlDomNode
 
     $result = array(
         'height' => $height,
-        'width'  => $width
+        'width'  => $width,
     );
+
     return $result;
   }
 
@@ -1269,6 +1306,7 @@ class SimpleHtmlDomNode
   public function appendChild($node)
   {
     $node->parent($this);
+
     return $node;
   }
 

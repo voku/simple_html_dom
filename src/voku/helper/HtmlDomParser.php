@@ -25,8 +25,9 @@ namespace voku\helper;
    *  node.  text implies that the tag is a text node. This allows for us to find tags based on the text they contain.
    *  Create find_ancestor_tag to see if a tag is - at any level - inside of another specific tag. Paperg: added
    *  parse_charset so that we know about the character set of the source document. NOTE:  If the user's system has a
-   *  routine called get_last_retrieve_url_contents_content_type availalbe, we will assume it's returning the
-   *  content-type header from the last transfer or curl_exec, and we will parse that and use it in preference to any other method of charset detection.
+   *  routine called get_last_retrieve_url_contents_content_type available, we will assume it's returning the
+   *  content-type header from the last transfer or curl_exec, and we will parse that and use it in preference to any
+   *  other method of charset detection.
    *
    * Found infinite loop in the case of broken html in restore_noise.  Rewrote to protect from that.
    * PaperG (John Schlick) Added get_display_size for "IMG" tags.
@@ -63,7 +64,7 @@ define('HDOM_INFO_OUTER', 6);
 define('HDOM_INFO_ENDSPACE', 7);
 define('DEFAULT_TARGET_CHARSET', 'UTF-8');
 define('DEFAULT_BR_TEXT', "\r\n");
-define('DEFAULT_SPAN_TEXT', " ");
+define('DEFAULT_SPAN_TEXT', ' ');
 define('MAX_FILE_SIZE', 600000);
 
 /**
@@ -83,7 +84,7 @@ class HtmlDomParser
    * @param bool   $use_include_path
    * @param null   $context
    * @param int    $offset
-   * @param int    $maxLen // not used - $maxlen is defined in the code as PHP_STREAM_COPY_ALL which is defined as -1.
+   * @param int    $maxLen
    * @param bool   $lowercase
    * @param bool   $forceTagsClosed
    * @param string $target_charset
@@ -103,7 +104,12 @@ class HtmlDomParser
 
     // Paperg - use our own mechanism for getting the contents as we want to control the timeout.
     //$contents = retrieve_url_contents($url);
-    if (empty($contents) || strlen($contents) > MAX_FILE_SIZE) {
+
+    if ($maxLen == -1) {
+      $maxLen = MAX_FILE_SIZE;
+    }
+
+    if (empty($contents) || UTF8::strlen($contents) > $maxLen) {
       return false;
     }
 
@@ -132,6 +138,7 @@ class HtmlDomParser
 
     if (empty($str) || strlen($str) > MAX_FILE_SIZE) {
       $dom->clear();
+
       return false;
     }
 
@@ -143,7 +150,7 @@ class HtmlDomParser
   /**
    * dump html dom tree
    *
-   * @param $node
+   * @param SimpleHtmlDomNode $node
    */
   public static function dump_html_tree($node)
   {

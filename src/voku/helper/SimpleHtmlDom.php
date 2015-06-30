@@ -133,7 +133,7 @@ class SimpleHtmlDom
       'hr'     => 1,
       'base'   => 1,
       'embed'  => 1,
-      'spacer' => 1
+      'spacer' => 1,
   );
 
   protected $block_tags = array(
@@ -142,7 +142,7 @@ class SimpleHtmlDom
       'form'  => 1,
       'div'   => 1,
       'span'  => 1,
-      'table' => 1
+      'table' => 1,
   );
 
   /**
@@ -156,22 +156,22 @@ class SimpleHtmlDom
       'tr'     => array(
           'tr' => 1,
           'td' => 1,
-          'th' => 1
+          'th' => 1,
       ),
       'th'     => array('th' => 1),
       'td'     => array('td' => 1),
       'li'     => array('li' => 1),
       'dt'     => array(
           'dt' => 1,
-          'dd' => 1
+          'dd' => 1,
       ),
       'dd'     => array(
           'dd' => 1,
-          'dt' => 1
+          'dt' => 1,
       ),
       'dl'     => array(
           'dd' => 1,
-          'dt' => 1
+          'dt' => 1,
       ),
       'p'      => array('p' => 1),
       'nobr'   => array('nobr' => 1),
@@ -229,7 +229,8 @@ class SimpleHtmlDom
    */
   public function load($str, $lowercase = true, $stripRN = true, $defaultBRText = DEFAULT_BR_TEXT, $defaultSpanText = DEFAULT_SPAN_TEXT)
   {
-    global $debug_object;
+    global /** @noinspection PhpUnusedLocalVariableInspection */
+    $debug_object;
 
     // prepare
     $this->prepare($str, $lowercase, $stripRN, $defaultBRText, $defaultSpanText);
@@ -253,8 +254,9 @@ class SimpleHtmlDom
     $this->remove_noise("'(\{\w)(.*?)(\})'s", true);
 
     // parsing
-    while ($this->parse())
+    while ($this->parse()) {
       ;
+    }
     // end
     $this->root->_[HDOM_INFO_END] = $this->cursor;
     $this->parse_charset();
@@ -276,6 +278,7 @@ class SimpleHtmlDom
     // Throw an error if we can't properly load the dom.
     if (($error = error_get_last()) !== null) {
       $this->clear();
+
       return false;
     }
 
@@ -313,6 +316,7 @@ class SimpleHtmlDom
     if ($filepath !== '') {
       file_put_contents($filepath, $ret, LOCK_EX);
     }
+
     return $ret;
   }
 
@@ -370,11 +374,7 @@ class SimpleHtmlDom
       unset($this->root);
     }
 
-    unset($this->doc);
-    unset($this->docArray);
-    unset($this->noise);
-    unset($this->parent);
-    unset($this->root);
+    unset($this->doc, $this->docArray, $this->noise, $this->parent, $this->root);
   }
 
   /**
@@ -397,20 +397,19 @@ class SimpleHtmlDom
   protected function prepare($str, $lowercase = true, $stripRN = true, $defaultBRText = DEFAULT_BR_TEXT, $defaultSpanText = DEFAULT_SPAN_TEXT)
   {
     $this->clear();
-    $str = (string) $str;
+    $str = (string)$str;
 
-    // set the length of content before we do anything to it.
-    $this->size = strlen($str);
+    // Set the length of content before we do anything to it.
+    $this->size = UTF8::strlen($str);
     // Save the original size of the html that we got in.  It might be useful to someone.
     $this->original_size = $this->size;
 
-    //before we save the string as the doc...  strip out the \r \n's if we are told to.
+    // Before we save the string as the doc...  strip out the \r \n's if we are told to.
     if ($stripRN) {
-      $str = str_replace("\r", " ", $str);
-      $str = str_replace("\n", " ", $str);
+      $str = str_replace(array("\r", "\n"), " ", $str);
 
-      // set the length of content since we have changed it.
-      $this->size = strlen($str);
+      // Set the length of content since we have changed it.
+      $this->size = UTF8::strlen($str);
     }
 
     $this->doc = $str;
@@ -447,6 +446,7 @@ class SimpleHtmlDom
     ++$this->cursor;
     $node->_[HDOM_INFO_TEXT] = $s;
     $this->link_nodes($node, false);
+
     return true;
   }
 
@@ -471,6 +471,7 @@ class SimpleHtmlDom
       if ($success) {
         $charset = $matches[1];
         if (is_object($debug_object)) {
+          /** @noinspection PhpUndefinedMethodInspection */
           $debug_object->debug_log(2, 'header content-type found charset of: ' . $charset);
         }
       }
@@ -480,8 +481,10 @@ class SimpleHtmlDom
     if (empty($charset)) {
       $el = $this->root->find('meta[http-equiv=Content-Type]', 0, true);
       if (!empty($el)) {
+        /** @noinspection PhpUndefinedFieldInspection */
         $fullvalue = $el->content;
         if (is_object($debug_object)) {
+          /** @noinspection PhpUndefinedMethodInspection */
           $debug_object->debug_log(2, 'meta content-type tag found' . $fullvalue);
         }
 
@@ -492,6 +495,7 @@ class SimpleHtmlDom
           } else {
             // If there is a meta tag, and they don't specify the character set, research says that it's typically ISO-8859-1
             if (is_object($debug_object)) {
+              /** @noinspection PhpUndefinedMethodInspection */
               $debug_object->debug_log(2, 'meta content-type tag couldn\'t be parsed. using iso-8859 default.');
             }
             $charset = 'ISO-8859-1';
@@ -509,10 +513,11 @@ class SimpleHtmlDom
         $charset = mb_detect_encoding(
             $this->root->plaintext . "ascii", $encoding_list = array(
             "UTF-8",
-            "CP1252"
+            "CP1252",
         )
         );
         if (is_object($debug_object)) {
+          /** @noinspection PhpUndefinedMethodInspection */
           $debug_object->debug_log(2, 'mb_detect found: ' . $charset);
         }
       }
@@ -520,6 +525,7 @@ class SimpleHtmlDom
       // and if this doesn't work...  then we need to just wrongheadedly assume it's UTF-8 so that we can move on - cause this will usually give us most of what we need...
       if ($charset === false) {
         if (is_object($debug_object)) {
+          /** @noinspection PhpUndefinedMethodInspection */
           $debug_object->debug_log(2, 'since mb_detect failed - using default of utf-8');
         }
         $charset = 'UTF-8';
@@ -538,6 +544,7 @@ class SimpleHtmlDom
     }
 
     if (is_object($debug_object)) {
+      /** @noinspection PhpUndefinedMethodInspection */
       $debug_object->debug_log(1, 'EXIT - ' . $charset);
     }
 
@@ -553,6 +560,7 @@ class SimpleHtmlDom
   {
     if ($this->char !== '<') {
       $this->root->_[HDOM_INFO_END] = $this->cursor;
+
       return false;
     }
     $begin_tag_pos = $this->pos;
@@ -567,8 +575,9 @@ class SimpleHtmlDom
       $tag = $this->copy_until_char('>');
 
       // skip attributes in end tag
-      if (($pos = strpos($tag, ' ')) !== false) {
-        $tag = substr($tag, 0, $pos);
+      $pos = UTF8::strpos($tag, ' ');
+      if ($pos !== false) {
+        $tag = UTF8::substr($tag, 0, $pos);
       }
 
       $parent_lower = strtolower($this->parent->tag);
@@ -579,8 +588,9 @@ class SimpleHtmlDom
           $this->parent->_[HDOM_INFO_END] = 0;
           $org_parent = $this->parent;
 
-          while (($this->parent->parent) && strtolower($this->parent->tag) !== $tag_lower)
+          while (($this->parent->parent) && strtolower($this->parent->tag) !== $tag_lower) {
             $this->parent = $this->parent->parent;
+          }
 
           if (strtolower($this->parent->tag) !== $tag_lower) {
             $this->parent = $org_parent; // restore origonal parent
@@ -588,18 +598,21 @@ class SimpleHtmlDom
               $this->parent = $this->parent->parent;
             }
             $this->parent->_[HDOM_INFO_END] = $this->cursor;
+
             return $this->as_text_node($tag);
           }
         } else if (($this->parent->parent) && isset($this->block_tags[$tag_lower])) {
           $this->parent->_[HDOM_INFO_END] = 0;
           $org_parent = $this->parent;
 
-          while (($this->parent->parent) && strtolower($this->parent->tag) !== $tag_lower)
+          while (($this->parent->parent) && strtolower($this->parent->tag) !== $tag_lower) {
             $this->parent = $this->parent->parent;
+          }
 
           if (strtolower($this->parent->tag) !== $tag_lower) {
-            $this->parent = $org_parent; // restore origonal parent
+            $this->parent = $org_parent; // restore original parent
             $this->parent->_[HDOM_INFO_END] = $this->cursor;
+
             return $this->as_text_node($tag);
           }
         } else if (($this->parent->parent) && strtolower($this->parent->parent->tag) === $tag_lower) {
@@ -645,8 +658,9 @@ class SimpleHtmlDom
     }
 
     // text
-    if ($pos = strpos($tag, '<') !== false) {
-      $tag = '<' . substr($tag, 0, -1);
+    $pos = UTF8::strpos($tag, '<');
+    if ($pos !== false) {
+      $tag = '<' . UTF8::substr($tag, 0, -1);
       $node->_[HDOM_INFO_TEXT] = $tag;
       $this->link_nodes($node, false);
       $this->char = $this->doc[--$this->pos]; // prev
@@ -657,6 +671,7 @@ class SimpleHtmlDom
       $node->_[HDOM_INFO_TEXT] = '<' . $tag . $this->copy_until('<>');
       if ($this->char === '<') {
         $this->link_nodes($node, false);
+
         return true;
       }
 
@@ -686,7 +701,7 @@ class SimpleHtmlDom
     $space = array(
         $this->copy_skip($this->token_blank),
         '',
-        ''
+        '',
     );
 
     // attributes
@@ -708,6 +723,7 @@ class SimpleHtmlDom
         $node->_[HDOM_INFO_TEXT] = '<' . $tag . $space[0] . $name;
         $node->tag = 'text';
         $this->link_nodes($node, false);
+
         return true;
       }
 
@@ -721,6 +737,7 @@ class SimpleHtmlDom
         $this->pos -= 2;
         $this->char = (++$this->pos < $this->size) ? $this->doc[$this->pos] : null; // next
         $this->link_nodes($node, false);
+
         return true;
       }
 
@@ -745,13 +762,12 @@ class SimpleHtmlDom
         $space = array(
             $this->copy_skip($this->token_blank),
             '',
-            ''
+            '',
         );
       } else {
         break;
       }
-    }
-    while ($this->char !== '>' && $this->char !== '/');
+    } while ($this->char !== '>' && $this->char !== '/');
 
     $this->link_nodes($node, true);
     $node->_[HDOM_INFO_ENDSPACE] = $space[0];
@@ -788,7 +804,7 @@ class SimpleHtmlDom
   protected function parse_attr($node, $name, &$space)
   {
     // Per sourceforge: http://sourceforge.net/tracker/?func=detail&aid=3061408&group_id=218559&atid=1044037
-    // If the attribute is already defined inside a tag, only pay atetntion to the first one as opposed to the last one.
+    // If the attribute is already defined inside a tag, only pay attention to the first one as opposed to the last one.
     if (isset($node->attr[$name])) {
       return;
     }
@@ -813,10 +829,9 @@ class SimpleHtmlDom
     }
 
     // PaperG: Attributes should not have \r or \n in them, that counts as html whitespace.
-    $node->attr[$name] = str_replace("\r", "", $node->attr[$name]);
-    $node->attr[$name] = str_replace("\n", "", $node->attr[$name]);
+    $node->attr[$name] = str_replace(array("\r", "\n"), "", $node->attr[$name]);
 
-    // PaperG: If this is a "class" selector, lets get rid of the preceeding and trailing space since some people leave it in the multi class case.
+    // PaperG: If this is a "class" selector, lets get rid of the preceding and trailing space since some people leave it in the multi class case.
     if ($name == "class") {
       $node->attr[$name] = trim($node->attr[$name]);
     }
@@ -832,6 +847,7 @@ class SimpleHtmlDom
   {
     $node->parent = $this->parent;
     $this->parent->nodes[] = $node;
+
     if ($is_child) {
       $this->parent->children[] = $node;
     }
@@ -851,6 +867,7 @@ class SimpleHtmlDom
     $node->_[HDOM_INFO_TEXT] = '</' . $tag . '>';
     $this->link_nodes($node, false);
     $this->char = (++$this->pos < $this->size) ? $this->doc[$this->pos] : null; // next
+
     return true;
   }
 
@@ -878,10 +895,12 @@ class SimpleHtmlDom
     $len = strspn($this->doc, $chars, $pos);
     $this->pos += $len;
     $this->char = ($this->pos < $this->size) ? $this->doc[$this->pos] : null; // next
+
     if ($len === 0) {
       return '';
+    } else {
+      return substr($this->doc, $pos, $len);
     }
-    return substr($this->doc, $pos, $len);
   }
 
   /**
@@ -897,6 +916,7 @@ class SimpleHtmlDom
     $len = strcspn($this->doc, $chars, $pos);
     $this->pos += $len;
     $this->char = ($this->pos < $this->size) ? $this->doc[$this->pos] : null; // next
+
     return substr($this->doc, $pos, $len);
   }
 
@@ -917,15 +937,18 @@ class SimpleHtmlDom
       $ret = substr($this->doc, $this->pos, $this->size - $this->pos);
       $this->char = null;
       $this->pos = $this->size;
+
       return $ret;
     }
 
     if ($pos === $this->pos) {
       return '';
     }
+
     $pos_old = $this->pos;
     $this->char = $this->doc[$pos];
     $this->pos = $pos;
+
     return substr($this->doc, $pos_old, $pos - $pos_old);
   }
 
@@ -948,6 +971,7 @@ class SimpleHtmlDom
         $ret = substr($this->doc, $this->pos, $this->size - $this->pos);
         $this->char = null;
         $this->pos = $this->size;
+
         return $ret;
       }
 
@@ -963,6 +987,7 @@ class SimpleHtmlDom
       $pos_old = $this->pos;
       $this->char = $this->doc[$pos];
       $this->pos = $pos;
+
       return substr($this->doc, $pos_old, $pos - $pos_old);
     }
 
@@ -979,7 +1004,9 @@ class SimpleHtmlDom
   protected function remove_noise($pattern, $remove_tag = false)
   {
     global $debug_object;
+
     if (is_object($debug_object)) {
+      /** @noinspection PhpUndefinedMethodInspection */
       $debug_object->debug_log_entry(1);
     }
 
@@ -988,6 +1015,7 @@ class SimpleHtmlDom
     for ($i = $count - 1; $i > -1; --$i) {
       $key = '___noise___' . sprintf('% 5d', count($this->noise) + 1000);
       if (is_object($debug_object)) {
+        /** @noinspection PhpUndefinedMethodInspection */
         $debug_object->debug_log(2, 'key is: ' . $key);
       }
       $idx = ($remove_tag) ? 0 : 1;
@@ -1012,7 +1040,9 @@ class SimpleHtmlDom
   public function restore_noise($text)
   {
     global $debug_object;
+
     if (is_object($debug_object)) {
+      /** @noinspection PhpUndefinedMethodInspection */
       $debug_object->debug_log_entry(1);
     }
 
@@ -1021,6 +1051,7 @@ class SimpleHtmlDom
       if (strlen($text) > $pos + 15) {
         $key = '___noise___' . $text[$pos + 11] . $text[$pos + 12] . $text[$pos + 13] . $text[$pos + 14] . $text[$pos + 15];
         if (is_object($debug_object)) {
+          /** @noinspection PhpUndefinedMethodInspection */
           $debug_object->debug_log(2, 'located key of: ' . $key);
         }
 
@@ -1035,6 +1066,7 @@ class SimpleHtmlDom
         $text = substr($text, 0, $pos) . 'NO NUMERIC NOISE KEY' . substr($text, $pos + 11);
       }
     }
+
     return $text;
   }
 
@@ -1048,15 +1080,19 @@ class SimpleHtmlDom
   public function search_noise($text)
   {
     global $debug_object;
+
     if (is_object($debug_object)) {
+      /** @noinspection PhpUndefinedMethodInspection */
       $debug_object->debug_log_entry(1);
     }
 
     foreach ($this->noise as $noiseElement) {
-      if (strpos($noiseElement, $text) !== false) {
+      if (UTF8::strpos($noiseElement, $text) !== false) {
         return $noiseElement;
       }
     }
+
+    return '';
   }
 
   /**
@@ -1136,6 +1172,8 @@ class SimpleHtmlDom
    */
   public function createElement($name, $value = null)
   {
+    /** @noinspection PhpUsageOfSilenceOperatorInspection */
+    /** @noinspection PhpUndefinedFunctionInspection */
     return @str_get_html("<$name>$value</$name>")->first_child();
   }
 
@@ -1148,15 +1186,17 @@ class SimpleHtmlDom
    */
   public function createTextNode($value)
   {
+    /** @noinspection PhpUsageOfSilenceOperatorInspection */
+    /** @noinspection PhpUndefinedFunctionInspection */
     return @end(str_get_html($value)->nodes);
   }
 
   /**
    * get element by id
    *
-   * @param $id
+   * @param string $id
    *
-   * @return mixed
+   * @return SimpleHtmlDomNode
    */
   public function getElementById($id)
   {
@@ -1166,10 +1206,10 @@ class SimpleHtmlDom
   /**
    * get elements by id
    *
-   * @param      $id
-   * @param null $idx
+   * @param string $id
+   * @param null   $idx
    *
-   * @return mixed
+   * @return SimpleHtmlDomNode
    */
   public function getElementsById($id, $idx = null)
   {
@@ -1179,9 +1219,9 @@ class SimpleHtmlDom
   /**
    * get element by tag name
    *
-   * @param $name
+   * @param string $name
    *
-   * @return mixed
+   * @return SimpleHtmlDomNode
    */
   public function getElementByTagName($name)
   {
@@ -1191,10 +1231,10 @@ class SimpleHtmlDom
   /**
    * get elements by tag name
    *
-   * @param     $name
-   * @param int $idx
+   * @param string $name
+   * @param int    $idx
    *
-   * @return mixed
+   * @return SimpleHtmlDomNode
    */
   public function getElementsByTagName($name, $idx = -1)
   {

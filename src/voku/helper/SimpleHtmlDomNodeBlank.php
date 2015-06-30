@@ -22,7 +22,7 @@ class SimpleHtmlDomNodeBlank
   }
 
   /**
-   * dummy methode
+   * dummy method
    *
    * @param $name
    * @param $arguments

@@ -2,6 +2,9 @@
 
 use voku\helper\HtmlDomParser;
 
+/**
+ * Class HtmlDomParserTest
+ */
 class HtmlDomParserTest extends PHPUnit_Framework_TestCase
 {
 
@@ -59,7 +62,22 @@ HTML;
     $html->find('div', 1)->class = 'bar';
     $html->find('div[id=hello]', 0)->innertext = 'foo';
 
-    $this->assertEquals('<div id="hello">foo</div><div id="world" class="bar">World</div>', (string) $html);
+    $this->assertEquals('<div id="hello">foo</div><div id="world" class="bar">World</div>', (string)$html);
+  }
+
+  public function testMail2()
+  {
+    $filename = __DIR__ . '/test_mail.html';
+    $html = voku\helper\HtmlDomParser::file_get_html($filename);
+    $html2 = str_replace(array("\r", "\n"), " ", file_get_contents($filename));
+
+    // object to sting
+    $this->assertEquals($html2, (string)$html);
+
+    $preheaderContentArray = $html->find('.preheaderContent');
+    //var_dump($preheaderContentArray);
+    $this->assertEquals('padding-top:10px; padding-right:20px; padding-bottom:10px; padding-left:20px;', $preheaderContentArray[0]->style);
+    $this->assertEquals('top', $preheaderContentArray[0]->valign);
   }
 
   public function testMail()
@@ -147,6 +165,8 @@ HTML;
 
 
                       <b>this is a test öäü ... foobar ... <span class="utf8">דיעס איז אַ פּרובירן!</span>span></b>
+test3Html.html                      <foo id="foo">bar</foo>
+                      <test_>lall</test_>
                       <br/><br/>
                       <br/><br/>
 
@@ -220,7 +240,7 @@ HTML;
             </td>
           </tr>
           <tr>
-            <td><img src="/images/nl/transparent.gif" alt="" width="5" height="20" border="0"></td>
+            <td><img src="/images/nl/transparent.gif" alt="○●◎ earth 中文空白" width="5" height="20" border="0"></td>
           </tr>
           </tbody>
         </table>
@@ -247,16 +267,45 @@ HTML;
       }
     }
 
-    // get the content from the css-selector ".utf8"
+    $testString = false;
+    foreach ($htmlTmp->find('table tr td img') as $e) {
+      if ($e->alt == "○●◎ earth 中文空白") {
+        $testString = $e->alt;
+      }
+    }
+    $this->assertEquals('○●◎ earth 中文空白', $testString);
+
+    // get the content from the css-selector
+
     $testStringUtf8_v1 = $htmlTmp->find('html .utf8');
-    $testStringUtf8_v2 = $htmlTmp->find('span.utf8');
-    $testStringUtf8_v3 = $htmlTmp->find('.utf8');
     $this->assertEquals('דיעס איז אַ פּרובירן!', $testStringUtf8_v1[0]->innertext);
+
+    $testStringUtf8_v2 = $htmlTmp->find('span.utf8');
     $this->assertEquals('דיעס איז אַ פּרובירן!', $testStringUtf8_v2[0]->innertext);
+
+    $testStringUtf8_v3 = $htmlTmp->find('.utf8');
     $this->assertEquals('דיעס איז אַ פּרובירן!', $testStringUtf8_v3[0]->innertext);
 
-    $htmlTmp = (string) $htmlTmp;
+    $testStringUtf8_v4 = $htmlTmp->find('foo');
+    $this->assertEquals('bar', $testStringUtf8_v4[0]->innertext);
 
+    $testStringUtf8_v5 = $htmlTmp->find('#foo');
+    $this->assertEquals('bar', $testStringUtf8_v5[0]->innertext);
+
+    $testStringUtf8_v6 = $htmlTmp->find('test_');
+    $this->assertEquals('lall', $testStringUtf8_v6[0]->innertext);
+
+    $testStringUtf8_v7 = $htmlTmp->getElementById('foo');
+    $this->assertEquals('bar', $testStringUtf8_v7->innertext);
+
+    $testStringUtf8_v8 = $htmlTmp->getElementByTagName('foo');
+    $this->assertEquals('bar', $testStringUtf8_v8->innertext);
+
+    $testStringUtf8_v9 = $htmlTmp->getElementsByTagName('img');
+    $this->assertEquals('○●◎ earth 中文空白', $testStringUtf8_v9->alt);
+
+    // test toString
+    $htmlTmp = (string)$htmlTmp;
     $this->assertEquals(16, count($tmpArray));
     $this->assertContains('<img src="foobar" alt="" width="5" height="3" border="0">', $htmlTmp);
     $this->assertContains('© 2015 Test', $htmlTmp);
