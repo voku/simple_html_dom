@@ -109,7 +109,7 @@ class HtmlDomParser
       $maxLen = MAX_FILE_SIZE;
     }
 
-    if (empty($contents) || UTF8::strlen($contents) > $maxLen) {
+    if (empty($contents) || strlen($contents) > $maxLen) {
       return false;
     }
 

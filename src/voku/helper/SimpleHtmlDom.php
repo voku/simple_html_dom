@@ -400,7 +400,7 @@ class SimpleHtmlDom
     $str = (string)$str;
 
     // Set the length of content before we do anything to it.
-    $this->size = UTF8::strlen($str);
+    $this->size = strlen($str);
     // Save the original size of the html that we got in.  It might be useful to someone.
     $this->original_size = $this->size;
 
@@ -409,7 +409,7 @@ class SimpleHtmlDom
       $str = str_replace(array("\r", "\n"), " ", $str);
 
       // Set the length of content since we have changed it.
-      $this->size = UTF8::strlen($str);
+      $this->size = strlen($str);
     }
 
     $this->doc = $str;
@@ -575,9 +575,9 @@ class SimpleHtmlDom
       $tag = $this->copy_until_char('>');
 
       // skip attributes in end tag
-      $pos = UTF8::strpos($tag, ' ');
+      $pos = strpos($tag, ' ');
       if ($pos !== false) {
-        $tag = UTF8::substr($tag, 0, $pos);
+        $tag = substr($tag, 0, $pos);
       }
 
       $parent_lower = strtolower($this->parent->tag);
@@ -658,9 +658,9 @@ class SimpleHtmlDom
     }
 
     // text
-    $pos = UTF8::strpos($tag, '<');
+    $pos = strpos($tag, '<');
     if ($pos !== false) {
-      $tag = '<' . UTF8::substr($tag, 0, -1);
+      $tag = '<' . substr($tag, 0, -1);
       $node->_[HDOM_INFO_TEXT] = $tag;
       $this->link_nodes($node, false);
       $this->char = $this->doc[--$this->pos]; // prev
@@ -1087,7 +1087,7 @@ class SimpleHtmlDom
     }
 
     foreach ($this->noise as $noiseElement) {
-      if (UTF8::strpos($noiseElement, $text) !== false) {
+      if (strpos($noiseElement, $text) !== false) {
         return $noiseElement;
       }
     }

@@ -525,9 +525,9 @@ class SimpleHtmlDomNode
    * find elements by css selector
    * PaperG - added ability for find to lowercase the value of the selector.
    *
-   * @param      $selector
-   * @param null $idx
-   * @param bool $lowercase
+   * @param          $selector
+   * @param null|int $idx
+   * @param bool     $lowercase
    *
    * @return SimpleHtmlDomNode[]|array|null
    */
@@ -938,7 +938,7 @@ class SimpleHtmlDomNode
    *
    * @return bool
    */
-  function __isset($name)
+  public function __isset($name)
   {
     switch ($name) {
       case 'outertext':
@@ -972,7 +972,7 @@ class SimpleHtmlDomNode
    *
    * @return string
    */
-  function convert_text($text)
+  public function convert_text($text)
   {
     global $debug_object;
     if (is_object($debug_object)) {
@@ -1026,7 +1026,7 @@ class SimpleHtmlDomNode
    */
   public static function is_utf8($str)
   {
-    return UTF8::isUtf8($str);
+    return UTF8::is_utf8($str);
   }
 
   /**
