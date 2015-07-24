@@ -329,7 +329,7 @@ class SimpleHtmlDom
    * @param null $idx
    * @param bool $lowercase
    *
-   * @return array|null|\voku\helper\SimpleHtmlDomNode[]
+   * @return array|null|\voku\helper\SimpleHtmlDomNode[]|\voku\helper\SimpleHtmlDomNode
    */
   public function find($selector, $idx = null, $lowercase = false)
   {

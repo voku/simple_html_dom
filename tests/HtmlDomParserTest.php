@@ -1,5 +1,4 @@
 <?php
-
 use voku\helper\HtmlDomParser;
 
 /**
@@ -20,7 +19,7 @@ class HtmlDomParserTest extends PHPUnit_Framework_TestCase
 </form>
 HTML;
 
-    $html = voku\helper\HtmlDomParser::str_get_html($str);
+    $html = HtmlDomParser::str_get_html($str);
     $checkboxArray = array();
     foreach ($html->find('input[type=checkbox]') as $checkbox) {
       if ($checkbox->checked) {
@@ -30,10 +29,10 @@ HTML;
       }
     }
 
-    $this->assertEquals(3, count($checkboxArray));
-    $this->assertEquals('checked', $checkboxArray['checkbox1']);
-    $this->assertEquals('not checked', $checkboxArray['checkbox2']);
-    $this->assertEquals('checked', $checkboxArray['checkbox3']);
+    self::assertEquals(3, count($checkboxArray));
+    self::assertEquals('checked', $checkboxArray['checkbox1']);
+    self::assertEquals('not checked', $checkboxArray['checkbox2']);
+    self::assertEquals('checked', $checkboxArray['checkbox3']);
   }
 
   public function testOutertext()
@@ -42,13 +41,13 @@ HTML;
 <form name="form1" method="post" action=""><input type="checkbox" name="checkbox1" value="checkbox1" checked>中文空白</form>
 HTML;
 
-    $html = voku\helper\HtmlDomParser::str_get_html($str);
+    $html = HtmlDomParser::str_get_html($str);
 
     foreach ($html->find('input') as $e) {
       $e->outertext = '[INPUT]';
     }
 
-    $this->assertEquals('<form name="form1" method="post" action="">[INPUT]中文空白</form>', $html);
+    self::assertEquals('<form name="form1" method="post" action="">[INPUT]中文空白</form>', $html);
   }
 
   public function testInnertext()
@@ -57,27 +56,27 @@ HTML;
 <div id="hello">Hello</div><div id="world">World</div>
 HTML;
 
-    $html = voku\helper\HtmlDomParser::str_get_html($str);
+    $html = HtmlDomParser::str_get_html($str);
 
     $html->find('div', 1)->class = 'bar';
     $html->find('div[id=hello]', 0)->innertext = 'foo';
 
-    $this->assertEquals('<div id="hello">foo</div><div id="world" class="bar">World</div>', (string)$html);
+    self::assertEquals('<div id="hello">foo</div><div id="world" class="bar">World</div>', (string)$html);
   }
 
   public function testMail2()
   {
     $filename = __DIR__ . '/test_mail.html';
-    $html = voku\helper\HtmlDomParser::file_get_html($filename);
+    $html = HtmlDomParser::file_get_html($filename);
     $html2 = str_replace(array("\r", "\n"), " ", file_get_contents($filename));
 
     // object to sting
-    $this->assertEquals($html2, (string)$html);
+    self::assertEquals($html2, (string)$html);
 
-    $preheaderContentArray = $html->find('.preheaderContent');
-    //var_dump($preheaderContentArray);
-    $this->assertEquals('padding-top:10px; padding-right:20px; padding-bottom:10px; padding-left:20px;', $preheaderContentArray[0]->style);
-    $this->assertEquals('top', $preheaderContentArray[0]->valign);
+    $preHeaderContentArray = $html->find('.preheaderContent');
+
+    self::assertEquals('padding-top:10px; padding-right:20px; padding-bottom:10px; padding-left:20px;', $preHeaderContentArray[0]->style);
+    self::assertEquals('top', $preHeaderContentArray[0]->valign);
   }
 
   public function testMail()
@@ -255,7 +254,7 @@ test3Html.html                      <foo id="foo">bar</foo>
 HTML;
 
     $htmlTmp = HtmlDomParser::str_get_html($str);
-    $this->assertInstanceOf('voku\helper\SimpleHtmlDom', $htmlTmp);
+    self::assertInstanceOf('voku\helper\SimpleHtmlDom', $htmlTmp);
 
     // replace all images with "foobar"
     $tmpArray = array();
@@ -273,41 +272,55 @@ HTML;
         $testString = $e->alt;
       }
     }
-    $this->assertEquals('○●◎ earth 中文空白', $testString);
+    self::assertEquals('○●◎ earth 中文空白', $testString);
 
     // get the content from the css-selector
 
     $testStringUtf8_v1 = $htmlTmp->find('html .utf8');
-    $this->assertEquals('דיעס איז אַ פּרובירן!', $testStringUtf8_v1[0]->innertext);
+    self::assertEquals('דיעס איז אַ פּרובירן!', $testStringUtf8_v1[0]->innertext);
 
     $testStringUtf8_v2 = $htmlTmp->find('span.utf8');
-    $this->assertEquals('דיעס איז אַ פּרובירן!', $testStringUtf8_v2[0]->innertext);
+    self::assertEquals('דיעס איז אַ פּרובירן!', $testStringUtf8_v2[0]->innertext);
 
     $testStringUtf8_v3 = $htmlTmp->find('.utf8');
-    $this->assertEquals('דיעס איז אַ פּרובירן!', $testStringUtf8_v3[0]->innertext);
+    self::assertEquals('דיעס איז אַ פּרובירן!', $testStringUtf8_v3[0]->innertext);
 
     $testStringUtf8_v4 = $htmlTmp->find('foo');
-    $this->assertEquals('bar', $testStringUtf8_v4[0]->innertext);
+    self::assertEquals('bar', $testStringUtf8_v4[0]->innertext);
 
     $testStringUtf8_v5 = $htmlTmp->find('#foo');
-    $this->assertEquals('bar', $testStringUtf8_v5[0]->innertext);
+    self::assertEquals('bar', $testStringUtf8_v5[0]->innertext);
 
     $testStringUtf8_v6 = $htmlTmp->find('test_');
-    $this->assertEquals('lall', $testStringUtf8_v6[0]->innertext);
+    self::assertEquals('lall', $testStringUtf8_v6[0]->innertext);
 
     $testStringUtf8_v7 = $htmlTmp->getElementById('foo');
-    $this->assertEquals('bar', $testStringUtf8_v7->innertext);
+    self::assertEquals('bar', $testStringUtf8_v7->innertext);
 
     $testStringUtf8_v8 = $htmlTmp->getElementByTagName('foo');
-    $this->assertEquals('bar', $testStringUtf8_v8->innertext);
+    self::assertEquals('bar', $testStringUtf8_v8->innertext);
 
     $testStringUtf8_v9 = $htmlTmp->getElementsByTagName('img');
-    $this->assertEquals('○●◎ earth 中文空白', $testStringUtf8_v9->alt);
+    self::assertEquals('○●◎ earth 中文空白', $testStringUtf8_v9->alt);
 
     // test toString
     $htmlTmp = (string)$htmlTmp;
-    $this->assertEquals(16, count($tmpArray));
-    $this->assertContains('<img src="foobar" alt="" width="5" height="3" border="0">', $htmlTmp);
-    $this->assertContains('© 2015 Test', $htmlTmp);
+    self::assertEquals(16, count($tmpArray));
+    self::assertContains('<img src="foobar" alt="" width="5" height="3" border="0">', $htmlTmp);
+    self::assertContains('© 2015 Test', $htmlTmp);
+  }
+  
+  public function testLall()
+  {
+    $str = <<<HTML
+<div id="hello">Hello</div><div id="world">World</div>
+HTML;
+
+    $html = HtmlDomParser::str_get_html($str);
+
+    $html->find('div', 1)->class = 'bar';
+    $html->find('div[id=hello]', 0)->innertext = 'foo';
+
+    self::assertEquals('<div id="hello">foo</div><div id="world" class="bar">World</div>', (string)$html);
   }
 }

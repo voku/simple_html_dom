@@ -8,6 +8,14 @@ namespace voku\helper;
  * PaperG - added ability for "find" routine to lowercase the value of the selector.
  * PaperG - added $tag_start to track the start position of the tag in the total byte index
  *
+ * @property string alt
+ * @property string class
+ * @property string name
+ * @property string src
+ * @property string checked
+ * @property string outertext
+ * @property string innertext
+ *
  * @package voku\helper
  */
 class SimpleHtmlDomNode
@@ -529,7 +537,7 @@ class SimpleHtmlDomNode
    * @param null|int $idx
    * @param bool     $lowercase
    *
-   * @return SimpleHtmlDomNode[]|array|null
+   * @return SimpleHtmlDomNode|SimpleHtmlDomNode[]|array|null
    */
   public function find($selector, $idx = null, $lowercase = false)
   {
