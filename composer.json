@@ -26,8 +26,13 @@
     "satooshi/php-coveralls": "0.7.*@dev"
   },
   "autoload": {
-    "psr-0": {
-      "voku": "src"
+    "psr-4": {
+      "voku\\helper\\": "src"
+    }
+  },
+  "extra": {
+    "branch-alias": {
+      "dev-master": "1.0.x-dev"
     }
   }
 }
