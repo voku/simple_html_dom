@@ -278,21 +278,27 @@ HTML;
 
     $testStringUtf8_v1 = $htmlTmp->find('html .utf8');
     self::assertEquals('דיעס איז אַ פּרובירן!', $testStringUtf8_v1[0]->innertext);
+    self::assertEquals('<span class="utf8">דיעס איז אַ פּרובירן!</span>', $testStringUtf8_v1[0]->outertext);
 
     $testStringUtf8_v2 = $htmlTmp->find('span.utf8');
     self::assertEquals('דיעס איז אַ פּרובירן!', $testStringUtf8_v2[0]->innertext);
+    self::assertEquals('<span class="utf8">דיעס איז אַ פּרובירן!</span>', $testStringUtf8_v2[0]->outertext);
 
     $testStringUtf8_v3 = $htmlTmp->find('.utf8');
     self::assertEquals('דיעס איז אַ פּרובירן!', $testStringUtf8_v3[0]->innertext);
+    self::assertEquals('<span class="utf8">דיעס איז אַ פּרובירן!</span>', $testStringUtf8_v3[0]->outertext);
 
     $testStringUtf8_v4 = $htmlTmp->find('foo');
     self::assertEquals('bar', $testStringUtf8_v4[0]->innertext);
+    self::assertEquals('<foo id="foo">bar</foo>', $testStringUtf8_v4[0]->outertext);
 
     $testStringUtf8_v5 = $htmlTmp->find('#foo');
     self::assertEquals('bar', $testStringUtf8_v5[0]->innertext);
+    self::assertEquals('<foo id="foo">bar</foo>', $testStringUtf8_v5[0]->outertext);
 
     $testStringUtf8_v6 = $htmlTmp->find('test_');
     self::assertEquals('lall', $testStringUtf8_v6[0]->innertext);
+    self::assertEquals('<test_>lall</test_>', $testStringUtf8_v6[0]->outertext);
 
     $testStringUtf8_v7 = $htmlTmp->getElementById('foo');
     self::assertEquals('bar', $testStringUtf8_v7->innertext);
@@ -302,6 +308,8 @@ HTML;
 
     $testStringUtf8_v9 = $htmlTmp->getElementsByTagName('img');
     self::assertEquals('○●◎ earth 中文空白', $testStringUtf8_v9->alt);
+    self::assertEquals('', $testStringUtf8_v9->innertext);
+    self::assertEquals('<img src="foobar" alt="○●◎ earth 中文空白" width="5" height="20" border="0">', $testStringUtf8_v9->outertext);
 
     // test toString
     $htmlTmp = (string)$htmlTmp;

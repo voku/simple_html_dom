@@ -91,10 +91,10 @@ class SimpleHtmlDomNode
   // clean up memory due to php5 circular references memory leak...
   public function clear()
   {
-    $this->dom = null;
-    $this->nodes = null;
-    $this->parent = null;
-    $this->children = null;
+    unset($this->dom);
+    unset($this->nodes);
+    unset($this->parent);
+    unset($this->children);
   }
 
   /**
@@ -983,6 +983,7 @@ class SimpleHtmlDomNode
   public function convert_text($text)
   {
     global $debug_object;
+
     if (is_object($debug_object)) {
       /** @noinspection PhpUndefinedMethodInspection */
       $debug_object->debug_log_entry(1);
