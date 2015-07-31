@@ -26,31 +26,29 @@ Check the [official documentation at SourceForge](http://simplehtmldom.sourcefor
 - Extract contents from HTML in a single line
 
 
-## Installation
+## Install via "composer require"
 
-First, you need to add this repository at the root of your `composer.json`:
-
-```json
-"require": {
-    "simple_html_dom/simple_html_dom": "1.*"
-}
+```shell
+composer require voku/simple_html_dom
 ```
 
-Do a `composer validate`, just to be sure that your file is still valid.
-
-And voilà, you’re ready to `composer update`.
-
-## Usage
+##Quick Start
 
 ```php
 use voku\helper\HtmlDomParser;
 
+require_once 'composer/autoload.php';
+
 ...
-$dom = HtmlDomParser::str_get_html( $str );
+$dom = HtmlDomParser::str_get_html($str);
 // or 
-$dom = HtmlDomParser::file_get_html( $file_name );
+$dom = HtmlDomParser::file_get_html($file_name);
 
 $elems = $dom->find($elem_name);
 ...
 
 ```
+
+##Examples
+
+[github.com/voku/simple_html_dom/tree/master/example](https://github.com/voku/simple_html_dom/tree/master/example)
