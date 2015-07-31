@@ -1,5 +1,6 @@
 [![Build Status](https://travis-ci.org/voku/simple_html_dom.svg?branch=master)](https://travis-ci.org/voku/simple_html_dom)
 [![Coverage Status](https://coveralls.io/repos/github/voku/simple_html_dom/badge.svg?branch=master)](https://coveralls.io/github/voku/simple_html_dom?branch=master)
+[![codecov.io](http://codecov.io/github/voku/simple_html_dom/coverage.svg?branch=master)](http://codecov.io/github/voku/simple_html_dom?branch=master)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/voku/simple_html_dom/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/voku/simple_html_dom/?branch=master)
 [![Codacy Badge](https://www.codacy.com/project/badge/3290fdc35c8f49ad9abdf053582466eb)](https://www.codacy.com/app/voku/simple_html_dom)
 [![SensioLabsInsight](https://insight.sensiolabs.com/projects/be3e4851-272f-4499-9fc4-4b2704a43301/mini.png)](https://insight.sensiolabs.com/projects/be3e4851-272f-4499-9fc4-4b2704a43301)
