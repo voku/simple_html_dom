@@ -1009,7 +1009,7 @@ class SimpleHtmlDomNode
       if (
           (strcasecmp($targetCharset, 'UTF-8') == 0)
           &&
-          self::is_utf8($text)
+          UTF8::is_utf8($text)
       ) {
         $converted_text = $text;
       } else {
