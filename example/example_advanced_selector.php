@@ -1,5 +1,7 @@
 <?php
 
+use voku\helper\HtmlDomParser;
+
 require_once '../vendor/autoload.php';
 
 // -----------------------------------------------------------------------------
@@ -12,7 +14,7 @@ $str = <<<HTML
 </div>
 HTML;
 
-$html = voku\helper\HtmlDomParser::str_get_html($str);
+$html = HtmlDomParser::str_get_html($str);
 echo $html->find('div div div', 0)->innertext . '<br>'; // result: "ok"
 
 // -----------------------------------------------------------------------------
@@ -28,7 +30,7 @@ $str = <<<HTML
 </ul>
 HTML;
 
-$html = voku\helper\HtmlDomParser::str_get_html($str);
+$html = HtmlDomParser::str_get_html($str);
 foreach ($html->find('ul') as $ul) {
   foreach ($ul->find('li') as $li) {
     echo $li->innertext . '<br>';
@@ -45,7 +47,7 @@ $str = <<<HTML
 </form>
 HTML;
 
-$html = voku\helper\HtmlDomParser::str_get_html($str);
+$html = HtmlDomParser::str_get_html($str);
 foreach ($html->find('input[type=checkbox]') as $checkbox) {
   if ($checkbox->checked) {
     echo $checkbox->name . ' is checked<br>';

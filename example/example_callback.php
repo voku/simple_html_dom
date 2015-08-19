@@ -1,25 +1,34 @@
 <?php
 
+use voku\helper\HtmlDomParser;
+
 require_once '../vendor/autoload.php';
 
 // 1. Write a function with parameter "$element"
-function my_callback($element) {
-  if ($element->tag=='input') {
+
+/**
+ * test callback
+ *
+ * @param $element
+ */
+function my_callback($element)
+{
+  if ($element->tag == 'input') {
     $element->outertext = 'input';
   }
 
-  if ($element->tag=='img') {
+  if ($element->tag == 'img') {
     $element->outertext = 'img';
   }
 
-  if ($element->tag=='a') {
+  if ($element->tag == 'a') {
     $element->outertext = 'a';
   }
 }
 
 
 // 2. create HTML Dom
-$html = voku\helper\HtmlDomParser::file_get_html('http://www.google.com/');
+$html = HtmlDomParser::file_get_html('http://www.google.com/');
 
 
 // 3. Register the callback function with it's function name

@@ -1,9 +1,11 @@
 <?php
 
+use voku\helper\HtmlDomParser;
+
 require_once '../vendor/autoload.php';
 
 // get DOM from URL or file
-$html = voku\helper\HtmlDomParser::file_get_html('http://www.google.com/');
+$html = HtmlDomParser::file_get_html('http://www.google.com/');
 
 // remove all image
 foreach ($html->find('img') as $e) {
