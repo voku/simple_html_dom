@@ -16,6 +16,26 @@ namespace voku\helper;
 class SimpleHtmlDom
 {
   /**
+   * @var string
+   */
+  const token_blank = " \t\r\n";
+
+  /**
+   * @var string
+   */
+  const token_equal = ' =/>';
+
+  /**
+   * @var string
+   */
+  const token_slash = " />\r\n\t";
+
+  /**
+   * @var string
+   */
+  const token_attr = ' >';
+
+  /**
    * @var SimpleHtmlDomNode|null
    */
   public $root = null;
@@ -76,26 +96,6 @@ class SimpleHtmlDom
    * @var array
    */
   protected $noise = array();
-
-  /**
-   * @var string
-   */
-  protected $token_blank = " \t\r\n";
-
-  /**
-   * @var string
-   */
-  protected $token_equal = ' =/>';
-
-  /**
-   * @var string
-   */
-  protected $token_slash = " />\r\n\t";
-
-  /**
-   * @var string
-   */
-  protected $token_attr = ' >';
 
   /**
    * Note that this is referenced by a child node, and so it needs to be public for that node to see this information.
@@ -569,9 +569,10 @@ class SimpleHtmlDom
     // end tag
     if ($this->char === '/') {
       $this->char = (++$this->pos < $this->size) ? $this->doc[$this->pos] : null; // next
+
       // This represents the change in the simple_html_dom trunk from revision 180 to 181.
-      // $this->skip($this->token_blank_t);
-      $this->skip($this->token_blank);
+      // $this->skip(self::token_blank_t);
+      $this->skip(self::token_blank);
       $tag = $this->copy_until_char('>');
 
       // skip attributes in end tag
@@ -635,7 +636,7 @@ class SimpleHtmlDom
     $node = new SimpleHtmlDomNode($this);
     $node->_[HDOM_INFO_BEGIN] = $this->cursor;
     ++$this->cursor;
-    $tag = $this->copy_until($this->token_slash);
+    $tag = $this->copy_until(self::token_slash);
     $node->tag_start = $begin_tag_pos;
 
     // doctype, cdata & comments...
@@ -699,7 +700,7 @@ class SimpleHtmlDom
 
     $guard = 0; // prevent infinity loop
     $space = array(
-        $this->copy_skip($this->token_blank),
+        $this->copy_skip(self::token_blank),
         '',
         '',
     );
@@ -709,7 +710,7 @@ class SimpleHtmlDom
       if ($this->char !== null && $space[0] === '') {
         break;
       }
-      $name = $this->copy_until($this->token_equal);
+      $name = $this->copy_until(self::token_equal);
       if ($guard === $this->pos) {
         $this->char = (++$this->pos < $this->size) ? $this->doc[$this->pos] : null; // next
         continue;
@@ -742,7 +743,7 @@ class SimpleHtmlDom
       }
 
       if ($name !== '/' && $name !== '') {
-        $space[1] = $this->copy_skip($this->token_blank);
+        $space[1] = $this->copy_skip(self::token_blank);
         $name = $this->restore_noise($name);
         if ($this->lowercase) {
           $name = strtolower($name);
@@ -760,7 +761,7 @@ class SimpleHtmlDom
         }
         $node->_[HDOM_INFO_SPACE][] = $space;
         $space = array(
-            $this->copy_skip($this->token_blank),
+            $this->copy_skip(self::token_blank),
             '',
             '',
         );
@@ -809,7 +810,7 @@ class SimpleHtmlDom
       return;
     }
 
-    $space[2] = $this->copy_skip($this->token_blank);
+    $space[2] = $this->copy_skip(self::token_blank);
     switch ($this->char) {
       case '"':
         $node->_[HDOM_INFO_QUOTE][] = HDOM_QUOTE_DOUBLE;
@@ -825,7 +826,7 @@ class SimpleHtmlDom
         break;
       default:
         $node->_[HDOM_INFO_QUOTE][] = HDOM_QUOTE_NO;
-        $node->attr[$name] = $this->restore_noise($this->copy_until($this->token_attr));
+        $node->attr[$name] = $this->restore_noise($this->copy_until(self::token_attr));
     }
 
     // PaperG: Attributes should not have \r or \n in them, that counts as html whitespace.
