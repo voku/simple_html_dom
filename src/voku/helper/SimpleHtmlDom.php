@@ -66,59 +66,48 @@ class SimpleHtmlDom
    * @var int
    */
   public $size;
-
-  /**
-   * @var int
-   */
-  protected $pos;
-
-  /**
-   * @var string
-   */
-  protected $doc;
-
-  /**
-   * @var string
-   */
-  protected $char;
-
-  /**
-   * @var int
-   */
-  protected $cursor;
-
-  /**
-   * @var SimpleHtmlDom
-   */
-  protected $parent;
-
-  /**
-   * @var array
-   */
-  protected $noise = array();
-
   /**
    * Note that this is referenced by a child node, and so it needs to be public for that node to see this information.
    *
    * @var string
    */
   public $_charset = '';
-
   /**
    * @var string
    */
   public $_target_charset = '';
-
-  /**
-   * @var string
-   */
-  protected $default_br_text = '';
-
   /**
    * @var string
    */
   public $default_span_text = '';
-
+  /**
+   * @var int
+   */
+  protected $pos;
+  /**
+   * @var string
+   */
+  protected $doc;
+  /**
+   * @var string
+   */
+  protected $char;
+  /**
+   * @var int
+   */
+  protected $cursor;
+  /**
+   * @var SimpleHtmlDom
+   */
+  protected $parent;
+  /**
+   * @var array
+   */
+  protected $noise = array();
+  /**
+   * @var string
+   */
+  protected $default_br_text = '';
   /**
    * use isset instead of in_array, performance boost about 30%...
    *
@@ -158,9 +147,15 @@ class SimpleHtmlDom
           'td' => 1,
           'th' => 1,
       ),
-      'th'     => array('th' => 1),
-      'td'     => array('td' => 1),
-      'li'     => array('li' => 1),
+      'th'     => array(
+          'th' => 1,
+      ),
+      'td'     => array(
+          'td' => 1,
+      ),
+      'li'     => array(
+          'li' => 1,
+      ),
       'dt'     => array(
           'dt' => 1,
           'dd' => 1,
@@ -173,10 +168,18 @@ class SimpleHtmlDom
           'dd' => 1,
           'dt' => 1,
       ),
-      'p'      => array('p' => 1),
-      'nobr'   => array('nobr' => 1),
-      'b'      => array('b' => 1),
-      'option' => array('option' => 1),
+      'p'      => array(
+          'p' => 1,
+      ),
+      'nobr'   => array(
+          'nobr' => 1,
+      ),
+      'b'      => array(
+          'b' => 1,
+      ),
+      'option' => array(
+          'option' => 1,
+      ),
   );
 
   /**
@@ -209,11 +212,22 @@ class SimpleHtmlDom
   }
 
   /**
-   * __destruct
+   * load html from file
+   *
+   * @return bool
    */
-  public function __destruct()
+  public function load_file()
   {
-    $this->clear();
+    $args = func_get_args();
+    $this->load(call_user_func_array('file_get_contents', $args), true);
+    // Throw an error if we can't properly load the dom.
+    if (($error = error_get_last()) !== null) {
+      $this->clear();
+
+      return false;
+    }
+
+    return true;
   }
 
   /**
@@ -267,125 +281,6 @@ class SimpleHtmlDom
   }
 
   /**
-   * load html from file
-   *
-   * @return bool
-   */
-  public function load_file()
-  {
-    $args = func_get_args();
-    $this->load(call_user_func_array('file_get_contents', $args), true);
-    // Throw an error if we can't properly load the dom.
-    if (($error = error_get_last()) !== null) {
-      $this->clear();
-
-      return false;
-    }
-
-    return true;
-  }
-
-  /**
-   * set callback function
-   *
-   * @param $function_name
-   */
-  public function set_callback($function_name)
-  {
-    $this->callback = $function_name;
-  }
-
-  /**
-   * remove callback function
-   */
-  public function remove_callback()
-  {
-    $this->callback = null;
-  }
-
-  /**
-   * save dom as string
-   *
-   * @param string $filepath
-   *
-   * @return mixed
-   */
-  public function save($filepath = '')
-  {
-    $ret = $this->root->innertext();
-    if ($filepath !== '') {
-      file_put_contents($filepath, $ret, LOCK_EX);
-    }
-
-    return $ret;
-  }
-
-  /**
-   * find dom node by css selector
-   *
-   * Paperg - allow us to specify that we want case insensitive testing of the value of the selector.
-   *
-   * @param      $selector
-   * @param null $idx
-   * @param bool $lowercase
-   *
-   * @return array|null|\voku\helper\SimpleHtmlDomNode[]|\voku\helper\SimpleHtmlDomNode
-   */
-  public function find($selector, $idx = null, $lowercase = false)
-  {
-    $find = $this->root->find($selector, $idx, $lowercase);
-
-    if ($find === null) {
-      return new SimpleHtmlDomNodeBlank();
-    } else {
-      return $find;
-    }
-  }
-
-  /**
-   * clean up memory due to php5 circular references memory leak...
-   */
-  public function clear()
-  {
-    foreach ($this->nodes as $n) {
-      $n->clear();
-      $n = null;
-    }
-
-    // This add next line is documented in the sourceforge repository. 2977248 as a fix for ongoing memory leaks that occur even with the use of clear.
-    if (isset($this->children)) {
-      /** @noinspection PhpWrongForeachArgumentTypeInspection */
-      foreach ($this->children as $n) {
-        if (is_object($n)) {
-          /** @noinspection PhpUndefinedMethodInspection */
-          $n->clear();
-        }
-        $n = null;
-      }
-    }
-
-    if (isset($this->parent)) {
-      $this->parent->clear();
-      unset($this->parent);
-    }
-
-    if (isset($this->root)) {
-      $this->root->clear();
-      unset($this->root);
-    }
-
-    unset($this->doc, $this->docArray, $this->noise, $this->parent, $this->root);
-  }
-
-  /**
-   * @param bool $show_attr
-   */
-  public function dump($show_attr = true)
-  {
-    $this->root->dump($show_attr);
-  }
-
-  /**
    * prepare HTML data and init everything
    *
    * @param        $str
@@ -431,6 +326,77 @@ class SimpleHtmlDom
   }
 
   /**
+   * clean up memory due to php5 circular references memory leak...
+   */
+  public function clear()
+  {
+    foreach ($this->nodes as $n) {
+      $n->clear();
+      $n = null;
+    }
+
+    // This add next line is documented in the sourceforge repository. 2977248 as a fix for ongoing memory leaks that occur even with the use of clear.
+    if (isset($this->children)) {
+      /** @noinspection PhpWrongForeachArgumentTypeInspection */
+      foreach ($this->children as $n) {
+        if (is_object($n)) {
+          /** @noinspection PhpUndefinedMethodInspection */
+          $n->clear();
+        }
+        $n = null;
+      }
+    }
+
+    if (isset($this->parent)) {
+      $this->parent->clear();
+      unset($this->parent);
+    }
+
+    if (isset($this->root)) {
+      $this->root->clear();
+      unset($this->root);
+    }
+
+    unset($this->doc, $this->docArray, $this->noise, $this->parent, $this->root);
+  }
+
+  /**
+   * remove noise from html content
+   * save the noise in the $this->noise array.
+   *
+   * @param      $pattern
+   * @param bool $remove_tag
+   */
+  protected function remove_noise($pattern, $remove_tag = false)
+  {
+    global $debug_object;
+
+    if (is_object($debug_object)) {
+      /** @noinspection PhpUndefinedMethodInspection */
+      $debug_object->debug_log_entry(1);
+    }
+
+    $count = preg_match_all($pattern, $this->doc, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE);
+
+    for ($i = $count - 1; $i > -1; --$i) {
+      $key = '___noise___' . sprintf('% 5d', count($this->noise) + 1000);
+      if (is_object($debug_object)) {
+        /** @noinspection PhpUndefinedMethodInspection */
+        $debug_object->debug_log(2, 'key is: ' . $key);
+      }
+      $idx = ($remove_tag) ? 0 : 1;
+      $this->noise[$key] = $matches[$i][$idx][0];
+      $this->doc = substr_replace($this->doc, $key, $matches[$i][$idx][1], strlen($matches[$i][$idx][0]));
+    }
+
+    // reset the length of content
+    $this->size = strlen($this->doc);
+    if ($this->size > 0) {
+      $this->char = $this->doc[0];
+    }
+  }
+
+  /**
    * parse html content
    *
    * @return bool
@@ -451,104 +417,35 @@ class SimpleHtmlDom
   }
 
   /**
-   * PAPERG - dkchou - added this to try to identify the character set of the page we have just parsed so we know
-   * better how to spit it out later. NOTE:  IF you provide a routine called
-   * get_last_retrieve_url_contents_content_type which returns the CURLINFO_CONTENT_TYPE from the last curl_exec
-   * (or the content_type header from the last transfer), we will parse THAT, and if a charset is specified, we will
-   * use it over any other mechanism.
+   * copy until - char
    *
-   * @return bool|null|string
+   * @param $char
+   *
+   * @return string
    */
-  protected function parse_charset()
+  protected function copy_until_char($char)
   {
-    global $debug_object;
-
-    $charset = null;
-
-    if (function_exists('get_last_retrieve_url_contents_content_type')) {
-      $contentTypeHeader = get_last_retrieve_url_contents_content_type();
-      $success = preg_match('/charset=(.+)/', $contentTypeHeader, $matches);
-      if ($success) {
-        $charset = $matches[1];
-        if (is_object($debug_object)) {
-          /** @noinspection PhpUndefinedMethodInspection */
-          $debug_object->debug_log(2, 'header content-type found charset of: ' . $charset);
-        }
-      }
-
+    if ($this->char === null) {
+      return '';
     }
 
-    if (empty($charset)) {
-      $el = $this->root->find('meta[http-equiv=Content-Type]', 0, true);
-      if (!empty($el)) {
-        /** @noinspection PhpUndefinedFieldInspection */
-        $fullvalue = $el->content;
-        if (is_object($debug_object)) {
-          /** @noinspection PhpUndefinedMethodInspection */
-          $debug_object->debug_log(2, 'meta content-type tag found' . $fullvalue);
-        }
+    if (($pos = strpos($this->doc, $char, $this->pos)) === false) {
+      $ret = substr($this->doc, $this->pos, $this->size - $this->pos);
+      $this->char = null;
+      $this->pos = $this->size;
 
-        if (!empty($fullvalue)) {
-          $success = preg_match('/charset=(.+)/i', $fullvalue, $matches);
-          if ($success) {
-            $charset = $matches[1];
-          } else {
-            // If there is a meta tag, and they don't specify the character set, research says that it's typically ISO-8859-1
-            if (is_object($debug_object)) {
-              /** @noinspection PhpUndefinedMethodInspection */
-              $debug_object->debug_log(2, 'meta content-type tag couldn\'t be parsed. using iso-8859 default.');
-            }
-            $charset = 'ISO-8859-1';
-          }
-        }
-      }
+      return $ret;
     }
 
-    // If we couldn't find a charset above, then lets try to detect one based on the text we got...
-    if (empty($charset)) {
-      // Use this in case mb_detect_charset isn't installed/loaded on this machine.
-      $charset = false;
-      if (function_exists('mb_detect_encoding')) {
-        // Have php try to detect the encoding from the text given to us.
-        $charset = mb_detect_encoding(
-            $this->root->plaintext . 'ascii', $encoding_list = array(
-            'UTF-8',
-            'CP1252',
-        )
-        );
-        if (is_object($debug_object)) {
-          /** @noinspection PhpUndefinedMethodInspection */
-          $debug_object->debug_log(2, 'mb_detect found: ' . $charset);
-        }
-      }
-
-      // and if this doesn't work...  then we need to just wrongheadedly assume it's UTF-8 so that we can move on - cause this will usually give us most of what we need...
-      if ($charset === false) {
-        if (is_object($debug_object)) {
-          /** @noinspection PhpUndefinedMethodInspection */
-          $debug_object->debug_log(2, 'since mb_detect failed - using default of utf-8');
-        }
-        $charset = 'UTF-8';
-      }
+    if ($pos === $this->pos) {
+      return '';
     }
 
-    // Since CP1252 is a superset, if we get one of it's subsets, we want it instead.
-    if (
-        (strtolower($charset) == strtolower('ISO-8859-1'))
-        ||
-        (strtolower($charset) == strtolower('Latin1'))
-        ||
-        (strtolower($charset) == strtolower('Latin-1'))
-    ) {
-      $charset = 'CP1252';
-    }
+    $pos_old = $this->pos;
+    $this->char = $this->doc[$pos];
+    $this->pos = $pos;
 
-    if (is_object($debug_object)) {
-      /** @noinspection PhpUndefinedMethodInspection */
-      $debug_object->debug_log(1, 'EXIT - ' . $charset);
-    }
-
-    return $this->_charset = $charset;
+    return substr($this->doc, $pos_old, $pos - $pos_old);
   }
 
   /**
@@ -796,6 +693,129 @@ class SimpleHtmlDom
   }
 
   /**
+   * skip
+   *
+   * @param $chars
+   */
+  protected function skip($chars)
+  {
+    $this->pos += strspn($this->doc, $chars, $this->pos);
+    $this->char = ($this->pos < $this->size) ? $this->doc[$this->pos] : null; // next
+  }
+
+  /**
+   * as a text node
+   *
+   * @param $tag
+   *
+   * @return bool
+   */
+  protected function as_text_node($tag)
+  {
+    $node = new SimpleHtmlDomNode($this);
+    ++$this->cursor;
+    $node->_[HDOM_INFO_TEXT] = '</' . $tag . '>';
+    $this->link_nodes($node, false);
+    $this->char = (++$this->pos < $this->size) ? $this->doc[$this->pos] : null; // next
+
+    return true;
+  }
+
+  /**
+   * link node's parent
+   *
+   * @param $node
+   * @param $is_child
+   */
+  protected function link_nodes(&$node, $is_child)
+  {
+    $node->parent = $this->parent;
+    $this->parent->nodes[] = $node;
+
+    if ($is_child) {
+      $this->parent->children[] = $node;
+    }
+  }
+
+  /**
+   * copy until
+   *
+   * @param $chars
+   *
+   * @return string
+   */
+  protected function copy_until($chars)
+  {
+    $pos = $this->pos;
+    $len = strcspn($this->doc, $chars, $pos);
+    $this->pos += $len;
+    $this->char = ($this->pos < $this->size) ? $this->doc[$this->pos] : null; // next
+
+    return substr($this->doc, $pos, $len);
+  }
+
+  /**
+   * copy skip
+   *
+   * @param $chars
+   *
+   * @return string
+   */
+  protected function copy_skip($chars)
+  {
+    $pos = $this->pos;
+    $len = strspn($this->doc, $chars, $pos);
+    $this->pos += $len;
+    $this->char = ($this->pos < $this->size) ? $this->doc[$this->pos] : null; // next
+
+    if ($len === 0) {
+      return '';
+    } else {
+      return substr($this->doc, $pos, $len);
+    }
+  }
+
+  /**
+   * restore noise to html content
+   *
+   * @param $text
+   *
+   * @return string
+   */
+  public function restore_noise($text)
+  {
+    global $debug_object;
+
+    if (is_object($debug_object)) {
+      /** @noinspection PhpUndefinedMethodInspection */
+      $debug_object->debug_log_entry(1);
+    }
+
+    while (($pos = strpos($text, '___noise___')) !== false) {
+      // Sometimes there is a broken piece of markup, and we don't GET the pos+11 etc... token which indicates a problem outside of us...
+      if (strlen($text) > $pos + 15) {
+        $key = '___noise___' . $text[$pos + 11] . $text[$pos + 12] . $text[$pos + 13] . $text[$pos + 14] . $text[$pos + 15];
+        if (is_object($debug_object)) {
+          /** @noinspection PhpUndefinedMethodInspection */
+          $debug_object->debug_log(2, 'located key of: ' . $key);
+        }
+
+        if (isset($this->noise[$key])) {
+          $text = substr($text, 0, $pos) . $this->noise[$key] . substr($text, $pos + 16);
+        } else {
+          // do this to prevent an infinite loop.
+          $text = substr($text, 0, $pos) . 'UNDEFINED NOISE FOR KEY: ' . $key . substr($text, $pos + 16);
+        }
+      } else {
+        // There is no valid key being given back to us... We must get rid of the ___noise___ or we will have a problem.
+        $text = substr($text, 0, $pos) . 'NO NUMERIC NOISE KEY' . substr($text, $pos + 11);
+      }
+    }
+
+    return $text;
+  }
+
+  /**
    * parse attributes
    *
    * @param $node
@@ -836,121 +856,6 @@ class SimpleHtmlDom
     if ($name == 'class') {
       $node->attr[$name] = trim($node->attr[$name]);
     }
-  }
-
-  /**
-   * link node's parent
-   *
-   * @param $node
-   * @param $is_child
-   */
-  protected function link_nodes(&$node, $is_child)
-  {
-    $node->parent = $this->parent;
-    $this->parent->nodes[] = $node;
-
-    if ($is_child) {
-      $this->parent->children[] = $node;
-    }
-  }
-
-  /**
-   * as a text node
-   *
-   * @param $tag
-   *
-   * @return bool
-   */
-  protected function as_text_node($tag)
-  {
-    $node = new SimpleHtmlDomNode($this);
-    ++$this->cursor;
-    $node->_[HDOM_INFO_TEXT] = '</' . $tag . '>';
-    $this->link_nodes($node, false);
-    $this->char = (++$this->pos < $this->size) ? $this->doc[$this->pos] : null; // next
-
-    return true;
-  }
-
-  /**
-   * skip
-   *
-   * @param $chars
-   */
-  protected function skip($chars)
-  {
-    $this->pos += strspn($this->doc, $chars, $this->pos);
-    $this->char = ($this->pos < $this->size) ? $this->doc[$this->pos] : null; // next
-  }
-
-  /**
-   * copy skip
-   *
-   * @param $chars
-   *
-   * @return string
-   */
-  protected function copy_skip($chars)
-  {
-    $pos = $this->pos;
-    $len = strspn($this->doc, $chars, $pos);
-    $this->pos += $len;
-    $this->char = ($this->pos < $this->size) ? $this->doc[$this->pos] : null; // next
-
-    if ($len === 0) {
-      return '';
-    } else {
-      return substr($this->doc, $pos, $len);
-    }
-  }
-
-  /**
-   * copy until
-   *
-   * @param $chars
-   *
-   * @return string
-   */
-  protected function copy_until($chars)
-  {
-    $pos = $this->pos;
-    $len = strcspn($this->doc, $chars, $pos);
-    $this->pos += $len;
-    $this->char = ($this->pos < $this->size) ? $this->doc[$this->pos] : null; // next
-
-    return substr($this->doc, $pos, $len);
-  }
-
-  /**
-   * copy until - char
-   *
-   * @param $char
-   *
-   * @return string
-   */
-  protected function copy_until_char($char)
-  {
-    if ($this->char === null) {
-      return '';
-    }
-
-    if (($pos = strpos($this->doc, $char, $this->pos)) === false) {
-      $ret = substr($this->doc, $this->pos, $this->size - $this->pos);
-      $this->char = null;
-      $this->pos = $this->size;
-
-      return $ret;
-    }
-
-    if ($pos === $this->pos) {
-      return '';
-    }
-
-    $pos_old = $this->pos;
-    $this->char = $this->doc[$pos];
-    $this->pos = $pos;
-
-    return substr($this->doc, $pos_old, $pos - $pos_old);
   }
 
   /**
@@ -996,79 +901,155 @@ class SimpleHtmlDom
   }
 
   /**
-   * remove noise from html content
-   * save the noise in the $this->noise array.
+   * PAPERG - dkchou - added this to try to identify the character set of the page we have just parsed so we know
+   * better how to spit it out later. NOTE:  IF you provide a routine called
+   * get_last_retrieve_url_contents_content_type which returns the CURLINFO_CONTENT_TYPE from the last curl_exec
+   * (or the content_type header from the last transfer), we will parse THAT, and if a charset is specified, we will
+   * use it over any other mechanism.
    *
-   * @param      $pattern
-   * @param bool $remove_tag
+   * @return bool|null|string
    */
-  protected function remove_noise($pattern, $remove_tag = false)
+  protected function parse_charset()
   {
     global $debug_object;
 
+    $charset = null;
+
+    if (function_exists('get_last_retrieve_url_contents_content_type')) {
+      $contentTypeHeader = get_last_retrieve_url_contents_content_type();
+      $success = preg_match('/charset=(.+)/', $contentTypeHeader, $matches);
+      if ($success) {
+        $charset = $matches[1];
+        if (is_object($debug_object)) {
+          /** @noinspection PhpUndefinedMethodInspection */
+          $debug_object->debug_log(2, 'header content-type found charset of: ' . $charset);
+        }
+      }
+
+    }
+
+    if (empty($charset)) {
+      $el = $this->root->find('meta[http-equiv=Content-Type]', 0, true);
+      if (!empty($el)) {
+        /** @noinspection PhpUndefinedFieldInspection */
+        $fullvalue = $el->content;
+        if (is_object($debug_object)) {
+          /** @noinspection PhpUndefinedMethodInspection */
+          $debug_object->debug_log(2, 'meta content-type tag found' . $fullvalue);
+        }
+
+        if (!empty($fullvalue)) {
+          $success = preg_match('/charset=(.+)/i', $fullvalue, $matches);
+          if ($success) {
+            $charset = $matches[1];
+          } else {
+            // If there is a meta tag, and they don't specify the character set, research says that it's typically ISO-8859-1
+            if (is_object($debug_object)) {
+              /** @noinspection PhpUndefinedMethodInspection */
+              $debug_object->debug_log(2, 'meta content-type tag couldn\'t be parsed. using iso-8859 default.');
+            }
+            $charset = 'ISO-8859-1';
+          }
+        }
+      }
+    }
+
+    // If we couldn't find a charset above, then lets try to detect one based on the text we got...
+    if (empty($charset)) {
+      // Use this in case mb_detect_charset isn't installed/loaded on this machine.
+      $charset = false;
+      if (function_exists('mb_detect_encoding')) {
+        // Have php try to detect the encoding from the text given to us.
+        $charset = mb_detect_encoding(
+            $this->root->plaintext . 'ascii', $encoding_list = array(
+            'UTF-8',
+            'CP1252',
+        )
+        );
+        if (is_object($debug_object)) {
+          /** @noinspection PhpUndefinedMethodInspection */
+          $debug_object->debug_log(2, 'mb_detect found: ' . $charset);
+        }
+      }
+
+      // and if this doesn't work...  then we need to just wrongheadedly assume it's UTF-8 so that we can move on - cause this will usually give us most of what we need...
+      if ($charset === false) {
+        if (is_object($debug_object)) {
+          /** @noinspection PhpUndefinedMethodInspection */
+          $debug_object->debug_log(2, 'since mb_detect failed - using default of utf-8');
+        }
+        $charset = 'UTF-8';
+      }
+    }
+
+    // Since CP1252 is a superset, if we get one of it's subsets, we want it instead.
+    if (
+        (strtolower($charset) == strtolower('ISO-8859-1'))
+        ||
+        (strtolower($charset) == strtolower('Latin1'))
+        ||
+        (strtolower($charset) == strtolower('Latin-1'))
+    ) {
+      $charset = 'CP1252';
+    }
+
     if (is_object($debug_object)) {
       /** @noinspection PhpUndefinedMethodInspection */
-      $debug_object->debug_log_entry(1);
+      $debug_object->debug_log(1, 'EXIT - ' . $charset);
     }
 
-    $count = preg_match_all($pattern, $this->doc, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE);
-
-    for ($i = $count - 1; $i > -1; --$i) {
-      $key = '___noise___' . sprintf('% 5d', count($this->noise) + 1000);
-      if (is_object($debug_object)) {
-        /** @noinspection PhpUndefinedMethodInspection */
-        $debug_object->debug_log(2, 'key is: ' . $key);
-      }
-      $idx = ($remove_tag) ? 0 : 1;
-      $this->noise[$key] = $matches[$i][$idx][0];
-      $this->doc = substr_replace($this->doc, $key, $matches[$i][$idx][1], strlen($matches[$i][$idx][0]));
-    }
-
-    // reset the length of content
-    $this->size = strlen($this->doc);
-    if ($this->size > 0) {
-      $this->char = $this->doc[0];
-    }
+    return $this->_charset = $charset;
   }
 
   /**
-   * restore noise to html content
-   *
-   * @param $text
-   *
-   * @return string
+   * __destruct
    */
-  public function restore_noise($text)
+  public function __destruct()
   {
-    global $debug_object;
+    $this->clear();
+  }
 
-    if (is_object($debug_object)) {
-      /** @noinspection PhpUndefinedMethodInspection */
-      $debug_object->debug_log_entry(1);
+  /**
+   * set callback function
+   *
+   * @param $function_name
+   */
+  public function set_callback($function_name)
+  {
+    $this->callback = $function_name;
+  }
+
+  /**
+   * remove callback function
+   */
+  public function remove_callback()
+  {
+    $this->callback = null;
+  }
+
+  /**
+   * save dom as string
+   *
+   * @param string $filepath
+   *
+   * @return mixed
+   */
+  public function save($filepath = '')
+  {
+    $ret = $this->root->innertext();
+    if ($filepath !== '') {
+      file_put_contents($filepath, $ret, LOCK_EX);
     }
 
-    while (($pos = strpos($text, '___noise___')) !== false) {
-      // Sometimes there is a broken piece of markup, and we don't GET the pos+11 etc... token which indicates a problem outside of us...
-      if (strlen($text) > $pos + 15) {
-        $key = '___noise___' . $text[$pos + 11] . $text[$pos + 12] . $text[$pos + 13] . $text[$pos + 14] . $text[$pos + 15];
-        if (is_object($debug_object)) {
-          /** @noinspection PhpUndefinedMethodInspection */
-          $debug_object->debug_log(2, 'located key of: ' . $key);
-        }
+    return $ret;
+  }
 
-        if (isset($this->noise[$key])) {
-          $text = substr($text, 0, $pos) . $this->noise[$key] . substr($text, $pos + 16);
-        } else {
-          // do this to prevent an infinite loop.
-          $text = substr($text, 0, $pos) . 'UNDEFINED NOISE FOR KEY: ' . $key . substr($text, $pos + 16);
-        }
-      } else {
-        // There is no valid key being given back to us... We must get rid of the ___noise___ or we will have a problem.
-        $text = substr($text, 0, $pos) . 'NO NUMERIC NOISE KEY' . substr($text, $pos + 11);
-      }
-    }
-
-    return $text;
+  /**
+   * @param bool $show_attr
+   */
+  public function dump($show_attr = true)
+  {
+    $this->root->dump($show_attr);
   }
 
   /**
@@ -1202,6 +1183,28 @@ class SimpleHtmlDom
   public function getElementById($id)
   {
     return $this->find("#$id", 0);
+  }
+
+  /**
+   * find dom node by css selector
+   *
+   * Paperg - allow us to specify that we want case insensitive testing of the value of the selector.
+   *
+   * @param      $selector
+   * @param null $idx
+   * @param bool $lowercase
+   *
+   * @return array|null|\voku\helper\SimpleHtmlDomNode[]|\voku\helper\SimpleHtmlDomNode
+   */
+  public function find($selector, $idx = null, $lowercase = false)
+  {
+    $find = $this->root->find($selector, $idx, $lowercase);
+
+    if ($find === null) {
+      return new SimpleHtmlDomNodeBlank();
+    } else {
+      return $find;
+    }
   }
 
   /**

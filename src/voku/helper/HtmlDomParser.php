@@ -2,7 +2,7 @@
 
 namespace voku\helper;
 
-/**
+  /**
    * Website: http://sourceforge.net/projects/simplehtmldom/
    * Additional projects that may be used: http://sourceforge.net/projects/debugobject/
    * Acknowledge: Jose Solorzano (https://sourceforge.net/projects/php-html/)

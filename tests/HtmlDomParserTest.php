@@ -317,7 +317,7 @@ HTML;
     self::assertContains('<img src="foobar" alt="" width="5" height="3" border="0">', $htmlTmp);
     self::assertContains('© 2015 Test', $htmlTmp);
   }
-  
+
   public function testLall()
   {
     $str = <<<HTML
