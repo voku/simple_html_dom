@@ -68,7 +68,7 @@ HTML;
   {
     $filename = __DIR__ . '/test_mail.html';
     $html = HtmlDomParser::file_get_html($filename);
-    $html2 = str_replace(array("\r", "\n"), " ", file_get_contents($filename));
+    $html2 = str_replace(array("\r", "\n"), ' ', file_get_contents($filename));
 
     // object to sting
     self::assertEquals($html2, (string)$html);
@@ -259,7 +259,7 @@ HTML;
     // replace all images with "foobar"
     $tmpArray = array();
     foreach ($htmlTmp->find('img') as $e) {
-      if ($e->src != "") {
+      if ($e->src != '') {
         $tmpArray[] = $e->src;
 
         $e->src = 'foobar';
@@ -268,7 +268,7 @@ HTML;
 
     $testString = false;
     foreach ($htmlTmp->find('table tr td img') as $e) {
-      if ($e->alt == "○●◎ earth 中文空白") {
+      if ($e->alt == '○●◎ earth 中文空白') {
         $testString = $e->alt;
       }
     }

@@ -406,7 +406,7 @@ class SimpleHtmlDom
 
     // Before we save the string as the doc...  strip out the \r \n's if we are told to.
     if ($stripRN) {
-      $str = str_replace(array("\r", "\n"), " ", $str);
+      $str = str_replace(array("\r", "\n"), ' ', $str);
 
       // Set the length of content since we have changed it.
       $this->size = strlen($str);
@@ -511,9 +511,9 @@ class SimpleHtmlDom
       if (function_exists('mb_detect_encoding')) {
         // Have php try to detect the encoding from the text given to us.
         $charset = mb_detect_encoding(
-            $this->root->plaintext . "ascii", $encoding_list = array(
-            "UTF-8",
-            "CP1252",
+            $this->root->plaintext . 'ascii', $encoding_list = array(
+            'UTF-8',
+            'CP1252',
         )
         );
         if (is_object($debug_object)) {
@@ -601,7 +601,7 @@ class SimpleHtmlDom
 
             return $this->as_text_node($tag);
           }
-        } else if (($this->parent->parent) && isset($this->block_tags[$tag_lower])) {
+        } elseif (($this->parent->parent) && isset($this->block_tags[$tag_lower])) {
           $this->parent->_[HDOM_INFO_END] = 0;
           $org_parent = $this->parent;
 
@@ -615,7 +615,7 @@ class SimpleHtmlDom
 
             return $this->as_text_node($tag);
           }
-        } else if (($this->parent->parent) && strtolower($this->parent->parent->tag) === $tag_lower) {
+        } elseif (($this->parent->parent) && strtolower($this->parent->parent->tag) === $tag_lower) {
           $this->parent->_[HDOM_INFO_END] = 0;
           $this->parent = $this->parent->parent;
         } else {
@@ -787,7 +787,7 @@ class SimpleHtmlDom
     // If it's a BR tag, we need to set it's text to the default text.
     // This way when we see it in plaintext, we can generate formatting that the user wants.
     // since a br tag never has sub nodes, this works well.
-    if ($node->tag == "br") {
+    if ($node->tag == 'br') {
       $node->_[HDOM_INFO_INNER] = $this->default_br_text;
     }
 
@@ -829,10 +829,10 @@ class SimpleHtmlDom
     }
 
     // PaperG: Attributes should not have \r or \n in them, that counts as html whitespace.
-    $node->attr[$name] = str_replace(array("\r", "\n"), "", $node->attr[$name]);
+    $node->attr[$name] = str_replace(array("\r", "\n"), '', $node->attr[$name]);
 
     // PaperG: If this is a "class" selector, lets get rid of the preceding and trailing space since some people leave it in the multi class case.
-    if ($name == "class") {
+    if ($name == 'class') {
       $node->attr[$name] = trim($node->attr[$name]);
     }
   }
