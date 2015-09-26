@@ -116,6 +116,7 @@ class SimpleHtmlDom
   protected $self_closing_tags = array(
       'img'    => 1,
       'br'     => 1,
+      'wbr'    => 1,
       'input'  => 1,
       'meta'   => 1,
       'link'   => 1,
