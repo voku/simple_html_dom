@@ -51,11 +51,6 @@ class SimpleHtmlDom
   public $callback = null;
 
   /**
-   * @var bool
-   */
-  public $lowercase = false;
-
-  /**
    * Used to keep track of how large the text was when we started.
    *
    * @var int
@@ -191,16 +186,12 @@ class SimpleHtmlDom
    * __construct
    *
    * @param null   $str
-   * @param bool   $lowercase
    * @param bool   $forceTagsClosed
-   * @param bool   $stripRN
-   * @param string $defaultBRText
-   * @param string $defaultSpanText
    */
-  public function __construct($str = null, $lowercase = true, $forceTagsClosed = true, $stripRN = true, $defaultBRText = DEFAULT_BR_TEXT, $defaultSpanText = DEFAULT_SPAN_TEXT)
+  public function __construct($str = null, $forceTagsClosed = true)
   {
     if ($str) {
-      $this->load($str, $lowercase, $stripRN, $defaultBRText, $defaultSpanText);
+      $this->load($str);
     }
 
     // Forcing tags to be closed implies that we don't trust the html, but it can lead to parsing errors if we SHOULD trust the html.
@@ -213,18 +204,14 @@ class SimpleHtmlDom
    * load html from string
    *
    * @param           $str
-   * @param bool      $lowercase
-   * @param bool      $stripRN
-   * @param string    $defaultBRText
-   * @param string    $defaultSpanText
    * @param bool|true $ignoreNoise
    *
    * @return $this
    */
-  public function load($str, $lowercase = true, $stripRN = true, $defaultBRText = DEFAULT_BR_TEXT, $defaultSpanText = DEFAULT_SPAN_TEXT, $ignoreNoise = false)
+  public function load($str, $ignoreNoise = false)
   {
     // prepare
-    $this->prepare($str, $lowercase, $stripRN, $defaultBRText, $defaultSpanText, $ignoreNoise);
+    $this->prepare($str, $ignoreNoise);
     // strip out cdata
     $this->remove_noise("'<!\[CDATA\[(.*?)\]\]>'is", true);
     // strip out comments
@@ -260,13 +247,9 @@ class SimpleHtmlDom
    * prepare HTML data and init everything
    *
    * @param            $str
-   * @param bool       $lowercase
-   * @param bool       $stripRN
-   * @param string     $defaultBRText
-   * @param string     $defaultSpanText
    * @param bool|false $ignoreNoise
    */
-  protected function prepare($str, $lowercase = true, $stripRN = true, $defaultBRText = DEFAULT_BR_TEXT, $defaultSpanText = DEFAULT_SPAN_TEXT, $ignoreNoise = false)
+  protected function prepare($str, $ignoreNoise = false)
   {
     $this->clear();
     $str = (string)$str;
@@ -276,13 +259,11 @@ class SimpleHtmlDom
     // Save the original size of the html that we got in.  It might be useful to someone.
     $this->original_size = $this->size;
 
-    // Before we save the string as the doc...  strip out the \r \n's if we are told to.
-    if ($stripRN) {
-      $str = str_replace(array("\r", "\n"), ' ', $str);
+    // Before we save the string as the doc...  strip out the \r \n's
+    $str = str_replace(array("\r", "\n"), ' ', $str);
 
-      // Set the length of content since we have changed it.
-      $this->size = strlen($str);
-    }
+    // Set the length of content since we have changed it.
+    $this->size = strlen($str);
 
     $this->doc = $str;
     $this->pos = 0;
@@ -290,9 +271,6 @@ class SimpleHtmlDom
     $this->noise = array();
     $this->ignore_noise = $ignoreNoise;
     $this->nodes = array();
-    $this->lowercase = $lowercase;
-    $this->default_br_text = $defaultBRText;
-    $this->default_span_text = $defaultSpanText;
     $this->root = new SimpleHtmlDomNode($this);
     $this->root->tag = 'root';
     $this->root->_[HDOM_INFO_BEGIN] = -1;
@@ -450,19 +428,19 @@ class SimpleHtmlDom
         $tag = substr($tag, 0, $pos);
       }
 
-      $parent_lower = strtolower($this->parent->tag);
-      $tag_lower = strtolower($tag);
+      $parent_tag = strtolower($this->parent->tag);
+      $tag = strtolower($tag);
 
-      if ($parent_lower !== $tag_lower) {
-        if (isset($this->optional_closing_tags[$parent_lower]) && isset($this->block_tags[$tag_lower])) {
+      if ($parent_tag !== $tag) {
+        if (isset($this->optional_closing_tags[$parent_tag]) && isset($this->block_tags[$tag])) {
           $this->parent->_[HDOM_INFO_END] = 0;
           $org_parent = $this->parent;
 
-          while (($this->parent->parent) && strtolower($this->parent->tag) !== $tag_lower) {
+          while (($this->parent->parent) && strtolower($this->parent->tag) !== $tag) {
             $this->parent = $this->parent->parent;
           }
 
-          if (strtolower($this->parent->tag) !== $tag_lower) {
+          if (strtolower($this->parent->tag) !== $tag) {
             $this->parent = $org_parent; // restore original parent
             if ($this->parent->parent) {
               $this->parent = $this->parent->parent;
@@ -471,21 +449,21 @@ class SimpleHtmlDom
 
             return $this->as_text_node($tag);
           }
-        } elseif (($this->parent->parent) && isset($this->block_tags[$tag_lower])) {
+        } elseif (($this->parent->parent) && isset($this->block_tags[$tag])) {
           $this->parent->_[HDOM_INFO_END] = 0;
           $org_parent = $this->parent;
 
-          while (($this->parent->parent) && strtolower($this->parent->tag) !== $tag_lower) {
+          while (($this->parent->parent) && strtolower($this->parent->tag) !== $tag) {
             $this->parent = $this->parent->parent;
           }
 
-          if (strtolower($this->parent->tag) !== $tag_lower) {
+          if (strtolower($this->parent->tag) !== $tag) {
             $this->parent = $org_parent; // restore original parent
             $this->parent->_[HDOM_INFO_END] = $this->cursor;
 
             return $this->as_text_node($tag);
           }
-        } elseif (($this->parent->parent) && strtolower($this->parent->parent->tag) === $tag_lower) {
+        } elseif (($this->parent->parent) && strtolower($this->parent->parent->tag) === $tag) {
           $this->parent->_[HDOM_INFO_END] = 0;
           $this->parent = $this->parent->parent;
         } else {
@@ -555,12 +533,12 @@ class SimpleHtmlDom
 
     // begin tag
     $node->nodetype = HDOM_TYPE_ELEMENT;
-    $tag_lower = strtolower($tag);
-    $node->tag = ($this->lowercase) ? $tag_lower : $tag;
+    $tag = strtolower($tag);
+    $node->tag = $tag;
 
     // handle optional closing tags
-    if (isset($this->optional_closing_tags[$tag_lower])) {
-      while (isset($this->optional_closing_tags[$tag_lower][strtolower($this->parent->tag)])) {
+    if (isset($this->optional_closing_tags[$tag])) {
+      while (isset($this->optional_closing_tags[$tag][strtolower($this->parent->tag)])) {
         $this->parent->_[HDOM_INFO_END] = 0;
         $this->parent = $this->parent->parent;
       }
@@ -614,9 +592,7 @@ class SimpleHtmlDom
       if ($name !== '/' && $name !== '') {
         $space[1] = $this->copy_skip(self::token_blank);
         $name = $this->restore_noise($name);
-        if ($this->lowercase) {
-          $name = strtolower($name);
-        }
+        $name = strtolower($name);
         if ($this->char === '=') {
           $this->char = (++$this->pos < $this->size) ? $this->doc[$this->pos] : null; // next
           $this->parse_attr($node, $name, $space);
@@ -1041,13 +1017,12 @@ class SimpleHtmlDom
    *
    * @param      $selector
    * @param null $idx
-   * @param bool $lowercase
    *
    * @return array|null|\voku\helper\SimpleHtmlDomNode[]|\voku\helper\SimpleHtmlDomNode
    */
-  public function find($selector, $idx = null, $lowercase = false)
+  public function find($selector, $idx = null)
   {
-    $find = $this->root->find($selector, $idx, $lowercase);
+    $find = $this->root->find($selector, $idx);
 
     if ($find === null) {
       return new SimpleHtmlDomNodeBlank();

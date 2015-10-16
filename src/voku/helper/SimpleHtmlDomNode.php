@@ -5,7 +5,6 @@ namespace voku\helper;
 /**
  * simple html dom node
  *
- * PaperG - added ability for "find" routine to lowercase the value of the selector.
  * PaperG - added $tag_start to track the start position of the tag in the total byte index
  *
  * @property string alt
@@ -648,15 +647,13 @@ class SimpleHtmlDomNode
 
   /**
    * find elements by css selector
-   * PaperG - added ability for find to lowercase the value of the selector.
    *
    * @param          $selector
    * @param null|int $idx
-   * @param bool     $lowercase
    *
    * @return SimpleHtmlDomNode|SimpleHtmlDomNode[]|array|null
    */
-  public function find($selector, $idx = null, $lowercase = false)
+  public function find($selector, $idx = null)
   {
     $selectors = $this->parse_selector($selector);
 
@@ -686,7 +683,7 @@ class SimpleHtmlDomNode
         foreach ($head as $k => $v) {
           $n = ($k === -1) ? $this->dom->root : $this->dom->nodes[$k];
           //PaperG - Pass this optional parameter on to the seek function.
-          $n->seek($selectors[$c][$l], $ret, $lowercase);
+          $n->seek($selectors[$c][$l], $ret);
         }
         $head = $ret;
       }
@@ -774,10 +771,9 @@ class SimpleHtmlDomNode
       }
 
       // convert to lowercase
-      if ($this->dom->lowercase) {
-        $tag = strtolower($tag);
-        $key = strtolower($key);
-      }
+      $tag = strtolower($tag);
+      $key = strtolower($key);
+
       //elements that do NOT have the specified attribute
       if (isset($key[0]) && $key[0] === '!') {
         $key = substr($key, 1);
@@ -812,9 +808,8 @@ class SimpleHtmlDomNode
    *
    * @param      $selector
    * @param      $ret
-   * @param bool $lowercase
    */
-  protected function seek($selector, &$ret, $lowercase = false)
+  protected function seek($selector, &$ret)
   {
     list($tag, $key, $val, $exp, $no_key) = $selector;
 
@@ -885,23 +880,16 @@ class SimpleHtmlDomNode
           $nodeKeyValue = $node->attr[$key];
         }
 
-        //PaperG - If lowercase is set, do a case insensitive test of the value of the selector.
-        if ($lowercase) {
-          $check = $this->match($exp, strtolower($val), strtolower($nodeKeyValue));
-        } else {
-          $check = $this->match($exp, $val, $nodeKeyValue);
-        }
+        //PaperG - do a case insensitive test of the value of the selector.
+        $check = $this->match($exp, strtolower($val), strtolower($nodeKeyValue));
 
         // handle multiple class
         if (!$check && strcasecmp($key, 'class') === 0) {
           foreach (explode(' ', $node->attr[$key]) as $k) {
             // Without this, there were cases where leading, trailing, or double spaces lead to our comparing blanks - bad form.
             if (!empty($k)) {
-              if ($lowercase) {
-                $check = $this->match($exp, strtolower($val), strtolower($k));
-              } else {
-                $check = $this->match($exp, $val, $k);
-              }
+              $check = $this->match($exp, strtolower($val), strtolower($k));
+
               if ($check) {
                 break;
               }

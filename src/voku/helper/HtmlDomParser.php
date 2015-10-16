@@ -95,12 +95,6 @@ if (!defined('HDOM_INFO_OUTER')) {
 if (!defined('HDOM_INFO_ENDSPACE')) {
   define('HDOM_INFO_ENDSPACE', 7);
 }
-if (!defined('DEFAULT_BR_TEXT')) {
-  define('DEFAULT_BR_TEXT', "\r\n");
-}
-if (!defined('DEFAULT_SPAN_TEXT')) {
-  define('DEFAULT_SPAN_TEXT', ' ');
-}
 
 /**
  * Class HtmlDomParser
@@ -119,19 +113,14 @@ class HtmlDomParser
    * @param bool   $use_include_path
    * @param null   $context
    * @param int    $offset
-   * @param int    $maxLen
-   * @param bool   $lowercase
    * @param bool   $forceTagsClosed
-   * @param bool   $stripRN
-   * @param string $defaultBRText
-   * @param string $defaultSpanText
    *
    * @return bool|\voku\helper\SimpleHtmlDom
    */
-  public static function file_get_html($url, $use_include_path = false, $context = null, $offset = -1, $maxLen = -1, $lowercase = true, $forceTagsClosed = true, $stripRN = true, $defaultBRText = DEFAULT_BR_TEXT, $defaultSpanText = DEFAULT_SPAN_TEXT)
+  public static function file_get_html($url, $use_include_path = false, $context = null, $offset = -1, $forceTagsClosed = true)
   {
     // We DO force the tags to be terminated.
-    $dom = new SimpleHtmlDom(null, $lowercase, $forceTagsClosed, $stripRN, $defaultBRText, $defaultSpanText);
+    $dom = new SimpleHtmlDom(null, $forceTagsClosed);
 
     // For sourceforge users: uncomment the next line and comment the retreive_url_contents line 2 lines down if it is not already done.
     $contents = file_get_contents($url, $use_include_path, $context, $offset);
@@ -140,7 +129,7 @@ class HtmlDomParser
     //$contents = retrieve_url_contents($url);
 
     // The second parameter can force the selectors to all be lowercase.
-    $dom->load($contents, $lowercase, $stripRN);
+    $dom->load($contents);
 
     return $dom;
   }
@@ -149,19 +138,15 @@ class HtmlDomParser
    * get html dom from string
    *
    * @param        $str
-   * @param bool   $lowercase
    * @param bool   $forceTagsClosed
-   * @param bool   $stripRN
-   * @param string $defaultBRText
-   * @param string $defaultSpanText
    *
    * @return bool|\voku\helper\SimpleHtmlDom
    */
-  public static function str_get_html($str, $lowercase = true, $forceTagsClosed = true, $stripRN = true, $defaultBRText = DEFAULT_BR_TEXT, $defaultSpanText = DEFAULT_SPAN_TEXT)
+  public static function str_get_html($str, $forceTagsClosed = true)
   {
-    $dom = new SimpleHtmlDom(null, $lowercase, $forceTagsClosed, $stripRN, $defaultBRText, $defaultSpanText);
+    $dom = new SimpleHtmlDom(null, $forceTagsClosed);
 
-    $dom->load($str, $lowercase, $stripRN);
+    $dom->load($str);
 
     return $dom;
   }
