@@ -103,6 +103,11 @@ class SimpleHtmlDom
   protected $noise = array();
 
   /**
+   * @var bool
+   */
+  protected $ignore_noise = false;
+
+  /**
    * @var string
    */
   protected $default_br_text = '';
@@ -207,18 +212,19 @@ class SimpleHtmlDom
   /**
    * load html from string
    *
-   * @param        $str
-   * @param bool   $lowercase
-   * @param bool   $stripRN
-   * @param string $defaultBRText
-   * @param string $defaultSpanText
+   * @param           $str
+   * @param bool      $lowercase
+   * @param bool      $stripRN
+   * @param string    $defaultBRText
+   * @param string    $defaultSpanText
+   * @param bool|true $ignoreNoise
    *
    * @return $this
    */
-  public function load($str, $lowercase = true, $stripRN = true, $defaultBRText = DEFAULT_BR_TEXT, $defaultSpanText = DEFAULT_SPAN_TEXT)
+  public function load($str, $lowercase = true, $stripRN = true, $defaultBRText = DEFAULT_BR_TEXT, $defaultSpanText = DEFAULT_SPAN_TEXT, $ignoreNoise = false)
   {
     // prepare
-    $this->prepare($str, $lowercase, $stripRN, $defaultBRText, $defaultSpanText);
+    $this->prepare($str, $lowercase, $stripRN, $defaultBRText, $defaultSpanText, $ignoreNoise);
     // strip out cdata
     $this->remove_noise("'<!\[CDATA\[(.*?)\]\]>'is", true);
     // strip out comments
@@ -253,13 +259,14 @@ class SimpleHtmlDom
   /**
    * prepare HTML data and init everything
    *
-   * @param        $str
-   * @param bool   $lowercase
-   * @param bool   $stripRN
-   * @param string $defaultBRText
-   * @param string $defaultSpanText
+   * @param            $str
+   * @param bool       $lowercase
+   * @param bool       $stripRN
+   * @param string     $defaultBRText
+   * @param string     $defaultSpanText
+   * @param bool|false $ignoreNoise
    */
-  protected function prepare($str, $lowercase = true, $stripRN = true, $defaultBRText = DEFAULT_BR_TEXT, $defaultSpanText = DEFAULT_SPAN_TEXT)
+  protected function prepare($str, $lowercase = true, $stripRN = true, $defaultBRText = DEFAULT_BR_TEXT, $defaultSpanText = DEFAULT_SPAN_TEXT, $ignoreNoise = false)
   {
     $this->clear();
     $str = (string)$str;
@@ -281,6 +288,7 @@ class SimpleHtmlDom
     $this->pos = 0;
     $this->cursor = 1;
     $this->noise = array();
+    $this->ignore_noise = $ignoreNoise;
     $this->nodes = array();
     $this->lowercase = $lowercase;
     $this->default_br_text = $defaultBRText;
@@ -345,7 +353,12 @@ class SimpleHtmlDom
       $key = '___noise___' . sprintf('% 5d', count($this->noise) + 1000);
       $idx = ($remove_tag) ? 0 : 1;
       $this->noise[$key] = $matches[$i][$idx][0];
-      $this->doc = substr_replace($this->doc, $key, $matches[$i][$idx][1], strlen($matches[$i][$idx][0]));
+
+      if ($this->ignore_noise) {
+        $this->doc = substr_replace($this->doc, '', $matches[$i][$idx][1], strlen($matches[$i][$idx][0]));
+      } else {
+        $this->doc = substr_replace($this->doc, $key, $matches[$i][$idx][1], strlen($matches[$i][$idx][0]));
+      }
     }
 
     // reset the length of content
