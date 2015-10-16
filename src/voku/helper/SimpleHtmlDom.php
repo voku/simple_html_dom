@@ -875,7 +875,7 @@ class SimpleHtmlDom
   }
 
   /**
-   * save dom as string
+   * save dom as string or file (if $filepath is used)
    *
    * @param string $filepath
    *
