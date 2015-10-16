@@ -101,9 +101,6 @@ if (!defined('DEFAULT_BR_TEXT')) {
 if (!defined('DEFAULT_SPAN_TEXT')) {
   define('DEFAULT_SPAN_TEXT', ' ');
 }
-if (!defined('MAX_FILE_SIZE')) {
-  define('MAX_FILE_SIZE', 600000);
-}
 
 /**
  * Class HtmlDomParser
@@ -142,14 +139,6 @@ class HtmlDomParser
     // Paperg - use our own mechanism for getting the contents as we want to control the timeout.
     //$contents = retrieve_url_contents($url);
 
-    if ($maxLen == -1) {
-      $maxLen = MAX_FILE_SIZE;
-    }
-
-    if (empty($contents) || strlen($contents) > $maxLen) {
-      return false;
-    }
-
     // The second parameter can force the selectors to all be lowercase.
     $dom->load($contents, $lowercase, $stripRN);
 
@@ -171,12 +160,6 @@ class HtmlDomParser
   public static function str_get_html($str, $lowercase = true, $forceTagsClosed = true, $stripRN = true, $defaultBRText = DEFAULT_BR_TEXT, $defaultSpanText = DEFAULT_SPAN_TEXT)
   {
     $dom = new SimpleHtmlDom(null, $lowercase, $forceTagsClosed, $stripRN, $defaultBRText, $defaultSpanText);
-
-    if (empty($str) || strlen($str) > MAX_FILE_SIZE) {
-      $dom->clear();
-
-      return false;
-    }
 
     $dom->load($str, $lowercase, $stripRN);
 
