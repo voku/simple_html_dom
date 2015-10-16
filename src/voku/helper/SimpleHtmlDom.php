@@ -244,9 +244,6 @@ class SimpleHtmlDom
    */
   public function load($str, $lowercase = true, $stripRN = true, $defaultBRText = DEFAULT_BR_TEXT, $defaultSpanText = DEFAULT_SPAN_TEXT)
   {
-    global /** @noinspection PhpUnusedLocalVariableInspection */
-    $debug_object;
-
     // prepare
     $this->prepare($str, $lowercase, $stripRN, $defaultBRText, $defaultSpanText);
     // strip out cdata
@@ -370,21 +367,10 @@ class SimpleHtmlDom
    */
   protected function remove_noise($pattern, $remove_tag = false)
   {
-    global $debug_object;
-
-    if (is_object($debug_object)) {
-      /** @noinspection PhpUndefinedMethodInspection */
-      $debug_object->debug_log_entry(1);
-    }
-
     $count = preg_match_all($pattern, $this->doc, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE);
 
     for ($i = $count - 1; $i > -1; --$i) {
       $key = '___noise___' . sprintf('% 5d', count($this->noise) + 1000);
-      if (is_object($debug_object)) {
-        /** @noinspection PhpUndefinedMethodInspection */
-        $debug_object->debug_log(2, 'key is: ' . $key);
-      }
       $idx = ($remove_tag) ? 0 : 1;
       $this->noise[$key] = $matches[$i][$idx][0];
       $this->doc = substr_replace($this->doc, $key, $matches[$i][$idx][1], strlen($matches[$i][$idx][0]));
@@ -492,7 +478,7 @@ class SimpleHtmlDom
           }
 
           if (strtolower($this->parent->tag) !== $tag_lower) {
-            $this->parent = $org_parent; // restore origonal parent
+            $this->parent = $org_parent; // restore original parent
             if ($this->parent->parent) {
               $this->parent = $this->parent->parent;
             }
@@ -785,21 +771,10 @@ class SimpleHtmlDom
    */
   public function restore_noise($text)
   {
-    global $debug_object;
-
-    if (is_object($debug_object)) {
-      /** @noinspection PhpUndefinedMethodInspection */
-      $debug_object->debug_log_entry(1);
-    }
-
     while (($pos = strpos($text, '___noise___')) !== false) {
       // Sometimes there is a broken piece of markup, and we don't GET the pos+11 etc... token which indicates a problem outside of us...
       if (strlen($text) > $pos + 15) {
         $key = '___noise___' . $text[$pos + 11] . $text[$pos + 12] . $text[$pos + 13] . $text[$pos + 14] . $text[$pos + 15];
-        if (is_object($debug_object)) {
-          /** @noinspection PhpUndefinedMethodInspection */
-          $debug_object->debug_log(2, 'located key of: ' . $key);
-        }
 
         if (isset($this->noise[$key])) {
           $text = substr($text, 0, $pos) . $this->noise[$key] . substr($text, $pos + 16);
@@ -912,8 +887,6 @@ class SimpleHtmlDom
    */
   protected function parse_charset()
   {
-    global $debug_object;
-
     $charset = null;
 
     if (function_exists('get_last_retrieve_url_contents_content_type')) {
@@ -921,10 +894,6 @@ class SimpleHtmlDom
       $success = preg_match('/charset=(.+)/', $contentTypeHeader, $matches);
       if ($success) {
         $charset = $matches[1];
-        if (is_object($debug_object)) {
-          /** @noinspection PhpUndefinedMethodInspection */
-          $debug_object->debug_log(2, 'header content-type found charset of: ' . $charset);
-        }
       }
 
     }
@@ -934,10 +903,6 @@ class SimpleHtmlDom
       if (!empty($el)) {
         /** @noinspection PhpUndefinedFieldInspection */
         $fullvalue = $el->content;
-        if (is_object($debug_object)) {
-          /** @noinspection PhpUndefinedMethodInspection */
-          $debug_object->debug_log(2, 'meta content-type tag found' . $fullvalue);
-        }
 
         if (!empty($fullvalue)) {
           $success = preg_match('/charset=(.+)/i', $fullvalue, $matches);
@@ -945,10 +910,6 @@ class SimpleHtmlDom
             $charset = $matches[1];
           } else {
             // If there is a meta tag, and they don't specify the character set, research says that it's typically ISO-8859-1
-            if (is_object($debug_object)) {
-              /** @noinspection PhpUndefinedMethodInspection */
-              $debug_object->debug_log(2, 'meta content-type tag couldn\'t be parsed. using iso-8859 default.');
-            }
             $charset = 'ISO-8859-1';
           }
         }
@@ -962,23 +923,16 @@ class SimpleHtmlDom
       if (function_exists('mb_detect_encoding')) {
         // Have php try to detect the encoding from the text given to us.
         $charset = mb_detect_encoding(
-            $this->root->plaintext . 'ascii', $encoding_list = array(
-            'UTF-8',
-            'CP1252',
-        )
+            $this->root->plaintext . 'ascii', $encoding_list =
+            array(
+                'UTF-8',
+                'CP1252',
+            )
         );
-        if (is_object($debug_object)) {
-          /** @noinspection PhpUndefinedMethodInspection */
-          $debug_object->debug_log(2, 'mb_detect found: ' . $charset);
-        }
       }
 
       // and if this doesn't work...  then we need to just wrongheadedly assume it's UTF-8 so that we can move on - cause this will usually give us most of what we need...
       if ($charset === false) {
-        if (is_object($debug_object)) {
-          /** @noinspection PhpUndefinedMethodInspection */
-          $debug_object->debug_log(2, 'since mb_detect failed - using default of utf-8');
-        }
         $charset = 'UTF-8';
       }
     }
@@ -992,11 +946,6 @@ class SimpleHtmlDom
         (strtolower($charset) == strtolower('Latin-1'))
     ) {
       $charset = 'CP1252';
-    }
-
-    if (is_object($debug_object)) {
-      /** @noinspection PhpUndefinedMethodInspection */
-      $debug_object->debug_log(1, 'EXIT - ' . $charset);
     }
 
     return $this->_charset = $charset;
@@ -1062,13 +1011,6 @@ class SimpleHtmlDom
    */
   public function search_noise($text)
   {
-    global $debug_object;
-
-    if (is_object($debug_object)) {
-      /** @noinspection PhpUndefinedMethodInspection */
-      $debug_object->debug_log_entry(1);
-    }
-
     foreach ($this->noise as $noiseElement) {
       if (strpos($noiseElement, $text) !== false) {
         return $noiseElement;

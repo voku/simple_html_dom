@@ -196,13 +196,6 @@ class SimpleHtmlDomNode
    */
   public function convert_text($text)
   {
-    global $debug_object;
-
-    if (is_object($debug_object)) {
-      /** @noinspection PhpUndefinedMethodInspection */
-      $debug_object->debug_log_entry(1);
-    }
-
     $converted_text = $text;
 
     $sourceCharset = '';
@@ -211,11 +204,6 @@ class SimpleHtmlDomNode
     if ($this->dom) {
       $sourceCharset = strtoupper($this->dom->_charset);
       $targetCharset = strtoupper($this->dom->_target_charset);
-    }
-
-    if (is_object($debug_object)) {
-      /** @noinspection PhpUndefinedMethodInspection */
-      $debug_object->debug_log(3, 'source charset: ' . $sourceCharset . ' target charaset: ' . $targetCharset);
     }
 
     if (!empty($sourceCharset) && !empty($targetCharset) && strcasecmp($sourceCharset, $targetCharset) != 0) {
@@ -337,21 +325,10 @@ class SimpleHtmlDomNode
    */
   public function find_ancestor_tag($tag)
   {
-    global $debug_object;
-    if (is_object($debug_object)) {
-      /** @noinspection PhpUndefinedMethodInspection */
-      $debug_object->debug_log_entry(1);
-    }
-
     // Start by including ourselves in the comparison.
     $returnDom = $this;
 
     while (null !== $returnDom) {
-      if (is_object($debug_object)) {
-        /** @noinspection PhpUndefinedMethodInspection */
-        $debug_object->debug_log(2, 'Current tag is: ' . $returnDom->tag);
-      }
-
       if ($returnDom->tag == $tag) {
         break;
       }
@@ -559,13 +536,6 @@ class SimpleHtmlDomNode
    */
   public function __set($name, $value)
   {
-    global $debug_object;
-
-    if (is_object($debug_object)) {
-      /** @noinspection PhpUndefinedMethodInspection */
-      $debug_object->debug_log_entry(1);
-    }
-
     switch ($name) {
       case 'outertext':
         return $this->_[HDOM_INFO_OUTER] = $value;
@@ -796,12 +766,6 @@ class SimpleHtmlDomNode
    */
   protected function parse_selector($selector_string)
   {
-    global $debug_object;
-    if (is_object($debug_object)) {
-      /** @noinspection PhpUndefinedMethodInspection */
-      $debug_object->debug_log_entry(1);
-    }
-
     // pattern of CSS selectors, modified from mootools
     // Paperg: Add the colon to the attrbute, so that it properly finds <tag attr:ibute="something" > like google does.
     // Note: if you try to look at this attribute, yo MUST use getAttribute since $dom->x:y will fail the php syntax check.
@@ -811,11 +775,6 @@ class SimpleHtmlDomNode
     //		$pattern = "/([\w-:\*]*)(?:\#([\w-]+)|\.([\w-]+))?(?:\[@?(!?[\w-]+)(?:([!*^$]?=)[\"']?(.*?)[\"']?)?\])?([\/, ]+)/is";
     $pattern = "/([\w-:\*]*)(?:\#([\w-]+)|\.([\w-]+))?(?:\[@?(!?[\w-:]+)(?:([!*^$]?=)[\"']?(.*?)[\"']?)?\])?([\/, ]+)/is";
     preg_match_all($pattern, trim($selector_string) . ' ', $matches, PREG_SET_ORDER);
-
-    if (is_object($debug_object)) {
-      /** @noinspection PhpUndefinedMethodInspection */
-      $debug_object->debug_log(2, 'Matches Array: ', $matches);
-    }
 
     $selectors = array();
     $result = array();
@@ -898,12 +857,6 @@ class SimpleHtmlDomNode
    */
   protected function seek($selector, &$ret, $lowercase = false)
   {
-    global $debug_object;
-    if (is_object($debug_object)) {
-      /** @noinspection PhpUndefinedMethodInspection */
-      $debug_object->debug_log_entry(1);
-    }
-
     list($tag, $key, $val, $exp, $no_key) = $selector;
 
     // xpath index
@@ -972,20 +925,12 @@ class SimpleHtmlDomNode
           // this is a normal search, we want the value of that attribute of the tag.
           $nodeKeyValue = $node->attr[$key];
         }
-        if (is_object($debug_object)) {
-          /** @noinspection PhpUndefinedMethodInspection */
-          $debug_object->debug_log(2, 'testing node: ' . $node->tag . ' for attribute: ' . $key . $exp . $val . ' where nodes value is: ' . $nodeKeyValue);
-        }
 
         //PaperG - If lowercase is set, do a case insensitive test of the value of the selector.
         if ($lowercase) {
           $check = $this->match($exp, strtolower($val), strtolower($nodeKeyValue));
         } else {
           $check = $this->match($exp, $val, $nodeKeyValue);
-        }
-        if (is_object($debug_object)) {
-          /** @noinspection PhpUndefinedMethodInspection */
-          $debug_object->debug_log(2, 'after match: ' . ($check ? 'true' : 'false'));
         }
 
         // handle multiple class
@@ -1013,11 +958,6 @@ class SimpleHtmlDomNode
       }
       unset($node);
     }
-    // It's passed by reference so this is actually what this function returns.
-    if (is_object($debug_object)) {
-      /** @noinspection PhpUndefinedMethodInspection */
-      $debug_object->debug_log(1, 'EXIT - ret: ', $ret);
-    }
   }
 
   /**
@@ -1031,12 +971,6 @@ class SimpleHtmlDomNode
    */
   protected function match($exp, $pattern, $value)
   {
-    global $debug_object;
-    if (is_object($debug_object)) {
-      /** @noinspection PhpUndefinedMethodInspection */
-      $debug_object->debug_log_entry(1);
-    }
-
     switch ($exp) {
       case '=':
         return ($value === $pattern);
