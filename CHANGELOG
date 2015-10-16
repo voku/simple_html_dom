@@ -5,6 +5,10 @@
 2. Add flag: LOCK_EX while calling "file_put_contents()".
 3. Fix the typo of "token_blank_t".
 
+[PHP Simple HTML Dom v1.7.x]
+1: removed old parameter: maxLen / lowercase / stripRN / defaultBRText / defaultSpanText
+2: add good default settings
+3: removed charset-parsing (use UTF-8)
 
 [PHP Simple HTML Dom v1.6.x]
 1: fixed code-style
