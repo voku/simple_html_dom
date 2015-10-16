@@ -669,8 +669,8 @@ class SimpleHtmlDomNode
     for ($c = 0; $c < $count; ++$c) {
 
       // The change on the below line was documented on the sourceforge code tracker id 2788009
-      // used to be: if (($levle=count($selectors[0]))===0) return array();
-      if (($levle = count($selectors[$c])) === 0) {
+      // used to be: if (($level=count($selectors[0]))===0) return array();
+      if (($level = count($selectors[$c])) === 0) {
         return array();
       }
 
@@ -681,7 +681,7 @@ class SimpleHtmlDomNode
       $head = array($this->_[HDOM_INFO_BEGIN] => 1);
 
       // handle descendant selectors, no recursive!
-      for ($l = 0; $l < $levle; ++$l) {
+      for ($l = 0; $l < $level; ++$l) {
         $ret = array();
         foreach ($head as $k => $v) {
           $n = ($k === -1) ? $this->dom->root : $this->dom->nodes[$k];
