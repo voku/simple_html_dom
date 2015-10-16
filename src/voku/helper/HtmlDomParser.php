@@ -23,8 +23,7 @@ namespace voku\helper;
  *  malformed html, but it CAN lead to parsing errors. Allow the user to tell us how much they trust the html. Paperg
  *  add the text and plaintext to the selectors for the find syntax.  plaintext implies text in the innertext of a
  *  node.  text implies that the tag is a text node. This allows for us to find tags based on the text they contain.
- *  Create find_ancestor_tag to see if a tag is - at any level - inside of another specific tag. Paperg: added
- *  parse_charset so that we know about the character set of the source document. NOTE:  If the user's system has a
+ *  Create find_ancestor_tag to see if a tag is - at any level - inside of another specific tag. NOTE:  If the user's system has a
  *  routine called get_last_retrieve_url_contents_content_type available, we will assume it's returning the
  *  content-type header from the last transfer or curl_exec, and we will parse that and use it in preference to any
  *  other method of charset detection.
@@ -96,9 +95,6 @@ if (!defined('HDOM_INFO_OUTER')) {
 if (!defined('HDOM_INFO_ENDSPACE')) {
   define('HDOM_INFO_ENDSPACE', 7);
 }
-if (!defined('DEFAULT_TARGET_CHARSET')) {
-  define('DEFAULT_TARGET_CHARSET', 'UTF-8');
-}
 if (!defined('DEFAULT_BR_TEXT')) {
   define('DEFAULT_BR_TEXT', "\r\n");
 }
@@ -129,17 +125,16 @@ class HtmlDomParser
    * @param int    $maxLen
    * @param bool   $lowercase
    * @param bool   $forceTagsClosed
-   * @param string $target_charset
    * @param bool   $stripRN
    * @param string $defaultBRText
    * @param string $defaultSpanText
    *
    * @return bool|\voku\helper\SimpleHtmlDom
    */
-  public static function file_get_html($url, $use_include_path = false, $context = null, $offset = -1, $maxLen = -1, $lowercase = true, $forceTagsClosed = true, $target_charset = DEFAULT_TARGET_CHARSET, $stripRN = true, $defaultBRText = DEFAULT_BR_TEXT, $defaultSpanText = DEFAULT_SPAN_TEXT)
+  public static function file_get_html($url, $use_include_path = false, $context = null, $offset = -1, $maxLen = -1, $lowercase = true, $forceTagsClosed = true, $stripRN = true, $defaultBRText = DEFAULT_BR_TEXT, $defaultSpanText = DEFAULT_SPAN_TEXT)
   {
     // We DO force the tags to be terminated.
-    $dom = new SimpleHtmlDom(null, $lowercase, $forceTagsClosed, $target_charset, $stripRN, $defaultBRText, $defaultSpanText);
+    $dom = new SimpleHtmlDom(null, $lowercase, $forceTagsClosed, $stripRN, $defaultBRText, $defaultSpanText);
 
     // For sourceforge users: uncomment the next line and comment the retreive_url_contents line 2 lines down if it is not already done.
     $contents = file_get_contents($url, $use_include_path, $context, $offset);
@@ -167,16 +162,15 @@ class HtmlDomParser
    * @param        $str
    * @param bool   $lowercase
    * @param bool   $forceTagsClosed
-   * @param string $target_charset
    * @param bool   $stripRN
    * @param string $defaultBRText
    * @param string $defaultSpanText
    *
    * @return bool|\voku\helper\SimpleHtmlDom
    */
-  public static function str_get_html($str, $lowercase = true, $forceTagsClosed = true, $target_charset = DEFAULT_TARGET_CHARSET, $stripRN = true, $defaultBRText = DEFAULT_BR_TEXT, $defaultSpanText = DEFAULT_SPAN_TEXT)
+  public static function str_get_html($str, $lowercase = true, $forceTagsClosed = true, $stripRN = true, $defaultBRText = DEFAULT_BR_TEXT, $defaultSpanText = DEFAULT_SPAN_TEXT)
   {
-    $dom = new SimpleHtmlDom(null, $lowercase, $forceTagsClosed, $target_charset, $stripRN, $defaultBRText, $defaultSpanText);
+    $dom = new SimpleHtmlDom(null, $lowercase, $forceTagsClosed, $stripRN, $defaultBRText, $defaultSpanText);
 
     if (empty($str) || strlen($str) > MAX_FILE_SIZE) {
       $dom->clear();

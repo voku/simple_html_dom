@@ -66,48 +66,47 @@ class SimpleHtmlDom
    * @var int
    */
   public $size;
-  /**
-   * Note that this is referenced by a child node, and so it needs to be public for that node to see this information.
-   *
-   * @var string
-   */
-  public $_charset = '';
-  /**
-   * @var string
-   */
-  public $_target_charset = '';
+
   /**
    * @var string
    */
   public $default_span_text = '';
+
   /**
    * @var int
    */
   protected $pos;
+
   /**
    * @var string
    */
   protected $doc;
+
   /**
    * @var string
    */
   protected $char;
+
   /**
    * @var int
    */
   protected $cursor;
+
   /**
    * @var SimpleHtmlDom
    */
   protected $parent;
+
   /**
    * @var array
    */
   protected $noise = array();
+
   /**
    * @var string
    */
   protected $default_br_text = '';
+
   /**
    * use isset instead of in_array, performance boost about 30%...
    *
@@ -189,12 +188,11 @@ class SimpleHtmlDom
    * @param null   $str
    * @param bool   $lowercase
    * @param bool   $forceTagsClosed
-   * @param string $target_charset
    * @param bool   $stripRN
    * @param string $defaultBRText
    * @param string $defaultSpanText
    */
-  public function __construct($str = null, $lowercase = true, $forceTagsClosed = true, $target_charset = DEFAULT_TARGET_CHARSET, $stripRN = true, $defaultBRText = DEFAULT_BR_TEXT, $defaultSpanText = DEFAULT_SPAN_TEXT)
+  public function __construct($str = null, $lowercase = true, $forceTagsClosed = true, $stripRN = true, $defaultBRText = DEFAULT_BR_TEXT, $defaultSpanText = DEFAULT_SPAN_TEXT)
   {
     if ($str) {
       if (preg_match("/^http:\/\//i", $str) || is_file($str)) {
@@ -208,8 +206,6 @@ class SimpleHtmlDom
     if (!$forceTagsClosed) {
       $this->optional_closing_array = array();
     }
-
-    $this->_target_charset = $target_charset;
   }
 
   /**
@@ -271,7 +267,6 @@ class SimpleHtmlDom
     }
     // end
     $this->root->_[HDOM_INFO_END] = $this->cursor;
-    $this->parse_charset();
 
     // make load function chainable
     return $this;
@@ -877,81 +872,6 @@ class SimpleHtmlDom
   }
 
   /**
-   * PAPERG - dkchou - added this to try to identify the character set of the page we have just parsed so we know
-   * better how to spit it out later. NOTE:  IF you provide a routine called
-   * get_last_retrieve_url_contents_content_type which returns the CURLINFO_CONTENT_TYPE from the last curl_exec
-   * (or the content_type header from the last transfer), we will parse THAT, and if a charset is specified, we will
-   * use it over any other mechanism.
-   *
-   * @return bool|null|string
-   */
-  protected function parse_charset()
-  {
-    $charset = null;
-
-    if (function_exists('get_last_retrieve_url_contents_content_type')) {
-      $contentTypeHeader = get_last_retrieve_url_contents_content_type();
-      $success = preg_match('/charset=(.+)/', $contentTypeHeader, $matches);
-      if ($success) {
-        $charset = $matches[1];
-      }
-
-    }
-
-    if (empty($charset)) {
-      $el = $this->root->find('meta[http-equiv=Content-Type]', 0, true);
-      if (!empty($el)) {
-        /** @noinspection PhpUndefinedFieldInspection */
-        $fullvalue = $el->content;
-
-        if (!empty($fullvalue)) {
-          $success = preg_match('/charset=(.+)/i', $fullvalue, $matches);
-          if ($success) {
-            $charset = $matches[1];
-          } else {
-            // If there is a meta tag, and they don't specify the character set, research says that it's typically ISO-8859-1
-            $charset = 'ISO-8859-1';
-          }
-        }
-      }
-    }
-
-    // If we couldn't find a charset above, then lets try to detect one based on the text we got...
-    if (empty($charset)) {
-      // Use this in case mb_detect_charset isn't installed/loaded on this machine.
-      $charset = false;
-      if (function_exists('mb_detect_encoding')) {
-        // Have php try to detect the encoding from the text given to us.
-        $charset = mb_detect_encoding(
-            $this->root->plaintext . 'ascii', $encoding_list =
-            array(
-                'UTF-8',
-                'CP1252',
-            )
-        );
-      }
-
-      // and if this doesn't work...  then we need to just wrongheadedly assume it's UTF-8 so that we can move on - cause this will usually give us most of what we need...
-      if ($charset === false) {
-        $charset = 'UTF-8';
-      }
-    }
-
-    // Since CP1252 is a superset, if we get one of it's subsets, we want it instead.
-    if (
-        (strtolower($charset) == strtolower('ISO-8859-1'))
-        ||
-        (strtolower($charset) == strtolower('Latin1'))
-        ||
-        (strtolower($charset) == strtolower('Latin-1'))
-    ) {
-      $charset = 'CP1252';
-    }
-
-    return $this->_charset = $charset;
-  }
-
-  /**
    * __destruct
    */
   public function __destruct()
@@ -1046,10 +966,6 @@ class SimpleHtmlDom
         return $this->root->innertext();
       case 'plaintext':
         return $this->root->text();
-      case 'charset':
-        return $this->_charset;
-      case 'target_charset':
-        return $this->_target_charset;
     }
 
     return '';

@@ -151,7 +151,7 @@ class SimpleHtmlDomNode
     } else {
       if ($this->nodes) {
         foreach ($this->nodes as $n) {
-          $ret .= $this->convert_text($n->outertext());
+          $ret .= $n->outertext();
         }
       }
     }
@@ -185,47 +185,6 @@ class SimpleHtmlDomNode
     }
 
     return $ret;
-  }
-
-  /**
-   * PaperG - Function to convert the text from one character set to another if the two sets are not the same.
-   *
-   * @param $text
-   *
-   * @return string
-   */
-  public function convert_text($text)
-  {
-    $converted_text = $text;
-
-    $sourceCharset = '';
-    $targetCharset = '';
-
-    if ($this->dom) {
-      $sourceCharset = strtoupper($this->dom->_charset);
-      $targetCharset = strtoupper($this->dom->_target_charset);
-    }
-
-    if (!empty($sourceCharset) && !empty($targetCharset) && strcasecmp($sourceCharset, $targetCharset) != 0) {
-      // Check if the reported encoding could have been incorrect and the text is actually already UTF-8
-      if (
-          (strcasecmp($targetCharset, 'UTF-8') == 0)
-          &&
-          UTF8::is_utf8($text)
-      ) {
-        $converted_text = $text;
-      } else {
-        UTF8::checkForSupport(); // polyfill for "iconv"
-        $converted_text = iconv($sourceCharset, $targetCharset, $text);
-      }
-    }
-
-    // Lets make sure that we don't have that silly BOM issue with any of the utf-8 text we output.
-    if ((strcasecmp($targetCharset, 'UTF-8') != 0)) {
-      $converted_text = UTF8::removeBOM($converted_text);
-    }
-
-    return $converted_text;
   }
 
   /**
@@ -509,7 +468,7 @@ class SimpleHtmlDomNode
   public function __get($name)
   {
     if (isset($this->attr[$name])) {
-      return $this->convert_text($this->attr[$name]);
+      return $this->attr[$name];
     }
 
     switch ($name) {
@@ -594,7 +553,7 @@ class SimpleHtmlDomNode
     // WHY is this happening?
     if (null !== $this->nodes) {
       foreach ($this->nodes as $n) {
-        $ret .= $this->convert_text($n->text());
+        $ret .= $n->text();
       }
 
       // If this node is a span... add a space at the end of it so multiple spans don't run into each other.  This is plaintext after all.
