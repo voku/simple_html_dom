@@ -252,7 +252,7 @@ class SimpleHtmlDom
   protected function prepare($str, $ignoreNoise = false)
   {
     $this->clear();
-    $str = (string)$str;
+    $str = (string) $str;
 
     // Set the length of content before we do anything to it.
     $this->size = strlen($str);
