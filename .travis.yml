@@ -13,7 +13,7 @@ php:
 before_script:
   - wget https://scrutinizer-ci.com/ocular.phar
   - travis_retry composer self-update
-  - travis_retry composer require satooshi/php-coveralls:dev-master
+  - travis_retry composer require satooshi/php-coveralls:1.0.0
   - travis_retry composer install --no-interaction --prefer-source
   - composer dump-autoload -o
 
