@@ -88,7 +88,7 @@ class SimpleHtmlDom
   protected $cursor;
 
   /**
-   * @var SimpleHtmlDom
+   * @var SimpleHtmlDomNode
    */
   protected $parent;
 
@@ -141,7 +141,7 @@ class SimpleHtmlDom
    *
    * @var array
    */
-  protected $optional_closing_tags = array(
+  protected static $optional_closing_tags = array(
       'tr'     => array(
           'tr' => 1,
           'td' => 1,
@@ -329,7 +329,7 @@ class SimpleHtmlDom
 
     for ($i = $count - 1; $i > -1; --$i) {
       $key = '___noise___' . sprintf('% 5d', count($this->noise) + 1000);
-      $idx = ($remove_tag) ? 0 : 1;
+      $idx = $remove_tag ? 0 : 1;
       $this->noise[$key] = $matches[$i][$idx][0];
 
       if ($this->ignore_noise) {
@@ -432,11 +432,12 @@ class SimpleHtmlDom
       $tag = strtolower($tag);
 
       if ($parent_tag !== $tag) {
-        if (isset($this->optional_closing_tags[$parent_tag]) && isset($this->block_tags[$tag])) {
+
+        if (isset(self::$optional_closing_tags[$parent_tag], $this->block_tags[$tag])) {
           $this->parent->_[HDOM_INFO_END] = 0;
           $org_parent = $this->parent;
 
-          while (($this->parent->parent) && strtolower($this->parent->tag) !== $tag) {
+          while ($this->parent->parent && strtolower($this->parent->tag) !== $tag) {
             $this->parent = $this->parent->parent;
           }
 
@@ -449,11 +450,13 @@ class SimpleHtmlDom
 
             return $this->as_text_node($tag);
           }
-        } elseif (($this->parent->parent) && isset($this->block_tags[$tag])) {
+
+        } elseif ($this->parent->parent && isset($this->block_tags[$tag])) {
+
           $this->parent->_[HDOM_INFO_END] = 0;
           $org_parent = $this->parent;
 
-          while (($this->parent->parent) && strtolower($this->parent->tag) !== $tag) {
+          while ($this->parent->parent && strtolower($this->parent->tag) !== $tag) {
             $this->parent = $this->parent->parent;
           }
 
@@ -463,9 +466,12 @@ class SimpleHtmlDom
 
             return $this->as_text_node($tag);
           }
-        } elseif (($this->parent->parent) && strtolower($this->parent->parent->tag) === $tag) {
+
+        } elseif ($this->parent->parent && strtolower($this->parent->parent->tag) === $tag) {
+
           $this->parent->_[HDOM_INFO_END] = 0;
           $this->parent = $this->parent->parent;
+
         } else {
           return $this->as_text_node($tag);
         }
@@ -537,8 +543,8 @@ class SimpleHtmlDom
     $node->tag = $tag;
 
     // handle optional closing tags
-    if (isset($this->optional_closing_tags[$tag])) {
-      while (isset($this->optional_closing_tags[$tag][strtolower($this->parent->tag)])) {
+    if (isset(self::$optional_closing_tags[$tag])) {
+      while (isset(self::$optional_closing_tags[$tag][strtolower($this->parent->tag)])) {
         $this->parent->_[HDOM_INFO_END] = 0;
         $this->parent = $this->parent->parent;
       }

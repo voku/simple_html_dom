@@ -8,6 +8,7 @@ namespace voku\helper;
  * PaperG - added $tag_start to track the start position of the tag in the total byte index
  *
  * @property string alt
+ * @property string href
  * @property string class
  * @property string name
  * @property string src
@@ -93,10 +94,12 @@ class SimpleHtmlDomNode
 
   public function clear()
   {
-    unset($this->dom);
-    unset($this->nodes);
-    unset($this->parent);
-    unset($this->children);
+    unset(
+        $this->dom,
+        $this->nodes,
+        $this->parent,
+        $this->children
+    );
   }
 
   /**
@@ -122,7 +125,7 @@ class SimpleHtmlDomNode
 
     // trigger callback
     if ($this->dom && $this->dom->callback !== null) {
-      call_user_func_array($this->dom->callback, array($this));
+      call_user_func($this->dom->callback, array($this));
     }
 
     if (isset($this->_[HDOM_INFO_OUTER])) {
@@ -200,6 +203,7 @@ class SimpleHtmlDomNode
     if ($show_attr && count($this->attr) > 0) {
       echo '(';
       foreach ($this->attr as $k => $v) {
+        /** @noinspection PhpVariableVariableInspection */
         echo "[$k]=>\"" . $this->$k . '", ';
       }
       echo ')';
@@ -228,6 +232,7 @@ class SimpleHtmlDomNode
     if (count($this->attr) > 0) {
       $string .= '(';
       foreach ($this->attr as $k => $v) {
+        /** @noinspection PhpVariableVariableInspection */
         $string .= "[$k]=>\"" . $this->$k . '", ';
       }
       $string .= ')';
@@ -392,26 +397,30 @@ class SimpleHtmlDomNode
       }
 
       // If there is a width in the style attributes:
-      if (isset($attributes['width']) && $width == -1) {
-        // check that the last two characters are px (pixels)
-        if (strtolower(substr($attributes['width'], -2)) == 'px') {
-          $proposed_width = substr($attributes['width'], 0, -2);
-          // Now make sure that it's an integer and not something stupid.
-          if (filter_var($proposed_width, FILTER_VALIDATE_INT)) {
-            $width = $proposed_width;
-          }
+      if (
+          ($width == -1 && isset($attributes['width']))
+          &&
+          // check that the last two characters are px (pixels)
+          strtolower(substr($attributes['width'], -2)) == 'px'
+      ) {
+        $proposed_width = substr($attributes['width'], 0, -2);
+        // Now make sure that it's an integer and not something stupid.
+        if (filter_var($proposed_width, FILTER_VALIDATE_INT)) {
+          $width = $proposed_width;
         }
       }
 
       // If there is a width in the style attributes:
-      if (isset($attributes['height']) && $height == -1) {
-        // check that the last two characters are px (pixels)
-        if (strtolower(substr($attributes['height'], -2)) == 'px') {
-          $proposed_height = substr($attributes['height'], 0, -2);
-          // Now make sure that it's an integer and not something stupid.
-          if (filter_var($proposed_height, FILTER_VALIDATE_INT)) {
-            $height = $proposed_height;
-          }
+      if (
+          ($height == -1 && isset($attributes['height']))
+          &&
+          // check that the last two characters are px (pixels)
+          strtolower(substr($attributes['height'], -2)) == 'px'
+      ) {
+        $proposed_height = substr($attributes['height'], 0, -2);
+        // Now make sure that it's an integer and not something stupid.
+        if (filter_var($proposed_height, FILTER_VALIDATE_INT)) {
+          $height = $proposed_height;
         }
       }
 
@@ -427,6 +436,7 @@ class SimpleHtmlDomNode
     // ridiculously far future development
     // If the class or id is specified in a SEPARATE css file thats not on the page, go get it and do what we were just doing for the ones on the page.
 
+    /** @noinspection OneTimeUseVariablesInspection */
     $result = array(
         'height' => $height,
         'width'  => $width,
@@ -454,7 +464,8 @@ class SimpleHtmlDomNode
    */
   public function getAttribute($name)
   {
-    return $this->__get($name);
+    /** @noinspection PhpVariableVariableInspection */
+    return $this->$name;
   }
 
   /**
@@ -586,7 +597,8 @@ class SimpleHtmlDomNode
    */
   public function setAttribute($name, $value)
   {
-    $this->__set($name, $value);
+    /** @noinspection PhpVariableVariableInspection */
+    $this->$name = $value;
   }
 
   /**
@@ -598,7 +610,8 @@ class SimpleHtmlDomNode
    */
   public function hasAttribute($name)
   {
-    return $this->__isset($name);
+    /** @noinspection PhpVariableVariableInspection */
+    return isset($this->$name);
   }
 
   /**
@@ -620,7 +633,7 @@ class SimpleHtmlDomNode
     }
 
     //no value attr: nowrap, checked selected...
-    return (array_key_exists($name, $this->attr)) ? true : isset($this->attr[$name]);
+    return array_key_exists($name, $this->attr) ? true : isset($this->attr[$name]);
   }
 
   /**
@@ -630,7 +643,8 @@ class SimpleHtmlDomNode
    */
   public function removeAttribute($name)
   {
-    $this->__set($name, null);
+    /** @noinspection PhpVariableVariableInspection */
+    $this->$name = null;
   }
 
   /**
@@ -656,18 +670,25 @@ class SimpleHtmlDomNode
   public function find($selector, $idx = null)
   {
     $selectors = $this->parse_selector($selector);
+    $count = count($selectors);
 
-    if (($count = count($selectors)) === 0) {
+    if ($count === 0) {
       return array();
     }
+
     $found_keys = array();
 
     // find each selector
+    /** @noinspection ForeachInvariantsInspection */
     for ($c = 0; $c < $count; ++$c) {
 
       // The change on the below line was documented on the sourceforge code tracker id 2788009
-      // used to be: if (($level=count($selectors[0]))===0) return array();
-      if (($level = count($selectors[$c])) === 0) {
+      // used to be:
+      // $level = count($selectors[0]);
+      // if ($level === 0) { return array(); }
+
+      $level = count($selectors[$c]);
+      if ($level === 0) {
         return array();
       }
 
@@ -678,6 +699,7 @@ class SimpleHtmlDomNode
       $head = array($this->_[HDOM_INFO_BEGIN] => 1);
 
       // handle descendant selectors, no recursive!
+      /** @noinspection ForeachInvariantsInspection */
       for ($l = 0; $l < $level; ++$l) {
         $ret = array();
         foreach ($head as $k => $v) {
@@ -710,7 +732,7 @@ class SimpleHtmlDomNode
       $idx = count($found) + $idx;
     }
 
-    return (isset($found[$idx])) ? $found[$idx] : null;
+    return isset($found[$idx]) ? $found[$idx] : null;
   }
 
   /**
@@ -817,12 +839,16 @@ class SimpleHtmlDomNode
     if ($tag && $key && is_numeric($key)) {
       $count = 0;
       foreach ($this->children as $c) {
-        if ($tag === '*' || $tag === $c->tag) {
-          if (++$count == $key) {
-            $ret[$c->_[HDOM_INFO_BEGIN]] = 1;
 
-            return;
-          }
+        if (
+            ($tag === '*' || $tag === $c->tag)
+            &&
+            ++$count == $key
+        ) {
+
+          $ret[$c->_[HDOM_INFO_BEGIN]] = 1;
+
+          return;
         }
       }
 
@@ -833,7 +859,7 @@ class SimpleHtmlDomNode
     if ($end == 0) {
       $parent = $this->parent;
       while (!isset($parent->_[HDOM_INFO_END]) && $parent !== null) {
-        $end -= 1;
+        --$end;
         $parent = $parent->parent;
       }
       $end += $parent->_[HDOM_INFO_END];
@@ -1081,7 +1107,8 @@ class SimpleHtmlDomNode
    */
   public function last_child()
   {
-    if (($count = count($this->children)) > 0) {
+    $count = count($this->children);
+    if ($count > 0) {
       return $this->children[$count - 1];
     }
 
