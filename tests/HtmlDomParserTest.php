@@ -318,7 +318,7 @@ HTML;
     self::assertContains('© 2015 Test', $htmlTmp);
   }
 
-  public function testLall()
+  public function testEditInnerText()
   {
     $str = <<<HTML
 <div id="hello">Hello</div><div id="world">World</div>
