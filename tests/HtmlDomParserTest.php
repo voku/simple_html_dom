@@ -68,10 +68,10 @@ HTML;
   {
     $filename = __DIR__ . '/test_mail.html';
     $html = HtmlDomParser::file_get_html($filename);
-    $html2 = str_replace(array("\r", "\n"), ' ', file_get_contents($filename));
+    $htmlNormalised = str_replace(array("\r", "\n"), ' ', file_get_contents($filename));
 
     // object to sting
-    self::assertEquals($html2, (string)$html);
+    self::assertEquals($htmlNormalised, (string)$html);
 
     $preHeaderContentArray = $html->find('.preheaderContent');
 
