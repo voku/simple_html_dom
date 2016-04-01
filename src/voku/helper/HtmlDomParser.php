@@ -159,7 +159,7 @@ class HtmlDomParser
   }
 
   /**
-   * @return mixed
+   * @return string
    */
   public function __toString()
   {
@@ -321,9 +321,9 @@ class HtmlDomParser
   }
 
   /**
-   * @param $content
+   * @param string $content
    *
-   * @return mixed
+   * @return string
    */
   protected function fixHtmlOutput($content)
   {

@@ -142,7 +142,7 @@ class SimpleHtmlDom implements \IteratorAggregate
   }
 
   /**
-   * @return mixed
+   * @return string
    */
   public function __toString()
   {

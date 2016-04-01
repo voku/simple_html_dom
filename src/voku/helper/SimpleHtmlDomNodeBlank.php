@@ -33,7 +33,7 @@ class SimpleHtmlDomNodeBlank extends \ArrayObject
   }
 
   /**
-   * @return mixed
+   * @return string
    */
   public function __toString()
   {
