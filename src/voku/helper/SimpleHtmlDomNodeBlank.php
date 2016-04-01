@@ -2,19 +2,20 @@
 
 namespace voku\helper;
 
+
 /**
- * simple html dom node - blank
+ * Class SimpleHtmlDomNodeBlank
  *
- * @package voku\helper
+ * @package FastSimpleHTMLDom
+ * @property-read string outertext Get dom node's outer html
+ * @property-read string plaintext Get dom node's plain text
  */
-class SimpleHtmlDomNodeBlank
+class SimpleHtmlDomNodeBlank extends \ArrayObject
 {
   /**
-   * dummy get
-   *
    * @param $name
    *
-   * @return bool|mixed|string
+   * @return string
    */
   public function __get($name)
   {
@@ -22,19 +23,40 @@ class SimpleHtmlDomNodeBlank
   }
 
   /**
-   * dummy method
+   * @param string $selector
+   * @param int    $idx
    *
-   * @param $name
-   * @param $arguments
+   * @return SimpleHtmlDom|SimpleHtmlDomNode|null
    */
-  public function __call($name, $arguments)
+  public function __invoke($selector, $idx = null)
   {
   }
 
   /**
-   * dummy clear
+   * @return mixed
    */
-  public function clear()
+  public function __toString()
   {
+    return $this->innerHtml();
+  }
+
+  /**
+   * Get html of Elements
+   *
+   * @return string
+   */
+  public function innerHtml()
+  {
+    return '';
+  }
+
+  /**
+   * Get plain text
+   *
+   * @return string
+   */
+  public function text()
+  {
+    return '';
   }
 }

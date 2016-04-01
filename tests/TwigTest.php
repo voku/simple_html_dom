@@ -1,4 +1,5 @@
 <?php
+
 use voku\helper\HtmlDomParser;
 
 /**
@@ -8,12 +9,12 @@ class TwigTest extends PHPUnit_Framework_TestCase
 {
   public function testTwig()
   {
-    $filename = __DIR__ . '/test_template.twig';
+    $filename = __DIR__ . '/fixtures/test_template.twig';
     $html = HtmlDomParser::file_get_html($filename);
-    $htmlNormalised = str_replace(array("\r", "\n"), ' ', file_get_contents($filename));
+    $htmlNormalised = str_replace(array("\r\n", "\r", "\n"), ' ', file_get_contents($filename));
 
     // object to sting
-    self::assertEquals($htmlNormalised, (string)$html);
+    self::assertEquals($htmlNormalised, str_replace(array("\r\n", "\r", "\n"), ' ', (string)$html));
 
     // ------------------
     // find
@@ -30,9 +31,26 @@ class TwigTest extends PHPUnit_Framework_TestCase
 
     $navigation[0]->class = 'fooo';
 
+    $expected = '<!DOCTYPE html>
+<html>
+<head>
+  <title>My Webpage</title>
+</head>
+<body>
+<ul class="navigation">
+  {% for item in navigation %}
+    <li class="fooo"><a href="{{ item.href }}">{{ item.caption }}</a></li>
+  {% endfor %}
+</ul>
+
+<h1>My Webpage</h1>
+{{ a_variable }}
+</body>
+</html>';
+
     self::assertEquals(
-        '<!DOCTYPE html> <html> <head>   <title>My Webpage</title> </head> <body> <ul class="navigation">   {% for item in navigation %}     <li class="fooo"><a href="{{ item.href }}">{{ item.caption }}</a></li>   {% endfor %} </ul>  <h1>My Webpage</h1> {{ a_variable }} </body> </html>',
-        (string)$html
+        str_replace(array("\r\n", "\r", "\n"), ' ', $expected),
+        str_replace(array("\r\n", "\r", "\n"), ' ', (string)$html)
     );
   }
 }
