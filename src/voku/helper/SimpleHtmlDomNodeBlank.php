@@ -49,7 +49,7 @@ class SimpleHtmlDomNodeBlank extends \ArrayObject
    */
   public function __toString()
   {
-    return $this->innerHtml();
+    return '';
   }
 
   /**
