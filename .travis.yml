@@ -10,6 +10,10 @@ php:
   - 7.0
   - hhvm
 
+matrix:
+  allow_failures:
+    - php: hhvm
+
 before_script:
   - wget https://scrutinizer-ci.com/ocular.phar
   - travis_retry composer self-update
