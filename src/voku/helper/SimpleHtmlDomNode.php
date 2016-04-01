@@ -57,7 +57,7 @@ class SimpleHtmlDomNode extends \ArrayObject
    */
   public function find($selector, $idx = null)
   {
-    $elements = new SimpleHtmlDomNode();
+    $elements = new self();
     foreach ($this as $node) {
       foreach ($node->find($selector) as $res) {
         $elements->append($res);

@@ -40,7 +40,7 @@ class HtmlDomParser
   /**
    * @var Callable
    */
-  static protected $callback;
+  protected static $callback;
 
   /**
    * @var DOMDocument
@@ -114,13 +114,13 @@ class HtmlDomParser
   public static function __callStatic($name, $arguments)
   {
     if ($name == 'str_get_html') {
-      $parser = new HtmlDomParser();
+      $parser = new self();
 
       return $parser->loadHtml($arguments[0]);
     }
 
     if ($name == 'file_get_html') {
-      $parser = new HtmlDomParser();
+      $parser = new self();
 
       return $parser->loadHtmlFile($arguments[0]);
     }
@@ -342,7 +342,7 @@ class HtmlDomParser
           $content
       );
 
-    } else if ($this->isDOMDocumentCreatedWithoutHtmlWrapper === true) {
+    } elseif ($this->isDOMDocumentCreatedWithoutHtmlWrapper === true) {
       $content = str_replace(
           array(
               "\n",

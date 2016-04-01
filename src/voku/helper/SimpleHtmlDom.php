@@ -85,11 +85,11 @@ class SimpleHtmlDom implements \IteratorAggregate
         return $this->innerHtml();
       case 'plaintext':
         return $this->text();
-      case 'tag'      :
+      case 'tag':
         return $this->node->nodeName;
-      case 'attr'     :
+      case 'attr':
         return $this->getAllAttributes();
-      default         :
+      default:
         return $this->getAttribute($name);
     }
   }
@@ -116,9 +116,9 @@ class SimpleHtmlDom implements \IteratorAggregate
       case 'outertext':
       case 'innertext':
       case 'plaintext':
-      case 'tag'      :
+      case 'tag':
         return true;
-      default         :
+      default:
         return $this->hasAttribute($name);
     }
   }
@@ -136,7 +136,7 @@ class SimpleHtmlDom implements \IteratorAggregate
         return $this->replaceNode($value);
       case 'innertext':
         return $this->replaceChild($value);
-      default         :
+      default:
         return $this->setAttribute($name, $value);
     }
   }
@@ -207,7 +207,7 @@ class SimpleHtmlDom implements \IteratorAggregate
       return null;
     }
 
-    return new SimpleHtmlDom($node);
+    return new self($node);
   }
 
   /**
@@ -313,7 +313,7 @@ class SimpleHtmlDom implements \IteratorAggregate
     $elements = new SimpleHtmlDomNode();
     if ($this->node->hasChildNodes()) {
       foreach ($this->node->childNodes as $node) {
-        $elements[] = new SimpleHtmlDom($node);
+        $elements[] = new self($node);
       }
     }
 
@@ -373,7 +373,7 @@ class SimpleHtmlDom implements \IteratorAggregate
       return null;
     }
 
-    return new SimpleHtmlDom($node);
+    return new self($node);
   }
 
   /**
@@ -389,7 +389,7 @@ class SimpleHtmlDom implements \IteratorAggregate
       return null;
     }
 
-    return new SimpleHtmlDom($node);
+    return new self($node);
   }
 
   /**
@@ -399,7 +399,7 @@ class SimpleHtmlDom implements \IteratorAggregate
    */
   public function parentNode()
   {
-    return new SimpleHtmlDom($this->node->parentNode);
+    return new self($this->node->parentNode);
   }
 
   /**
@@ -415,7 +415,7 @@ class SimpleHtmlDom implements \IteratorAggregate
       return null;
     }
 
-    return new SimpleHtmlDom($node);
+    return new self($node);
   }
 
   /**
@@ -431,7 +431,7 @@ class SimpleHtmlDom implements \IteratorAggregate
       $newDocument = new HtmlDomParser($string);
 
       if ($newDocument->outertext != $string) {
-        throw new RuntimeException("Not valid HTML fragment");
+        throw new RuntimeException('Not valid HTML fragment');
       }
     }
 
@@ -469,7 +469,7 @@ class SimpleHtmlDom implements \IteratorAggregate
     $newDocument = new HtmlDomParser($string);
 
     if ($newDocument->outertext != $string) {
-      throw new RuntimeException("Not valid HTML fragment");
+      throw new RuntimeException('Not valid HTML fragment');
     }
 
     $newDocument = $this->cleanHtmlWrapper($newDocument);
