@@ -20,6 +20,7 @@ class SimpleHtmlDomNode extends \ArrayObject
   public function __get($name)
   {
     switch ($name) {
+      case 'outertext':
       case 'innertext':
         return $this->innerHtml();
       case 'plaintext':
@@ -27,6 +28,22 @@ class SimpleHtmlDomNode extends \ArrayObject
     }
 
     return null;
+  }
+
+  /**
+   * alias for "$this->innerHtml()" (added for compatibly-reasons with v1.x)
+   */
+  public function outertext()
+  {
+    $this->innerHtml();
+  }
+
+  /**
+   * alias for "$this->innerHtml()" (added for compatibly-reasons with v1.x)
+   */
+  public function innertext()
+  {
+    $this->innerHtml();
   }
 
   /**

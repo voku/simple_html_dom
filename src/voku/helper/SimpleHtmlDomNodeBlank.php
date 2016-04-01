@@ -23,6 +23,17 @@ class SimpleHtmlDomNodeBlank extends \ArrayObject
   }
 
   /**
+   * @param $name
+   * @param $arguments
+   *
+   * @return string
+   */
+  public function __call($name, $arguments)
+  {
+    return null;
+  }
+
+  /**
    * @param string $selector
    * @param int    $idx
    *
@@ -30,6 +41,7 @@ class SimpleHtmlDomNodeBlank extends \ArrayObject
    */
   public function __invoke($selector, $idx = null)
   {
+    return null;
   }
 
   /**
