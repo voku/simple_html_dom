@@ -1,9 +1,6 @@
 
-
-[TODO]
-1. Error of "file_get_contents()" will be thrown as an exception.
-2. Add flag: LOCK_EX while calling "file_put_contents()".
-3. Fix the typo of "token_blank_t".
+[PHP Simple HTML Dom v2.0.0-RC1]
+1. Complete Re-Write (based on https://github.com/dimabdc/PHP-Fast-Simple-HTML-DOM-Parser)
 
 [PHP Simple HTML Dom v1.7.x]
 1: removed old parameter: maxLen / lowercase / stripRN / defaultBRText / defaultSpanText

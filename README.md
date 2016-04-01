@@ -46,9 +46,9 @@ require_once 'composer/autoload.php';
 ...
 $dom = HtmlDomParser::str_get_html($str);
 // or 
-$dom = HtmlDomParser::file_get_html($file_name);
+$dom = HtmlDomParser::file_get_html($file);
 
-$elems = $dom->find($elem_name);
+$elems = $dom->find('#css-selector');
 ...
 
 ```

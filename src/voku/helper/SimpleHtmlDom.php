@@ -9,8 +9,9 @@ use RuntimeException;
 
 /**
  * Class SimpleHtmlDom
+ * 
+ * @package voku\helper
  *
- * @package FastSimpleHTMLDom
  * @property string outertext Get dom node's outer html
  * @property string innertext Get dom node's inner html
  * @property string plaintext (read-only) Get dom node's plain text

@@ -11,7 +11,7 @@ use RuntimeException;
 /**
  * Class HtmlDomParser
  *
- * @package FastSimpleHTMLDom
+ * @package voku\helper
  *
  * @property string      outertext Get dom node's outer html
  * @property string      innertext Get dom node's inner html

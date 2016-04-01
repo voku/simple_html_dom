@@ -4,6 +4,11 @@ namespace voku\helper;
 
 use Symfony\Component\CssSelector\CssSelectorConverter;
 
+/**
+ * Class SelectorConverter
+ *
+ * @package voku\helper
+ */
 class SelectorConverter
 {
   protected static $compiled = array();

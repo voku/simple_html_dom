@@ -4,8 +4,9 @@ namespace voku\helper;
 
 /**
  * Class SimpleHtmlDomNodeBlank
+ * 
+ * @package voku\helper
  *
- * @package FastSimpleHTMLDom
  * @property-read string outertext Get dom node's outer html
  * @property-read string plaintext Get dom node's plain text
  */
