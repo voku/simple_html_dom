@@ -4,7 +4,7 @@ namespace voku\helper;
 
 /**
  * Class SimpleHtmlDomNode
- * 
+ *
  * @package voku\helper
  *
  * @property-read string outertext Get dom node's outer html
