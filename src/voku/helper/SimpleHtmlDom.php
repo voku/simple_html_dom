@@ -9,7 +9,7 @@ use RuntimeException;
 
 /**
  * Class SimpleHtmlDom
- * 
+ *
  * @package voku\helper
  *
  * @property string outertext Get dom node's outer html
