@@ -69,7 +69,7 @@ class HtmlDomParser
    */
   public function __construct($element = null)
   {
-    $this->document = new DOMDocument('1.0', $this->getEncoding());
+    $this->document = new \DOMDocument('1.0', $this->getEncoding());
 
     if ($element instanceof SimpleHtmlDom) {
       $element = $element->getNode();
@@ -196,8 +196,14 @@ class HtmlDomParser
     // set error level
     $internalErrors = libxml_use_internal_errors(true);
     $disableEntityLoader = libxml_disable_entity_loader(true);
+    libxml_clear_errors();
 
-    $sxe = simplexml_load_string($html);
+    $options = LIBXML_DTDLOAD | LIBXML_DTDATTR | LIBXML_NONET;
+    if (defined(LIBXML_COMPACT)) {
+      $options |= LIBXML_COMPACT;
+    }
+
+    $sxe = simplexml_load_string($html, 'SimpleXMLElement', $options);
     if (count(libxml_get_errors()) === 0) {
       $this->document = dom_import_simplexml($sxe)->ownerDocument;
     } else {
