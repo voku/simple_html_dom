@@ -71,7 +71,7 @@ class SimpleHtmlDomNode extends \ArrayObject
    * @param string $selector
    * @param int    $idx
    *
-   * @return SimpleHtmlDomNode|SimpleHtmlDom|null
+   * @return SimpleHtmlDomNode|SimpleHtmlDomNode[]|null
    */
   public function find($selector, $idx = null)
   {
