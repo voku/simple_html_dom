@@ -259,11 +259,17 @@ class SimpleHtmlDom implements \IteratorAggregate
    *
    * @param string $name
    *
-   * @return SimpleHtmlDomNode|SimpleHtmlDomNode[]|SimpleHtmlDomNodeBlank
+   * @return SimpleHtmlDomNode|SimpleHtmlDomNodeBlank
    */
   public function getElementByTagName($name)
   {
-    return $this->find($name, 0);
+    $node = $this->node->getElementsByTagName($name)->item(0);
+
+    if ($node !== null) {
+      return new SimpleHtmlDom($node);
+    } else {
+      return new SimpleHtmlDomNodeBlank();
+    }
   }
 
   /**
@@ -289,7 +295,27 @@ class SimpleHtmlDom implements \IteratorAggregate
    */
   public function getElementsByTagName($name, $idx = null)
   {
-    return $this->find($name, $idx);
+    $nodesList = $this->node->getElementsByTagName($name);
+
+    $elements = new SimpleHtmlDomNode();
+
+    foreach ($nodesList as $node) {
+      $elements[] = new SimpleHtmlDom($node);
+    }
+
+    if (null === $idx) {
+      return $elements;
+    } else {
+      if ($idx < 0) {
+        $idx = count($elements) + $idx;
+      }
+    }
+
+    if (isset($elements[$idx])) {
+      return $elements[$idx];
+    } else {
+      return new SimpleHtmlDomNodeBlank();
+    }
   }
 
   /**
