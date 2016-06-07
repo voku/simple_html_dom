@@ -266,7 +266,7 @@ class SimpleHtmlDom implements \IteratorAggregate
     $node = $this->node->getElementsByTagName($name)->item(0);
 
     if ($node !== null) {
-      return new SimpleHtmlDom($node);
+      return new self($node);
     } else {
       return new SimpleHtmlDomNodeBlank();
     }
@@ -300,7 +300,7 @@ class SimpleHtmlDom implements \IteratorAggregate
     $elements = new SimpleHtmlDomNode();
 
     foreach ($nodesList as $node) {
-      $elements[] = new SimpleHtmlDom($node);
+      $elements[] = new self($node);
     }
 
     if (null === $idx) {
