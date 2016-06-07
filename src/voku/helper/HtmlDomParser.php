@@ -262,7 +262,13 @@ class HtmlDomParser
    */
   public function getElementByTagName($name)
   {
-    return $this->find($name, 0);
+    $node = $this->document->getElementsByTagName($name)->item(0);
+
+    if ($node !== null) {
+      return new SimpleHtmlDom($node);
+    } else {
+      return new SimpleHtmlDomNodeBlank();
+    }
   }
 
   /**
@@ -288,7 +294,27 @@ class HtmlDomParser
    */
   public function getElementsByTagName($name, $idx = null)
   {
-    return $this->find($name, $idx);
+    $nodesList = $this->document->getElementsByTagName($name);
+
+    $elements = new SimpleHtmlDomNode();
+
+    foreach ($nodesList as $node) {
+      $elements[] = new SimpleHtmlDom($node);
+    }
+
+    if (null === $idx) {
+      return $elements;
+    } else {
+      if ($idx < 0) {
+        $idx = count($elements) + $idx;
+      }
+    }
+
+    if (isset($elements[$idx])) {
+      return $elements[$idx];
+    } else {
+      return new SimpleHtmlDomNodeBlank();
+    }
   }
 
   /**
