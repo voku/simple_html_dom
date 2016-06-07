@@ -204,7 +204,7 @@ class HtmlDomParser
     }
 
     $sxe = simplexml_load_string($html, 'SimpleXMLElement', $options);
-    if (count(libxml_get_errors()) === 0) {
+    if ($sxe !== false && count(libxml_get_errors()) === 0) {
       $this->document = dom_import_simplexml($sxe)->ownerDocument;
     } else {
       $this->document->loadHTML('<?xml encoding="' . $this->getEncoding() . '">' . $html);
