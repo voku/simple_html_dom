@@ -320,11 +320,12 @@ HTML;
   {
     $filename = __DIR__ . '/fixtures/test_mail.html';
     $filenameExpected = __DIR__ . '/fixtures/test_mail_expected.html';
+
     $html = HtmlDomParser::file_get_html($filename);
-    $htmlExpected = str_replace(array("\r\n", "\r", "\n"), ' ', file_get_contents($filenameExpected));
+    $htmlExpected = str_replace(array("\r\n", "\r", "\n"), "\n", file_get_contents($filenameExpected));
 
     // object to sting
-    self::assertEquals($htmlExpected, str_replace(array("\r\n", "\r", "\n"), ' ', (string)$html));
+    self::assertEquals($htmlExpected, str_replace(array("\r\n", "\r", "\n"), "\n", (string)$html));
 
     $preHeaderContentArray = $html->find('.preheaderContent');
 
@@ -573,6 +574,30 @@ HTML;
     self::assertEquals(16, count($tmpArray));
     self::assertContains('<img src="foobar" alt="" width="5" height="3" border="0">', $htmlTmp);
     self::assertContains('© 2015 Test', $htmlTmp);
+  }
+
+  public function testEditLinks()
+  {
+    $text = ' <p><a href="http://foobar.de" class="  more  "  >Mehr</a></p>';
+
+    $dom = HtmlDomParser::str_get_html($text);
+
+    foreach ($dom->find('a') as $item) {
+      $href = $item->getAttribute('href');
+      $dataUrlParse = $item->getAttribute('data-url-parse');
+
+      if ($dataUrlParse) {
+        continue;
+      }
+
+      $parseLink = parse_url($href);
+      $domain = (isset($parseLink['host']) ? $parseLink['host'] : '');
+
+      $item->outertext = str_ireplace('href="' . $href . '"', ' onclick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=' . urlencode($domain) . '\');" href="' . $href . '" data-url-parse="done"', $item);
+    }
+
+    $expected = '<p><a onclick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de\');" href="http://foobar.de" data-url-parse="done" class="  more  ">Mehr</a></p>';
+    self::assertEquals($expected, (string)$dom);
   }
 
   public function testEditInnerText()

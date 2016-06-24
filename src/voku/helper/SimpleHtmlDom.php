@@ -495,7 +495,7 @@ class SimpleHtmlDom implements \IteratorAggregate
 
     $newDocument = new HtmlDomParser($string);
 
-    if ($newDocument->outertext != $string) {
+    if (str_replace(' ', '', $newDocument->outertext) !== str_replace(' ', '', $string)) {
       throw new RuntimeException('Not valid HTML fragment');
     }
 
@@ -553,9 +553,10 @@ class SimpleHtmlDom implements \IteratorAggregate
    *
    * @return DOMElement
    */
-  protected function changeElementName(\DOMNode $node, $name) {
+  protected function changeElementName(\DOMNode $node, $name)
+  {
     $newnode = $node->ownerDocument->createElement($name);
-    foreach ($node->childNodes as $child){
+    foreach ($node->childNodes as $child) {
       $child = $node->ownerDocument->importNode($child, true);
       $newnode->appendChild($child);
     }

@@ -38,6 +38,27 @@ class HtmlDomParser
   );
 
   /**
+   * @var array
+   */
+  private static $domLinkReplaceHelper = array(
+      'orig' => array('[', ']', '{', '}',),
+      'tmp'  => array(
+          '!!!!HTML_DOM__SQUARE_BRACKET_LEFT!!!!',
+          '!!!!HTML_DOM__SQUARE_BRACKET_RIGHT!!!!',
+          '!!!!HTML_DOM__BRACKET_LEFT!!!!',
+          '!!!!HTML_DOM__BRACKET_RIGHT!!!!',
+      ),
+  );
+
+  /**
+   * @var array
+   */
+  protected static $domReplaceHelper = array(
+      'orig' => array('&', '|'),
+      'tmp'  => array('!!!!HTML_DOM__AMP!!!!', '!!!!HTML_DOM__PIPE!!!!'),
+  );
+
+  /**
    * @var Callable
    */
   protected static $callback;
@@ -70,6 +91,10 @@ class HtmlDomParser
   public function __construct($element = null)
   {
     $this->document = new \DOMDocument('1.0', $this->getEncoding());
+
+    // DOMDocument settings
+    $this->document->preserveWhiteSpace = false;
+    $this->document->formatOutput = true;
 
     if ($element instanceof SimpleHtmlDom) {
       $element = $element->getNode();
@@ -177,6 +202,61 @@ class HtmlDomParser
   }
 
   /**
+   * @param string $html
+   *
+   * @return string
+   */
+  private function replaceToPreserveHtmlEntities($html)
+  {
+    preg_match_all("/(\bhttps?:\/\/[^\s()<>]+(?:\([\w\d]+\)|[^[:punct:]\s]|\/|\}|\]))/i", $html, $linksOld);
+
+    $linksNew = array();
+    if (!empty($linksOld[1])) {
+      $linksOld = $linksOld[1];
+      foreach ($linksOld as $linkKey => $linkOld) {
+        $linksNew[$linkKey] = str_replace(
+            self::$domLinkReplaceHelper['orig'],
+            self::$domLinkReplaceHelper['tmp'],
+            $linkOld
+        );
+      }
+    }
+
+    $linksNewCount = count($linksNew);
+    if ($linksNewCount > 0 && count($linksOld) === $linksNewCount) {
+      $search = array_merge($linksOld, self::$domReplaceHelper['orig']);
+      $replace = array_merge($linksNew, self::$domReplaceHelper['tmp']);
+    } else {
+      $search = self::$domReplaceHelper['orig'];
+      $replace = self::$domReplaceHelper['tmp'];
+    }
+
+    return str_replace($search, $replace, $html);
+  }
+
+  /**
+   * @param string $html
+   *
+   * @return string
+   */
+  private function putReplacedBackToPreserveHtmlEntities($html)
+  {
+    return str_replace(
+        array_merge(
+            self::$domLinkReplaceHelper['tmp'],
+            self::$domReplaceHelper['tmp'],
+            array('&#13;')
+        ),
+        array_merge(
+            self::$domLinkReplaceHelper['orig'],
+            self::$domReplaceHelper['orig'],
+            array('')
+        ),
+        $html
+    );
+  }
+
+  /**
    * create DOMDocument from HTML
    *
    * @param string $html
@@ -207,12 +287,23 @@ class HtmlDomParser
     if ($sxe !== false && count(libxml_get_errors()) === 0) {
       $this->document = dom_import_simplexml($sxe)->ownerDocument;
     } else {
-      $this->document->loadHTML('<?xml encoding="' . $this->getEncoding() . '">' . $html);
+
+      $xmlHackUsed = false;
+      if (stripos('<?xml', $html) !== 0) {
+        $xmlHackUsed = true;
+        $html = '<?xml encoding="' . $this->getEncoding() . '" ?>' . $html;
+      }
+
+      $html = $this->replaceToPreserveHtmlEntities($html);
+
+      $this->document->loadHTML($html);
 
       // remove the "xml-encoding" hack
-      foreach ($this->document->childNodes as $child) {
-        if ($child->nodeType == XML_PI_NODE) {
-          $this->document->removeChild($child);
+      if ($xmlHackUsed === true) {
+        foreach ($this->document->childNodes as $child) {
+          if ($child->nodeType == XML_PI_NODE) {
+            $this->document->removeChild($child);
+          }
         }
       }
 
@@ -227,18 +318,6 @@ class HtmlDomParser
     libxml_disable_entity_loader($disableEntityLoader);
 
     return $this->document;
-  }
-
-  /**
-   * Callback function for preg_replace_callback use.
-   *
-   * @param  array $matches PREG matches
-   *
-   * @return string
-   */
-  protected function entityCallback(&$matches)
-  {
-    return mb_convert_encoding($matches[0], 'UTF-8', 'HTML-ENTITIES');
   }
 
   /**
@@ -361,36 +440,36 @@ class HtmlDomParser
   {
     // INFO: DOMDocument will encapsulate plaintext into a paragraph tag (<p>),
     //          so we try to remove it here again ...
-    if ($this->isDOMDocumentCreatedWithoutHtml === true) {
-      $content = str_replace(
-          array(
-              "\n",
-              '<p>', '</p>',
-              "\n" . '<simpleHtmlDomP>', '<simpleHtmlDomP>', '</simpleHtmlDomP>',
-              '<body>', '</body>',
-              '<html>', '</html>'
-          ),
-          '',
-          $content
-      );
 
-    } elseif ($this->isDOMDocumentCreatedWithoutHtmlWrapper === true) {
+    if ($this->isDOMDocumentCreatedWithoutHtmlWrapper === true) {
       $content = str_replace(
           array(
               "\n",
-              "\n" . '<simpleHtmlDomP>', '<simpleHtmlDomP>', '</simpleHtmlDomP>',
-              '<body>', '</body>',
-              '<html>', '</html>'
+              "\r\n",
+              "\r",
+              '<simpleHtmlDomP>',
+              '</simpleHtmlDomP>',
+              '<body>',
+              '</body>',
+              '<html>',
+              '</html>',
           ),
           '',
           $content
       );
     }
 
-    // replace html entities which represent UTF-8 codepoints.
-    $content = preg_replace_callback("/&#\d{2,5};/", array($this, 'entityCallback'), $content);
+    if ($this->isDOMDocumentCreatedWithoutHtml === true) {
+      $content = str_replace(array('<p>', '</p>'), '', $content);
+    }
 
-    return urldecode(trim($content));
+    $content = UTF8::html_entity_decode($content);
+    $content = UTF8::trim($content);
+    $content = UTF8::urldecode($content);
+
+    $content = $this->putReplacedBackToPreserveHtmlEntities($content);
+
+    return $content;
   }
 
   /**
@@ -502,6 +581,7 @@ class HtmlDomParser
 
     try {
       $html = file_get_contents($filePath);
+
     } catch (\Exception $e) {
       throw new RuntimeException("Could not load file $filePath");
     }

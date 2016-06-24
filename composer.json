@@ -1,7 +1,11 @@
 {
   "name": "voku/simple_html_dom",
   "description": "Simple HTML DOM package.",
-  "keywords": ["dom", "php dom"],
+  "keywords": [
+    "dom",
+    "php dom",
+    "HTML parser"
+  ],
   "homepage": "http://simplehtmldom.sourceforge.net/",
   "license": "MIT",
   "type": "library",
@@ -18,7 +22,7 @@
       "role": "Developer"
     }
   ],
-  "require":{
+  "require": {
     "php": ">=5.3.2",
     "symfony/css-selector": "~2.8.0",
     "voku/portable-utf8": "~2.1.0"
