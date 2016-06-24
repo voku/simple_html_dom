@@ -288,6 +288,8 @@ class HtmlDomParser
       $this->document = dom_import_simplexml($sxe)->ownerDocument;
     } else {
 
+      // UTF-8 hack: http://php.net/manual/en/domdocument.loadhtml.php#95251
+      $html = trim($html);
       $xmlHackUsed = false;
       if (stripos('<?xml', $html) !== 0) {
         $xmlHackUsed = true;
