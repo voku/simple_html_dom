@@ -457,7 +457,7 @@ class SimpleHtmlDom implements \IteratorAggregate
     if (!empty($string)) {
       $newDocument = new HtmlDomParser($string);
 
-      if ($newDocument->outertext != $string) {
+      if ($this->normalizeStringForComparision($newDocument->outertext) != $this->normalizeStringForComparision($string)) {
         throw new RuntimeException('Not valid HTML fragment');
       }
     }
@@ -495,7 +495,7 @@ class SimpleHtmlDom implements \IteratorAggregate
 
     $newDocument = new HtmlDomParser($string);
 
-    if (str_replace(' ', '', $newDocument->outertext) !== str_replace(' ', '', $string)) {
+    if ($this->normalizeStringForComparision($newDocument->outertext) != $this->normalizeStringForComparision($string)) {
       throw new RuntimeException('Not valid HTML fragment');
     }
 
@@ -507,6 +507,18 @@ class SimpleHtmlDom implements \IteratorAggregate
     $this->node = $newNode;
 
     return $this;
+  }
+
+  /**
+   * Normalize the given string for comparision.
+   *
+   * @param $string
+   *
+   * @return string
+   */
+  private function normalizeStringForComparision($string)
+  {
+    return trim(str_replace(array(' ', "\n", "\r\n", "\r"), '', strtolower($string)));
   }
 
   /**

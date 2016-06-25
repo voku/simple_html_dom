@@ -582,26 +582,37 @@ HTML;
 
   public function testEditLinks()
   {
-    $text = ' <p><a href="http://foobar.de" class="  more  "  >Mehr</a></p>';
+    $texts = array(
+        '<a href="http://foobar.de" class="  more  "  >Mehr</a><a href="http://foobar.de" class="  more  "  >Mehr</a>' => '<a onclick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de\');" href="http://foobar.de" data-url-parse="done" class="  more  ">Mehr</a><a onclick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de\');" href="http://foobar.de" data-url-parse="done" class="  more  ">Mehr</a>',
+        ' <p><a href="http://foobar.de" class="  more  "  >Mehr</a></p>' => '<p><a onclick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de\');" href="http://foobar.de" data-url-parse="done" class="  more  ">Mehr</a></p>',
+        '<a <a href="http://foobar.de">foo</a><div></div>' => '<a onclick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de\');" href="http://foobar.de" data-url-parse="done">foo</a><div></div>',
+        ' <p></p>' => '<p></p>',
+        ' <p>' => '<p></p>',
+        'p>' => 'p>',
+        'p' => 'p',
+        'Google+ && Twitter || Lînux' => 'Google+ && Twitter || Lînux',
+        '' => '',
+    );
 
-    $dom = HtmlDomParser::str_get_html($text);
+    foreach($texts as $text => $expected) {
+      $dom = HtmlDomParser::str_get_html($text);
 
-    foreach ($dom->find('a') as $item) {
-      $href = $item->getAttribute('href');
-      $dataUrlParse = $item->getAttribute('data-url-parse');
+      foreach ($dom->find('a') as $item) {
+        $href = $item->getAttribute('href');
+        $dataUrlParse = $item->getAttribute('data-url-parse');
 
-      if ($dataUrlParse) {
-        continue;
+        if ($dataUrlParse) {
+          continue;
+        }
+
+        $parseLink = parse_url($href);
+        $domain = (isset($parseLink['host']) ? $parseLink['host'] : '');
+
+        $item->outertext = str_ireplace('href="' . $href . '"', ' onclick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=' . urlencode($domain) . '\');" href="' . $href . '" data-url-parse="done"', $item);
       }
 
-      $parseLink = parse_url($href);
-      $domain = (isset($parseLink['host']) ? $parseLink['host'] : '');
-
-      $item->outertext = str_ireplace('href="' . $href . '"', ' onclick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=' . urlencode($domain) . '\');" href="' . $href . '" data-url-parse="done"', $item);
+      self::assertEquals($expected, (string)$dom, 'tested: ' . $text);
     }
-
-    $expected = '<p><a onclick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de\');" href="http://foobar.de" data-url-parse="done" class="  more  ">Mehr</a></p>';
-    self::assertEquals($expected, (string)$dom);
   }
 
   public function testEditInnerText()

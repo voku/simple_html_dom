@@ -54,8 +54,8 @@ class HtmlDomParser
    * @var array
    */
   protected static $domReplaceHelper = array(
-      'orig' => array('&', '|'),
-      'tmp'  => array('!!!!HTML_DOM__AMP!!!!', '!!!!HTML_DOM__PIPE!!!!'),
+      'orig' => array('&', '|', '+'),
+      'tmp'  => array('!!!!HTML_DOM__AMP!!!!', '!!!!HTML_DOM__PIPE!!!!', '!!!!HTML_DOM__PLUS!!!!',),
   );
 
   /**
@@ -462,7 +462,14 @@ class HtmlDomParser
     }
 
     if ($this->isDOMDocumentCreatedWithoutHtml === true) {
-      $content = str_replace(array('<p>', '</p>'), '', $content);
+      $content = str_replace(
+          array(
+              '<p>',
+              '</p>',
+              '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">'
+          ),
+          '',
+          $content);
     }
 
     $content = UTF8::html_entity_decode($content);
