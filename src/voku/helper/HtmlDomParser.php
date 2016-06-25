@@ -529,6 +529,21 @@ class HtmlDomParser
   }
 
   /**
+   * Get the HTML as XML.
+   *
+   * @return string
+   */
+  public function xml()
+  {
+    $xml = $this->document->saveXML(null, LIBXML_NOEMPTYTAG);
+
+    // remove the XML-header
+    $xml = ltrim(preg_replace('/<\?xml.*\?>/', '', $xml));
+
+    return $this->fixHtmlOutput($xml);
+  }
+
+  /**
    * Get dom node's inner html
    *
    * @return string

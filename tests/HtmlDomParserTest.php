@@ -211,10 +211,14 @@ class HtmlDomParserTest extends PHPUnit_Framework_TestCase
     $html = $this->loadFixture('test_page.html');
     $document = new HtmlDomParser($html);
 
-    self::assertTrue(is_string($document->html()));
+    $htmlTmp = $document->html();
+    self::assertTrue(is_string($htmlTmp));
+
+    $xmlTmp = $document->xml();
+    self::assertTrue(is_string($xmlTmp));
+
     self::assertTrue(is_string($document->outertext));
     self::assertTrue(strlen($document) > 0);
-
 
     $html = '<div>foo</div>';
     $document = new HtmlDomParser($html);
