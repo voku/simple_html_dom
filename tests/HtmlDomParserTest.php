@@ -593,6 +593,7 @@ HTML;
         'Google+ && Twitter || Lînux' => 'Google+ && Twitter || Lînux',
         '<a href="http://foobar.de[[foo]]&{{foobar}}&lall=1">foo</a>' => '<a onclick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de%5B%5Bfoo%5D%5D%26%7B%7Bfoobar%7D%7D%26lall%3D1\');" href="http://foobar.de[[foo]]&{{foobar}}&lall=1" data-url-parse="done">foo</a>',
         '' => '',
+        '<a href=""><span>lalll=###test###&bar=%5B%5Bfoobar%5D%5D&test=[[foobar]]&foo={{lall}}</span><img src="http://foobar?lalll=###test###&bar=%5B%5Bfoobar%5D%5D&test=[[foobar]]&foo={{lall}}" style="max-width:600px;" alt="Ihr Unternehmen in den wichtigsten Online-Verzeichnissen" class="headerImage" mc:label="header_image" mc:edit="header_image" mc:allowdesigner mc:allowtext /></a>' => '<a onclick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=\');" href="" data-url-parse="done"><span>lalll=###test###&bar=%5B%5Bfoobar%5D%5D&test=[[foobar]]&foo={{lall}}</span><img src="http://foobar?lalll=###test###&bar=%5B%5Bfoobar%5D%5D&test=[[foobar]]&foo={{lall}}" style="max-width:600px;" alt="Ihr Unternehmen in den wichtigsten Online-Verzeichnissen" class="headerImage" mc:label="header_image" mc:edit="header_image" mc:allowdesigner mc:allowtext></a>',
     );
 
     foreach($texts as $text => $expected) {
