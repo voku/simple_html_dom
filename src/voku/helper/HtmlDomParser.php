@@ -239,7 +239,7 @@ class HtmlDomParser
    *
    * @return string
    */
-  private function putReplacedBackToPreserveHtmlEntities($html)
+  public static function putReplacedBackToPreserveHtmlEntities($html)
   {
     return str_replace(
         array_merge(
@@ -476,7 +476,7 @@ class HtmlDomParser
     $content = trim($content);
     $content = UTF8::urldecode($content);
 
-    $content = $this->putReplacedBackToPreserveHtmlEntities($content);
+    $content = self::putReplacedBackToPreserveHtmlEntities($content);
 
     return $content;
   }
@@ -651,6 +651,6 @@ class HtmlDomParser
    */
   public function text()
   {
-    return $this->document->textContent;
+    return $this->fixHtmlOutput($this->document->textContent);
   }
 }

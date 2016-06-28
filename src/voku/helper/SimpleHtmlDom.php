@@ -69,6 +69,7 @@ class SimpleHtmlDom implements \IteratorAggregate
     if (isset(self::$functionAliases[$name])) {
       return call_user_func_array(array($this, self::$functionAliases[$name]), $arguments);
     }
+
     throw new BadMethodCallException('Method does not exist');
   }
 
@@ -221,7 +222,7 @@ class SimpleHtmlDom implements \IteratorAggregate
     if ($this->node->hasAttributes()) {
       $attributes = array();
       foreach ($this->node->attributes as $attr) {
-        $attributes[$attr->name] = $attr->value;
+        $attributes[$attr->name] = HtmlDomParser::putReplacedBackToPreserveHtmlEntities($attr->value);
       }
 
       return $attributes;
@@ -239,7 +240,9 @@ class SimpleHtmlDom implements \IteratorAggregate
    */
   public function getAttribute($name)
   {
-    return $this->node->getAttribute($name);
+    $html = $this->node->getAttribute($name);
+
+    return HtmlDomParser::putReplacedBackToPreserveHtmlEntities($html);
   }
 
   /**
@@ -495,6 +498,10 @@ class SimpleHtmlDom implements \IteratorAggregate
 
     $newDocument = new HtmlDomParser($string);
 
+    // DEBUG
+    //echo $this->normalizeStringForComparision($newDocument->outertext) . "\n";
+    //echo $this->normalizeStringForComparision($string) . "\n\n";
+
     if ($this->normalizeStringForComparision($newDocument->outertext) != $this->normalizeStringForComparision($string)) {
       throw new RuntimeException('Not valid HTML fragment');
     }
@@ -518,7 +525,7 @@ class SimpleHtmlDom implements \IteratorAggregate
    */
   private function normalizeStringForComparision($string)
   {
-    return trim(str_replace(array(' ', "\n", "\r\n", "\r"), '', strtolower($string)));
+    return urlencode(urldecode(trim(str_replace(array(' ', "\n", "\r\n", "\r"), '', strtolower($string)))));
   }
 
   /**

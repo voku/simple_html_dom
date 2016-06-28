@@ -591,6 +591,7 @@ HTML;
         'p>' => 'p>',
         'p' => 'p',
         'Google+ && Twitter || Lînux' => 'Google+ && Twitter || Lînux',
+        '<a href="http://foobar.de[[foo]]&{{foobar}}&lall=1">foo</a>' => '<a onclick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de[[foo]]&{{foobar}}&lall=1\');" href="http://foobar.de[[foo]]&{{foobar}}&lall=1" data-url-parse="done">foo</a>',
         '' => '',
     );
 
