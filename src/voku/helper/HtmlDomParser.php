@@ -41,13 +41,12 @@ class HtmlDomParser
    * @var array
    */
   private static $domLinkReplaceHelper = array(
-      'orig' => array('[', ']', '{', '}', '%'),
+      'orig' => array('[', ']', '{', '}',),
       'tmp'  => array(
           '!!!!HTML_DOM__SQUARE_BRACKET_LEFT!!!!',
           '!!!!HTML_DOM__SQUARE_BRACKET_RIGHT!!!!',
           '!!!!HTML_DOM__BRACKET_LEFT!!!!',
           '!!!!HTML_DOM__BRACKET_RIGHT!!!!',
-          '!!!!HTML_DOM__PERCENT!!!!',
       ),
   );
 
@@ -55,8 +54,13 @@ class HtmlDomParser
    * @var array
    */
   protected static $domReplaceHelper = array(
-      'orig' => array('&', '|', '+',),
-      'tmp'  => array('!!!!HTML_DOM__AMP!!!!', '!!!!HTML_DOM__PIPE!!!!', '!!!!HTML_DOM__PLUS!!!!',),
+      'orig' => array('&', '|', '+', '%'),
+      'tmp'  => array(
+          '!!!!HTML_DOM__AMP!!!!',
+          '!!!!HTML_DOM__PIPE!!!!',
+          '!!!!HTML_DOM__PLUS!!!!',
+          '!!!!HTML_DOM__PERCENT!!!!',
+      ),
   );
 
   /**
