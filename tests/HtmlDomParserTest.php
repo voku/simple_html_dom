@@ -629,5 +629,11 @@ HTML;
     $html->find('div[id=hello]', 0)->innertext = 'foo';
 
     self::assertEquals('<div id="hello">foo</div><div id="world" class="bar">World</div>', (string)$html);
+
+    // -------------
+
+    $html->find('div[id=fail]', 0)->innertext = 'foobar';
+
+    self::assertEquals('<div id="hello">foo</div><div id="world" class="bar">World</div>', (string)$html);
   }
 }

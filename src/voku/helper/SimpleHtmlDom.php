@@ -42,6 +42,7 @@ class SimpleHtmlDom implements \IteratorAggregate
       'outertext'    => 'html',
       'innertext'    => 'innerHtml',
   );
+
   /**
    * @var DOMElement
    */
@@ -262,7 +263,7 @@ class SimpleHtmlDom implements \IteratorAggregate
    *
    * @param string $name
    *
-   * @return SimpleHtmlDomNode|SimpleHtmlDomNodeBlank
+   * @return SimpleHtmlDom|SimpleHtmlDomNodeBlank
    */
   public function getElementByTagName($name)
   {

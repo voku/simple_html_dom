@@ -332,7 +332,7 @@ class HtmlDomParser
    *
    * @param string $id
    *
-   * @return SimpleHtmlDomNode|SimpleHtmlDomNode[]|SimpleHtmlDomNodeBlank
+   * @return SimpleHtmlDom|SimpleHtmlDomNodeBlank
    */
   public function getElementById($id)
   {
@@ -344,7 +344,7 @@ class HtmlDomParser
    *
    * @param string $name
    *
-   * @return SimpleHtmlDomNode|SimpleHtmlDomNode[]|SimpleHtmlDomNodeBlank
+   * @return SimpleHtmlDom|SimpleHtmlDomNodeBlank
    */
   public function getElementByTagName($name)
   {
@@ -409,7 +409,7 @@ class HtmlDomParser
    * @param string $selector
    * @param int    $idx
    *
-   * @return SimpleHtmlDom|SimpleHtmlDom[]
+   * @return SimpleHtmlDom|SimpleHtmlDom[]|SimpleHtmlDomNodeBlank
    */
   public function find($selector, $idx = null)
   {

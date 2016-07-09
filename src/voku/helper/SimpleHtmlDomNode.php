@@ -10,7 +10,7 @@ namespace voku\helper;
  * @property-read string outertext Get dom node's outer html
  * @property-read string plaintext Get dom node's plain text
  */
-class SimpleHtmlDomNode extends \ArrayObject
+class SimpleHtmlDomNode extends \ArrayObject implements SimpleHtmlDomNodeInterface
 {
   /**
    * @param $name
