@@ -12,11 +12,13 @@ use RuntimeException;
  *
  * @package voku\helper
  *
- * @property string outertext Get dom node's outer html
- * @property string innertext Get dom node's inner html
- * @property string plaintext (read-only) Get dom node's plain text
- * @property string tag       (read-only) Get dom node name
- * @property string attr      (read-only) Get dom node attributes
+ * @property string outerText Get dom node's outer html (alias for "outerHtml")
+ * @property string outerHtml Get dom node's outer html
+ * @property string innerText Get dom node's inner html (alias for "innerHtml")
+ * @property string innerHtml Get dom node's inner html
+ * @property-read string plaintext Get dom node's plain text
+ * @property-read string tag       Get dom node name
+ * @property-read string attr      Get dom node attributes
  *
  * @method SimpleHtmlDomNode|SimpleHtmlDom|null children() children($idx = -1) Returns children of node
  * @method SimpleHtmlDom|null first_child() Returns the first child of node
@@ -24,8 +26,10 @@ use RuntimeException;
  * @method SimpleHtmlDom|null next_sibling() Returns the next sibling of node
  * @method SimpleHtmlDom|null prev_sibling() Returns the previous sibling of node
  * @method SimpleHtmlDom|null parent() Returns the parent of node
- * @method string outertext() Get dom node's outer html
- * @method string innertext() Get dom node's inner html
+ * @method string outerText() Get dom node's outer html (alias for "outerHtml()")
+ * @method string outerHtml() Get dom node's outer html
+ * @method string innerText() Get dom node's inner html (alias for "innerHtml()")
+ *
  */
 class SimpleHtmlDom implements \IteratorAggregate
 {
@@ -40,7 +44,9 @@ class SimpleHtmlDom implements \IteratorAggregate
       'prev_sibling' => 'previousSibling',
       'parent'       => 'parentNode',
       'outertext'    => 'html',
+      'outerhtml'    => 'html',
       'innertext'    => 'innerHtml',
+      'innerhtml'    => 'innerHtml',
   );
 
   /**
@@ -81,11 +87,16 @@ class SimpleHtmlDom implements \IteratorAggregate
    */
   public function __get($name)
   {
+    $name = strtolower($name);
+
     switch ($name) {
+      case 'outerhtml':
       case 'outertext':
         return $this->html();
+      case 'innerhtml':
       case 'innertext':
         return $this->innerHtml();
+      case 'text':
       case 'plaintext':
         return $this->text();
       case 'tag':
@@ -119,6 +130,7 @@ class SimpleHtmlDom implements \IteratorAggregate
       case 'outertext':
       case 'innertext':
       case 'plaintext':
+      case 'text':
       case 'tag':
         return true;
       default:

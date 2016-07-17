@@ -234,7 +234,7 @@ class HtmlDomParserTest extends PHPUnit_Framework_TestCase
     $document = new HtmlDomParser($html);
 
     self::assertEquals('<div>foo</div>', $document->innerHtml());
-    self::assertEquals('<div>foo</div>', $document->innertext());
+    self::assertEquals('<div>foo</div>', $document->innerText());
     self::assertEquals('<div>foo</div>', $document->innertext);
   }
 
@@ -635,5 +635,216 @@ HTML;
     $html->find('div[id=fail]', 0)->innertext = 'foobar';
 
     self::assertEquals('<div id="hello">foo</div><div id="world" class="bar">World</div>', (string)$html);
+  }
+
+  public function testLoad()
+  {
+    $dom = new HtmlDomParser();
+    $dom->load('<div class="all"><p>Hey bro, <a href="google.com">click here</a><br /> :)</p></div>');
+    $div = $dom->find('div', 0);
+    self::assertEquals(
+        '<div class="all"><p>Hey bro, <a href="google.com">click here</a><br> :)</p></div>',
+        $div->outertext
+    );
+  }
+
+  public function testNotLoaded()
+  {
+    $dom = new HtmlDomParser();
+    $div = $dom->find('div', 0);
+
+    self::assertEquals('', $div->plaintext);
+  }
+
+  public function testIncorrectAccess()
+  {
+    $dom = new HtmlDomParser();
+    $dom->load('<div class="all"><p>Hey bro, <a href="google.com">click here</a><br /> :)</p></div>');
+    $div = $dom->find('div', 0);
+    self::assertEquals(null, $div->foo);
+  }
+
+  public function testLoadSelfclosingAttr()
+  {
+    $dom = new HtmlDomParser();
+    $dom->load("<div class='all'><br  foo  bar  />baz</div>");
+    $br = $dom->find('br', 0);
+    self::assertEquals('<br foo bar>', $br->outerHtml);
+  }
+
+  public function testLoadSelfclosingAttrToString()
+  {
+    $dom = new HtmlDomParser();
+    $dom->load("<div class='all'><br  foo  bar  />baz</div>");
+    $br = $dom->find('br', 0);
+    self::assertEquals('<br foo bar>', (string) $br);
+  }
+
+  public function testLoadNoOpeningTag()
+  {
+    $dom = new HtmlDomParser();
+    $dom->load('<div class="all"><font color="red"><strong>PR Manager</strong></font></b><div class="content">content</div></div>');
+    self::assertEquals('content', $dom->find('.content', 0)->text);
+  }
+
+  public function testLoadNoClosingTag()
+  {
+    $dom = new HtmlDomParser();
+    $dom->load('<div class="all"><p>Hey bro, <a href="google.com">click here</a></div>');
+    $root = $dom->find('div', 0);
+    self::assertEquals('<div class="all"><p>Hey bro, <a href="google.com">click here</a></p></div>', $root->outerHtml);
+  }
+
+  public function testLoadAttributeOnSelfClosing()
+  {
+    $dom = new HtmlDomParser();
+    $dom->load('<div class="all"><p>Hey bro, <a href="google.com">click here</a></div><br class="both" />');
+    $br = $dom->find('br', 0);
+    self::assertEquals('both', $br->getAttribute('class'));
+  }
+
+  public function testLoadClosingTagOnSelfClosing()
+  {
+    $dom = new HtmlDomParser();
+    $dom->load('<div class="all"><br><p>Hey bro, <a href="google.com">click here</a></br></div>');
+    self::assertEquals('<br><p>Hey bro, <a href="google.com">click here</a></p>', $dom->find('div', 0)->innerHtml);
+  }
+
+  public function testLoadNoValueAttribute()
+  {
+    $dom = new HtmlDomParser();
+    $dom->load('<div class="content"><div class="grid-container" ui-view>Main content here</div></div>');
+    self::assertEquals('<div class="content"><div class="grid-container" ui-view>Main content here</div></div>', $dom->innerHtml);
+  }
+
+  public function testLoadNoValueAttributeBefore()
+  {
+    $dom = new HtmlDomParser();
+    $dom->load('<div class="content"><div ui-view class="grid-container">Main content here</div></div>');
+    self::assertEquals('<div class="content"><div ui-view class="grid-container">Main content here</div></div>', $dom->innerHtml);
+  }
+
+  public function testLoadUpperCase()
+  {
+    $dom = new HtmlDomParser();
+    $dom->load('<DIV CLASS="ALL"><BR><P>hEY BRO, <A HREF="GOOGLE.COM">click here</A></BR></DIV>');
+    self::assertEquals('<br><p>hEY BRO, <a href="GOOGLE.COM">click here</a></p>', $dom->find('div', 0)->innerHtml);
+  }
+
+  public function testLoadWithFile()
+  {
+    $dom = new HtmlDomParser();
+    $dom->load_file(__DIR__ . '/fixtures/small.html');
+    self::assertEquals('VonBurgermeister', $dom->find('.post-user font', 0)->text);
+  }
+
+  public function testLoadFromFile()
+  {
+    $dom = new HtmlDomParser();
+    $dom->load_file(__DIR__ . '/fixtures/small.html');
+    self::assertEquals('VonBurgermeister', $dom->find('.post-user font', 0)->text);
+  }
+
+  public function testLoadFromFileFind()
+  {
+    $dom = new HtmlDomParser();
+    $dom->load_file(__DIR__ . '/fixtures/small.html');
+    self::assertEquals('VonBurgermeister', $dom->find('.post-row div .post-user font', 0)->text);
+  }
+
+  public function testLoadUtf8()
+  {
+    $dom = new HtmlDomParser();
+    $dom->load('<p>Dzień</p>');
+    self::assertEquals('Dzień', $dom->find('p', 0)->text);
+  }
+
+  public function testLoadFileBigTwice()
+  {
+    $dom = new HtmlDomParser();
+    $dom->loadHtmlFile(__DIR__ . '/fixtures/big.html');
+    $post = $dom->find('.post-row', 0);
+    self::assertEquals('<p>Журчанье воды<br>' . "\n" . 'Черно-белые тени<br>' . "\n" . 'Вновь на фонтане</p>', $post->find('.post-message', 0)->innerHtml);
+  }
+
+  public function testToStringMagic()
+  {
+    $dom = new HtmlDomParser();
+    $dom->load('<div class="all"><p>Hey bro, <a href="google.com">click here</a><br /> :)</p></div>');
+    self::assertEquals('<div class="all"><p>Hey bro, <a href="google.com">click here</a><br> :)</p></div>', (string) $dom);
+  }
+
+  public function testGetMagic()
+  {
+    $dom = new HtmlDomParser();
+    $dom->load('<div class="all"><p>Hey bro, <a href="google.com">click here</a><br /> :)</p></div>');
+    self::assertEquals('<p>Hey bro, <a href="google.com">click here</a><br> :)</p>', $dom->innerHtml);
+  }
+
+  public function testGetElementById()
+  {
+    $dom = new HtmlDomParser();
+    $dom->load('<div class="all"><p>Hey bro, <a href="google.com" id="78">click here</a></div><br />');
+    self::assertEquals('<a href="google.com" id="78">click here</a>', $dom->getElementById('78')->outerHtml);
+  }
+
+  public function testGetElementsByTag()
+  {
+    $dom = new HtmlDomParser();
+    $dom->load('<div class="all"><p>Hey bro, <a href="google.com" id="78">click here</a></div><br />');
+    self::assertEquals('<p>Hey bro, <a href="google.com" id="78">click here</a></p>', $dom->getElementsByTagName('p')[0]->outerHtml);
+  }
+
+  public function testGetElementsByClass()
+  {
+    $dom = new HtmlDomParser();
+    $dom->load('<div class="all"><p>Hey bro, <a href="google.com" id="78">click here</a></div><br />');
+    self::assertEquals('<p>Hey bro, <a href="google.com" id="78">click here</a></p>', $dom->find('.all')[0]->innerHtml);
+  }
+
+  public function testEnforceEncoding()
+  {
+    $dom = new HtmlDomParser();
+    $dom->load('tests/files/horrible.html');
+
+    self::assertNotEquals('<input type="submit" tabindex="0" name="submit" value="Информации" />', $dom->find('table input', 1)->outerHtml);
+  }
+
+  public function testScriptCleanerScriptTag()
+  {
+    $dom = new HtmlDomParser();
+    $dom->load('
+        <p>.....</p>
+        <script>
+        Some code ... 
+        document.write("<script src=\'some script\'><\/script>") 
+        Some code ... 
+        </script>
+        <p>....</p>');
+    self::assertEquals('....', $dom->getElementsByTagName('p')[1]->innerHtml);
+  }
+
+  public function testBeforeClosingTag()
+  {
+    $dom = new HtmlDomParser();
+    $dom->load("<div class=\"stream-container \"  > <div class=\"stream-item js-new-items-bar-container\"> </div> <div class=\"stream\">");
+    self::assertEquals("<div class=\"stream-container \"> <div class=\"stream-item js-new-items-bar-container\"> </div> <div class=\"stream\"></div></div>", (string) $dom);
+  }
+
+  public function testCodeTag()
+  {
+    $dom = new HtmlDomParser();
+    $dom->load('<strong>hello</strong><code class="language-php">$foo = "bar";</code>');
+    self::assertEquals('<strong>hello</strong><code class="language-php">$foo = "bar";</code>', (string) $dom);
+  }
+
+  public function testDeleteNode()
+  {
+    $dom = new HtmlDomParser();
+    $dom->load('<div class="all"><p>Hey bro, <a href="google.com">click here</a><br /> :)</p></div>');
+    $a   = $dom->find('a');
+    $a[0]->outertext = '';
+    unset($a);
+    self::assertEquals('<div class="all"><p>Hey bro, <br> :)</p></div>', (string) $dom);
   }
 }

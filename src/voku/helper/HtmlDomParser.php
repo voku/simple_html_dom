@@ -13,12 +13,15 @@ use RuntimeException;
  *
  * @package voku\helper
  *
- * @property string      outertext Get dom node's outer html
- * @property string      innertext Get dom node's inner html
+ * @property-read string outerText Get dom node's outer html (alias for "outerHtml")
+ * @property-read string outerHtml Get dom node's outer html
+ * @property-read string innerText Get dom node's inner html (alias for "innerHtml")
+ * @property-read string innerHtml Get dom node's inner html
  * @property-read string plaintext Get dom node's plain text
  *
- * @method string outertext() Get dom node's outer html
- * @method string innertext() Get dom node's inner html
+ * @method string outerText() Get dom node's outer html (alias for "outerHtml()")
+ * @method string outerHtml() Get dom node's outer html
+ * @method string innerText() Get dom node's inner html (alias for "innerHtml()")
  * @method HtmlDomParser load() load($html) Load HTML from string
  * @method HtmlDomParser load_file() load_file($html) Load HTML from file
  *
@@ -32,7 +35,9 @@ class HtmlDomParser
    */
   protected static $functionAliases = array(
       'outertext' => 'html',
+      'outerhtml' => 'html',
       'innertext' => 'innerHtml',
+      'innerhtml' => 'innerHtml',
       'load'      => 'loadHtml',
       'load_file' => 'loadHtmlFile',
   );
@@ -128,6 +133,8 @@ class HtmlDomParser
    */
   public function __call($name, $arguments)
   {
+    $name = strtolower($name);
+
     if (isset(self::$functionAliases[$name])) {
       return call_user_func_array(array($this, self::$functionAliases[$name]), $arguments);
     }
@@ -165,11 +172,16 @@ class HtmlDomParser
    */
   public function __get($name)
   {
+    $name = strtolower($name);
+
     switch ($name) {
+      case 'outerhtml':
       case 'outertext':
         return $this->html();
+      case 'innerhtml':
       case 'innertext':
         return $this->innerHtml();
+      case 'text':
       case 'plaintext':
         return $this->text();
     }
