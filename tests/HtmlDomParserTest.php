@@ -792,14 +792,22 @@ HTML;
   {
     $dom = new HtmlDomParser();
     $dom->load('<div class="all"><p>Hey bro, <a href="google.com" id="78">click here</a></div><br />');
-    self::assertEquals('<p>Hey bro, <a href="google.com" id="78">click here</a></p>', $dom->getElementsByTagName('p')[0]->outerHtml);
+    $elm = $dom->getElementsByTagName('p');
+    self::assertEquals(
+        '<p>Hey bro, <a href="google.com" id="78">click here</a></p>',
+        $elm[0]->outerHtml
+    );
   }
 
   public function testGetElementsByClass()
   {
     $dom = new HtmlDomParser();
     $dom->load('<div class="all"><p>Hey bro, <a href="google.com" id="78">click here</a></div><br />');
-    self::assertEquals('<p>Hey bro, <a href="google.com" id="78">click here</a></p>', $dom->find('.all')[0]->innerHtml);
+    $elm = $dom->find('.all');
+    self::assertEquals(
+        '<p>Hey bro, <a href="google.com" id="78">click here</a></p>',
+        $elm[0]->innerHtml
+    );
   }
 
   public function testEnforceEncoding()
@@ -821,7 +829,8 @@ HTML;
         Some code ... 
         </script>
         <p>....</p>');
-    self::assertEquals('....', $dom->getElementsByTagName('p')[1]->innerHtml);
+    $elm = $dom->getElementsByTagName('p');
+    self::assertEquals('....', $elm[1]->innerHtml);
   }
 
   public function testBeforeClosingTag()
