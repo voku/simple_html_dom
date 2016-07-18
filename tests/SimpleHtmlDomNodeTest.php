@@ -62,7 +62,7 @@ class SimpleHtmlDomNodeTest extends PHPUnit_Framework_TestCase
         array($html, 'input[id=in]', 1),
         array($html, '#in', 1),
         array($html, '*[id]', 51),
-        array($html, 'text', 390),
+        array($html, 'text', 539),
     );
   }
 
