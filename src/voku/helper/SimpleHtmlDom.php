@@ -128,7 +128,9 @@ class SimpleHtmlDom implements \IteratorAggregate
   {
     switch ($name) {
       case 'outertext':
+      case 'outerhtml':
       case 'innertext':
+      case 'innerhtml':
       case 'plaintext':
       case 'text':
       case 'tag':
@@ -146,10 +148,14 @@ class SimpleHtmlDom implements \IteratorAggregate
    */
   public function __set($name, $value)
   {
+    $name = strtolower($name);
+
     switch ($name) {
+      case 'outerhtml':
       case 'outertext':
         return $this->replaceNode($value);
       case 'innertext':
+      case 'innerhtml':
         return $this->replaceChild($value);
       default:
         return $this->setAttribute($name, $value);

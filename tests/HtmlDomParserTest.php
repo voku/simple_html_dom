@@ -847,13 +847,23 @@ HTML;
     self::assertEquals('<strong>hello</strong><code class="language-php">$foo = "bar";</code>', (string) $dom);
   }
 
-  public function testDeleteNode()
+  public function testDeleteNodeOuterHtml()
   {
     $dom = new HtmlDomParser();
     $dom->load('<div class="all"><p>Hey bro, <a href="google.com">click here</a><br /> :)</p></div>');
     $a   = $dom->find('a');
-    $a[0]->outertext = '';
+    $a[0]->outerHtml = '';
     unset($a);
     self::assertEquals('<div class="all"><p>Hey bro, <br> :)</p></div>', (string) $dom);
+  }
+
+  public function testDeleteNodeInnerHtml()
+  {
+    $dom = new HtmlDomParser();
+    $dom->load('<div class="all"><p>Hey bro, <a href="google.com">click here</a><br /> :)</p></div>');
+    $a   = $dom->find('div.all');
+    $a[0]->innerHtml = '';
+    unset($a);
+    self::assertEquals('<div class="all"></div>', (string) $dom);
   }
 }
