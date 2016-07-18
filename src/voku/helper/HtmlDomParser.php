@@ -296,29 +296,8 @@ class HtmlDomParser
     libxml_clear_errors();
 
     $options = LIBXML_DTDLOAD | LIBXML_DTDATTR | LIBXML_NONET;
-
-    if (defined(LIBXML_PARSEHUGE)) {
-      $options |= LIBXML_PARSEHUGE;
-    }
-
-    if (defined(LIBXML_NOXMLDECL)) {
-      $options |= LIBXML_NOXMLDECL;
-    }
-
-    if (defined(LIBXML_BIGLINES)) {
-      $options |= LIBXML_BIGLINES;
-    }
-
     if (defined(LIBXML_COMPACT)) {
       $options |= LIBXML_COMPACT;
-    }
-
-    if (defined(LIBXML_HTML_NOIMPLIED)) {
-      $options |= LIBXML_HTML_NOIMPLIED;
-    }
-
-    if (defined(LIBXML_HTML_NODEFDTD)) {
-      $options |= LIBXML_HTML_NODEFDTD;
     }
 
     $sxe = simplexml_load_string($html, 'SimpleXMLElement', $options);
@@ -336,7 +315,7 @@ class HtmlDomParser
 
       $html = $this->replaceToPreserveHtmlEntities($html);
 
-      $this->document->loadHTML($html, $options);
+      $this->document->loadHTML($html);
 
       // remove the "xml-encoding" hack
       if ($xmlHackUsed === true) {

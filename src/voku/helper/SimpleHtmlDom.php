@@ -3,7 +3,6 @@
 namespace voku\helper;
 
 use BadMethodCallException;
-use DOMDocumentType;
 use DOMElement;
 use DOMNode;
 use RuntimeException;
@@ -558,10 +557,7 @@ class SimpleHtmlDom implements \IteratorAggregate
     if ($newDocument->getIsDOMDocumentCreatedWithoutHtml() === true) {
 
       // Remove doc-type node.
-      $docType = $newDocument->getDocument()->doctype;
-      if ($docType instanceof DOMDocumentType) {
-        $docType->parentNode->removeChild($newDocument->getDocument()->doctype);
-      }
+      $newDocument->getDocument()->doctype->parentNode->removeChild($newDocument->getDocument()->doctype);
 
       // Remove html element, preserving child nodes.
       $html = $newDocument->getDocument()->getElementsByTagName('html')->item(0);
