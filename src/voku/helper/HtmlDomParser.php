@@ -297,27 +297,23 @@ class HtmlDomParser
 
     $options = LIBXML_DTDLOAD | LIBXML_DTDATTR | LIBXML_NONET;
 
-    if (defined(LIBXML_PARSEHUGE)) {
+    if (defined('LIBXML_PARSEHUGE')) {
       $options |= LIBXML_PARSEHUGE;
     }
 
-    if (defined(LIBXML_NOXMLDECL)) {
+    if (defined('LIBXML_NOXMLDECL')) {
       $options |= LIBXML_NOXMLDECL;
     }
 
-    if (defined(LIBXML_BIGLINES)) {
+    if (defined('LIBXML_BIGLINES')) {
       $options |= LIBXML_BIGLINES;
     }
 
-    if (defined(LIBXML_COMPACT)) {
+    if (defined('LIBXML_COMPACT')) {
       $options |= LIBXML_COMPACT;
     }
 
-    if (defined(LIBXML_HTML_NOIMPLIED)) {
-      $options |= LIBXML_HTML_NOIMPLIED;
-    }
-
-    if (defined(LIBXML_HTML_NODEFDTD)) {
+    if (defined('LIBXML_HTML_NODEFDTD')) {
       $options |= LIBXML_HTML_NODEFDTD;
     }
 
@@ -504,10 +500,11 @@ class HtmlDomParser
           array(
               '<p>',
               '</p>',
-              '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">'
+              '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">',
           ),
           '',
-          $content);
+          $content
+      );
     }
 
     $content = UTF8::html_entity_decode($content);
