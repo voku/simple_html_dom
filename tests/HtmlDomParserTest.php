@@ -119,7 +119,7 @@ class HtmlDomParserTest extends PHPUnit_Framework_TestCase
 
     $element = new SimpleHtmlDom($document->getDocument()->documentElement);
 
-    self::assertEquals($html, $element->outertext);
+    self::assertSame($html, $element->outertext);
   }
 
   public function testLoadHtmlFile()
@@ -171,7 +171,7 @@ class HtmlDomParserTest extends PHPUnit_Framework_TestCase
     $elements = $document->find($selector);
 
     self::assertInstanceOf('voku\helper\SimpleHtmlDomNode', $elements);
-    self::assertEquals($count, count($elements));
+    self::assertSame($count, count($elements));
 
     foreach ($elements as $element) {
       self::assertInstanceOf('voku\helper\SimpleHtmlDom', $element);
@@ -223,9 +223,9 @@ class HtmlDomParserTest extends PHPUnit_Framework_TestCase
     $html = '<div>foo</div>';
     $document = new HtmlDomParser($html);
 
-    self::assertEquals($html, $document->html());
-    self::assertEquals($html, $document->outertext);
-    self::assertEquals($html, $document);
+    self::assertSame($html, $document->html());
+    self::assertSame($html, $document->outertext);
+    self::assertSame($html, (string)$document);
   }
 
   public function testInnerHtml()
@@ -233,9 +233,9 @@ class HtmlDomParserTest extends PHPUnit_Framework_TestCase
     $html = '<div><div>foo</div></div>';
     $document = new HtmlDomParser($html);
 
-    self::assertEquals('<div>foo</div>', $document->innerHtml());
-    self::assertEquals('<div>foo</div>', $document->innerText());
-    self::assertEquals('<div>foo</div>', $document->innertext);
+    self::assertSame('<div>foo</div>', $document->innerHtml());
+    self::assertSame('<div>foo</div>', $document->innerText());
+    self::assertSame('<div>foo</div>', $document->innertext);
   }
 
   public function testText()
@@ -243,8 +243,8 @@ class HtmlDomParserTest extends PHPUnit_Framework_TestCase
     $html = '<div>foo</div>';
     $document = new HtmlDomParser($html);
 
-    self::assertEquals('foo', $document->text());
-    self::assertEquals('foo', $document->plaintext);
+    self::assertSame('foo', $document->text());
+    self::assertSame('foo', $document->plaintext);
   }
 
   public function testSave()
@@ -285,10 +285,10 @@ HTML;
       }
     }
 
-    self::assertEquals(3, count($checkboxArray));
-    self::assertEquals('checked', $checkboxArray['checkbox1']);
-    self::assertEquals('not checked', $checkboxArray['checkbox2']);
-    self::assertEquals('checked', $checkboxArray['checkbox3']);
+    self::assertSame(3, count($checkboxArray));
+    self::assertSame('checked', $checkboxArray['checkbox1']);
+    self::assertSame('not checked', $checkboxArray['checkbox2']);
+    self::assertSame('checked', $checkboxArray['checkbox3']);
   }
 
   public function testOutertext()
@@ -303,7 +303,7 @@ HTML;
       $e->outertext = '[INPUT]';
     }
 
-    self::assertEquals('<form name="form1" method="post" action="">[INPUT]中文空白</form>', (string)$html);
+    self::assertSame('<form name="form1" method="post" action="">[INPUT]中文空白</form>', (string)$html);
   }
 
   public function testInnertext()
@@ -317,7 +317,7 @@ HTML;
     $html->find('div', 1)->class = 'bar';
     $html->find('div[id=hello]', 0)->innertext = 'foo';
 
-    self::assertEquals('<div id="hello">foo</div><div id="world" class="bar">World</div>', (string)$html);
+    self::assertSame('<div id="hello">foo</div><div id="world" class="bar">World</div>', (string)$html);
   }
 
   public function testMail2()
@@ -329,12 +329,12 @@ HTML;
     $htmlExpected = str_replace(array("\r\n", "\r", "\n"), "\n", file_get_contents($filenameExpected));
 
     // object to sting
-    self::assertEquals($htmlExpected, str_replace(array("\r\n", "\r", "\n"), "\n", (string)$html));
+    self::assertSame($htmlExpected, str_replace(array("\r\n", "\r", "\n"), "\n", (string)$html));
 
     $preHeaderContentArray = $html->find('.preheaderContent');
 
-    self::assertEquals('padding-top:10px; padding-right:20px; padding-bottom:10px; padding-left:20px;', $preHeaderContentArray[0]->style);
-    self::assertEquals('top', $preHeaderContentArray[0]->valign);
+    self::assertSame('padding-top:10px; padding-right:20px; padding-bottom:10px; padding-left:20px;', $preHeaderContentArray[0]->style);
+    self::assertSame('top', $preHeaderContentArray[0]->valign);
   }
 
   public function testMail()
@@ -533,49 +533,49 @@ HTML;
       }
       $tmpCounter++;
     }
-    self::assertEquals(15, $tmpCounter);
-    self::assertEquals('○●◎ earth 中文空白', $testString);
+    self::assertSame(15, $tmpCounter);
+    self::assertSame('○●◎ earth 中文空白', $testString);
 
     // get the content from the css-selector
 
     $testStringUtf8_v1 = $htmlTmp->find('html .utf8');
-    self::assertEquals('דיעס איז אַ פּרובירן!', $testStringUtf8_v1[0]->innertext);
-    self::assertEquals('<span class="utf8">דיעס איז אַ פּרובירן!</span>', $testStringUtf8_v1[0]->outertext);
+    self::assertSame('דיעס איז אַ פּרובירן!', $testStringUtf8_v1[0]->innertext);
+    self::assertSame('<span class="utf8">דיעס איז אַ פּרובירן!</span>', $testStringUtf8_v1[0]->outertext);
 
     $testStringUtf8_v2 = $htmlTmp->find('span.utf8');
-    self::assertEquals('דיעס איז אַ פּרובירן!', $testStringUtf8_v2[0]->innertext);
-    self::assertEquals('<span class="utf8">דיעס איז אַ פּרובירן!</span>', $testStringUtf8_v2[0]->outertext);
+    self::assertSame('דיעס איז אַ פּרובירן!', $testStringUtf8_v2[0]->innertext);
+    self::assertSame('<span class="utf8">דיעס איז אַ פּרובירן!</span>', $testStringUtf8_v2[0]->outertext);
 
     $testStringUtf8_v3 = $htmlTmp->find('.utf8');
-    self::assertEquals('דיעס איז אַ פּרובירן!', $testStringUtf8_v3[0]->innertext);
-    self::assertEquals('<span class="utf8">דיעס איז אַ פּרובירן!</span>', $testStringUtf8_v3[0]->outertext);
+    self::assertSame('דיעס איז אַ פּרובירן!', $testStringUtf8_v3[0]->innertext);
+    self::assertSame('<span class="utf8">דיעס איז אַ פּרובירן!</span>', $testStringUtf8_v3[0]->outertext);
 
     $testStringUtf8_v4 = $htmlTmp->find('foo');
-    self::assertEquals('bar', $testStringUtf8_v4[0]->innertext);
-    self::assertEquals('<foo id="foo">bar</foo>', $testStringUtf8_v4[0]->outertext);
+    self::assertSame('bar', $testStringUtf8_v4[0]->innertext);
+    self::assertSame('<foo id="foo">bar</foo>', $testStringUtf8_v4[0]->outertext);
 
     $testStringUtf8_v5 = $htmlTmp->find('#foo');
-    self::assertEquals('bar', $testStringUtf8_v5[0]->innertext);
-    self::assertEquals('<foo id="foo">bar</foo>', $testStringUtf8_v5[0]->outertext);
+    self::assertSame('bar', $testStringUtf8_v5[0]->innertext);
+    self::assertSame('<foo id="foo">bar</foo>', $testStringUtf8_v5[0]->outertext);
 
     $testStringUtf8_v6 = $htmlTmp->find('test_');
-    self::assertEquals('lall', $testStringUtf8_v6[0]->innertext);
-    self::assertEquals('<test_>lall</test_>', $testStringUtf8_v6[0]->outertext);
+    self::assertSame('lall', $testStringUtf8_v6[0]->innertext);
+    self::assertSame('<test_>lall</test_>', $testStringUtf8_v6[0]->outertext);
 
     $testStringUtf8_v7 = $htmlTmp->getElementById('foo');
-    self::assertEquals('bar', $testStringUtf8_v7->innertext);
+    self::assertSame('bar', $testStringUtf8_v7->innertext);
 
     $testStringUtf8_v8 = $htmlTmp->getElementByTagName('foo');
-    self::assertEquals('bar', $testStringUtf8_v8->innertext);
+    self::assertSame('bar', $testStringUtf8_v8->innertext);
 
     $testStringUtf8_v9 = $htmlTmp->getElementsByTagName('img', 15);
-    self::assertEquals('○●◎ earth 中文空白', $testStringUtf8_v9->alt);
-    self::assertEquals('', $testStringUtf8_v9->innertext);
-    self::assertEquals('<img src="foobar" alt="○●◎ earth 中文空白" width="5" height="20" border="0">', $testStringUtf8_v9->outertext);
+    self::assertSame('○●◎ earth 中文空白', $testStringUtf8_v9->alt);
+    self::assertSame('', $testStringUtf8_v9->innertext);
+    self::assertSame('<img src="foobar" alt="○●◎ earth 中文空白" width="5" height="20" border="0">', $testStringUtf8_v9->outertext);
 
     // test toString
     $htmlTmp = (string)$htmlTmp;
-    self::assertEquals(16, count($tmpArray));
+    self::assertSame(16, count($tmpArray));
     self::assertContains('<img src="foobar" alt="" width="5" height="3" border="0">', $htmlTmp);
     self::assertContains('© 2015 Test', $htmlTmp);
   }
@@ -613,7 +613,7 @@ HTML;
         $item->outertext = str_ireplace('href="' . $href . '"', ' onclick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=' . urlencode($domain) . '\');" href="' . $href . '" data-url-parse="done"', $item);
       }
 
-      self::assertEquals($expected, (string)$dom, 'tested: ' . $text);
+      self::assertSame($expected, (string)$dom, 'tested: ' . $text);
     }
   }
 
@@ -628,13 +628,13 @@ HTML;
     $html->find('div', 1)->class = 'bar';
     $html->find('div[id=hello]', 0)->innertext = 'foo';
 
-    self::assertEquals('<div id="hello">foo</div><div id="world" class="bar">World</div>', (string)$html);
+    self::assertSame('<div id="hello">foo</div><div id="world" class="bar">World</div>', (string)$html);
 
     // -------------
 
     $html->find('div[id=fail]', 0)->innertext = 'foobar';
 
-    self::assertEquals('<div id="hello">foo</div><div id="world" class="bar">World</div>', (string)$html);
+    self::assertSame('<div id="hello">foo</div><div id="world" class="bar">World</div>', (string)$html);
   }
 
   public function testLoad()
@@ -642,7 +642,7 @@ HTML;
     $dom = new HtmlDomParser();
     $dom->load('<div class="all"><p>Hey bro, <a href="google.com">click here</a><br /> :)</p></div>');
     $div = $dom->find('div', 0);
-    self::assertEquals(
+    self::assertSame(
         '<div class="all"><p>Hey bro, <a href="google.com">click here</a><br> :)</p></div>',
         $div->outertext
     );
@@ -653,7 +653,7 @@ HTML;
     $dom = new HtmlDomParser();
     $div = $dom->find('div', 0);
 
-    self::assertEquals('', $div->plaintext);
+    self::assertSame('', $div->plaintext);
   }
 
   public function testIncorrectAccess()
@@ -661,7 +661,7 @@ HTML;
     $dom = new HtmlDomParser();
     $dom->load('<div class="all"><p>Hey bro, <a href="google.com">click here</a><br /> :)</p></div>');
     $div = $dom->find('div', 0);
-    self::assertEquals(null, $div->foo);
+    self::assertSame('', $div->foo);
   }
 
   public function testLoadSelfclosingAttr()
@@ -669,7 +669,7 @@ HTML;
     $dom = new HtmlDomParser();
     $dom->load("<div class='all'><br  foo  bar  />baz</div>");
     $br = $dom->find('br', 0);
-    self::assertEquals('<br foo bar>', $br->outerHtml);
+    self::assertSame('<br foo bar>', $br->outerHtml);
   }
 
   public function testLoadSelfclosingAttrToString()
@@ -677,14 +677,14 @@ HTML;
     $dom = new HtmlDomParser();
     $dom->load("<div class='all'><br  foo  bar  />baz</div>");
     $br = $dom->find('br', 0);
-    self::assertEquals('<br foo bar>', (string) $br);
+    self::assertSame('<br foo bar>', (string) $br);
   }
 
   public function testLoadNoOpeningTag()
   {
     $dom = new HtmlDomParser();
     $dom->load('<div class="all"><font color="red"><strong>PR Manager</strong></font></b><div class="content">content</div></div>');
-    self::assertEquals('content', $dom->find('.content', 0)->text);
+    self::assertSame('content', $dom->find('.content', 0)->text);
   }
 
   public function testLoadNoClosingTag()
@@ -692,7 +692,7 @@ HTML;
     $dom = new HtmlDomParser();
     $dom->load('<div class="all"><p>Hey bro, <a href="google.com">click here</a></div>');
     $root = $dom->find('div', 0);
-    self::assertEquals('<div class="all"><p>Hey bro, <a href="google.com">click here</a></p></div>', $root->outerHtml);
+    self::assertSame('<div class="all"><p>Hey bro, <a href="google.com">click here</a></p></div>', $root->outerHtml);
   }
 
   public function testLoadAttributeOnSelfClosing()
@@ -700,63 +700,63 @@ HTML;
     $dom = new HtmlDomParser();
     $dom->load('<div class="all"><p>Hey bro, <a href="google.com">click here</a></div><br class="both" />');
     $br = $dom->find('br', 0);
-    self::assertEquals('both', $br->getAttribute('class'));
+    self::assertSame('both', $br->getAttribute('class'));
   }
 
   public function testLoadClosingTagOnSelfClosing()
   {
     $dom = new HtmlDomParser();
     $dom->load('<div class="all"><br><p>Hey bro, <a href="google.com">click here</a></br></div>');
-    self::assertEquals('<br><p>Hey bro, <a href="google.com">click here</a></p>', $dom->find('div', 0)->innerHtml);
+    self::assertSame('<br><p>Hey bro, <a href="google.com">click here</a></p>', $dom->find('div', 0)->innerHtml);
   }
 
   public function testLoadNoValueAttribute()
   {
     $dom = new HtmlDomParser();
     $dom->load('<div class="content"><div class="grid-container" ui-view>Main content here</div></div>');
-    self::assertEquals('<div class="content"><div class="grid-container" ui-view>Main content here</div></div>', $dom->innerHtml);
+    self::assertSame('<div class="content"><div class="grid-container" ui-view>Main content here</div></div>', $dom->innerHtml);
   }
 
   public function testLoadNoValueAttributeBefore()
   {
     $dom = new HtmlDomParser();
     $dom->load('<div class="content"><div ui-view class="grid-container">Main content here</div></div>');
-    self::assertEquals('<div class="content"><div ui-view class="grid-container">Main content here</div></div>', $dom->innerHtml);
+    self::assertSame('<div class="content"><div ui-view class="grid-container">Main content here</div></div>', $dom->innerHtml);
   }
 
   public function testLoadUpperCase()
   {
     $dom = new HtmlDomParser();
     $dom->load('<DIV CLASS="ALL"><BR><P>hEY BRO, <A HREF="GOOGLE.COM">click here</A></BR></DIV>');
-    self::assertEquals('<br><p>hEY BRO, <a href="GOOGLE.COM">click here</a></p>', $dom->find('div', 0)->innerHtml);
+    self::assertSame('<br><p>hEY BRO, <a href="GOOGLE.COM">click here</a></p>', $dom->find('div', 0)->innerHtml);
   }
 
   public function testLoadWithFile()
   {
     $dom = new HtmlDomParser();
     $dom->load_file(__DIR__ . '/fixtures/small.html');
-    self::assertEquals('VonBurgermeister', $dom->find('.post-user font', 0)->text);
+    self::assertSame('VonBurgermeister', $dom->find('.post-user font', 0)->text);
   }
 
   public function testLoadFromFile()
   {
     $dom = new HtmlDomParser();
     $dom->load_file(__DIR__ . '/fixtures/small.html');
-    self::assertEquals('VonBurgermeister', $dom->find('.post-user font', 0)->text);
+    self::assertSame('VonBurgermeister', $dom->find('.post-user font', 0)->text);
   }
 
   public function testLoadFromFileFind()
   {
     $dom = new HtmlDomParser();
     $dom->load_file(__DIR__ . '/fixtures/small.html');
-    self::assertEquals('VonBurgermeister', $dom->find('.post-row div .post-user font', 0)->text);
+    self::assertSame('VonBurgermeister', $dom->find('.post-row div .post-user font', 0)->text);
   }
 
   public function testLoadUtf8()
   {
     $dom = new HtmlDomParser();
     $dom->load('<p>Dzień</p>');
-    self::assertEquals('Dzień', $dom->find('p', 0)->text);
+    self::assertSame('Dzień', $dom->find('p', 0)->text);
   }
 
   public function testLoadFileBigTwice()
@@ -764,28 +764,28 @@ HTML;
     $dom = new HtmlDomParser();
     $dom->loadHtmlFile(__DIR__ . '/fixtures/big.html');
     $post = $dom->find('.post-row', 0);
-    self::assertEquals('<p>Журчанье воды<br>' . "\n" . 'Черно-белые тени<br>' . "\n" . 'Вновь на фонтане</p>', $post->find('.post-message', 0)->innerHtml);
+    self::assertSame('<p>Журчанье воды<br>' . "\n" . 'Черно-белые тени<br>' . "\n" . 'Вновь на фонтане</p>', $post->find('.post-message', 0)->innerHtml);
   }
 
   public function testToStringMagic()
   {
     $dom = new HtmlDomParser();
     $dom->load('<div class="all"><p>Hey bro, <a href="google.com">click here</a><br /> :)</p></div>');
-    self::assertEquals('<div class="all"><p>Hey bro, <a href="google.com">click here</a><br> :)</p></div>', (string) $dom);
+    self::assertSame('<div class="all"><p>Hey bro, <a href="google.com">click here</a><br> :)</p></div>', (string) $dom);
   }
 
   public function testGetMagic()
   {
     $dom = new HtmlDomParser();
     $dom->load('<div class="all"><p>Hey bro, <a href="google.com">click here</a><br /> :)</p></div>');
-    self::assertEquals('<p>Hey bro, <a href="google.com">click here</a><br> :)</p>', $dom->innerHtml);
+    self::assertSame('<p>Hey bro, <a href="google.com">click here</a><br> :)</p>', $dom->innerHtml);
   }
 
   public function testGetElementById()
   {
     $dom = new HtmlDomParser();
     $dom->load('<div class="all"><p>Hey bro, <a href="google.com" id="78">click here</a></div><br />');
-    self::assertEquals('<a href="google.com" id="78">click here</a>', $dom->getElementById('78')->outerHtml);
+    self::assertSame('<a href="google.com" id="78">click here</a>', $dom->getElementById('78')->outerHtml);
   }
 
   public function testGetElementsByTag()
@@ -793,7 +793,7 @@ HTML;
     $dom = new HtmlDomParser();
     $dom->load('<div class="all"><p>Hey bro, <a href="google.com" id="78">click here</a></div><br />');
     $elm = $dom->getElementsByTagName('p');
-    self::assertEquals(
+    self::assertSame(
         '<p>Hey bro, <a href="google.com" id="78">click here</a></p>',
         $elm[0]->outerHtml
     );
@@ -804,7 +804,7 @@ HTML;
     $dom = new HtmlDomParser();
     $dom->load('<div class="all"><p>Hey bro, <a href="google.com" id="78">click here</a></div><br />');
     $elm = $dom->find('.all');
-    self::assertEquals(
+    self::assertSame(
         '<p>Hey bro, <a href="google.com" id="78">click here</a></p>',
         $elm[0]->innerHtml
     );
@@ -830,21 +830,21 @@ HTML;
         </script>
         <p>....</p>');
     $elm = $dom->getElementsByTagName('p');
-    self::assertEquals('....', $elm[1]->innerHtml);
+    self::assertSame('....', $elm[1]->innerHtml);
   }
 
   public function testBeforeClosingTag()
   {
     $dom = new HtmlDomParser();
     $dom->load("<div class=\"stream-container \"  > <div class=\"stream-item js-new-items-bar-container\"> </div> <div class=\"stream\">");
-    self::assertEquals("<div class=\"stream-container \"> <div class=\"stream-item js-new-items-bar-container\"> </div> <div class=\"stream\"></div></div>", (string) $dom);
+    self::assertSame("<div class=\"stream-container \"> <div class=\"stream-item js-new-items-bar-container\"> </div> <div class=\"stream\"></div></div>", (string) $dom);
   }
 
   public function testCodeTag()
   {
     $dom = new HtmlDomParser();
     $dom->load('<strong>hello</strong><code class="language-php">$foo = "bar";</code>');
-    self::assertEquals('<strong>hello</strong><code class="language-php">$foo = "bar";</code>', (string) $dom);
+    self::assertSame('<strong>hello</strong><code class="language-php">$foo = "bar";</code>', (string) $dom);
   }
 
   public function testDeleteNodeOuterHtml()
@@ -854,7 +854,7 @@ HTML;
     $a   = $dom->find('a');
     $a[0]->outerHtml = '';
     unset($a);
-    self::assertEquals('<div class="all"><p>Hey bro, <br> :)</p></div>', (string) $dom);
+    self::assertSame('<div class="all"><p>Hey bro, <br> :)</p></div>', (string) $dom);
   }
 
   public function testDeleteNodeInnerHtml()
@@ -864,6 +864,6 @@ HTML;
     $a   = $dom->find('div.all');
     $a[0]->innerHtml = '';
     unset($a);
-    self::assertEquals('<div class="all"></div>', (string) $dom);
+    self::assertSame('<div class="all"></div>', (string) $dom);
   }
 }

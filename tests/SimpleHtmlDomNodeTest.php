@@ -37,7 +37,7 @@ class SimpleHtmlDomNodeTest extends PHPUnit_Framework_TestCase
     $elements = $nodeList->find($selector);
 
     self::assertInstanceOf('voku\helper\SimpleHtmlDomNode', $elements);
-    self::assertEquals($count, count($elements));
+    self::assertSame($count, count($elements));
 
     foreach ($elements as $node) {
       self::assertInstanceOf('voku\helper\SimpleHtmlDom', $node);
@@ -72,8 +72,8 @@ class SimpleHtmlDomNodeTest extends PHPUnit_Framework_TestCase
     $document = new HtmlDomParser($html);
     $element = $document->find('p');
 
-    self::assertEquals('<p>foo</p><p>bar</p>', $element->innerHtml());
-    self::assertEquals('<p>foo</p><p>bar</p>', $element->innertext);
+    self::assertSame('<p>foo</p><p>bar</p>', $element->innerHtml());
+    self::assertSame('<p>foo</p><p>bar</p>', $element->innertext);
   }
 
   public function testText()
@@ -82,7 +82,7 @@ class SimpleHtmlDomNodeTest extends PHPUnit_Framework_TestCase
     $document = new HtmlDomParser($html);
     $element = $document->find('p');
 
-    self::assertEquals('foobar', $element->text());
-    self::assertEquals('foobar', $element->plaintext);
+    self::assertSame('foobar', $element->text());
+    self::assertSame('foobar', $element->plaintext);
   }
 }

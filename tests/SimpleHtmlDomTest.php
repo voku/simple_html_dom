@@ -32,10 +32,10 @@ class SimpleHtmlDomTest extends PHPUnit_Framework_TestCase
 
     $element = new SimpleHtmlDom($node);
 
-    self::assertEquals('input', $element->tag);
-    self::assertEquals('User name', $element->plaintext);
-    self::assertEquals('username', $element->name);
-    self::assertEquals('John', $element->value);
+    self::assertSame('input', $element->tag);
+    self::assertSame('User name', $element->plaintext);
+    self::assertSame('username', $element->name);
+    self::assertSame('John', $element->value);
   }
 
   public function testGetNode()
@@ -59,8 +59,8 @@ class SimpleHtmlDomTest extends PHPUnit_Framework_TestCase
     $element = new SimpleHtmlDom($node);
     $element->outertext = $replace;
 
-    self::assertEquals($replace, $document->outertext);
-    self::assertEquals($replace, $element->outertext);
+    self::assertSame($replace, $document->outertext);
+    self::assertSame($replace, $element->outertext);
 
     $element->outertext = '';
 
@@ -77,8 +77,8 @@ class SimpleHtmlDomTest extends PHPUnit_Framework_TestCase
     $element = new SimpleHtmlDom($node);
     $element->innertext = $replace;
 
-    self::assertEquals('<div><h1>bar</h1></div>', $document->outertext);
-    self::assertEquals('<div><h1>bar</h1></div>', $element->outertext);
+    self::assertSame('<div><h1>bar</h1></div>', $document->outertext);
+    self::assertSame('<div><h1>bar</h1></div>', $element->outertext);
   }
 
   public function testGetDom()
@@ -107,7 +107,7 @@ class SimpleHtmlDomTest extends PHPUnit_Framework_TestCase
     $elements = $element->find($selector);
 
     self::assertInstanceOf('voku\helper\SimpleHtmlDomNode', $elements);
-    self::assertEquals($count, count($elements));
+    self::assertSame($count, count($elements));
 
     foreach ($elements as $node) {
       self::assertInstanceOf('voku\helper\SimpleHtmlDom', $node);
@@ -151,9 +151,9 @@ class SimpleHtmlDomTest extends PHPUnit_Framework_TestCase
     $node = $element->getElementById('in');
 
     self::assertInstanceOf('voku\helper\SimpleHtmlDom', $node);
-    self::assertEquals('input', $node->tag);
-    self::assertEquals('number', $node->type);
-    self::assertEquals('5', $node->value);
+    self::assertSame('input', $node->tag);
+    self::assertSame('number', $node->type);
+    self::assertSame('5', $node->value);
   }
 
   public function testGetElementByTagName()
@@ -166,9 +166,9 @@ class SimpleHtmlDomTest extends PHPUnit_Framework_TestCase
     $node = $element->getElementByTagName('div');
 
     self::assertInstanceOf('voku\helper\SimpleHtmlDom', $node);
-    self::assertEquals('div', $node->tag);
-    self::assertEquals('top', $node->id);
-    self::assertEquals('page', $node->class);
+    self::assertSame('div', $node->tag);
+    self::assertSame('top', $node->id);
+    self::assertSame('page', $node->class);
   }
 
   public function testGetElementsByTagName()
@@ -181,7 +181,7 @@ class SimpleHtmlDomTest extends PHPUnit_Framework_TestCase
     $elements = $element->getElementsByTagName('div');
 
     self::assertInstanceOf('voku\helper\SimpleHtmlDomNode', $elements);
-    self::assertEquals(16, count($elements));
+    self::assertSame(16, count($elements));
 
     foreach ($elements as $node) {
       self::assertInstanceOf('voku\helper\SimpleHtmlDom', $node);
@@ -198,7 +198,7 @@ class SimpleHtmlDomTest extends PHPUnit_Framework_TestCase
     $nodes = $element->childNodes();
 
     self::assertInstanceOf('voku\helper\SimpleHtmlDomNode', $nodes);
-    self::assertEquals(2, count($nodes));
+    self::assertSame(2, count($nodes));
 
     foreach ($nodes as $node) {
       self::assertInstanceOf('voku\helper\SimpleHtmlDom', $node);
@@ -208,8 +208,8 @@ class SimpleHtmlDomTest extends PHPUnit_Framework_TestCase
 
     self::assertInstanceOf('voku\helper\SimpleHtmlDom', $node);
 
-    self::assertEquals('<p>bar</p>', $node->outertext);
-    self::assertEquals('bar', $node->plaintext);
+    self::assertSame('<p>bar</p>', $node->outertext);
+    self::assertSame('bar', $node->plaintext);
 
     $node = $element->childNodes(2);
     self::assertNull($node);
@@ -225,7 +225,7 @@ class SimpleHtmlDomTest extends PHPUnit_Framework_TestCase
     $nodes = $element->children();
 
     self::assertInstanceOf('voku\helper\SimpleHtmlDomNode', $nodes);
-    self::assertEquals(2, count($nodes));
+    self::assertSame(2, count($nodes));
 
     foreach ($nodes as $node) {
       self::assertInstanceOf('voku\helper\SimpleHtmlDom', $node);
@@ -235,8 +235,8 @@ class SimpleHtmlDomTest extends PHPUnit_Framework_TestCase
 
     self::assertInstanceOf('voku\helper\SimpleHtmlDom', $node);
 
-    self::assertEquals('<p>bar</p>', $node->outertext);
-    self::assertEquals('bar', $node->plaintext);
+    self::assertSame('<p>bar</p>', $node->outertext);
+    self::assertSame('bar', $node->plaintext);
   }
 
   public function testFirstChild()
@@ -249,8 +249,8 @@ class SimpleHtmlDomTest extends PHPUnit_Framework_TestCase
     $node = $element->firstChild();
 
     self::assertInstanceOf('voku\helper\SimpleHtmlDom', $node);
-    self::assertEquals('<p>foo</p>', $node->outertext);
-    self::assertEquals('foo', $node->plaintext);
+    self::assertSame('<p>foo</p>', $node->outertext);
+    self::assertSame('foo', $node->plaintext);
 
     $node = $element->lastChild();
 
@@ -268,8 +268,8 @@ class SimpleHtmlDomTest extends PHPUnit_Framework_TestCase
     $node = $element->lastChild();
 
     self::assertInstanceOf('voku\helper\SimpleHtmlDom', $node);
-    self::assertEquals('<p>bar</p>', $node->outertext);
-    self::assertEquals('bar', $node->plaintext);
+    self::assertSame('<p>bar</p>', $node->outertext);
+    self::assertSame('bar', $node->plaintext);
 
     $node = $element->firstChild();
 
@@ -288,8 +288,8 @@ class SimpleHtmlDomTest extends PHPUnit_Framework_TestCase
     $sibling = $node->nextSibling();
 
     self::assertInstanceOf('voku\helper\SimpleHtmlDom', $sibling);
-    self::assertEquals('<p>bar</p>', $sibling->outertext);
-    self::assertEquals('bar', $sibling->plaintext);
+    self::assertSame('<p>bar</p>', $sibling->outertext);
+    self::assertSame('bar', $sibling->plaintext);
 
     $node = $element->lastChild();
 
@@ -308,8 +308,8 @@ class SimpleHtmlDomTest extends PHPUnit_Framework_TestCase
     $sibling = $node->previousSibling();
 
     self::assertInstanceOf('voku\helper\SimpleHtmlDom', $sibling);
-    self::assertEquals('<p>foo</p>', $sibling->outertext);
-    self::assertEquals('foo', $sibling->plaintext);
+    self::assertSame('<p>foo</p>', $sibling->outertext);
+    self::assertSame('foo', $sibling->plaintext);
 
     $node = $element->firstChild();
 
@@ -327,9 +327,9 @@ class SimpleHtmlDomTest extends PHPUnit_Framework_TestCase
     $node = $element->parentNode();
 
     self::assertInstanceOf('voku\helper\SimpleHtmlDom', $node);
-    self::assertEquals('div', $node->tag);
+    self::assertSame('div', $node->tag);
     /** @noinspection PhpUndefinedFieldInspection */
-    self::assertEquals('div', $element->parent()->tag);
+    self::assertSame('div', $element->parent()->tag);
   }
 
   public function testHtml()
@@ -338,10 +338,10 @@ class SimpleHtmlDomTest extends PHPUnit_Framework_TestCase
     $document = new HtmlDomParser($html);
     $element = new SimpleHtmlDom($document->getDocument()->documentElement);
 
-    self::assertEquals($html, $element->html());
-    self::assertEquals($html, $element->outertext());
-    self::assertEquals($html, $element->outertext);
-    self::assertEquals($html, (string)$element);
+    self::assertSame($html, $element->html());
+    self::assertSame($html, $element->outertext());
+    self::assertSame($html, $element->outertext);
+    self::assertSame($html, (string)$element);
   }
 
   public function testInnerHtml()
@@ -350,9 +350,9 @@ class SimpleHtmlDomTest extends PHPUnit_Framework_TestCase
     $document = new HtmlDomParser($html);
     $element = new SimpleHtmlDom($document->getDocument()->documentElement);
 
-    self::assertEquals('<div>foo</div>', $element->innerHtml());
-    self::assertEquals('<div>foo</div>', $element->innertext());
-    self::assertEquals('<div>foo</div>', $element->innertext);
+    self::assertSame('<div>foo</div>', $element->innerHtml());
+    self::assertSame('<div>foo</div>', $element->innertext());
+    self::assertSame('<div>foo</div>', $element->innertext);
   }
 
   public function testText()
@@ -361,8 +361,8 @@ class SimpleHtmlDomTest extends PHPUnit_Framework_TestCase
     $document = new HtmlDomParser($html);
     $element = new SimpleHtmlDom($document->getDocument()->documentElement);
 
-    self::assertEquals('foo', $element->text());
-    self::assertEquals('foo', $element->plaintext);
+    self::assertSame('foo', $element->text());
+    self::assertSame('foo', $element->plaintext);
   }
 
   public function testGetAllAttributes()
@@ -373,7 +373,7 @@ class SimpleHtmlDomTest extends PHPUnit_Framework_TestCase
     $document = new HtmlDomParser($html);
 
     $element = $document->find('div', 0);
-    self::assertEquals($attr, $element->getAllAttributes());
+    self::assertSame($attr, $element->getAllAttributes());
 
     $element = $document->find('div', 1);
     self::assertNull($element->getAllAttributes());
@@ -386,10 +386,10 @@ class SimpleHtmlDomTest extends PHPUnit_Framework_TestCase
     $document = new HtmlDomParser($html);
     $element = $document->find('div', 0);
 
-    self::assertEquals('post', $element->getAttribute('class'));
-    self::assertEquals('post', $element->class);
-    self::assertEquals('p1', $element->getAttribute('id'));
-    self::assertEquals('p1', $element->id);
+    self::assertSame('post', $element->getAttribute('class'));
+    self::assertSame('post', $element->class);
+    self::assertSame('p1', $element->getAttribute('id'));
+    self::assertSame('p1', $element->id);
   }
 
   public function testSetAttribute()
@@ -403,8 +403,8 @@ class SimpleHtmlDomTest extends PHPUnit_Framework_TestCase
     $element->data = 'value';
     unset($element->class);
 
-    self::assertEquals('bar', $element->getAttribute('id'));
-    self::assertEquals('value', $element->getAttribute('data'));
+    self::assertSame('bar', $element->getAttribute('id'));
+    self::assertSame('value', $element->getAttribute('data'));
     self::assertEmpty($element->getAttribute('class'));
   }
 
