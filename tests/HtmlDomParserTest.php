@@ -836,8 +836,8 @@ HTML;
   public function testBeforeClosingTag()
   {
     $dom = new HtmlDomParser();
-    $dom->load("<div class=\"stream-container \"  > <div class=\"stream-item js-new-items-bar-container\"> </div> <div class=\"stream\">");
-    self::assertSame("<div class=\"stream-container \"> <div class=\"stream-item js-new-items-bar-container\"> </div> <div class=\"stream\"></div></div>", (string) $dom);
+    $dom->load('<div class="stream-container "  > <div class="stream-item js-new-items-bar-container"> </div> <div class="stream">');
+    self::assertSame('<div class="stream-container "> <div class="stream-item js-new-items-bar-container"> </div> <div class="stream"></div></div>', (string) $dom);
   }
 
   public function testCodeTag()
