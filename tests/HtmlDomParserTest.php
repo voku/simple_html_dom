@@ -617,6 +617,32 @@ HTML;
     }
   }
 
+  public function testWithExtraXmlOptions()
+  {
+    $str = <<<HTML
+<div id="hello">Hello</div><div id="world">World</div><strong></strong>
+HTML;
+
+    $html = HtmlDomParser::str_get_html($str, LIBXML_NOERROR);
+
+    $html->find('div', 1)->class = 'bar';
+    $html->find('div[id=hello]', 0)->innertext = 'foo';
+
+    self::assertSame(
+        '<div id="hello">foo</div><div id="world" class="bar">World</div><strong></strong>',
+        $html->html()
+    );
+
+    // -------------
+
+    $html->find('div[id=fail]', 0)->innertext = 'foobar';
+
+    self::assertSame(
+        '<div id="hello">foo</div><div id="world" class="bar">World</div><strong></strong>',
+        (string)$html
+    );
+  }
+
   public function testEditInnerText()
   {
     $str = <<<HTML

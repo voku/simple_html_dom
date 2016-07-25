@@ -25,8 +25,8 @@ use RuntimeException;
  * @method HtmlDomParser load() load($html) Load HTML from string
  * @method HtmlDomParser load_file() load_file($html) Load HTML from file
  *
- * @method static HtmlDomParser file_get_html() file_get_html($html) Load HTML from file
- * @method static HtmlDomParser str_get_html() str_get_html($html) Load HTML from string
+ * @method static HtmlDomParser file_get_html() file_get_html($html, $libXMLExtraOptions = null) Load HTML from file
+ * @method static HtmlDomParser str_get_html() str_get_html($html, $libXMLExtraOptions = null) Load HTML from string
  */
 class HtmlDomParser
 {
@@ -103,7 +103,7 @@ class HtmlDomParser
     $this->document = new \DOMDocument('1.0', $this->getEncoding());
 
     // DOMDocument settings
-    $this->document->preserveWhiteSpace = false;
+    $this->document->preserveWhiteSpace = true;
     $this->document->formatOutput = true;
 
     if ($element instanceof SimpleHtmlDom) {
@@ -150,16 +150,26 @@ class HtmlDomParser
    */
   public static function __callStatic($name, $arguments)
   {
+    $arguments0 = null;
+    if (isset($arguments[0])) {
+      $arguments0 = $arguments[0];
+    }
+
+    $arguments1 = null;
+    if (isset($arguments[1])) {
+      $arguments1 = $arguments[1];
+    }
+
     if ($name == 'str_get_html') {
       $parser = new self();
 
-      return $parser->loadHtml($arguments[0]);
+      return $parser->loadHtml($arguments0, $arguments1);
     }
 
     if ($name == 'file_get_html') {
       $parser = new self();
 
-      return $parser->loadHtmlFile($arguments[0]);
+      return $parser->loadHtmlFile($arguments0, $arguments1);
     }
 
     throw new BadMethodCallException('Method does not exist');
@@ -276,11 +286,12 @@ class HtmlDomParser
   /**
    * create DOMDocument from HTML
    *
-   * @param string $html
+   * @param string   $html
+   * @param int|null $libXMLExtraOptions
    *
    * @return \DOMDocument
    */
-  private function createDOMDocument($html)
+  private function createDOMDocument($html, $libXMLExtraOptions = null)
   {
     if (strpos($html, '<') === false) {
       $this->isDOMDocumentCreatedWithoutHtml = true;
@@ -296,8 +307,21 @@ class HtmlDomParser
     libxml_clear_errors();
 
     $options = LIBXML_DTDLOAD | LIBXML_DTDATTR | LIBXML_NONET;
-    if (defined(LIBXML_COMPACT)) {
+
+    if (defined('LIBXML_COMPACT')) {
       $options |= LIBXML_COMPACT;
+    }
+
+    if (defined('LIBXML_HTML_NOIMPLIED')) {
+      $options |= LIBXML_HTML_NOIMPLIED;
+    }
+
+    if (defined('LIBXML_HTML_NODEFDTD')) {
+      $options |= LIBXML_HTML_NODEFDTD;
+    }
+
+    if ($libXMLExtraOptions !== null) {
+      $options |= $libXMLExtraOptions;
     }
 
     $sxe = simplexml_load_string($html, 'SimpleXMLElement', $options);
@@ -586,19 +610,20 @@ class HtmlDomParser
   /**
    * Load HTML from string
    *
-   * @param string $html
+   * @param string   $html
+   * @param int|null $libXMLExtraOptions
    *
    * @return HtmlDomParser
    *
    * @throws InvalidArgumentException if argument is not string
    */
-  public function loadHtml($html)
+  public function loadHtml($html, $libXMLExtraOptions = null)
   {
     if (!is_string($html)) {
       throw new InvalidArgumentException(__METHOD__ . ' expects parameter 1 to be string.');
     }
 
-    $this->document = $this->createDOMDocument($html);
+    $this->document = $this->createDOMDocument($html, $libXMLExtraOptions);
 
     return $this;
   }
@@ -606,11 +631,12 @@ class HtmlDomParser
   /**
    * Load HTML from file
    *
-   * @param string $filePath
+   * @param string   $filePath
+   * @param int|null $libXMLExtraOptions
    *
    * @return HtmlDomParser
    */
-  public function loadHtmlFile($filePath)
+  public function loadHtmlFile($filePath, $libXMLExtraOptions = null)
   {
     if (!is_string($filePath)) {
       throw new InvalidArgumentException(__METHOD__ . ' expects parameter 1 to be string.');
@@ -631,7 +657,7 @@ class HtmlDomParser
       throw new RuntimeException("Could not load file $filePath");
     }
 
-    $this->loadHtml($html);
+    $this->loadHtml($html, $libXMLExtraOptions);
 
     return $this;
   }
