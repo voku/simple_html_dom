@@ -617,6 +617,25 @@ HTML;
     }
   }
 
+  public function testWithUTF8()
+  {
+    $str = '<p>イリノイ州シカゴにて</p>';
+
+    $html = HtmlDomParser::str_get_html($str);
+
+    $html->find('p', 1)->class = 'bar';
+
+    self::assertSame(
+        '<p>イリノイ州シカゴにて</p>',
+        $html->html()
+    );
+
+    self::assertSame(
+        'イリノイ州シカゴにて',
+        $html->text()
+    );
+  }
+
   public function testWithExtraXmlOptions()
   {
     $str = <<<HTML
