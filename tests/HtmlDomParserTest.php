@@ -122,6 +122,25 @@ class HtmlDomParserTest extends PHPUnit_Framework_TestCase
     self::assertSame($html, $element->outertext);
   }
 
+  public function testWindows1252()
+  {
+    $file = __DIR__ . '/fixtures/windows-1252-example.html';
+    $document = new HtmlDomParser();
+
+    $document->loadHtmlFile($file);
+    self::assertNotNull(count($document('li')));
+
+    $document->load_file($file);
+    self::assertNotNull(count($document('li')));
+
+    $document = HtmlDomParser::file_get_html($file);
+    self::assertNotNull(count($document('li')));
+
+    // ---
+
+    self::assertEquals('ÅÄÖåäö', $document->find('li')->text());
+  }
+
   public function testLoadHtmlFile()
   {
     $file = __DIR__ . '/fixtures/test_page.html';

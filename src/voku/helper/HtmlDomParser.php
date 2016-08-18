@@ -647,7 +647,7 @@ class HtmlDomParser
     }
 
     try {
-      $html = file_get_contents($filePath);
+      $html = UTF8::file_get_contents($filePath);
 
     } catch (\Exception $e) {
       throw new RuntimeException("Could not load file $filePath");
