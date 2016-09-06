@@ -602,17 +602,17 @@ HTML;
   public function testEditLinks()
   {
     $texts = array(
-        '<a href="http://foobar.de" class="  more  "  >Mehr</a><a href="http://foobar.de" class="  more  "  >Mehr</a>' => '<a onclick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de\');" href="http://foobar.de" data-url-parse="done" class="  more  ">Mehr</a><a onclick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de\');" href="http://foobar.de" data-url-parse="done" class="  more  ">Mehr</a>',
-        ' <p><a href="http://foobar.de" class="  more  "  >Mehr</a></p>' => '<p><a onclick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de\');" href="http://foobar.de" data-url-parse="done" class="  more  ">Mehr</a></p>',
-        '<a <a href="http://foobar.de">foo</a><div></div>' => '<a onclick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de\');" href="http://foobar.de" data-url-parse="done">foo</a><div></div>',
+        '<a href="http://foobar.de" class="  more  "  >Mehr</a><a href="http://foobar.de" class="  more  "  >Mehr</a>' => '<a href="http://foobar.de" class="  more  " data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de\');">Mehr</a><a href="http://foobar.de" class="  more  " data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de\');">Mehr</a>',
+        ' <p><a href="http://foobar.de" class="  more  "  >Mehr</a></p>' => '<p><a href="http://foobar.de" class="  more  " data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de\');">Mehr</a></p>',
+        '<a <a href="http://foobar.de">foo</a><div></div>' => '<a href="http://foobar.de" data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de\');">foo</a><div></div>',
         ' <p></p>' => '<p></p>',
         ' <p>' => '<p></p>',
         'p>' => 'p>',
         'p' => 'p',
         'Google+ && Twitter || Lînux' => 'Google+ && Twitter || Lînux',
-        '<a href="http://foobar.de[[foo]]&{{foobar}}&lall=1">foo</a>' => '<a onclick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de%5B%5Bfoo%5D%5D%26%7B%7Bfoobar%7D%7D%26lall%3D1\');" href="http://foobar.de[[foo]]&{{foobar}}&lall=1" data-url-parse="done">foo</a>',
+        '<a href="http://foobar.de[[foo]]&{{foobar}}&lall=1">foo</a>' => '<a href="http://foobar.de[[foo]]&{{foobar}}&lall=1" data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de[[foo]]&{{foobar}}&lall=1\');">foo</a>',
         '' => '',
-        '<a href=""><span>lalll=###test###&bar=%5B%5Bfoobar%5D%5D&test=[[foobar]]&foo={{lall}}</span><img src="http://foobar?lalll=###test###&bar=%5B%5Bfoobar%5D%5D&test=[[foobar]]&foo={{lall}}" style="max-width:600px;" alt="Ihr Unternehmen in den wichtigsten Online-Verzeichnissen" class="headerImage" mc:label="header_image" mc:edit="header_image" mc:allowdesigner mc:allowtext /></a>' => '<a onclick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=\');" href="" data-url-parse="done"><span>lalll=###test###&bar=%5B%5Bfoobar%5D%5D&test=[[foobar]]&foo={{lall}}</span><img src="http://foobar?lalll=###test###&bar=%5B%5Bfoobar%5D%5D&test=[[foobar]]&foo={{lall}}" style="max-width:600px;" alt="Ihr Unternehmen in den wichtigsten Online-Verzeichnissen" class="headerImage" mc:label="header_image" mc:edit="header_image" mc:allowdesigner mc:allowtext></a>',
+        '<a href=""><span>lalll=###test###&bar=%5B%5Bfoobar%5D%5D&test=[[foobar]]&foo={{lall}}</span><img src="http://foobar?lalll=###test###&bar=%5B%5Bfoobar%5D%5D&test=[[foobar]]&foo={{lall}}" style="max-width:600px;" alt="Ihr Unternehmen in den wichtigsten Online-Verzeichnissen" class="headerImage" mc:label="header_image" mc:edit="header_image" mc:allowdesigner mc:allowtext /></a>' => '<a href="" data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=\');"><span>lalll=###test###&bar=%5B%5Bfoobar%5D%5D&test=[[foobar]]&foo={{lall}}</span><img src="http://foobar?lalll=###test###&bar=%5B%5Bfoobar%5D%5D&test=[[foobar]]&foo={{lall}}" style="max-width:600px;" alt="Ihr Unternehmen in den wichtigsten Online-Verzeichnissen" class="headerImage" mc:label="header_image" mc:edit="header_image" mc:allowdesigner mc:allowtext></a>',
     );
 
     foreach($texts as $text => $expected) {
@@ -629,7 +629,8 @@ HTML;
         $parseLink = parse_url($href);
         $domain = (isset($parseLink['host']) ? $parseLink['host'] : '');
 
-        $item->outertext = str_ireplace('href="' . $href . '"', ' onclick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=' . urlencode($domain) . '\');" href="' . $href . '" data-url-parse="done"', $item);
+        $item->setAttribute('data-url-parse', 'done');
+        $item->setAttribute('onClick', '$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=' . urlencode($domain) . '\');');
       }
 
       self::assertSame($expected, (string)$dom, 'tested: ' . $text);
