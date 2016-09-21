@@ -24,7 +24,7 @@
   ],
   "require": {
     "php": ">=5.3.2",
-    "symfony/css-selector": "~2.8.0",
+    "symfony/css-selector": "^2.8|~3.0",
     "voku/portable-utf8": "~3.0"
   },
   "require-dev": {
