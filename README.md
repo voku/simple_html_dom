@@ -16,9 +16,7 @@
 A HTML DOM parser written in PHP - let you manipulate HTML in a very easy way!
 ===============
 
-Adaptation for Composer and PSR-0 of: [PHP Simple HTML DOM Parser project](http://simplehtmldom.sourceforge.net/) usable as a [Composer](http://getcomposer.org/) package.
-
-Check the [official documentation at SourceForge](http://simplehtmldom.sourceforge.net/manual.htm).
+This is a fork of [PHP Simple HTML DOM Parser project](http://simplehtmldom.sourceforge.net/) but instead of string manipulation we use DOMDocument and modern php classes like "Symfony CssSelector" and "Portable UTF-8".
 
 - PHP 5.3+ Support
 - Composer & PSR-0 Support
