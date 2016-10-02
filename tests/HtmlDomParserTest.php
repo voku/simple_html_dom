@@ -610,6 +610,8 @@ HTML;
         'p>' => 'p>',
         'p' => 'p',
         'Google+ && Twitter || Lînux' => 'Google+ && Twitter || Lînux',
+        '<p>Google+ && Twitter || Lînux</p>' => '<p>Google+ && Twitter || Lînux</p>',
+        '<p>Google+ && Twitter ||&nbsp;Lînux</p>' => '<p>Google+ && Twitter ||&nbsp;Lînux</p>',
         '<a href="http://foobar.de[[foo]]&{{foobar}}&lall=1">foo</a>' => '<a href="http://foobar.de[[foo]]&{{foobar}}&lall=1" data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de[[foo]]&{{foobar}}&lall=1\');">foo</a>',
         '<div><a href="http://foobar.de[[foo]]&{{foobar}}&lall=1">foo</a>' => '<div><a href="http://foobar.de[[foo]]&{{foobar}}&lall=1" data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de[[foo]]&{{foobar}}&lall=1\');">foo</a></div>',
         '' => '',
