@@ -45,7 +45,7 @@ class HtmlDomParser
   /**
    * @var array
    */
-  private static $domLinkReplaceHelper = array(
+  protected static $domLinkReplaceHelper = array(
       'orig' => array('[', ']', '{', '}',),
       'tmp'  => array(
           '!!!!HTML_DOM__SQUARE_BRACKET_LEFT!!!!',
@@ -94,13 +94,22 @@ class HtmlDomParser
   protected $isDOMDocumentCreatedWithoutHtmlWrapper = false;
 
   /**
+   * An random md5-hash, generated via "random_bytes()".
+   * @var string
+   */
+  protected $randomHash;
+
+  /**
    * Constructor
    *
    * @param string|SimpleHtmlDom|\DOMNode $element HTML code or SimpleHtmlDom, \DOMNode
    */
   public function __construct($element = null)
   {
+    $this->randomHash = md5(Bootup::get_random_bytes(16));
     $this->document = new \DOMDocument('1.0', $this->getEncoding());
+
+    $this->addRandBytesToDomReplaceHelpers();
 
     // DOMDocument settings
     $this->document->preserveWhiteSpace = true;
@@ -122,6 +131,20 @@ class HtmlDomParser
 
     if ($element !== null) {
       $this->loadHtml($element);
+    }
+  }
+
+  /**
+   * Add rand-bytes to the "Dom-Replace-Helper"-variables.
+   */
+  protected function addRandBytesToDomReplaceHelpers()
+  {
+    foreach (self::$domLinkReplaceHelper['tmp'] as &$linkHelper) {
+      $linkHelper .= $this->randomHash;
+    }
+
+    foreach (self::$domReplaceHelper['tmp'] as &$domHelper) {
+      $domHelper .= $this->randomHash;
     }
   }
 
@@ -233,7 +256,7 @@ class HtmlDomParser
    *
    * @return string
    */
-  private function replaceToPreserveHtmlEntities($html)
+  protected function replaceToPreserveHtmlEntities($html)
   {
     preg_match_all("/(\bhttps?:\/\/[^\s()<>]+(?:\([\w\d]+\)|[^[:punct:]\s]|\/|\}|\]))/i", $html, $linksOld);
 
