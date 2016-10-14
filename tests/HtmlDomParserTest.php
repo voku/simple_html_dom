@@ -886,6 +886,30 @@ HTML;
     self::assertNotEquals('<input type="submit" tabindex="0" name="submit" value="Информации" />', $dom->find('table input', 1)->outerHtml);
   }
 
+  public function testUseXPath()
+  {
+    $dom = new HtmlDomParser();
+    $dom->loadHtml('
+        <html>
+          <head></head>
+          <body>
+            <p>.....</p>
+            <script>
+            Some code ... 
+            document.write("<script src=\'some script\'><\/script>") 
+            Some code ... 
+            </script>
+            <p>....</p>
+          </body>
+        </html>');
+    $elm = $dom->find('*');
+    self::assertSame('.....', $elm[3]->innerHtml);
+
+
+    $elm = $dom->find('//*');
+    self::assertSame('.....', $elm[3]->innerHtml);
+  }
+
   public function testScriptCleanerScriptTag()
   {
     $dom = new HtmlDomParser();
