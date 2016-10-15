@@ -1,11 +1,12 @@
-
-[PHP Simple HTML Dom v2.0.0-RC1]
+[PHP Simple HTML Dom v2.0.0]
 1. Complete Re-Write (based on https://github.com/dimabdc/PHP-Fast-Simple-HTML-DOM-Parser)
+
 
 [PHP Simple HTML Dom v1.7.x]
 1: removed old parameter: maxLen / lowercase / stripRN / defaultBRText / defaultSpanText
 2: add good default settings
 3: removed charset-parsing (use UTF-8)
+
 
 [PHP Simple HTML Dom v1.6.x]
 1: fixed code-style

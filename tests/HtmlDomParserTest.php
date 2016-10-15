@@ -599,6 +599,30 @@ HTML;
     self::assertContains('© 2015 Test', $htmlTmp);
   }
 
+  public function testSetAttr()
+  {
+    $html = '<html><script type="application/ld+json"></script><p></p><div id="p1" class="post">foo</div><div class="post" id="p2">bar</div></html>';
+    $expected = '<html><script type="application/ld+json"></script><p></p><div class="post" id="p1">foo</div><div class="post" id="p2">bar</div></html>';
+
+    $document = new HtmlDomParser($html);
+
+    foreach ($document->find('div') as $e) {
+      $attrs = array();
+      foreach ($e->getAllAttributes() as $attrKey => $attrValue) {
+        $attrs[$attrKey] = $attrValue;
+        $e->$attrKey = null;
+      }
+
+      ksort($attrs);
+
+      foreach ($attrs as $attrKey => $attrValue) {
+        $e->$attrKey = $attrValue;
+      }
+    }
+
+    self::assertSame($expected, $document->html());
+  }
+
   public function testEditLinks()
   {
     $texts = array(

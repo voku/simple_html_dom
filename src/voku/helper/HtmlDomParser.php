@@ -538,7 +538,7 @@ class HtmlDomParser
 
     $content = UTF8::html_entity_decode($content);
     $content = trim($content);
-    $content = UTF8::urldecode($content);
+    $content = UTF8::rawurldecode($content);
 
     $content = self::putReplacedBackToPreserveHtmlEntities($content);
 

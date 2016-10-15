@@ -12,10 +12,10 @@ use RuntimeException;
  *
  * @package voku\helper
  *
- * @property string outerText Get dom node's outer html (alias for "outerHtml")
- * @property string outerHtml Get dom node's outer html
- * @property string innerText Get dom node's inner html (alias for "innerHtml")
- * @property string innerHtml Get dom node's inner html
+ * @property string      outerText Get dom node's outer html (alias for "outerHtml")
+ * @property string      outerHtml Get dom node's outer html
+ * @property string      innerText Get dom node's inner html (alias for "innerHtml")
+ * @property string      innerHtml Get dom node's inner html
  * @property-read string plaintext Get dom node's plain text
  * @property-read string tag       Get dom node name
  * @property-read string attr      Get dom node attributes
@@ -177,7 +177,7 @@ class SimpleHtmlDom implements \IteratorAggregate
    */
   public function __unset($name)
   {
-    return $this->setAttribute($name, null);
+    return $this->removeAttribute($name);
   }
 
   /**
@@ -609,19 +609,38 @@ class SimpleHtmlDom implements \IteratorAggregate
   /**
    * Set attribute value
    *
-   * @param $name
-   * @param $value
+   * @param string      $name
+   * @param string|null $value      Set to NULL or empty string, to remove the attribute.
+   * @param bool        $strict     $value must be NULL, to remove the attribute,
+   *                                so that you can set an empty string as attribute-value e.g. autofocus=""
    *
    * @return $this
    */
-  public function setAttribute($name, $value)
+  public function setAttribute($name, $value = null, $strict = false)
   {
-    // replace "empty()" check in the future? -> Can't set nothing e.g. for "autofocus" or "checked"-
-    if (empty($value)) {
+    if (
+        ($strict === true && null === $value)
+        ||
+        ($strict === false && empty($value))
+    ) {
       $this->node->removeAttribute($name);
     } else {
       $this->node->setAttribute($name, $value);
     }
+
+    return $this;
+  }
+
+  /**
+   * Remove attribute
+   *
+   * @param $name
+   *
+   * @return mixed
+   */
+  public function removeAttribute($name)
+  {
+    $this->node->removeAttribute($name);
 
     return $this;
   }
