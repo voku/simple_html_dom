@@ -616,11 +616,7 @@ class SimpleHtmlDom implements \IteratorAggregate
    */
   public function setAttribute($name, $value)
   {
-    if ($name === $value) {
-      $this->node->setAttribute($name, null);
-      return $this;
-    }
-
+    // replace "empty()" check in the future? -> Can't set nothing e.g. for "autofocus" or "checked"-
     if (empty($value)) {
       $this->node->removeAttribute($name);
     } else {
