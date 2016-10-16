@@ -294,13 +294,11 @@ class HtmlDomParser
     return str_replace(
         array_merge(
             self::$domLinkReplaceHelper['tmp'],
-            self::$domReplaceHelper['tmp'],
-            array('&#13;')
+            self::$domReplaceHelper['tmp']
         ),
         array_merge(
             self::$domLinkReplaceHelper['orig'],
-            self::$domReplaceHelper['orig'],
-            array('')
+            self::$domReplaceHelper['orig']
         ),
         $html
     );
