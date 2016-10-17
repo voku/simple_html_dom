@@ -95,6 +95,7 @@ class HtmlDomParser
 
   /**
    * An random md5-hash, generated via "random_bytes()".
+   *
    * @var string
    */
   protected $randomHash;
@@ -256,19 +257,24 @@ class HtmlDomParser
    *
    * @return string
    */
-  protected function replaceToPreserveHtmlEntities($html)
+  public static function replaceToPreserveHtmlEntities($html)
   {
-    preg_match_all("/(\bhttps?:\/\/[^\s()<>]+(?:\([\w\d]+\)|[^[:punct:]\s]|\/|\}|\]))/i", $html, $linksOld);
-
+    // init
     $linksNew = array();
-    if (!empty($linksOld[1])) {
-      $linksOld = $linksOld[1];
-      foreach ($linksOld as $linkKey => $linkOld) {
-        $linksNew[$linkKey] = str_replace(
-            self::$domLinkReplaceHelper['orig'],
-            self::$domLinkReplaceHelper['tmp'],
-            $linkOld
-        );
+    $linksOld = array();
+
+    if (strpos($html, 'http') !== false) {
+      preg_match_all("/(\bhttps?:\/\/[^\s()<>]+(?:\([\w\d]+\)|[^[:punct:]\s]|\/|\}|\]))/i", $html, $linksOld);
+
+      if (!empty($linksOld[1])) {
+        $linksOld = $linksOld[1];
+        foreach ($linksOld as $linkKey => $linkOld) {
+          $linksNew[$linkKey] = str_replace(
+              self::$domLinkReplaceHelper['orig'],
+              self::$domLinkReplaceHelper['tmp'],
+              $linkOld
+          );
+        }
       }
     }
 
@@ -294,11 +300,13 @@ class HtmlDomParser
     return str_replace(
         array_merge(
             self::$domLinkReplaceHelper['tmp'],
-            self::$domReplaceHelper['tmp']
+            self::$domReplaceHelper['tmp'],
+            array('&#13;')
         ),
         array_merge(
             self::$domLinkReplaceHelper['orig'],
-            self::$domReplaceHelper['orig']
+            self::$domReplaceHelper['orig'],
+            array('')
         ),
         $html
     );
@@ -358,7 +366,7 @@ class HtmlDomParser
         $html = '<?xml encoding="' . $this->getEncoding() . '" ?>' . $html;
       }
 
-      $html = $this->replaceToPreserveHtmlEntities($html);
+      $html = self::replaceToPreserveHtmlEntities($html);
 
       $this->document->loadHTML($html);
 
