@@ -43,7 +43,7 @@ class HtmlDomParser
   );
 
   /**
-   * @var array
+   * @var string[][]
    */
   protected static $domLinkReplaceHelper = array(
       'orig' => array('[', ']', '{', '}',),
@@ -140,10 +140,12 @@ class HtmlDomParser
    */
   protected function addRandBytesToDomReplaceHelpers()
   {
+    /** @noinspection AlterInForeachInspection */
     foreach (self::$domLinkReplaceHelper['tmp'] as &$linkHelper) {
       $linkHelper .= $this->randomHash;
     }
 
+    /** @noinspection AlterInForeachInspection */
     foreach (self::$domReplaceHelper['tmp'] as &$domHelper) {
       $domHelper .= $this->randomHash;
     }
@@ -184,13 +186,13 @@ class HtmlDomParser
       $arguments1 = $arguments[1];
     }
 
-    if ($name == 'str_get_html') {
+    if ($name === 'str_get_html') {
       $parser = new self();
 
       return $parser->loadHtml($arguments0, $arguments1);
     }
 
-    if ($name == 'file_get_html') {
+    if ($name === 'file_get_html') {
       $parser = new self();
 
       return $parser->loadHtmlFile($arguments0, $arguments1);
@@ -199,6 +201,7 @@ class HtmlDomParser
     throw new BadMethodCallException('Method does not exist');
   }
 
+  /** @noinspection MagicMethodsValidityInspection */
   /**
    * @param $name
    *
@@ -268,7 +271,7 @@ class HtmlDomParser
 
       if (!empty($linksOld[1])) {
         $linksOld = $linksOld[1];
-        foreach ($linksOld as $linkKey => $linkOld) {
+        foreach ((array)$linksOld as $linkKey => $linkOld) {
           $linksNew[$linkKey] = str_replace(
               self::$domLinkReplaceHelper['orig'],
               self::$domLinkReplaceHelper['tmp'],
@@ -373,7 +376,7 @@ class HtmlDomParser
       // remove the "xml-encoding" hack
       if ($xmlHackUsed === true) {
         foreach ($this->document->childNodes as $child) {
-          if ($child->nodeType == XML_PI_NODE) {
+          if ($child->nodeType === XML_PI_NODE) {
             $this->document->removeChild($child);
           }
         }
@@ -536,10 +539,11 @@ class HtmlDomParser
           array(
               '<p>',
               '</p>',
-              '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">'
+              '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">',
           ),
           '',
-          $content);
+          $content
+      );
     }
 
     $content = UTF8::html_entity_decode($content);
@@ -593,7 +597,7 @@ class HtmlDomParser
   public function html()
   {
     if ($this::$callback !== null) {
-      call_user_func_array($this::$callback, array($this));
+      call_user_func($this::$callback, array($this));
     }
 
     if ($this->getIsDOMDocumentCreatedWithoutHtmlWrapper()) {
