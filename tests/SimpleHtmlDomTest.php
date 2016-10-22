@@ -1,5 +1,6 @@
 <?php
 
+use voku\helper\Bootup;
 use voku\helper\HtmlDomParser;
 use voku\helper\SimpleHtmlDom;
 
@@ -125,7 +126,7 @@ class SimpleHtmlDomTest extends PHPUnit_Framework_TestCase
   {
     $html = $this->loadFixture('test_page.html');
 
-    return array(
+    $tests = array(
         array($html, '.fake h2', 0),
         array($html, 'article', 16),
         array($html, '.radio', 3),
@@ -136,9 +137,20 @@ class SimpleHtmlDomTest extends PHPUnit_Framework_TestCase
         array($html, 'input[id=in]', 1),
         array($html, '#in', 1),
         array($html, '*[id]', 52),
-        array($html, 'text', 462),
         array($html, 'comment', 3),
     );
+
+    if (Bootup::is_php('5.4')) {
+      $tests = array_merge_recursive($tests, array(
+          array($html, 'text', 640),
+      ));
+    } else {
+      $tests = array_merge_recursive($tests, array(
+          array($html, 'text', 462),
+      ));
+    }
+
+    return $tests;
   }
 
   public function testGetElementById()
@@ -339,7 +351,7 @@ class SimpleHtmlDomTest extends PHPUnit_Framework_TestCase
     $element = new SimpleHtmlDom($document->getDocument()->documentElement);
 
     self::assertSame($html, $element->html());
-    self::assertSame($html, $element->outertext());
+    self::assertSame($html, $element->outerText());
     self::assertSame($html, $element->outertext);
     self::assertSame($html, (string)$element);
   }
@@ -351,6 +363,8 @@ class SimpleHtmlDomTest extends PHPUnit_Framework_TestCase
     $element = new SimpleHtmlDom($document->getDocument()->documentElement);
 
     self::assertSame('<div>foo</div>', $element->innerHtml());
+    self::assertSame('<div>foo</div>', $element->innerText());
+    /** @noinspection PhpMethodOrClassCallIsNotCaseSensitiveInspection */
     self::assertSame('<div>foo</div>', $element->innertext());
     self::assertSame('<div>foo</div>', $element->innertext);
   }

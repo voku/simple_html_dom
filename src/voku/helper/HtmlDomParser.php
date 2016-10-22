@@ -338,25 +338,33 @@ class HtmlDomParser
     $disableEntityLoader = libxml_disable_entity_loader(true);
     libxml_clear_errors();
 
-    $options = LIBXML_DTDLOAD | LIBXML_DTDATTR | LIBXML_NONET;
+    $optionsSimpleXml = LIBXML_DTDLOAD | LIBXML_DTDATTR | LIBXML_NONET;
+    $optionsXml = LIBXML_DTDATTR | LIBXML_NONET;
+
+    if (defined('LIBXML_BIGLINES')) {
+      $optionsSimpleXml |= LIBXML_BIGLINES;
+      $optionsXml |= LIBXML_BIGLINES;
+    }
 
     if (defined('LIBXML_COMPACT')) {
-      $options |= LIBXML_COMPACT;
+      $optionsSimpleXml |= LIBXML_COMPACT;
+      $optionsXml |= LIBXML_COMPACT;
     }
 
     if (defined('LIBXML_HTML_NOIMPLIED')) {
-      $options |= LIBXML_HTML_NOIMPLIED;
+      $optionsSimpleXml |= LIBXML_HTML_NOIMPLIED;
     }
 
     if (defined('LIBXML_HTML_NODEFDTD')) {
-      $options |= LIBXML_HTML_NODEFDTD;
+      $optionsSimpleXml |= LIBXML_HTML_NODEFDTD;
     }
 
     if ($libXMLExtraOptions !== null) {
-      $options |= $libXMLExtraOptions;
+      $optionsSimpleXml |= $libXMLExtraOptions;
+      $optionsXml |= $libXMLExtraOptions;
     }
 
-    $sxe = simplexml_load_string($html, 'SimpleXMLElement', $options);
+    $sxe = simplexml_load_string($html, 'SimpleXMLElement', $optionsSimpleXml);
     if ($sxe !== false && count(libxml_get_errors()) === 0) {
       $this->document = dom_import_simplexml($sxe)->ownerDocument;
     } else {
@@ -371,7 +379,11 @@ class HtmlDomParser
 
       $html = self::replaceToPreserveHtmlEntities($html);
 
-      $this->document->loadHTML($html);
+      if (Bootup::is_php('5.4')) {
+        $this->document->loadHTML($html, $optionsXml);
+      } else {
+        $this->document->loadHTML($html);
+      }
 
       // remove the "xml-encoding" hack
       if ($xmlHackUsed === true) {

@@ -1,5 +1,6 @@
 <?php
 
+use voku\helper\Bootup;
 use voku\helper\HtmlDomParser;
 
 /**
@@ -51,7 +52,7 @@ class SimpleHtmlDomNodeTest extends PHPUnit_Framework_TestCase
   {
     $html = $this->loadFixture('test_page.html');
 
-    return array(
+    $tests = array(
         array($html, '.fake h2', 0),
         array($html, 'article', 16),
         array($html, '.radio', 3),
@@ -62,8 +63,19 @@ class SimpleHtmlDomNodeTest extends PHPUnit_Framework_TestCase
         array($html, 'input[id=in]', 1),
         array($html, '#in', 1),
         array($html, '*[id]', 51),
-        array($html, 'text', 390),
     );
+
+    if (Bootup::is_php('5.4')) {
+      $tests = array_merge_recursive($tests, array(
+          array($html, 'text', 539),
+      ));
+    } else {
+      $tests = array_merge_recursive($tests, array(
+          array($html, 'text', 390),
+      ));
+    }
+
+    return $tests;
   }
 
   public function testInnerHtml()

@@ -73,6 +73,8 @@ class SimpleHtmlDom implements \IteratorAggregate
    */
   public function __call($name, $arguments)
   {
+    $name = strtolower($name);
+
     if (isset(self::$functionAliases[$name])) {
       return call_user_func_array(array($this, self::$functionAliases[$name]), $arguments);
     }
