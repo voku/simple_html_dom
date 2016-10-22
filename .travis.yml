@@ -2,6 +2,13 @@ language: php
 
 sudo: false
 
+git:
+  depth: 2
+
+cache:
+  directories:
+    - $HOME/.composer/cache
+
 php:
   - 5.3
   - 5.4
@@ -16,6 +23,7 @@ matrix:
     - php: hhvm
 
 before_script:
+  - php -r "var_dump(LIBXML_DOTTED_VERSION);"
   - wget https://scrutinizer-ci.com/ocular.phar
   - travis_retry composer self-update
   - travis_retry composer require satooshi/php-coveralls:1.0.0
