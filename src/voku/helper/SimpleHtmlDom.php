@@ -486,8 +486,11 @@ class SimpleHtmlDom implements \IteratorAggregate
       }
     }
 
-    foreach ($this->node->childNodes as $node) {
-      $this->node->removeChild($node);
+    /** @noinspection PhpParamsInspection */
+    if (count($this->node->childNodes) > 0) {
+      foreach ($this->node->childNodes as $node) {
+        $this->node->removeChild($node);
+      }
     }
 
     if (!empty($newDocument)) {
