@@ -62,18 +62,9 @@ class SimpleHtmlDomNodeTest extends PHPUnit_Framework_TestCase
         array($html, 'input[id]', 23),
         array($html, 'input[id=in]', 1),
         array($html, '#in', 1),
+        array($html, 'text', 390),
         array($html, '*[id]', 51),
     );
-
-    if (Bootup::is_php('5.4')) {
-      $tests = array_merge_recursive($tests, array(
-          array($html, 'text', 539),
-      ));
-    } else {
-      $tests = array_merge_recursive($tests, array(
-          array($html, 'text', 390),
-      ));
-    }
 
     return $tests;
   }

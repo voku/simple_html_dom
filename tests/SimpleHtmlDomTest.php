@@ -137,18 +137,9 @@ class SimpleHtmlDomTest extends PHPUnit_Framework_TestCase
         array($html, 'input[id=in]', 1),
         array($html, '#in', 1),
         array($html, '*[id]', 52),
+        array($html, 'text', 462),
         array($html, 'comment', 3),
     );
-
-    if (Bootup::is_php('5.4')) {
-      $tests = array_merge_recursive($tests, array(
-          array($html, 'text', 640),
-      ));
-    } else {
-      $tests = array_merge_recursive($tests, array(
-          array($html, 'text', 462),
-      ));
-    }
 
     return $tests;
   }

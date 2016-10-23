@@ -221,18 +221,9 @@ class HtmlDomParserTest extends PHPUnit_Framework_TestCase
         array($html, 'input[id=in]', 1),
         array($html, '#in', 1),
         array($html, '*[id]', 52),
+        array($html, 'text', 462),
         array($html, 'comment', 3),
     );
-
-    if (Bootup::is_php('5.4')) {
-      $tests = array_merge_recursive($tests, array(
-          array($html, 'text', 640),
-      ));
-    } else {
-      $tests = array_merge_recursive($tests, array(
-          array($html, 'text', 462),
-      ));
-    }
 
     return $tests;
   }
@@ -360,17 +351,10 @@ HTML;
     $htmlExpected = str_replace(array("\r\n", "\r", "\n"), "\n", file_get_contents($filenameExpected));
 
     // object to sting
-    if (Bootup::is_php('5.4')) {
-      self::assertSame(
-          $htmlExpected,
-          str_replace(array("\r\n", "\r", "\n"), "\n", (string)$html)
-      );
-    } else {
-      self::assertSame(
-          str_replace(array("\r\n", "\r", "\n", " "), "", $htmlExpected),
-          str_replace(array("\r\n", "\r", "\n", " "), "", (string)$html)
-      );
-    }
+    self::assertSame(
+        $htmlExpected,
+        str_replace(array("\r\n", "\r", "\n"), "\n", (string)$html)
+    );
 
     $preHeaderContentArray = $html->find('.preheaderContent');
 

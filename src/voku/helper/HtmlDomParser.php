@@ -313,16 +313,14 @@ class HtmlDomParser
     libxml_clear_errors();
 
     $optionsSimpleXml = LIBXML_DTDLOAD | LIBXML_DTDATTR | LIBXML_NONET;
-    $optionsXml = LIBXML_DTDATTR | LIBXML_NONET;
+    $optionsXml = 0;
 
     if (defined('LIBXML_BIGLINES')) {
       $optionsSimpleXml |= LIBXML_BIGLINES;
-      $optionsXml |= LIBXML_BIGLINES;
     }
 
     if (defined('LIBXML_COMPACT')) {
       $optionsSimpleXml |= LIBXML_COMPACT;
-      $optionsXml |= LIBXML_COMPACT;
     }
 
     if (defined('LIBXML_HTML_NOIMPLIED')) {
@@ -353,7 +351,7 @@ class HtmlDomParser
 
       $html = self::replaceToPreserveHtmlEntities($html);
 
-      if (Bootup::is_php('5.4')) {
+      if ($optionsXml && Bootup::is_php('5.4')) {
         $this->document->loadHTML($html, $optionsXml);
       } else {
         $this->document->loadHTML($html);
