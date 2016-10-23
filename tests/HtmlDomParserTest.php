@@ -123,6 +123,14 @@ class HtmlDomParserTest extends PHPUnit_Framework_TestCase
     self::assertSame($html, $element->outertext);
   }
 
+  public function testWebComponent()
+  {
+    $html = '<button is="shopping-cart">Add to cart</button>';
+    $dom = HtmlDomParser::str_get_html($html);
+
+    self::assertSame($html, $dom->outertext);
+  }
+
   public function testWindows1252()
   {
     $file = __DIR__ . '/fixtures/windows-1252-example.html';
