@@ -924,6 +924,16 @@ HTML;
     );
   }
 
+  public function testUtf8AndBrokenHtmlEncoding()
+  {
+    $dom = new HtmlDomParser();
+    $dom->load('hi</b><p>سلام<div>の家庭に、9 ☆<><');
+    self::assertSame(
+        '<p>hi</p><p>سلام</p><div>の家庭に、9 ☆</div>',
+        $dom->innerHtml
+    );
+  }
+
   public function testEnforceEncoding()
   {
     $dom = new HtmlDomParser();

@@ -48,10 +48,10 @@ class HtmlDomParser
   protected static $domLinkReplaceHelper = array(
       'orig' => array('[', ']', '{', '}',),
       'tmp'  => array(
-          '!!!!HTML_DOM__SQUARE_BRACKET_LEFT!!!!',
-          '!!!!HTML_DOM__SQUARE_BRACKET_RIGHT!!!!',
-          '!!!!HTML_DOM__BRACKET_LEFT!!!!',
-          '!!!!HTML_DOM__BRACKET_RIGHT!!!!',
+          '!!!!SIMPLE_HTML_DOM__VOKU__SQUARE_BRACKET_LEFT!!!!',
+          '!!!!SIMPLE_HTML_DOM__VOKU__SQUARE_BRACKET_RIGHT!!!!',
+          '!!!!SIMPLE_HTML_DOM__VOKU__BRACKET_LEFT!!!!',
+          '!!!!SIMPLE_HTML_DOM__VOKU__BRACKET_RIGHT!!!!',
       ),
   );
 
@@ -61,10 +61,10 @@ class HtmlDomParser
   protected static $domReplaceHelper = array(
       'orig' => array('&', '|', '+', '%'),
       'tmp'  => array(
-          '!!!!HTML_DOM__AMP!!!!',
-          '!!!!HTML_DOM__PIPE!!!!',
-          '!!!!HTML_DOM__PLUS!!!!',
-          '!!!!HTML_DOM__PERCENT!!!!',
+          '!!!!SIMPLE_HTML_DOM__VOKU__AMP!!!!',
+          '!!!!SIMPLE_HTML_DOM__VOKU__PIPE!!!!',
+          '!!!!SIMPLE_HTML_DOM__VOKU__PLUS!!!!',
+          '!!!!SIMPLE_HTML_DOM__VOKU__PERCENT!!!!',
       ),
   );
 
@@ -94,23 +94,13 @@ class HtmlDomParser
   protected $isDOMDocumentCreatedWithoutHtmlWrapper = false;
 
   /**
-   * An random md5-hash, generated via "random_bytes()".
-   *
-   * @var string
-   */
-  protected $randomHash;
-
-  /**
    * Constructor
    *
    * @param string|SimpleHtmlDom|\DOMNode $element HTML code or SimpleHtmlDom, \DOMNode
    */
   public function __construct($element = null)
   {
-    $this->randomHash = md5(Bootup::get_random_bytes(16));
     $this->document = new \DOMDocument('1.0', $this->getEncoding());
-
-    $this->addRandBytesToDomReplaceHelpers();
 
     // DOMDocument settings
     $this->document->preserveWhiteSpace = true;
@@ -132,22 +122,6 @@ class HtmlDomParser
 
     if ($element !== null) {
       $this->loadHtml($element);
-    }
-  }
-
-  /**
-   * Add rand-bytes to the "Dom-Replace-Helper"-variables.
-   */
-  protected function addRandBytesToDomReplaceHelpers()
-  {
-    /** @noinspection AlterInForeachInspection */
-    foreach (self::$domLinkReplaceHelper['tmp'] as &$linkHelper) {
-      $linkHelper .= $this->randomHash;
-    }
-
-    /** @noinspection AlterInForeachInspection */
-    foreach (self::$domReplaceHelper['tmp'] as &$domHelper) {
-      $domHelper .= $this->randomHash;
     }
   }
 
@@ -300,19 +274,19 @@ class HtmlDomParser
    */
   public static function putReplacedBackToPreserveHtmlEntities($html)
   {
-    return str_replace(
-        array_merge(
-            self::$domLinkReplaceHelper['tmp'],
-            self::$domReplaceHelper['tmp'],
-            array('&#13;')
-        ),
-        array_merge(
-            self::$domLinkReplaceHelper['orig'],
-            self::$domReplaceHelper['orig'],
-            array('')
-        ),
-        $html
-    );
+    static $DOM_REPLACE__HELPER_CACHE = null;
+    if ($DOM_REPLACE__HELPER_CACHE === null) {
+      $DOM_REPLACE__HELPER_CACHE['tmp'] = array_merge(
+          self::$domLinkReplaceHelper['tmp'],
+          self::$domReplaceHelper['tmp']
+      );
+      $DOM_REPLACE__HELPER_CACHE['orig'] = array_merge(
+          self::$domLinkReplaceHelper['orig'],
+          self::$domReplaceHelper['orig']
+      );
+    }
+
+    return str_replace($DOM_REPLACE__HELPER_CACHE['tmp'], $DOM_REPLACE__HELPER_CACHE['orig'], $html);
   }
 
   /**

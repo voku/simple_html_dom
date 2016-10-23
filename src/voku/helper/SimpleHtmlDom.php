@@ -494,11 +494,8 @@ class SimpleHtmlDom implements \IteratorAggregate
     }
 
     if (!empty($newDocument)) {
-
       $newDocument = $this->cleanHtmlWrapper($newDocument);
-
       $newNode = $this->node->ownerDocument->importNode($newDocument->getDocument()->documentElement, true);
-
       $this->node->appendChild($newNode);
     }
 
@@ -521,10 +518,6 @@ class SimpleHtmlDom implements \IteratorAggregate
     }
 
     $newDocument = new HtmlDomParser($string);
-
-    // DEBUG
-    //echo $this->normalizeStringForComparision($newDocument->outertext) . "\n";
-    //echo $this->normalizeStringForComparision($string) . "\n\n";
 
     if ($this->normalizeStringForComparision($newDocument->outertext) != $this->normalizeStringForComparision($string)) {
       throw new RuntimeException('Not valid HTML fragment');
