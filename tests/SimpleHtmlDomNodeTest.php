@@ -1,6 +1,5 @@
 <?php
 
-use voku\helper\Bootup;
 use voku\helper\HtmlDomParser;
 
 /**
