@@ -241,7 +241,7 @@ class HtmlDomParser
     $linksOld = array();
 
     if (strpos($html, 'http') !== false) {
-      preg_match_all("/(\bhttps?:\/\/[^\s()<>]+(?:\([\w\d]+\)|[^[:punct:]\s]|\/|\}|\]))/i", $html, $linksOld);
+      preg_match_all("/(\bhttps?:\/\/[^\s<>]+(?:\([\w]+\)|[^[:punct:]\s]|\/|\}|\]))/i", $html, $linksOld);
 
       if (!empty($linksOld[1])) {
         $linksOld = $linksOld[1];
