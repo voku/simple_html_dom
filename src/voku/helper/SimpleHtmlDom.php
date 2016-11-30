@@ -481,7 +481,7 @@ class SimpleHtmlDom implements \IteratorAggregate
     if (!empty($string)) {
       $newDocument = new HtmlDomParser($string);
 
-      if ($this->normalizeStringForComparision($newDocument->outertext) != $this->normalizeStringForComparision($string)) {
+      if ($this->normalizeStringForComparision($newDocument->outerText()) != $this->normalizeStringForComparision($string)) {
         throw new RuntimeException('Not valid HTML fragment');
       }
     }
@@ -519,7 +519,7 @@ class SimpleHtmlDom implements \IteratorAggregate
 
     $newDocument = new HtmlDomParser($string);
 
-    if ($this->normalizeStringForComparision($newDocument->outertext) != $this->normalizeStringForComparision($string)) {
+    if ($this->normalizeStringForComparision($newDocument->outerText()) != $this->normalizeStringForComparision($string)) {
       throw new RuntimeException('Not valid HTML fragment');
     }
 

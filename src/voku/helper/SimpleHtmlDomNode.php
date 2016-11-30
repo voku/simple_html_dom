@@ -19,6 +19,8 @@ class SimpleHtmlDomNode extends \ArrayObject implements SimpleHtmlDomNodeInterfa
    */
   public function __get($name)
   {
+    $name = strtolower($name);
+
     switch ($name) {
       case 'outertext':
       case 'innertext':
