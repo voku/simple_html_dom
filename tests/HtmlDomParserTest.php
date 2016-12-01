@@ -639,23 +639,23 @@ HTML;
   public function testEditLinks()
   {
     $texts = array(
-        '<a href="http://foobar.de" class="  more  "  >Mehr</a><a href="http://foobar.de" class="  more  "  >Mehr</a>' => '<a href="http://foobar.de" class="  more  " data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de\');">Mehr</a><a href="http://foobar.de" class="  more  " data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de\');">Mehr</a>',
-        ' <p><a href="http://foobar.de" class="  more  "  >Mehr</a></p>' => '<p><a href="http://foobar.de" class="  more  " data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de\');">Mehr</a></p>',
-        '<a <a href="http://foobar.de">foo</a><div></div>' => '<a href="http://foobar.de" data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de\');">foo</a><div></div>',
-        ' <p></p>' => '<p></p>',
-        ' <p>' => '<p></p>',
-        'p>' => 'p>',
-        'p' => 'p',
-        'Google+ && Twitter || Lînux' => 'Google+ && Twitter || Lînux',
-        '<p>Google+ && Twitter || Lînux</p>' => '<p>Google+ && Twitter || Lînux</p>',
-        '<p>Google+ && Twitter ||&nbsp;Lînux</p>' => '<p>Google+ && Twitter ||&nbsp;Lînux</p>',
-        '<a href="http://foobar.de[[foo]]&{{foobar}}&lall=1">foo</a>' => '<a href="http://foobar.de[[foo]]&{{foobar}}&lall=1" data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de[[foo]]&{{foobar}}&lall=1\');">foo</a>',
-        '<div><a href="http://foobar.de[[foo]]&{{foobar}}&lall=1">foo</a>' => '<div><a href="http://foobar.de[[foo]]&{{foobar}}&lall=1" data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de[[foo]]&{{foobar}}&lall=1\');">foo</a></div>',
-        '' => '',
+        '<a href="http://foobar.de" class="  more  "  >Mehr</a><a href="http://foobar.de" class="  more  "  >Mehr</a>'                                                                                                                                                                                                                                                                              => '<a href="http://foobar.de" class="  more  " data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de\');">Mehr</a><a href="http://foobar.de" class="  more  " data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de\');">Mehr</a>',
+        ' <p><a href="http://foobar.de" class="  more  "  >Mehr</a></p>'                                                                                                                                                                                                                                                                                                                            => '<p><a href="http://foobar.de" class="  more  " data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de\');">Mehr</a></p>',
+        '<a <a href="http://foobar.de">foo</a><div></div>'                                                                                                                                                                                                                                                                                                                                          => '<a href="http://foobar.de" data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de\');">foo</a><div></div>',
+        ' <p></p>'                                                                                                                                                                                                                                                                                                                                                                                  => '<p></p>',
+        ' <p>'                                                                                                                                                                                                                                                                                                                                                                                      => '<p></p>',
+        'p>'                                                                                                                                                                                                                                                                                                                                                                                        => 'p>',
+        'p'                                                                                                                                                                                                                                                                                                                                                                                         => 'p',
+        'Google+ && Twitter || Lînux'                                                                                                                                                                                                                                                                                                                                                               => 'Google+ && Twitter || Lînux',
+        '<p>Google+ && Twitter || Lînux</p>'                                                                                                                                                                                                                                                                                                                                                        => '<p>Google+ && Twitter || Lînux</p>',
+        '<p>Google+ && Twitter ||&nbsp;Lînux</p>'                                                                                                                                                                                                                                                                                                                                                   => '<p>Google+ && Twitter ||&nbsp;Lînux</p>',
+        '<a href="http://foobar.de[[foo]]&{{foobar}}&lall=1">foo</a>'                                                                                                                                                                                                                                                                                                                               => '<a href="http://foobar.de[[foo]]&{{foobar}}&lall=1" data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de[[foo]]&{{foobar}}&lall=1\');">foo</a>',
+        '<div><a href="http://foobar.de[[foo]]&{{foobar}}&lall=1">foo</a>'                                                                                                                                                                                                                                                                                                                          => '<div><a href="http://foobar.de[[foo]]&{{foobar}}&lall=1" data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de[[foo]]&{{foobar}}&lall=1\');">foo</a></div>',
+        ''                                                                                                                                                                                                                                                                                                                                                                                          => '',
         '<a href=""><span>lalll=###test###&bar=%5B%5Bfoobar%5D%5D&test=[[foobar]]&foo={{lall}}</span><img src="http://foobar?lalll=###test###&bar=%5B%5Bfoobar%5D%5D&test=[[foobar]]&foo={{lall}}" style="max-width:600px;" alt="Ihr Unternehmen in den wichtigsten Online-Verzeichnissen" class="headerImage" mc:label="header_image" mc:edit="header_image" mc:allowdesigner mc:allowtext /></a>' => '<a href="" data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=\');"><span>lalll=###test###&bar=%5B%5Bfoobar%5D%5D&test=[[foobar]]&foo={{lall}}</span><img src="http://foobar?lalll=###test###&bar=%5B%5Bfoobar%5D%5D&test=[[foobar]]&foo={{lall}}" style="max-width:600px;" alt="Ihr Unternehmen in den wichtigsten Online-Verzeichnissen" class="headerImage" mc:label="header_image" mc:edit="header_image" mc:allowdesigner mc:allowtext></a>',
     );
 
-    foreach($texts as $text => $expected) {
+    foreach ($texts as $text => $expected) {
       $dom = HtmlDomParser::str_get_html($text);
 
       foreach ($dom->find('a') as $item) {
@@ -782,7 +782,7 @@ HTML;
     $dom = new HtmlDomParser();
     $dom->load("<div class='all'><br  foo  bar  />baz</div>");
     $br = $dom->find('br', 0);
-    self::assertSame('<br foo bar>', (string) $br);
+    self::assertSame('<br foo bar>', (string)$br);
   }
 
   public function testLoadNoOpeningTag()
@@ -876,7 +876,7 @@ HTML;
   {
     $dom = new HtmlDomParser();
     $dom->load('<div class="all"><p>Hey bro, <a href="google.com">click here</a><br /> :)</p></div>');
-    self::assertSame('<div class="all"><p>Hey bro, <a href="google.com">click here</a><br> :)</p></div>', (string) $dom);
+    self::assertSame('<div class="all"><p>Hey bro, <a href="google.com">click here</a><br> :)</p></div>', (string)$dom);
   }
 
   public function testGetMagic()
@@ -933,10 +933,45 @@ HTML;
     self::assertNotEquals('<input type="submit" tabindex="0" name="submit" value="Информации" />', $dom->find('table input', 1)->outerHtml);
   }
 
+  public function testReplaceToPreserveHtmlEntities()
+  {
+    $tests = array(
+        // non url && non dom special chars -> no changes
+        ''                                                                                                 => '',
+        // non url && non dom special chars -> no changes
+        ' '                                                                                                => ' ',
+        // non url && non dom special chars -> no changes
+        'abc'                                                                                              => 'abc',
+        // non url && non dom special chars -> no changes
+        'öäü'                                                                                              => 'öäü',
+        // non url && non dom special chars -> no changes
+        '`?/=()=$"?#![{`'                                                                                  => '`?/=()=$"?#![{`',
+        // non url && non dom special chars -> no changes
+        '{{foo}}'                                                                                          => '{{foo}}',
+        // dom special chars -> changes
+        '`?/=()=$&,|,+,%"?#![{`'                                                                           => '`?/=()=$!!!!SIMPLE_HTML_DOM__VOKU__AMP!!!!,!!!!SIMPLE_HTML_DOM__VOKU__PIPE!!!!,!!!!SIMPLE_HTML_DOM__VOKU__PLUS!!!!,!!!!SIMPLE_HTML_DOM__VOKU__PERCENT!!!!"?#![{`',
+        // non url && non dom special chars -> no changes
+        'www.domain.de/foo.php?foobar=1&email=lars%40moelleken.org&guid=test1233312&{{foo}}'               => 'www.domain.de/foo.php?foobar=1!!!!SIMPLE_HTML_DOM__VOKU__AMP!!!!email=lars!!!!SIMPLE_HTML_DOM__VOKU__PERCENT!!!!40moelleken.org!!!!SIMPLE_HTML_DOM__VOKU__AMP!!!!guid=test1233312!!!!SIMPLE_HTML_DOM__VOKU__AMP!!!!{{foo}}',
+        // url -> changes
+        '[https://www.domain.de/foo.php?foobar=1&email=lars%40moelleken.org&guid=test1233312&{{foo}}#bar]' => '!!!!SIMPLE_HTML_DOM__VOKU__SQUARE_BRACKET_LEFT!!!!https://www.domain.de/foo.php?foobar=1!!!!SIMPLE_HTML_DOM__VOKU__AMP!!!!email=lars!!!!SIMPLE_HTML_DOM__VOKU__PERCENT!!!!40moelleken.org!!!!SIMPLE_HTML_DOM__VOKU__AMP!!!!guid=test1233312!!!!SIMPLE_HTML_DOM__VOKU__AMP!!!!!!!!SIMPLE_HTML_DOM__VOKU__BRACKET_LEFT!!!!!!!!SIMPLE_HTML_DOM__VOKU__BRACKET_LEFT!!!!foo!!!!SIMPLE_HTML_DOM__VOKU__BRACKET_RIGHT!!!!!!!!SIMPLE_HTML_DOM__VOKU__BRACKET_RIGHT!!!!#bar!!!!SIMPLE_HTML_DOM__VOKU__SQUARE_BRACKET_RIGHT!!!!',
+        // url -> changes
+        'https://www.domain.de/foo.php?foobar=1&email=lars%40moelleken.org&guid=test1233312&{{foo}}#foo'       => 'https://www.domain.de/foo.php?foobar=1!!!!SIMPLE_HTML_DOM__VOKU__AMP!!!!email=lars!!!!SIMPLE_HTML_DOM__VOKU__PERCENT!!!!40moelleken.org!!!!SIMPLE_HTML_DOM__VOKU__AMP!!!!guid=test1233312!!!!SIMPLE_HTML_DOM__VOKU__AMP!!!!!!!!SIMPLE_HTML_DOM__VOKU__BRACKET_LEFT!!!!!!!!SIMPLE_HTML_DOM__VOKU__BRACKET_LEFT!!!!foo!!!!SIMPLE_HTML_DOM__VOKU__BRACKET_RIGHT!!!!!!!!SIMPLE_HTML_DOM__VOKU__BRACKET_RIGHT!!!!#foo',
+    );
+
+    foreach ($tests as $test => $expected) {
+      $result = HtmlDomParser::replaceToPreserveHtmlEntities($test);
+      self::assertSame($expected, $result);
+
+      $result = HtmlDomParser::putReplacedBackToPreserveHtmlEntities($result);
+      self::assertSame($test, $result);
+    }
+  }
+
   public function testUseXPath()
   {
     $dom = new HtmlDomParser();
-    $dom->loadHtml('
+    $dom->loadHtml(
+        '
         <html>
           <head></head>
           <body>
@@ -948,7 +983,8 @@ HTML;
             </script>
             <p>....</p>
           </body>
-        </html>');
+        </html>'
+    );
     $elm = $dom->find('*');
     self::assertSame('.....', $elm[3]->innerHtml);
 
@@ -960,14 +996,16 @@ HTML;
   public function testScriptCleanerScriptTag()
   {
     $dom = new HtmlDomParser();
-    $dom->load('
+    $dom->load(
+        '
         <p>.....</p>
         <script>
         Some code ... 
         document.write("<script src=\'some script\'><\/script>") 
         Some code ... 
         </script>
-        <p>....</p>');
+        <p>....</p>'
+    );
     $elm = $dom->getElementsByTagName('p');
     self::assertSame('....', $elm[1]->innerHtml);
   }
@@ -976,33 +1014,33 @@ HTML;
   {
     $dom = new HtmlDomParser();
     $dom->load('<div class="stream-container "  > <div class="stream-item js-new-items-bar-container"> </div> <div class="stream">');
-    self::assertSame('<div class="stream-container "> <div class="stream-item js-new-items-bar-container"> </div> <div class="stream"></div></div>', (string) $dom);
+    self::assertSame('<div class="stream-container "> <div class="stream-item js-new-items-bar-container"> </div> <div class="stream"></div></div>', (string)$dom);
   }
 
   public function testCodeTag()
   {
     $dom = new HtmlDomParser();
     $dom->load('<strong>hello</strong><code class="language-php">$foo = "bar";</code>');
-    self::assertSame('<strong>hello</strong><code class="language-php">$foo = "bar";</code>', (string) $dom);
+    self::assertSame('<strong>hello</strong><code class="language-php">$foo = "bar";</code>', (string)$dom);
   }
 
   public function testDeleteNodeOuterHtml()
   {
     $dom = new HtmlDomParser();
     $dom->load('<div class="all"><p>Hey bro, <a href="google.com">click here</a><br /> :)</p></div>');
-    $a   = $dom->find('a');
+    $a = $dom->find('a');
     $a[0]->outerHtml = '';
     unset($a);
-    self::assertSame('<div class="all"><p>Hey bro, <br> :)</p></div>', (string) $dom);
+    self::assertSame('<div class="all"><p>Hey bro, <br> :)</p></div>', (string)$dom);
   }
 
   public function testDeleteNodeInnerHtml()
   {
     $dom = new HtmlDomParser();
     $dom->load('<div class="all"><p>Hey bro, <a href="google.com">click here</a><br /> :)</p></div>');
-    $a   = $dom->find('div.all');
+    $a = $dom->find('div.all');
     $a[0]->innerHtml = '';
     unset($a);
-    self::assertSame('<div class="all"></div>', (string) $dom);
+    self::assertSame('<div class="all"></div>', (string)$dom);
   }
 }

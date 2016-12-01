@@ -241,7 +241,10 @@ class HtmlDomParser
     $linksOld = array();
 
     if (strpos($html, 'http') !== false) {
-      preg_match_all("/(\bhttps?:\/\/[^\s<>]+(?:\([\w]+\)|[^[:punct:]\s]|\/|\}|\]))/i", $html, $linksOld);
+
+      // regEx for e.g.: [https://www.domain.de/foo.php?foobar=1&email=lars%40moelleken.org&guid=test1233312&{{foo}}#foo]
+      $regExUrl = '/(\[?\bhttps?:\/\/[^\s<>]+(?:\([\w]+\)|[^[:punct:]\s]|\/|\}|\]))/i';
+      preg_match_all($regExUrl, $html, $linksOld);
 
       if (!empty($linksOld[1])) {
         $linksOld = $linksOld[1];
