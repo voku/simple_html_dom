@@ -694,6 +694,34 @@ HTML;
         'イリノイ州シカゴにて',
         $html->text()
     );
+
+    // ---
+
+    $str = '<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF8"><title>jusqu’à 51% de rabais!</title></head><body></body></html>';
+
+    $html = HtmlDomParser::str_get_html($str);
+
+    $title = $html->find('title', 0);
+
+    self::assertSame(
+        'jusqu’à 51% de rabais!',
+        $title->innerHtml
+    );
+
+    self::assertSame(
+        'jusqu’à 51% de rabais!',
+        $title->innerHtml()
+    );
+
+    self::assertSame(
+        'jusqu’à 51% de rabais!',
+        $title->innerText
+    );
+
+    self::assertSame(
+        'jusqu’à 51% de rabais!',
+        $title->innerText()
+    );
   }
 
   public function testWithExtraXmlOptions()
