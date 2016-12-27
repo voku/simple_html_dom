@@ -653,7 +653,8 @@ HTML;
         '<div><a href="http://foobar.de[[foo]]&{{foobar}}&lall=1">foo</a>'                                                                                                                                                                                                                                                                                                                          => '<div><a href="http://foobar.de[[foo]]&{{foobar}}&lall=1" data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de[[foo]]&{{foobar}}&lall=1\');">foo</a></div>',
         ''                                                                                                                                                                                                                                                                                                                                                                                          => '',
         '<a href=""><span>lalll=###test###&bar=%5B%5Bfoobar%5D%5D&test=[[foobar]]&foo={{lall}}</span><img src="http://foobar?lalll=###test###&bar=%5B%5Bfoobar%5D%5D&test=[[foobar]]&foo={{lall}}" style="max-width:600px;" alt="Ihr Unternehmen in den wichtigsten Online-Verzeichnissen" class="headerImage" mc:label="header_image" mc:edit="header_image" mc:allowdesigner mc:allowtext /></a>' => '<a href="" data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=\');"><span>lalll=###test###&bar=%5B%5Bfoobar%5D%5D&test=[[foobar]]&foo={{lall}}</span><img src="http://foobar?lalll=###test###&bar=%5B%5Bfoobar%5D%5D&test=[[foobar]]&foo={{lall}}" style="max-width:600px;" alt="Ihr Unternehmen in den wichtigsten Online-Verzeichnissen" class="headerImage" mc:label="header_image" mc:edit="header_image" mc:allowdesigner mc:allowtext></a>',
-    );
+        'this is a test <a href="http://menadwork.com/test/?foo=1">test1</a> lall <a href="http://menadwork.com/test/?foo=1&lall=2">test2</a> ... <a href="http://menadwork.com">test3</a>' => 'this is a test <a href="http://menadwork.com/test/?foo=1" data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=menadwork.com\');">test1</a> lall <a href="http://menadwork.com/test/?foo=1&lall=2" data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=menadwork.com\');">test2</a> ... <a href="http://menadwork.com" data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=menadwork.com\');">test3</a>',
+  );
 
     foreach ($texts as $text => $expected) {
       $dom = HtmlDomParser::str_get_html($text);
@@ -946,9 +947,27 @@ HTML;
   public function testUtf8AndBrokenHtmlEncoding()
   {
     $dom = new HtmlDomParser();
+    $dom->load('hi سلام<div>の家庭に、9 ☆<><');
+    self::assertSame(
+        'hi سلام<div>の家庭に、9 ☆</div>',
+        $dom->innerHtml
+    );
+
+    // ---
+
+    $dom = new HtmlDomParser();
+    $dom->load('hi</b>سلام<div>の家庭に、9 ☆<><');
+    self::assertSame(
+        'hiسلام<div>の家庭に、9 ☆</div>',
+        $dom->innerHtml
+    );
+
+    // ---
+
+    $dom = new HtmlDomParser();
     $dom->load('hi</b><p>سلام<div>の家庭に、9 ☆<><');
     self::assertSame(
-        '<p>hi</p><p>سلام</p><div>の家庭に、9 ☆</div>',
+        'hi<p>سلام<div>の家庭に、9 ☆</div>',
         $dom->innerHtml
     );
   }

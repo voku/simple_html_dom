@@ -91,6 +91,11 @@ class HtmlDomParser
   /**
    * @var bool
    */
+  protected $isDOMDocumentCreatedWithoutWrapper = false;
+
+  /**
+   * @var bool
+   */
   protected $isDOMDocumentCreatedWithoutHtmlWrapper = false;
 
   /**
@@ -304,6 +309,8 @@ class HtmlDomParser
   {
     if (strpos($html, '<') === false) {
       $this->isDOMDocumentCreatedWithoutHtml = true;
+    } else if (strpos(ltrim($html), '<') !== 0) {
+      $this->isDOMDocumentCreatedWithoutWrapper = true;
     }
 
     if (strpos($html, '<html') === false) {
@@ -521,6 +528,11 @@ class HtmlDomParser
       );
     }
 
+    if ($this->isDOMDocumentCreatedWithoutWrapper === true) {
+      $content = preg_replace('/^<p>/', '', $content);
+      $content = preg_replace('/<\/p>/', '', $content);
+    }
+
     if ($this->isDOMDocumentCreatedWithoutHtml === true) {
       $content = str_replace(
           array(
@@ -574,6 +586,14 @@ class HtmlDomParser
   public function getIsDOMDocumentCreatedWithoutHtmlWrapper()
   {
     return $this->isDOMDocumentCreatedWithoutHtmlWrapper;
+  }
+
+  /**
+   * @return bool
+   */
+  public function getIsDOMDocumentCreatedWithoutWrapper()
+  {
+    return $this->isDOMDocumentCreatedWithoutWrapper;
   }
 
   /**
