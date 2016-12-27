@@ -309,7 +309,7 @@ class HtmlDomParser
   {
     if (strpos($html, '<') === false) {
       $this->isDOMDocumentCreatedWithoutHtml = true;
-    } else if (strpos(ltrim($html), '<') !== 0) {
+    } elseif (strpos(ltrim($html), '<') !== 0) {
       $this->isDOMDocumentCreatedWithoutWrapper = true;
     }
 
