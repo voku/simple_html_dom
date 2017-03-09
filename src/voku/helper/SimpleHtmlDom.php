@@ -83,7 +83,7 @@ class SimpleHtmlDom implements \IteratorAggregate
   }
 
   /**
-   * @param $name
+   * @param string $name
    *
    * @return array|null|string
    */
@@ -128,6 +128,8 @@ class SimpleHtmlDom implements \IteratorAggregate
    */
   public function __isset($name)
   {
+    $name = strtolower($name);
+
     switch ($name) {
       case 'outertext':
       case 'outerhtml':
@@ -207,8 +209,8 @@ class SimpleHtmlDom implements \IteratorAggregate
   /**
    * Find list of nodes with a CSS selector
    *
-   * @param string $selector
-   * @param int    $idx
+   * @param string   $selector
+   * @param int|null $idx
    *
    * @return SimpleHtmlDomNode|SimpleHtmlDomNode[]|SimpleHtmlDomNodeBlank
    */
