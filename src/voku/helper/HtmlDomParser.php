@@ -227,6 +227,8 @@ class HtmlDomParser
   /**
    * does nothing (only for api-compatibility-reasons)
    *
+   * @deprecated
+   *
    * @return bool
    */
   public function clear()
@@ -298,7 +300,7 @@ class HtmlDomParser
   }
 
   /**
-   * create DOMDocument from HTML
+   * Create DOMDocument from HTML.
    *
    * @param string   $html
    * @param int|null $libXMLExtraOptions
@@ -390,7 +392,7 @@ class HtmlDomParser
   }
 
   /**
-   * Return SimpleHtmlDom by id.
+   * Return element by #id.
    *
    * @param string $id
    *
@@ -402,7 +404,7 @@ class HtmlDomParser
   }
 
   /**
-   * Return SimpleHtmlDom by tag name.
+   * Return element by tag name.
    *
    * @param string $name
    *
@@ -420,7 +422,7 @@ class HtmlDomParser
   }
 
   /**
-   * Returns Elements by id
+   * Returns elements by #id.
    *
    * @param string   $id
    * @param null|int $idx
@@ -433,7 +435,7 @@ class HtmlDomParser
   }
 
   /**
-   * Returns Elements by tag name
+   * Returns elements by tag name.
    *
    * @param string   $name
    * @param null|int $idx
@@ -471,7 +473,7 @@ class HtmlDomParser
    * @param string $selector
    * @param int    $idx
    *
-   * @return SimpleHtmlDom|SimpleHtmlDom[]|SimpleHtmlDomNodeBlank
+   * @return SimpleHtmlDomNode[]|SimpleHtmlDom|SimpleHtmlDomNodeBlank
    */
   public function find($selector, $idx = null)
   {
@@ -485,19 +487,23 @@ class HtmlDomParser
       $elements[] = new SimpleHtmlDom($node);
     }
 
+    // return all elements
     if (null === $idx) {
       return $elements;
-    } else {
-      if ($idx < 0) {
-        $idx = count($elements) + $idx;
-      }
     }
 
+    // handle negative values
+    if ($idx < 0) {
+      $idx = count($elements) + $idx;
+    }
+
+    // return one element
     if (isset($elements[$idx])) {
       return $elements[$idx];
-    } else {
-      return new SimpleHtmlDomNodeBlank();
     }
+
+    // return a blank-element
+    return new SimpleHtmlDomNodeBlank();
   }
 
   /**
@@ -563,7 +569,7 @@ class HtmlDomParser
   }
 
   /**
-   * Get the encoding to use
+   * Get the encoding to use.
    *
    * @return string
    */
@@ -597,7 +603,7 @@ class HtmlDomParser
   }
 
   /**
-   * Get dom node's outer html
+   * Get dom node's outer html.
    *
    * @return string
    */
@@ -632,7 +638,7 @@ class HtmlDomParser
   }
 
   /**
-   * Get dom node's inner html
+   * Get dom node's inner html.
    *
    * @return string
    */
@@ -648,7 +654,7 @@ class HtmlDomParser
   }
 
   /**
-   * Load HTML from string
+   * Load HTML from string.
    *
    * @param string   $html
    * @param int|null $libXMLExtraOptions
@@ -669,7 +675,7 @@ class HtmlDomParser
   }
 
   /**
-   * Load HTML from file
+   * Load HTML from file.
    *
    * @param string   $filePath
    * @param int|null $libXMLExtraOptions
@@ -703,7 +709,7 @@ class HtmlDomParser
   }
 
   /**
-   * Save dom as string
+   * Save the html-dom as string.
    *
    * @param string $filepath
    *
@@ -728,7 +734,7 @@ class HtmlDomParser
   }
 
   /**
-   * Get dom node's plain text
+   * Get dom node's plain text.
    *
    * @return string
    */
