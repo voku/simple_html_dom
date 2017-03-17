@@ -452,19 +452,23 @@ class HtmlDomParser
       $elements[] = new SimpleHtmlDom($node);
     }
 
+    // return all elements
     if (null === $idx) {
       return $elements;
-    } else {
-      if ($idx < 0) {
-        $idx = count($elements) + $idx;
-      }
     }
 
+    // handle negative values
+    if ($idx < 0) {
+      $idx = count($elements) + $idx;
+    }
+
+    // return one element
     if (isset($elements[$idx])) {
       return $elements[$idx];
-    } else {
-      return new SimpleHtmlDomNodeBlank();
     }
+
+    // return a blank-element
+    return new SimpleHtmlDomNodeBlank();
   }
 
   /**

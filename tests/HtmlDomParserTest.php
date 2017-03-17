@@ -146,7 +146,7 @@ class HtmlDomParserTest extends PHPUnit_Framework_TestCase
 
     // ---
 
-    self::assertEquals('ÅÄÖåäö', $document->find('li')->text());
+    self::assertEquals(array('ÅÄÖ', 'åäö'), $document->find('li')->text());
   }
 
   public function testLoadHtmlFile()

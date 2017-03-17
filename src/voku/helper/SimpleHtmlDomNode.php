@@ -12,6 +12,7 @@ namespace voku\helper;
  */
 class SimpleHtmlDomNode extends \ArrayObject implements SimpleHtmlDomNodeInterface
 {
+  /** @noinspection MagicMethodsValidityInspection */
   /**
    * @param $name
    *
@@ -21,12 +22,16 @@ class SimpleHtmlDomNode extends \ArrayObject implements SimpleHtmlDomNodeInterfa
   {
     $name = strtolower($name);
 
-    switch ($name) {
-      case 'outertext':
-      case 'innertext':
-        return $this->innerHtml();
-      case 'plaintext':
-        return $this->text();
+    if ($this->count() > 0) {
+      $return = array();
+
+      foreach ($this as $node) {
+        if ($node instanceof SimpleHtmlDom) {
+          $return[] = $node->{$name};
+        }
+      }
+
+      return $return;
     }
 
     return null;
@@ -60,15 +65,20 @@ class SimpleHtmlDomNode extends \ArrayObject implements SimpleHtmlDomNodeInterfa
   }
 
   /**
-   * @return mixed
+   * @return string
    */
   public function __toString()
   {
-    return $this->innerHtml();
+    $html = '';
+    foreach ($this as $node) {
+      $html .= $node->outertext;
+    }
+
+    return $html;
   }
 
   /**
-   * Find list of nodes with a CSS selector
+   * Find list of nodes with a CSS selector.
    *
    * @param string $selector
    * @param int    $idx
@@ -84,42 +94,49 @@ class SimpleHtmlDomNode extends \ArrayObject implements SimpleHtmlDomNodeInterfa
       }
     }
 
+    // return all elements
     if (null === $idx) {
       return $elements;
-    } else {
-      if ($idx < 0) {
-        $idx = count($elements) + $idx;
-      }
     }
 
-    return (isset($elements[$idx]) ? $elements[$idx] : null);
+    // handle negative values
+    if ($idx < 0) {
+      $idx = count($elements) + $idx;
+    }
+
+    // return one element
+    if (isset($elements[$idx])) {
+      return $elements[$idx];
+    }
+
+    return null;
   }
 
   /**
-   * Get html of Elements
+   * Get html of elements.
    *
-   * @return string
+   * @return array
    */
   public function innerHtml()
   {
-    $text = '';
+    $html = array();
     foreach ($this as $node) {
-      $text .= $node->outertext;
+      $html[] = $node->outertext;
     }
 
-    return $text;
+    return $html;
   }
 
   /**
-   * Get plain text
+   * Get plain text.
    *
-   * @return string
+   * @return array
    */
   public function text()
   {
-    $text = '';
+    $text = array();
     foreach ($this as $node) {
-      $text .= $node->plaintext;
+      $text[] = $node->plaintext;
     }
 
     return $text;

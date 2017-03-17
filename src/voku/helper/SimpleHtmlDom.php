@@ -185,7 +185,7 @@ class SimpleHtmlDom implements \IteratorAggregate
   }
 
   /**
-   * Returns children of node
+   * Returns children of node.
    *
    * @param int $idx
    *
@@ -207,7 +207,7 @@ class SimpleHtmlDom implements \IteratorAggregate
   }
 
   /**
-   * Find list of nodes with a CSS selector
+   * Find list of nodes with a CSS selector.
    *
    * @param string   $selector
    * @param int|null $idx
@@ -220,7 +220,7 @@ class SimpleHtmlDom implements \IteratorAggregate
   }
 
   /**
-   * Returns the first child of node
+   * Returns the first child of node.
    *
    * @return SimpleHtmlDom|null
    */
@@ -236,7 +236,7 @@ class SimpleHtmlDom implements \IteratorAggregate
   }
 
   /**
-   * Returns array of attributes
+   * Returns an array of attributes.
    *
    * @return array|null
    */
@@ -255,7 +255,7 @@ class SimpleHtmlDom implements \IteratorAggregate
   }
 
   /**
-   * Return attribute value
+   * Return attribute value.
    *
    * @param string $name
    *
@@ -269,7 +269,7 @@ class SimpleHtmlDom implements \IteratorAggregate
   }
 
   /**
-   * Return SimpleHtmlDom by id.
+   * Return element by #id.
    *
    * @param string $id
    *
@@ -281,7 +281,7 @@ class SimpleHtmlDom implements \IteratorAggregate
   }
 
   /**
-   * Return SimpleHtmlDom by tag name.
+   * Return element by tag name.
    *
    * @param string $name
    *
@@ -299,7 +299,7 @@ class SimpleHtmlDom implements \IteratorAggregate
   }
 
   /**
-   * Returns Elements by id
+   * Returns elements by #id.
    *
    * @param string   $id
    * @param null|int $idx
@@ -312,7 +312,7 @@ class SimpleHtmlDom implements \IteratorAggregate
   }
 
   /**
-   * Returns Elements by tag name
+   * Returns elements by tag name.
    *
    * @param string   $name
    * @param null|int $idx
@@ -329,19 +329,23 @@ class SimpleHtmlDom implements \IteratorAggregate
       $elements[] = new self($node);
     }
 
+    // return all elements
     if (null === $idx) {
       return $elements;
-    } else {
-      if ($idx < 0) {
-        $idx = count($elements) + $idx;
-      }
     }
 
+    // handle negative values
+    if ($idx < 0) {
+      $idx = count($elements) + $idx;
+    }
+
+    // return one element
     if (isset($elements[$idx])) {
       return $elements[$idx];
-    } else {
-      return new SimpleHtmlDomNodeBlank();
     }
+
+    // return a blank-element
+    return new SimpleHtmlDomNodeBlank();
   }
 
   /**
@@ -355,7 +359,7 @@ class SimpleHtmlDom implements \IteratorAggregate
   }
 
   /**
-   * Retrieve an external iterator
+   * Retrieve an external iterator.
    *
    * @link  http://php.net/manual/en/iteratoraggregate.getiterator.php
    * @return SimpleHtmlDomNode An instance of an object implementing <b>Iterator</b> or
@@ -394,7 +398,7 @@ class SimpleHtmlDom implements \IteratorAggregate
   }
 
   /**
-   * Get dom node's outer html
+   * Get dom node's outer html.
    *
    * @return string
    */
@@ -404,7 +408,7 @@ class SimpleHtmlDom implements \IteratorAggregate
   }
 
   /**
-   * Get dom node's inner html
+   * Get dom node's inner html.
    *
    * @return string
    */
@@ -414,7 +418,7 @@ class SimpleHtmlDom implements \IteratorAggregate
   }
 
   /**
-   * Returns the last child of node
+   * Returns the last child of node.
    *
    * @return SimpleHtmlDom|null
    */
@@ -430,7 +434,7 @@ class SimpleHtmlDom implements \IteratorAggregate
   }
 
   /**
-   * Returns the next sibling of node
+   * Returns the next sibling of node.
    *
    * @return SimpleHtmlDom|null
    */
@@ -446,7 +450,7 @@ class SimpleHtmlDom implements \IteratorAggregate
   }
 
   /**
-   * Returns the parent of node
+   * Returns the parent of node.
    *
    * @return SimpleHtmlDom
    */
@@ -456,7 +460,7 @@ class SimpleHtmlDom implements \IteratorAggregate
   }
 
   /**
-   * Returns the previous sibling of node
+   * Returns the previous sibling of node.
    *
    * @return SimpleHtmlDom|null
    */
@@ -472,7 +476,7 @@ class SimpleHtmlDom implements \IteratorAggregate
   }
 
   /**
-   * Replace child node
+   * Replace child node.
    *
    * @param $string
    *
@@ -505,7 +509,7 @@ class SimpleHtmlDom implements \IteratorAggregate
   }
 
   /**
-   * Replace this node
+   * Replace this node.
    *
    * @param $string
    *
@@ -584,7 +588,7 @@ class SimpleHtmlDom implements \IteratorAggregate
   }
 
   /**
-   * change the name of a tag in a "DOMNode"
+   * Change the name of a tag in a "DOMNode".
    *
    * @param DOMNode $node
    * @param string  $name
@@ -607,7 +611,7 @@ class SimpleHtmlDom implements \IteratorAggregate
   }
 
   /**
-   * Set attribute value
+   * Set attribute value.
    *
    * @param string      $name
    * @param string|null $value      Set to NULL or empty string, to remove the attribute.
@@ -632,7 +636,7 @@ class SimpleHtmlDom implements \IteratorAggregate
   }
 
   /**
-   * Remove attribute
+   * Remove attribute.
    *
    * @param $name
    *
@@ -646,7 +650,7 @@ class SimpleHtmlDom implements \IteratorAggregate
   }
 
   /**
-   * Get dom node's plain text
+   * Get dom node's plain text.
    *
    * @return string
    */

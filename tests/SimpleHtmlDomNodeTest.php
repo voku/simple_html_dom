@@ -74,8 +74,9 @@ class SimpleHtmlDomNodeTest extends PHPUnit_Framework_TestCase
     $document = new HtmlDomParser($html);
     $element = $document->find('p');
 
-    self::assertSame('<p>foo</p><p>bar</p>', $element->innerHtml());
-    self::assertSame('<p>foo</p><p>bar</p>', $element->innertext);
+    self::assertSame('<p>foo</p><p>bar</p>', (string)$element);
+    self::assertSame(array('<p>foo</p>', '<p>bar</p>'), $element->innerHtml());
+    self::assertSame(array('foo', 'bar'), $element->innertext);
   }
 
   public function testText()
@@ -84,7 +85,17 @@ class SimpleHtmlDomNodeTest extends PHPUnit_Framework_TestCase
     $document = new HtmlDomParser($html);
     $element = $document->find('p');
 
-    self::assertSame('foobar', $element->text());
-    self::assertSame('foobar', $element->plaintext);
+    self::assertSame(array('foo', 'bar'), $element->text());
+    self::assertSame(array('foo', 'bar'), $element->plaintext);
+  }
+
+  public function testGetFirstDomElement()
+  {
+    $html = '<div><p class="lall">foo</p><p>lall</p></div>';
+    $document = new HtmlDomParser($html);
+    $element = $document->find('p');
+
+    self::assertSame(array('lall', ''), $element->class);
+    self::assertSame(array('foo', 'lall'), $element->plaintext);
   }
 }
