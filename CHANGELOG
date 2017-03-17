@@ -1,5 +1,10 @@
-[PHP Simple HTML Dom v2.0.0]
-1. Complete Re-Write (based on https://github.com/dimabdc/PHP-Fast-Simple-HTML-DOM-Parser)
+[PHP Simple HTML Dom v3.0.x]
+1: use output from "SimpleHtmlDomNode" as array instead of string
+
+
+[PHP Simple HTML Dom v2.0.x]
+1: Complete Re-Write (based on https://github.com/dimabdc/PHP-Fast-Simple-HTML-DOM-Parser)
+2: bug-fixing / performance improvements
 
 
 [PHP Simple HTML Dom v1.7.x]
