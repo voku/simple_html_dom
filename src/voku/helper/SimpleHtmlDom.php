@@ -70,6 +70,7 @@ class SimpleHtmlDom implements \IteratorAggregate
    *
    * @return null|string|SimpleHtmlDom
    *
+   * @throws \BadMethodCallException
    */
   public function __call($name, $arguments)
   {
@@ -481,6 +482,8 @@ class SimpleHtmlDom implements \IteratorAggregate
    * @param $string
    *
    * @return $this
+   *
+   * @throws \RuntimeException
    */
   protected function replaceChild($string)
   {
@@ -514,6 +517,8 @@ class SimpleHtmlDom implements \IteratorAggregate
    * @param $string
    *
    * @return $this
+   *
+   * @throws \RuntimeException
    */
   protected function replaceNode($string)
   {

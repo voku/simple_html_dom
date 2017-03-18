@@ -17,6 +17,8 @@ class SelectorConverter
    * @param $selector
    *
    * @return mixed|string
+   *
+   * @throws \RuntimeException
    */
   public static function toXPath($selector)
   {

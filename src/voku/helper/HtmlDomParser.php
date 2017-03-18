@@ -102,6 +102,8 @@ class HtmlDomParser
    * Constructor
    *
    * @param string|SimpleHtmlDom|\DOMNode $element HTML code or SimpleHtmlDom, \DOMNode
+   *
+   * @throws \InvalidArgumentException
    */
   public function __construct($element = null)
   {
@@ -144,6 +146,7 @@ class HtmlDomParser
       return call_user_func_array(array($this, self::$functionAliases[$name]), $arguments);
     }
 
+    /** @noinspection ExceptionsAnnotatingAndHandlingInspection */
     throw new BadMethodCallException('Method does not exist: ' . $name);
   }
 
@@ -152,6 +155,10 @@ class HtmlDomParser
    * @param $arguments
    *
    * @return HtmlDomParser
+   *
+   * @throws \BadMethodCallException
+   * @throws \RuntimeException
+   * @throws \InvalidArgumentException
    */
   public static function __callStatic($name, $arguments)
   {
@@ -166,12 +173,14 @@ class HtmlDomParser
     }
 
     if ($name === 'str_get_html') {
+      /** @noinspection ExceptionsAnnotatingAndHandlingInspection */
       $parser = new self();
 
       return $parser->loadHtml($arguments0, $arguments1);
     }
 
     if ($name === 'file_get_html') {
+      /** @noinspection ExceptionsAnnotatingAndHandlingInspection */
       $parser = new self();
 
       return $parser->loadHtmlFile($arguments0, $arguments1);
@@ -481,6 +490,7 @@ class HtmlDomParser
    */
   public function find($selector, $idx = null)
   {
+    /** @noinspection ExceptionsAnnotatingAndHandlingInspection */
     $xPathQuery = SelectorConverter::toXPath($selector);
 
     $xPath = new DOMXPath($this->document);
@@ -685,6 +695,9 @@ class HtmlDomParser
    * @param int|null $libXMLExtraOptions
    *
    * @return HtmlDomParser
+   *
+   * @throws \RuntimeException
+   * @throws \InvalidArgumentException
    */
   public function loadHtmlFile($filePath, $libXMLExtraOptions = null)
   {
