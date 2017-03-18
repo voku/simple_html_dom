@@ -35,7 +35,7 @@ This is a fork of [PHP Simple HTML DOM Parser project](http://simplehtmldom.sour
 composer require voku/simple_html_dom
 ```
 
-##Quick Start
+## Quick Start
 
 ```php
 use voku\helper\HtmlDomParser;
@@ -52,6 +52,6 @@ $elems = $dom->find('#css-selector');
 
 ```
 
-##Examples
+## Examples
 
 [github.com/voku/simple_html_dom/tree/master/example](https://github.com/voku/simple_html_dom/tree/master/example)
