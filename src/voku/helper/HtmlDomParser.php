@@ -486,7 +486,7 @@ class HtmlDomParser
    * @param string $selector
    * @param int    $idx
    *
-   * @return SimpleHtmlDomNode[]|SimpleHtmlDom|SimpleHtmlDomNodeBlank
+   * @return SimpleHtmlDom[]|SimpleHtmlDom|SimpleHtmlDomNodeInterface
    */
   public function find($selector, $idx = null)
   {
