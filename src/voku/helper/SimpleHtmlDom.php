@@ -115,7 +115,7 @@ class SimpleHtmlDom implements \IteratorAggregate
    * @param string $selector
    * @param int    $idx
    *
-   * @return SimpleHtmlDom|SimpleHtmlDomNode|null
+   * @return SimpleHtmlDom[]|SimpleHtmlDom|SimpleHtmlDomNodeInterface
    */
   public function __invoke($selector, $idx = null)
   {
@@ -213,7 +213,7 @@ class SimpleHtmlDom implements \IteratorAggregate
    * @param string   $selector
    * @param int|null $idx
    *
-   * @return SimpleHtmlDomNode|SimpleHtmlDomNode[]|SimpleHtmlDomNodeBlank
+   * @return SimpleHtmlDom[]|SimpleHtmlDom|SimpleHtmlDomNodeInterface
    */
   public function find($selector, $idx = null)
   {
@@ -274,7 +274,7 @@ class SimpleHtmlDom implements \IteratorAggregate
    *
    * @param string $id
    *
-   * @return SimpleHtmlDomNode|SimpleHtmlDomNode[]|SimpleHtmlDomNodeBlank
+   * @return SimpleHtmlDom|SimpleHtmlDomNodeBlank
    */
   public function getElementById($id)
   {
@@ -305,7 +305,7 @@ class SimpleHtmlDom implements \IteratorAggregate
    * @param string   $id
    * @param null|int $idx
    *
-   * @return SimpleHtmlDomNode|SimpleHtmlDomNode[]|SimpleHtmlDomNodeBlank
+   * @return SimpleHtmlDom[]|SimpleHtmlDom|SimpleHtmlDomNodeBlank
    */
   public function getElementsById($id, $idx = null)
   {

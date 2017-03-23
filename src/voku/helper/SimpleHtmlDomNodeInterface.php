@@ -15,7 +15,7 @@ interface SimpleHtmlDomNodeInterface
    * @param string $selector
    * @param int    $idx
    *
-   * @return SimpleHtmlDomNode|SimpleHtmlDomNode[]|null
+   * @return SimpleHtmlDomNode[]|SimpleHtmlDomNode|null
    */
   public function find($selector, $idx = null);
 

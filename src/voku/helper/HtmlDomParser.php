@@ -218,7 +218,7 @@ class HtmlDomParser
    * @param string $selector
    * @param int    $idx
    *
-   * @return SimpleHtmlDom|SimpleHtmlDomNode|null
+   * @return SimpleHtmlDom[]|SimpleHtmlDom|SimpleHtmlDomNodeInterface
    */
   public function __invoke($selector, $idx = null)
   {
@@ -436,7 +436,7 @@ class HtmlDomParser
    * @param string   $id
    * @param null|int $idx
    *
-   * @return SimpleHtmlDomNode|SimpleHtmlDomNode[]|SimpleHtmlDomNodeBlank
+   * @return SimpleHtmlDom[]|SimpleHtmlDom|SimpleHtmlDomNodeInterface
    */
   public function getElementsById($id, $idx = null)
   {

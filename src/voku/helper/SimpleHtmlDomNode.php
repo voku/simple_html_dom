@@ -57,7 +57,7 @@ class SimpleHtmlDomNode extends \ArrayObject implements SimpleHtmlDomNodeInterfa
    * @param string $selector
    * @param int    $idx
    *
-   * @return SimpleHtmlDom|SimpleHtmlDomNode|null
+   * @return SimpleHtmlDomNode[]|SimpleHtmlDomNode|null
    */
   public function __invoke($selector, $idx = null)
   {
@@ -83,7 +83,7 @@ class SimpleHtmlDomNode extends \ArrayObject implements SimpleHtmlDomNodeInterfa
    * @param string $selector
    * @param int    $idx
    *
-   * @return SimpleHtmlDomNode|SimpleHtmlDomNode[]|null
+   * @return SimpleHtmlDomNode[]|SimpleHtmlDomNode|null
    */
   public function find($selector, $idx = null)
   {
