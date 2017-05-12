@@ -279,6 +279,10 @@ class SimpleHtmlDomTest extends PHPUnit_Framework_TestCase
 
     $node = $element->firstChild();
 
+    self::assertInstanceOf('voku\helper\SimpleHtmlDom', $node);
+    self::assertSame('<p></p>', $node->outertext);
+    self::assertSame('', $node->plaintext);
+
     self::assertNull($node->lastChild());
     self::assertNull($node->last_child());
   }
