@@ -335,6 +335,33 @@ HTML;
     self::assertSame('<form name="form1" method="post" action="">[INPUT]中文空白</form>', (string)$html);
   }
 
+  public function testInnertextWithHtmlHeadTag()
+  {
+    $str = <<<HTML
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd"><html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head><body><div id="hello">Hello</div><div id="world">World</div></body></html>
+HTML;
+
+    $html = HtmlDomParser::str_get_html($str);
+
+    $html->find('head', 0)->innerText = '<meta http-equiv="Content-Type" content="text/html; charset=utf-7">';
+
+    self::assertSame('<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd"><html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-7"></head><body><div id="hello">Hello</div><div id="world">World</div></body></html>', str_replace(array("\r\n", "\r", "\n"), '', (string)$html));
+  }
+
+  public function testInnertextWithHtml()
+  {
+    $str = <<<HTML
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head><body><div id="hello">Hello</div><div id="world">World</div></body></html>
+HTML;
+
+    $html = HtmlDomParser::str_get_html($str);
+
+    $html->find('div', 1)->class = 'bar';
+    $html->find('div[id=hello]', 0)->innertext = '<foo>bar</foo>';
+
+    self::assertSame('<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd"><html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head><body><div id="hello"><foo>bar</foo></div><div id="world" class="bar">World</div></body></html>', str_replace(array("\r\n", "\r", "\n"), '', (string)$html));
+  }
+
   public function testInnertext()
   {
     $str = <<<HTML
@@ -572,19 +599,19 @@ HTML;
 
     $testStringUtf8_v1 = $htmlTmp->find('html .utf8');
     self::assertSame('דיעס איז אַ פּרובירן!', $testStringUtf8_v1[0]->innertext);
-    self::assertSame('<span class="utf8">דיעס איז אַ פּרובירן!</span>', $testStringUtf8_v1[0]->outertext);
+    self::assertSame('<span class="utf8">דיעס איז אַ פּרובירן!</span>', $testStringUtf8_v1[0]->html(true));
 
     $testStringUtf8_v2 = $htmlTmp->find('span.utf8');
     self::assertSame('דיעס איז אַ פּרובירן!', $testStringUtf8_v2[0]->innertext);
-    self::assertSame('<span class="utf8">דיעס איז אַ פּרובירן!</span>', $testStringUtf8_v2[0]->outertext);
+    self::assertSame('<span class="utf8">דיעס איז אַ פּרובירן!</span>', $testStringUtf8_v2[0]->html(true));
 
     $testStringUtf8_v3 = $htmlTmp->find('.utf8');
     self::assertSame('דיעס איז אַ פּרובירן!', $testStringUtf8_v3[0]->innertext);
-    self::assertSame('<span class="utf8">דיעס איז אַ פּרובירן!</span>', $testStringUtf8_v3[0]->outertext);
+    self::assertSame('<span class="utf8">דיעס איז אַ פּרובירן!</span>', $testStringUtf8_v3[0]->html(true));
 
     $testStringUtf8_v4 = $htmlTmp->find('foo');
     self::assertSame('bar', $testStringUtf8_v4[0]->innertext);
-    self::assertSame('<foo id="foo">bar</foo>', $testStringUtf8_v4[0]->outertext);
+    self::assertSame('<foo id="foo">bar</foo>', $testStringUtf8_v4[0]->html(true));
 
     $testStringUtf8_v5 = $htmlTmp->find('#foo');
     self::assertSame('bar', $testStringUtf8_v5[0]->innertext);
@@ -603,7 +630,7 @@ HTML;
     $testStringUtf8_v9 = $htmlTmp->getElementsByTagName('img', 15);
     self::assertSame('○●◎ earth 中文空白', $testStringUtf8_v9->alt);
     self::assertSame('', $testStringUtf8_v9->innertext);
-    self::assertSame('<img src="foobar" alt="○●◎ earth 中文空白" width="5" height="20" border="0">', $testStringUtf8_v9->outertext);
+    self::assertSame('<img src="foobar" alt="○●◎ earth 中文空白" width="5" height="20" border="0">', $testStringUtf8_v9->html(true));
 
     // test toString
     $htmlTmp = (string)$htmlTmp;
@@ -674,7 +701,7 @@ HTML;
         $item->setAttribute('onClick', '$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=' . urlencode($domain) . '\');');
       }
 
-      self::assertSame($expected, (string)$dom, 'tested: ' . $text);
+      self::assertSame($expected, $dom->html(true), 'tested: ' . $text);
     }
   }
 

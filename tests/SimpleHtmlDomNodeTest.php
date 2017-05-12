@@ -37,7 +37,7 @@ class SimpleHtmlDomNodeTest extends PHPUnit_Framework_TestCase
     $elements = $nodeList->find($selector);
 
     self::assertInstanceOf('voku\helper\SimpleHtmlDomNode', $elements);
-    self::assertSame($count, count($elements));
+    self::assertCount($count, $elements);
 
     foreach ($elements as $node) {
       self::assertInstanceOf('voku\helper\SimpleHtmlDom', $node);

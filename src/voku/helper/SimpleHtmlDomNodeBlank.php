@@ -7,11 +7,12 @@ namespace voku\helper;
  *
  * @package voku\helper
  *
- * @property-read string outertext Get dom node's outer html
- * @property-read string plaintext Get dom node's plain text
+ * @property-read string outertext <p>Get dom node's outer html.</p>
+ * @property-read string plaintext <p>Get dom node's plain text.</p>
  */
 class SimpleHtmlDomNodeBlank extends \ArrayObject implements SimpleHtmlDomNodeInterface
 {
+  /** @noinspection MagicMethodsValidityInspection */
   /**
    * @param $name
    *
@@ -37,7 +38,7 @@ class SimpleHtmlDomNodeBlank extends \ArrayObject implements SimpleHtmlDomNodeIn
    * @param string $selector
    * @param int    $idx
    *
-   * @return SimpleHtmlDom|SimpleHtmlDomNode|null
+   * @return null
    */
   public function __invoke($selector, $idx = null)
   {

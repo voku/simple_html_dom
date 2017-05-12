@@ -13,20 +13,23 @@ use RuntimeException;
  *
  * @package voku\helper
  *
- * @property-read string outerText Get dom node's outer html (alias for "outerHtml")
- * @property-read string outerHtml Get dom node's outer html
- * @property-read string innerText Get dom node's inner html (alias for "innerHtml")
- * @property-read string innerHtml Get dom node's inner html
- * @property-read string plaintext Get dom node's plain text
+ * @property-read string outerText <p>Get dom node's outer html (alias for "outerHtml").</p>
+ * @property-read string outerHtml <p>Get dom node's outer html.</p>
+ * @property-read string innerText <p>Get dom node's inner html (alias for "innerHtml").</p>
+ * @property-read string innerHtml <p>Get dom node's inner html.</p>
+ * @property-read string plaintext <p>Get dom node's plain text.</p>
  *
- * @method string outerText() Get dom node's outer html (alias for "outerHtml()")
- * @method string outerHtml() Get dom node's outer html
- * @method string innerText() Get dom node's inner html (alias for "innerHtml()")
- * @method HtmlDomParser load() load($html) Load HTML from string
- * @method HtmlDomParser load_file() load_file($html) Load HTML from file
+ * @method string outerText() <p>Get dom node's outer html (alias for "outerHtml()").</p>
+ * @method string outerHtml() <p>Get dom node's outer html.</p>
+ * @method string innerText() <p>Get dom node's inner html (alias for "innerHtml()").</p>
  *
- * @method static HtmlDomParser file_get_html() file_get_html($html, $libXMLExtraOptions = null) Load HTML from file
- * @method static HtmlDomParser str_get_html() str_get_html($html, $libXMLExtraOptions = null) Load HTML from string
+ * @method HtmlDomParser load() load($html) <p>Load HTML from string.</p>
+ * @method HtmlDomParser load_file() load_file($html) <p>Load HTML from file.</p>
+ *
+ * @method static HtmlDomParser file_get_html() file_get_html($html, $libXMLExtraOptions = null) <p>Load HTML from
+ *         file.</p>
+ * @method static HtmlDomParser str_get_html() str_get_html($html, $libXMLExtraOptions = null) <p>Load HTML from
+ *         string.</p>
  */
 class HtmlDomParser
 {
@@ -92,6 +95,11 @@ class HtmlDomParser
    * @var bool
    */
   protected $isDOMDocumentCreatedWithoutWrapper = false;
+
+  /**
+   * @var bool
+   */
+  protected $isDOMDocumentCreatedWithoutHeadWrapper = false;
 
   /**
    * @var bool
@@ -294,6 +302,7 @@ class HtmlDomParser
   public static function putReplacedBackToPreserveHtmlEntities($html)
   {
     static $DOM_REPLACE__HELPER_CACHE = null;
+
     if ($DOM_REPLACE__HELPER_CACHE === null) {
       $DOM_REPLACE__HELPER_CACHE['tmp'] = array_merge(
           self::$domLinkReplaceHelper['tmp'],
@@ -326,6 +335,10 @@ class HtmlDomParser
 
     if (strpos($html, '<html') === false) {
       $this->isDOMDocumentCreatedWithoutHtmlWrapper = true;
+    }
+
+    if (strpos($html, '<head>') === false) {
+      $this->isDOMDocumentCreatedWithoutHeadWrapper = true;
     }
 
     // set error level
@@ -423,11 +436,11 @@ class HtmlDomParser
   {
     $node = $this->document->getElementsByTagName($name)->item(0);
 
-    if ($node !== null) {
-      return new SimpleHtmlDom($node);
-    } else {
+    if ($node === null) {
       return new SimpleHtmlDomNodeBlank();
     }
+
+    return new SimpleHtmlDom($node);
   }
 
   /**
@@ -522,10 +535,11 @@ class HtmlDomParser
 
   /**
    * @param string $content
+   * @param bool   $multiDecodeNewHtmlEntity
    *
    * @return string
    */
-  protected function fixHtmlOutput($content)
+  protected function fixHtmlOutput($content, $multiDecodeNewHtmlEntity = false)
   {
     // INFO: DOMDocument will encapsulate plaintext into a paragraph tag (<p>),
     //          so we try to remove it here again ...
@@ -536,8 +550,6 @@ class HtmlDomParser
               "\n",
               "\r\n",
               "\r",
-              '<simpleHtmlDomP>',
-              '</simpleHtmlDomP>',
               '<body>',
               '</body>',
               '<html>',
@@ -565,9 +577,29 @@ class HtmlDomParser
       );
     }
 
-    $content = UTF8::html_entity_decode($content);
+    $content = str_replace(
+        array(
+            '<simpleHtmlDomP>',
+            '</simpleHtmlDomP>',
+            '<head><head>',
+            '</head></head>',
+        ),
+        array(
+            '',
+            '',
+            '<head>',
+            '</head>',
+        ),
+        $content
+    );
+
     $content = trim($content);
-    $content = UTF8::rawurldecode($content);
+
+    if ($multiDecodeNewHtmlEntity === true) {
+      $content = UTF8::rawurldecode($content);
+    } else {
+      $content = rawurldecode($content);
+    }
 
     $content = self::putReplacedBackToPreserveHtmlEntities($content);
 
@@ -611,6 +643,14 @@ class HtmlDomParser
   /**
    * @return bool
    */
+  public function getIsDOMDocumentCreatedWithoutHeadWrapper()
+  {
+    return $this->isDOMDocumentCreatedWithoutHeadWrapper;
+  }
+
+  /**
+   * @return bool
+   */
   public function getIsDOMDocumentCreatedWithoutWrapper()
   {
     return $this->isDOMDocumentCreatedWithoutWrapper;
@@ -619,9 +659,11 @@ class HtmlDomParser
   /**
    * Get dom node's outer html.
    *
+   * @param bool $multiDecodeNewHtmlEntity
+   *
    * @return string
    */
-  public function html()
+  public function html($multiDecodeNewHtmlEntity = false)
   {
     if ($this::$callback !== null) {
       call_user_func($this::$callback, array($this));
@@ -633,38 +675,42 @@ class HtmlDomParser
       $content = $this->document->saveHTML();
     }
 
-    return $this->fixHtmlOutput($content);
+    return $this->fixHtmlOutput($content, $multiDecodeNewHtmlEntity);
   }
 
   /**
    * Get the HTML as XML.
    *
+   * @param bool $multiDecodeNewHtmlEntity
+   *
    * @return string
    */
-  public function xml()
+  public function xml($multiDecodeNewHtmlEntity = false)
   {
     $xml = $this->document->saveXML(null, LIBXML_NOEMPTYTAG);
 
     // remove the XML-header
     $xml = ltrim(preg_replace('/<\?xml.*\?>/', '', $xml));
 
-    return $this->fixHtmlOutput($xml);
+    return $this->fixHtmlOutput($xml, $multiDecodeNewHtmlEntity);
   }
 
   /**
    * Get dom node's inner html.
    *
+   * @param bool $multiDecodeNewHtmlEntity
+   *
    * @return string
    */
-  public function innerHtml()
+  public function innerHtml($multiDecodeNewHtmlEntity = false)
   {
     $text = '';
 
     foreach ($this->document->documentElement->childNodes as $node) {
-      $text .= $this->fixHtmlOutput($this->document->saveHTML($node));
+      $text .= $this->document->saveHTML($node);
     }
 
-    return $text;
+    return $this->fixHtmlOutput($text, $multiDecodeNewHtmlEntity);
   }
 
   /**
@@ -711,7 +757,6 @@ class HtmlDomParser
 
     try {
       $html = UTF8::file_get_contents($filePath);
-
     } catch (\Exception $e) {
       throw new RuntimeException("Could not load file $filePath");
     }
@@ -753,10 +798,12 @@ class HtmlDomParser
   /**
    * Get dom node's plain text.
    *
+   * @param bool $multiDecodeNewHtmlEntity
+   *
    * @return string
    */
-  public function text()
+  public function text($multiDecodeNewHtmlEntity = false)
   {
-    return $this->fixHtmlOutput($this->document->textContent);
+    return $this->fixHtmlOutput($this->document->textContent, $multiDecodeNewHtmlEntity);
   }
 }
