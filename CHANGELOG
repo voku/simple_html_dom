@@ -86,7 +86,7 @@
 8. Fix the bug of text nodes' innertext.
 9. Fix the bug of comment nodes' innertext.
 10. Fix the bug of decendent selector with optional tags.
-11. Change simple_html_dom_node method name from "text()" to "makeup()". 
+11. Change simple_html_dom_node method name from "text()" to "makeup()".
 
 
 [PHP Simple HTML DOM Parser v0.97 is released]
