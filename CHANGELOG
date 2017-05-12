@@ -1,3 +1,8 @@
+[PHP Simple HTML Dom v3.1.x]
+1: optimize performance (use the "UTF8"-Class only if needed)
+2: fix html-handling of "meta"-tags [tags in the <head>-tag]
+
+
 [PHP Simple HTML Dom v3.0.x]
 1: use output from "SimpleHtmlDomNode" as array instead of string
 
