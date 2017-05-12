@@ -598,7 +598,8 @@ class HtmlDomParser
     if ($multiDecodeNewHtmlEntity === true) {
       $content = UTF8::rawurldecode($content);
     } else {
-      $content = rawurldecode($content);
+      $flags = Bootup::is_php('5.4') === true ? ENT_QUOTES | ENT_HTML5 : ENT_QUOTES;
+      $content = rawurldecode(html_entity_decode($content, $flags));
     }
 
     $content = self::putReplacedBackToPreserveHtmlEntities($content);
