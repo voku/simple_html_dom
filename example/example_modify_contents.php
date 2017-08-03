@@ -7,7 +7,7 @@ require_once '../vendor/autoload.php';
 // get DOM from URL or file
 $html = HtmlDomParser::file_get_html('http://www.google.com/');
 
-// remove all image
+// replace all image
 foreach ($html->find('img') as $e) {
   $e->outertext = '<img src="foobar.png">';
 }
