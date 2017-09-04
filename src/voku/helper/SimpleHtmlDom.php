@@ -631,7 +631,10 @@ class SimpleHtmlDom implements \IteratorAggregate
 
         // At this point DOMDocument still added a "<p>"-wrapper around our string,
         // so we replace it with "<simpleHtmlDomP>" and delete this at the ending ...
-        $this->changeElementName($newDocument->getDocument()->getElementsByTagName('p')->item(0), 'simpleHtmlDomP');
+        $item = $newDocument->getDocument()->getElementsByTagName('p')->item(0);
+        if ($item !== null) {
+          $this->changeElementName($item, 'simpleHtmlDomP');
+        }
       }
     }
 
