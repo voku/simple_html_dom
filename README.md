@@ -29,7 +29,7 @@ This is a fork of [PHP Simple HTML DOM Parser project](http://simplehtmldom.sour
 
 
 ## Install via "composer require"
-tf8
+
 ```shell
 composer require voku/simple_html_dom
 composer require voku/portable-utf8 # if you need e.g. UTF-8 fixed output
