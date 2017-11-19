@@ -6,7 +6,7 @@ use voku\helper\SimpleHtmlDom;
 /**
  * Class SimpleHtmlDomTest
  */
-class SimpleHtmlDomTest extends PHPUnit_Framework_TestCase
+class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
 {
   /**
    * @param $filename

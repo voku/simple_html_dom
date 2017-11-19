@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace voku\helper;
 
 use Symfony\Component\CssSelector\CssSelectorConverter;
@@ -14,13 +16,13 @@ class SelectorConverter
   protected static $compiled = array();
 
   /**
-   * @param $selector
+   * @param string $selector
    *
    * @return mixed|string
    *
    * @throws \RuntimeException
    */
-  public static function toXPath($selector)
+  public static function toXPath(string $selector)
   {
     if (isset(self::$compiled[$selector])) {
       return self::$compiled[$selector];
@@ -40,7 +42,7 @@ class SelectorConverter
       return $selector;
     }
 
-    if (!class_exists('Symfony\\Component\\CssSelector\\CssSelectorConverter')) {
+    if (!class_exists(CssSelectorConverter::class)) {
       throw new \RuntimeException('Unable to filter with a CSS selector as the Symfony CssSelector 2.8+ is not installed (you can use filterXPath instead).');
     }
 

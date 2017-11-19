@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace voku\helper;
 
 use BadMethodCallException;
@@ -66,8 +68,8 @@ class SimpleHtmlDom implements \IteratorAggregate
   }
 
   /**
-   * @param $name
-   * @param $arguments
+   * @param string $name
+   * @param array $arguments
    *
    * @return null|string|SimpleHtmlDom
    *
@@ -75,10 +77,10 @@ class SimpleHtmlDom implements \IteratorAggregate
    */
   public function __call($name, $arguments)
   {
-    $name = strtolower($name);
+    $name = \strtolower($name);
 
     if (isset(self::$functionAliases[$name])) {
-      return call_user_func_array(array($this, self::$functionAliases[$name]), $arguments);
+      return \call_user_func_array(array($this, self::$functionAliases[$name]), $arguments);
     }
 
     throw new BadMethodCallException('Method does not exist');
@@ -91,7 +93,7 @@ class SimpleHtmlDom implements \IteratorAggregate
    */
   public function __get($name)
   {
-    $name = strtolower($name);
+    $name = \strtolower($name);
 
     switch ($name) {
       case 'outerhtml':
@@ -193,7 +195,7 @@ class SimpleHtmlDom implements \IteratorAggregate
    *
    * @return SimpleHtmlDomNode|SimpleHtmlDom|null
    */
-  public function childNodes($idx = -1)
+  public function childNodes(int $idx = -1)
   {
     $nodeList = $this->getIterator();
 
@@ -216,7 +218,7 @@ class SimpleHtmlDom implements \IteratorAggregate
    *
    * @return SimpleHtmlDom[]|SimpleHtmlDom|SimpleHtmlDomNodeInterface
    */
-  public function find($selector, $idx = null)
+  public function find(string $selector, $idx = null)
   {
     return $this->getHtmlDomParser()->find($selector, $idx);
   }
@@ -263,7 +265,7 @@ class SimpleHtmlDom implements \IteratorAggregate
    *
    * @return string
    */
-  public function getAttribute($name)
+  public function getAttribute(string $name): string
   {
     $html = $this->node->getAttribute($name);
 
@@ -277,7 +279,7 @@ class SimpleHtmlDom implements \IteratorAggregate
    *
    * @return SimpleHtmlDom|SimpleHtmlDomNodeBlank
    */
-  public function getElementById($id)
+  public function getElementById(string $id)
   {
     return $this->find("#$id", 0);
   }
@@ -289,7 +291,7 @@ class SimpleHtmlDom implements \IteratorAggregate
    *
    * @return SimpleHtmlDom|SimpleHtmlDomNodeBlank
    */
-  public function getElementByTagName($name)
+  public function getElementByTagName(string $name)
   {
     $node = $this->node->getElementsByTagName($name)->item(0);
 
@@ -308,7 +310,7 @@ class SimpleHtmlDom implements \IteratorAggregate
    *
    * @return SimpleHtmlDom[]|SimpleHtmlDom|SimpleHtmlDomNodeBlank
    */
-  public function getElementsById($id, $idx = null)
+  public function getElementsById(string $id, $idx = null)
   {
     return $this->find("#$id", $idx);
   }
@@ -321,7 +323,7 @@ class SimpleHtmlDom implements \IteratorAggregate
    *
    * @return SimpleHtmlDomNode|SimpleHtmlDomNode[]|SimpleHtmlDomNodeBlank
    */
-  public function getElementsByTagName($name, $idx = null)
+  public function getElementsByTagName(string $name, $idx = null)
   {
     $nodesList = $this->node->getElementsByTagName($name);
 
@@ -338,7 +340,7 @@ class SimpleHtmlDom implements \IteratorAggregate
 
     // handle negative values
     if ($idx < 0) {
-      $idx = count($elements) + $idx;
+      $idx = \count($elements) + $idx;
     }
 
     // return one element
@@ -355,7 +357,7 @@ class SimpleHtmlDom implements \IteratorAggregate
    *
    * @return HtmlDomParser
    */
-  public function getHtmlDomParser()
+  public function getHtmlDomParser(): HtmlDomParser
   {
     return new HtmlDomParser($this);
   }
@@ -367,7 +369,7 @@ class SimpleHtmlDom implements \IteratorAggregate
    * @return SimpleHtmlDomNode An instance of an object implementing <b>Iterator</b> or
    * <b>Traversable</b>
    */
-  public function getIterator()
+  public function getIterator(): SimpleHtmlDomNode
   {
     $elements = new SimpleHtmlDomNode();
     if ($this->node->hasChildNodes()) {
@@ -382,7 +384,7 @@ class SimpleHtmlDom implements \IteratorAggregate
   /**
    * @return DOMNode
    */
-  public function getNode()
+  public function getNode(): \DOMNode
   {
     return $this->node;
   }
@@ -390,11 +392,11 @@ class SimpleHtmlDom implements \IteratorAggregate
   /**
    * Determine if an attribute exists on the element.
    *
-   * @param $name
+   * @param string $name
    *
    * @return bool
    */
-  public function hasAttribute($name)
+  public function hasAttribute(string $name): bool
   {
     return $this->node->hasAttribute($name);
   }
@@ -406,7 +408,7 @@ class SimpleHtmlDom implements \IteratorAggregate
    *
    * @return string
    */
-  public function html($multiDecodeNewHtmlEntity = false)
+  public function html(bool $multiDecodeNewHtmlEntity = false): string
   {
     return $this->getHtmlDomParser()->html($multiDecodeNewHtmlEntity);
   }
@@ -418,7 +420,7 @@ class SimpleHtmlDom implements \IteratorAggregate
    *
    * @return string
    */
-  public function innerHtml($multiDecodeNewHtmlEntity = false)
+  public function innerHtml(bool $multiDecodeNewHtmlEntity = false): string
   {
     return $this->getHtmlDomParser()->innerHtml($multiDecodeNewHtmlEntity);
   }
@@ -460,7 +462,7 @@ class SimpleHtmlDom implements \IteratorAggregate
    *
    * @return SimpleHtmlDom
    */
-  public function parentNode()
+  public function parentNode(): SimpleHtmlDom
   {
     return new self($this->node->parentNode);
   }
@@ -484,13 +486,13 @@ class SimpleHtmlDom implements \IteratorAggregate
   /**
    * Replace child node.
    *
-   * @param $string
+   * @param string $string
    *
    * @return $this
    *
    * @throws \RuntimeException
    */
-  protected function replaceChild($string)
+  protected function replaceChild(string $string)
   {
     if (!empty($string)) {
       $newDocument = new HtmlDomParser($string);
@@ -501,7 +503,7 @@ class SimpleHtmlDom implements \IteratorAggregate
     }
 
     /** @noinspection PhpParamsInspection */
-    if (count($this->node->childNodes) > 0) {
+    if (\count($this->node->childNodes) > 0) {
       foreach ($this->node->childNodes as $node) {
         $this->node->removeChild($node);
       }
@@ -519,13 +521,13 @@ class SimpleHtmlDom implements \IteratorAggregate
   /**
    * Replace this node.
    *
-   * @param $string
+   * @param string $string
    *
-   * @return $this
+   * @return $this|null
    *
    * @throws \RuntimeException
    */
-  protected function replaceNode($string)
+  protected function replaceNode(string $string)
   {
     if (empty($string)) {
       $this->node->parentNode->removeChild($this->node);
@@ -556,7 +558,7 @@ class SimpleHtmlDom implements \IteratorAggregate
    *
    * @return string
    */
-  private function normalizeStringForComparision($input)
+  private function normalizeStringForComparision($input): string
   {
     if ($input instanceof HtmlDomParser) {
       $string = $input->outerText();
@@ -597,7 +599,7 @@ class SimpleHtmlDom implements \IteratorAggregate
    *
    * @return HtmlDomParser
    */
-  protected function cleanHtmlWrapper(HtmlDomParser $newDocument)
+  protected function cleanHtmlWrapper(HtmlDomParser $newDocument): HtmlDomParser
   {
     if (
         $newDocument->getIsDOMDocumentCreatedWithoutHtml() === true
@@ -649,7 +651,7 @@ class SimpleHtmlDom implements \IteratorAggregate
    *
    * @return DOMElement
    */
-  protected function changeElementName(\DOMNode $node, $name)
+  protected function changeElementName(\DOMNode $node, string $name): \DOMElement
   {
     $newnode = $node->ownerDocument->createElement($name);
 
@@ -679,7 +681,7 @@ class SimpleHtmlDom implements \IteratorAggregate
    *
    * @return $this
    */
-  public function setAttribute($name, $value = null, $strict = false)
+  public function setAttribute(string $name, $value = null, bool $strict = false)
   {
     if (
         ($strict === true && null === $value)
@@ -697,11 +699,11 @@ class SimpleHtmlDom implements \IteratorAggregate
   /**
    * Remove attribute.
    *
-   * @param $name <p>The name of the html-attribute.</p>
+   * @param string $name <p>The name of the html-attribute.</p>
    *
    * @return mixed
    */
-  public function removeAttribute($name)
+  public function removeAttribute(string $name)
   {
     $this->node->removeAttribute($name);
 
@@ -713,7 +715,7 @@ class SimpleHtmlDom implements \IteratorAggregate
    *
    * @return string
    */
-  public function text()
+  public function text(): string
   {
     return $this->node->textContent;
   }

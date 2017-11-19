@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace voku\helper;
 
 /**
@@ -58,7 +60,7 @@ class SimpleHtmlDomNodeBlank extends \ArrayObject implements SimpleHtmlDomNodeIn
    *
    * @return string
    */
-  public function innerHtml()
+  public function innerHtml(): string
   {
     return '';
   }
@@ -69,7 +71,7 @@ class SimpleHtmlDomNodeBlank extends \ArrayObject implements SimpleHtmlDomNodeIn
    *
    * @return null
    */
-  public function find($selector, $idx = null)
+  public function find(string $selector, $idx = null)
   {
     return null;
   }
@@ -79,7 +81,7 @@ class SimpleHtmlDomNodeBlank extends \ArrayObject implements SimpleHtmlDomNodeIn
    *
    * @return string
    */
-  public function text()
+  public function text(): string
   {
     return '';
   }

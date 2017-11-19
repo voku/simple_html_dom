@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace voku\helper;
 
 /**
@@ -17,7 +19,7 @@ interface SimpleHtmlDomNodeInterface
    *
    * @return SimpleHtmlDomNode[]|SimpleHtmlDomNode|null
    */
-  public function find($selector, $idx = null);
+  public function find(string $selector, $idx = null);
 
   /**
    * Get html of Elements

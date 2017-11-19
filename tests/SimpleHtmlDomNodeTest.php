@@ -5,7 +5,7 @@ use voku\helper\HtmlDomParser;
 /**
  * Class SimpleHtmlDomNodeTest
  */
-class SimpleHtmlDomNodeTest extends PHPUnit_Framework_TestCase
+class SimpleHtmlDomNodeTest extends \PHPUnit\Framework\TestCase
 {
   /**
    * @param $filename

@@ -5,7 +5,7 @@ use voku\helper\HtmlDomParser;
 /**
  * Class TwigTest
  */
-class TwigTest extends PHPUnit_Framework_TestCase
+class TwigTest extends \PHPUnit\Framework\TestCase
 {
   public function testTwig()
   {

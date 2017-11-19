@@ -12,27 +12,27 @@
 [![License](https://poser.pugx.org/voku/simple_html_dom/license)](https://packagist.org/packages/voku/simple_html_dom)
 
 
-
 A HTML DOM parser written in PHP - let you manipulate HTML in a very easy way!
 ===============
 
-This is a fork of [PHP Simple HTML DOM Parser project](http://simplehtmldom.sourceforge.net/) but instead of string manipulation we use DOMDocument and modern php classes like "Symfony CssSelector" and "Portable UTF-8".
+This is a fork of [PHP Simple HTML DOM Parser project](http://simplehtmldom.sourceforge.net/) but instead of string manipulation we use DOMDocument and modern php classes like "Symfony CssSelector".
 
 - PHP 5.3+ Support
 - PHP-FIG Standard
 - Composer & PSR-4 support
 - PHPUnit testing via Travis CI
 - PHP-Quality testing via SensioLabsInsight
-- UTF-8 Support
-- Invalid HTML Support
+- UTF-8 Support (more support via "voku/portable-utf8")
+- Invalid HTML Support (partly ...)
 - Find tags on an HTML page with selectors just like jQuery
 - Extract contents from HTML in a single line
 
 
 ## Install via "composer require"
-
+tf8
 ```shell
 composer require voku/simple_html_dom
+composer require voku/portable-utf8 # if you need e.g. UTF-8 fixed output
 ```
 
 ## Quick Start

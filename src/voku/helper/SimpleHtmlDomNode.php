@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace voku\helper;
 
 /**
@@ -85,7 +87,7 @@ class SimpleHtmlDomNode extends \ArrayObject implements SimpleHtmlDomNodeInterfa
    *
    * @return SimpleHtmlDomNode[]|SimpleHtmlDomNode|null
    */
-  public function find($selector, $idx = null)
+  public function find(string $selector, $idx = null)
   {
     $elements = new self();
     foreach ($this as $node) {
@@ -101,7 +103,7 @@ class SimpleHtmlDomNode extends \ArrayObject implements SimpleHtmlDomNodeInterfa
 
     // handle negative values
     if ($idx < 0) {
-      $idx = count($elements) + $idx;
+      $idx = \count($elements) + $idx;
     }
 
     // return one element
@@ -117,7 +119,7 @@ class SimpleHtmlDomNode extends \ArrayObject implements SimpleHtmlDomNodeInterfa
    *
    * @return array
    */
-  public function innerHtml()
+  public function innerHtml(): array
   {
     $html = array();
     foreach ($this as $node) {
@@ -132,7 +134,7 @@ class SimpleHtmlDomNode extends \ArrayObject implements SimpleHtmlDomNodeInterfa
    *
    * @return array
    */
-  public function text()
+  public function text(): array
   {
     $text = array();
     foreach ($this as $node) {

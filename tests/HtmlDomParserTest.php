@@ -6,7 +6,7 @@ use voku\helper\SimpleHtmlDom;
 /**
  * Class HtmlDomParserTest
  */
-class HtmlDomParserTest extends PHPUnit_Framework_TestCase
+class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
 {
   /**
    * @param $filename
@@ -24,7 +24,7 @@ class HtmlDomParserTest extends PHPUnit_Framework_TestCase
   }
 
   /**
-   * @expectedException InvalidArgumentException
+   * @expectedException TypeError
    */
   public function testConstructWithInvalidArgument()
   {
@@ -32,7 +32,7 @@ class HtmlDomParserTest extends PHPUnit_Framework_TestCase
   }
 
   /**
-   * @expectedException InvalidArgumentException
+   * @expectedException TypeError
    */
   public function testLoadHtmlWithInvalidArgument()
   {
@@ -41,7 +41,7 @@ class HtmlDomParserTest extends PHPUnit_Framework_TestCase
   }
 
   /**
-   * @expectedException InvalidArgumentException
+   * @expectedException TypeError
    */
   public function testLoadWithInvalidArgument()
   {
@@ -50,7 +50,7 @@ class HtmlDomParserTest extends PHPUnit_Framework_TestCase
   }
 
   /**
-   * @expectedException InvalidArgumentException
+   * @expectedException TypeError
    */
   public function testLoadHtmlFileWithInvalidArgument()
   {
@@ -59,7 +59,7 @@ class HtmlDomParserTest extends PHPUnit_Framework_TestCase
   }
 
   /**
-   * @expectedException InvalidArgumentException
+   * @expectedException TypeError
    */
   public function testLoad_fileWithInvalidArgument()
   {
@@ -146,7 +146,10 @@ class HtmlDomParserTest extends PHPUnit_Framework_TestCase
 
     // ---
 
-    self::assertEquals(array('ÅÄÖ', 'åäö'), $document->find('li')->text());
+    // this only works with "UTF8"-helpers
+    if (class_exists('\voku\helper\UTF8')) {
+      self::assertEquals(array('ÅÄÖ', 'åäö'), $document->find('li')->text());
+    }
   }
 
   public function testLoadHtmlFile()

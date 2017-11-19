@@ -1,3 +1,9 @@
+[PHP Simple HTML Dom v4.0.x]
+1: drop support for PHP < 7.0
+2: use "strict_types"
+3: "Portable UTF-8" is now optional
+
+
 [PHP Simple HTML Dom v3.1.x]
 1: optimize performance (use the "UTF8"-Class only if needed)
 2: fix html-handling of "meta"-tags [tags in the <head>-tag]
