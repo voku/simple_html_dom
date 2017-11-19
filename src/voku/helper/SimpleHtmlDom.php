@@ -462,7 +462,7 @@ class SimpleHtmlDom implements \IteratorAggregate
    *
    * @return SimpleHtmlDom
    */
-  public function parentNode(): SimpleHtmlDom
+  public function parentNode(): self
   {
     return new self($this->node->parentNode);
   }

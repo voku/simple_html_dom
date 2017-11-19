@@ -746,7 +746,7 @@ class HtmlDomParser
    *
    * @throws InvalidArgumentException if argument is not string
    */
-  public function loadHtml(string $html, $libXMLExtraOptions = null): HtmlDomParser
+  public function loadHtml(string $html, $libXMLExtraOptions = null): self
   {
     $this->document = $this->createDOMDocument($html, $libXMLExtraOptions);
 
@@ -764,7 +764,7 @@ class HtmlDomParser
    * @throws \RuntimeException
    * @throws \InvalidArgumentException
    */
-  public function loadHtmlFile(string $filePath, $libXMLExtraOptions = null): HtmlDomParser
+  public function loadHtmlFile(string $filePath, $libXMLExtraOptions = null): self
   {
     if (!preg_match("/^https?:\/\//i", $filePath) && !file_exists($filePath)) {
       throw new RuntimeException("File $filePath not found");
