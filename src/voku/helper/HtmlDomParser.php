@@ -207,7 +207,7 @@ class HtmlDomParser
    */
   public function __get($name)
   {
-    $name = strtolower($name);
+    $name = \strtolower($name);
 
     switch ($name) {
       case 'outerhtml':
@@ -260,7 +260,7 @@ class HtmlDomParser
    *
    * @return string
    */
-  public static function replaceToPreserveHtmlEntities($html): string
+  public static function replaceToPreserveHtmlEntities(string $html): string
   {
     // init
     $linksNew = [];
@@ -301,22 +301,22 @@ class HtmlDomParser
    *
    * @return string
    */
-  public static function putReplacedBackToPreserveHtmlEntities($html): string
+  public static function putReplacedBackToPreserveHtmlEntities(string $html): string
   {
     static $DOM_REPLACE__HELPER_CACHE = null;
 
     if ($DOM_REPLACE__HELPER_CACHE === null) {
-      $DOM_REPLACE__HELPER_CACHE['tmp'] = array_merge(
+      $DOM_REPLACE__HELPER_CACHE['tmp'] = \array_merge(
           self::$domLinkReplaceHelper['tmp'],
           self::$domReplaceHelper['tmp']
       );
-      $DOM_REPLACE__HELPER_CACHE['orig'] = array_merge(
+      $DOM_REPLACE__HELPER_CACHE['orig'] = \array_merge(
           self::$domLinkReplaceHelper['orig'],
           self::$domReplaceHelper['orig']
       );
     }
 
-    return str_replace($DOM_REPLACE__HELPER_CACHE['tmp'], $DOM_REPLACE__HELPER_CACHE['orig'], $html);
+    return \str_replace($DOM_REPLACE__HELPER_CACHE['tmp'], $DOM_REPLACE__HELPER_CACHE['orig'], $html);
   }
 
   /**
@@ -327,7 +327,7 @@ class HtmlDomParser
    *
    * @return \DOMDocument
    */
-  private function createDOMDocument($html, $libXMLExtraOptions = null): \DOMDocument
+  private function createDOMDocument(string $html, $libXMLExtraOptions = null): \DOMDocument
   {
     if (\strpos($html, '<') === false) {
       $this->isDOMDocumentCreatedWithoutHtml = true;
@@ -543,7 +543,7 @@ class HtmlDomParser
     //          so we try to remove it here again ...
 
     if ($this->isDOMDocumentCreatedWithoutHtmlWrapper === true) {
-      $content = str_replace(
+      $content = \str_replace(
           [
               "\n",
               "\r\n",
@@ -559,12 +559,12 @@ class HtmlDomParser
     }
 
     if ($this->isDOMDocumentCreatedWithoutWrapper === true) {
-      $content = preg_replace('/^<p>/', '', $content);
-      $content = preg_replace('/<\/p>/', '', $content);
+      $content = (string)\preg_replace('/^<p>/', '', $content);
+      $content = (string)\preg_replace('/<\/p>/', '', $content);
     }
 
     if ($this->isDOMDocumentCreatedWithoutHtml === true) {
-      $content = str_replace(
+      $content = \str_replace(
           [
               '<p>',
               '</p>',
@@ -575,7 +575,7 @@ class HtmlDomParser
       );
     }
 
-    $content = str_replace(
+    $content = \str_replace(
         [
             '<simpleHtmlDomP>',
             '</simpleHtmlDomP>',
@@ -591,9 +591,9 @@ class HtmlDomParser
         $content
     );
 
-    $content = trim($content);
+    $content = \trim($content);
     if ($multiDecodeNewHtmlEntity === true) {
-      if (class_exists('\voku\helper\UTF8')) {
+      if (\class_exists('\voku\helper\UTF8')) {
 
         /** @noinspection PhpUndefinedClassInspection */
         $content = \voku\helper\UTF8::rawurldecode($content);
@@ -713,7 +713,7 @@ class HtmlDomParser
     $xml = $this->document->saveXML(null, LIBXML_NOEMPTYTAG);
 
     // remove the XML-header
-    $xml = ltrim(preg_replace('/<\?xml.*\?>/', '', $xml));
+    $xml = \ltrim((string)\preg_replace('/<\?xml.*\?>/', '', $xml));
 
     return $this->fixHtmlOutput($xml, $multiDecodeNewHtmlEntity);
   }
@@ -766,16 +766,20 @@ class HtmlDomParser
    */
   public function loadHtmlFile(string $filePath, $libXMLExtraOptions = null): HtmlDomParser
   {
-    if (!preg_match("/^https?:\/\//i", $filePath) && !file_exists($filePath)) {
+    if (
+        !\preg_match("/^https?:\/\//i", $filePath)
+        &&
+        !\file_exists($filePath)
+    ) {
       throw new RuntimeException("File $filePath not found");
     }
 
     try {
-      if (class_exists('\voku\helper\UTF8')) {
+      if (\class_exists('\voku\helper\UTF8')) {
         /** @noinspection PhpUndefinedClassInspection */
         $html = \voku\helper\UTF8::file_get_contents($filePath);
       } else {
-        $html = file_get_contents($filePath);
+        $html = \file_get_contents($filePath);
       }
     } catch (\Exception $e) {
       throw new RuntimeException("Could not load file $filePath");
@@ -801,7 +805,7 @@ class HtmlDomParser
   {
     $string = $this->innerHtml();
     if ($filepath !== '') {
-      file_put_contents($filepath, $string, LOCK_EX);
+      \file_put_contents($filepath, $string, LOCK_EX);
     }
 
     return $string;

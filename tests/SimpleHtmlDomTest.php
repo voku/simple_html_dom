@@ -125,20 +125,20 @@ class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
   {
     $html = $this->loadFixture('test_page.html');
 
-    $tests = array(
-        array($html, '.fake h2', 0),
-        array($html, 'article', 16),
-        array($html, '.radio', 3),
-        array($html, 'input.radio', 3),
-        array($html, 'ul li', 35),
-        array($html, 'fieldset#forms__checkbox li, fieldset#forms__radio li', 6),
-        array($html, 'input[id]', 23),
-        array($html, 'input[id=in]', 1),
-        array($html, '#in', 1),
-        array($html, '*[id]', 52),
-        array($html, 'text', 462),
-        array($html, 'comment', 3),
-    );
+    $tests = [
+        [$html, '.fake h2', 0],
+        [$html, 'article', 16],
+        [$html, '.radio', 3],
+        [$html, 'input.radio', 3],
+        [$html, 'ul li', 35],
+        [$html, 'fieldset#forms__checkbox li, fieldset#forms__radio li', 6],
+        [$html, 'input[id]', 23],
+        [$html, 'input[id=in]', 1],
+        [$html, '#in', 1],
+        [$html, '*[id]', 52],
+        [$html, 'text', 462],
+        [$html, 'comment', 3],
+    ];
 
     return $tests;
   }
@@ -379,7 +379,7 @@ class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
 
   public function testGetAllAttributes()
   {
-    $attr = array('class' => 'post', 'id' => 'p1');
+    $attr = ['class' => 'post', 'id' => 'p1'];
     $html = '<html><div class="post" id="p1">foo</div><div>bar</div></html>';
 
     $document = new HtmlDomParser($html);

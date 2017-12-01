@@ -51,19 +51,19 @@ class SimpleHtmlDomNodeTest extends \PHPUnit\Framework\TestCase
   {
     $html = $this->loadFixture('test_page.html');
 
-    $tests = array(
-        array($html, '.fake h2', 0),
-        array($html, 'article', 16),
-        array($html, '.radio', 3),
-        array($html, 'input.radio', 3),
-        array($html, 'ul li', 9),
-        array($html, 'fieldset#forms__checkbox li, fieldset#forms__radio li', 6),
-        array($html, 'input[id]', 23),
-        array($html, 'input[id=in]', 1),
-        array($html, '#in', 1),
-        array($html, 'text', 390),
-        array($html, '*[id]', 51),
-    );
+    $tests = [
+        [$html, '.fake h2', 0],
+        [$html, 'article', 16],
+        [$html, '.radio', 3],
+        [$html, 'input.radio', 3],
+        [$html, 'ul li', 9],
+        [$html, 'fieldset#forms__checkbox li, fieldset#forms__radio li', 6],
+        [$html, 'input[id]', 23],
+        [$html, 'input[id=in]', 1],
+        [$html, '#in', 1],
+        [$html, 'text', 390],
+        [$html, '*[id]', 51],
+    ];
 
     return $tests;
   }
@@ -75,8 +75,8 @@ class SimpleHtmlDomNodeTest extends \PHPUnit\Framework\TestCase
     $element = $document->find('p');
 
     self::assertSame('<p>foo</p><p>bar</p>', (string)$element);
-    self::assertSame(array('<p>foo</p>', '<p>bar</p>'), $element->innerHtml());
-    self::assertSame(array('foo', 'bar'), $element->innertext);
+    self::assertSame(['<p>foo</p>', '<p>bar</p>'], $element->innerHtml());
+    self::assertSame(['foo', 'bar'], $element->innertext);
   }
 
   public function testText()
@@ -85,8 +85,8 @@ class SimpleHtmlDomNodeTest extends \PHPUnit\Framework\TestCase
     $document = new HtmlDomParser($html);
     $element = $document->find('p');
 
-    self::assertSame(array('foo', 'bar'), $element->text());
-    self::assertSame(array('foo', 'bar'), $element->plaintext);
+    self::assertSame(['foo', 'bar'], $element->text());
+    self::assertSame(['foo', 'bar'], $element->plaintext);
   }
 
   public function testGetFirstDomElement()
@@ -95,7 +95,7 @@ class SimpleHtmlDomNodeTest extends \PHPUnit\Framework\TestCase
     $document = new HtmlDomParser($html);
     $element = $document->find('p');
 
-    self::assertSame(array('lall', ''), $element->class);
-    self::assertSame(array('foo', 'lall'), $element->plaintext);
+    self::assertSame(['lall', ''], $element->class);
+    self::assertSame(['foo', 'lall'], $element->plaintext);
   }
 }

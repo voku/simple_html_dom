@@ -24,14 +24,14 @@ interface SimpleHtmlDomNodeInterface
   /**
    * Get html of Elements
    *
-   * @return string
+   * @return string|string[]
    */
   public function innerHtml();
 
   /**
    * Get plain text
    *
-   * @return string
+   * @return string|string[]
    */
   public function text();
 }

@@ -28,7 +28,7 @@ class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
    */
   public function testConstructWithInvalidArgument()
   {
-    new HtmlDomParser(array('foo'));
+    new HtmlDomParser(['foo']);
   }
 
   /**
@@ -37,7 +37,7 @@ class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
   public function testLoadHtmlWithInvalidArgument()
   {
     $document = new HtmlDomParser();
-    $document->loadHtml(array('foo'));
+    $document->loadHtml(['foo']);
   }
 
   /**
@@ -46,7 +46,7 @@ class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
   public function testLoadWithInvalidArgument()
   {
     $document = new HtmlDomParser();
-    $document->load(array('foo'));
+    $document->load(['foo']);
   }
 
   /**
@@ -55,7 +55,7 @@ class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
   public function testLoadHtmlFileWithInvalidArgument()
   {
     $document = new HtmlDomParser();
-    $document->loadHtmlFile(array('foo'));
+    $document->loadHtmlFile(['foo']);
   }
 
   /**
@@ -64,7 +64,7 @@ class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
   public function testLoad_fileWithInvalidArgument()
   {
     $document = new HtmlDomParser();
-    $document->load_file(array('foo'));
+    $document->load_file(['foo']);
   }
 
   /**
@@ -148,7 +148,7 @@ class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
 
     // this only works with "UTF8"-helpers
     if (class_exists('\voku\helper\UTF8')) {
-      self::assertEquals(array('ÅÄÖ', 'åäö'), $document->find('li')->text());
+      self::assertEquals(['ÅÄÖ', 'åäö'], $document->find('li')->text());
     }
   }
 
@@ -220,20 +220,20 @@ class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
   {
     $html = $this->loadFixture('test_page.html');
 
-    $tests = array(
-        array($html, '.fake h2', 0),
-        array($html, 'article', 16),
-        array($html, '.radio', 3),
-        array($html, 'input.radio', 3),
-        array($html, 'ul li', 35),
-        array($html, 'fieldset#forms__checkbox li, fieldset#forms__radio li', 6),
-        array($html, 'input[id]', 23),
-        array($html, 'input[id=in]', 1),
-        array($html, '#in', 1),
-        array($html, '*[id]', 52),
-        array($html, 'text', 462),
-        array($html, 'comment', 3),
-    );
+    $tests = [
+        [$html, '.fake h2', 0],
+        [$html, 'article', 16],
+        [$html, '.radio', 3],
+        [$html, 'input.radio', 3],
+        [$html, 'ul li', 35],
+        [$html, 'fieldset#forms__checkbox li, fieldset#forms__radio li', 6],
+        [$html, 'input[id]', 23],
+        [$html, 'input[id=in]', 1],
+        [$html, '#in', 1],
+        [$html, '*[id]', 52],
+        [$html, 'text', 462],
+        [$html, 'comment', 3],
+    ];
 
     return $tests;
   }
@@ -308,7 +308,7 @@ class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
 HTML;
 
     $html = HtmlDomParser::str_get_html($str);
-    $checkboxArray = array();
+    $checkboxArray = [];
     foreach ($html->find('input[type=checkbox]') as $checkbox) {
       if ($checkbox->checked) {
         $checkboxArray[(string)$checkbox->name] = 'checked';
@@ -348,7 +348,15 @@ HTML;
 
     $html->find('head', 0)->innerText = '<meta http-equiv="Content-Type" content="text/html; charset=utf-7">';
 
-    self::assertSame('<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd"><html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-7"></head><body><div id="hello">Hello</div><div id="world">World</div></body></html>', str_replace(array("\r\n", "\r", "\n"), '', (string)$html));
+    self::assertSame(
+        '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd"><html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-7"></head><body><div id="hello">Hello</div><div id="world">World</div></body></html>', str_replace(
+        [
+            "\r\n",
+            "\r",
+            "\n",
+        ], '', (string)$html
+    )
+    );
   }
 
   public function testInnertextWithHtml()
@@ -362,7 +370,15 @@ HTML;
     $html->find('div', 1)->class = 'bar';
     $html->find('div[id=hello]', 0)->innertext = '<foo>bar</foo>';
 
-    self::assertSame('<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd"><html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head><body><div id="hello"><foo>bar</foo></div><div id="world" class="bar">World</div></body></html>', str_replace(array("\r\n", "\r", "\n"), '', (string)$html));
+    self::assertSame(
+        '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd"><html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head><body><div id="hello"><foo>bar</foo></div><div id="world" class="bar">World</div></body></html>', str_replace(
+        [
+            "\r\n",
+            "\r",
+            "\n",
+        ], '', (string)$html
+    )
+    );
   }
 
   public function testInnertext()
@@ -385,12 +401,12 @@ HTML;
     $filenameExpected = __DIR__ . '/fixtures/test_mail_expected.html';
 
     $html = HtmlDomParser::file_get_html($filename);
-    $htmlExpected = str_replace(array("\r\n", "\r", "\n"), "\n", file_get_contents($filenameExpected));
+    $htmlExpected = str_replace(["\r\n", "\r", "\n"], "\n", file_get_contents($filenameExpected));
 
     // object to sting
     self::assertSame(
         $htmlExpected,
-        str_replace(array("\r\n", "\r", "\n"), "\n", (string)$html)
+        str_replace(["\r\n", "\r", "\n"], "\n", (string)$html)
     );
 
     $preHeaderContentArray = $html->find('.preheaderContent');
@@ -577,7 +593,7 @@ HTML;
     self::assertInstanceOf('voku\helper\HtmlDomParser', $htmlTmp);
 
     // replace all images with "foobar"
-    $tmpArray = array();
+    $tmpArray = [];
     foreach ($htmlTmp->find('img') as $e) {
       if ($e->src != '') {
         $tmpArray[] = $e->src;
@@ -650,7 +666,7 @@ HTML;
     $document = new HtmlDomParser($html);
 
     foreach ($document->find('div') as $e) {
-      $attrs = array();
+      $attrs = [];
       foreach ($e->getAllAttributes() as $attrKey => $attrValue) {
         $attrs[$attrKey] = $attrValue;
         $e->$attrKey = null;
@@ -668,7 +684,7 @@ HTML;
 
   public function testEditLinks()
   {
-    $texts = array(
+    $texts = [
         '<a href="http://foobar.de" class="  more  "  >Mehr</a><a href="http://foobar.de" class="  more  "  >Mehr</a>'                                                                                                                                                                                                                                                                              => '<a href="http://foobar.de" class="  more  " data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de\');">Mehr</a><a href="http://foobar.de" class="  more  " data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de\');">Mehr</a>',
         ' <p><a href="http://foobar.de" class="  more  "  >Mehr</a></p>'                                                                                                                                                                                                                                                                                                                            => '<p><a href="http://foobar.de" class="  more  " data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de\');">Mehr</a></p>',
         '<a <a href="http://foobar.de">foo</a><div></div>'                                                                                                                                                                                                                                                                                                                                          => '<a href="http://foobar.de" data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de\');">foo</a><div></div>',
@@ -683,8 +699,8 @@ HTML;
         '<div><a href="http://foobar.de[[foo]]&{{foobar}}&lall=1">foo</a>'                                                                                                                                                                                                                                                                                                                          => '<div><a href="http://foobar.de[[foo]]&{{foobar}}&lall=1" data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de[[foo]]&{{foobar}}&lall=1\');">foo</a></div>',
         ''                                                                                                                                                                                                                                                                                                                                                                                          => '',
         '<a href=""><span>lalll=###test###&bar=%5B%5Bfoobar%5D%5D&test=[[foobar]]&foo={{lall}}</span><img src="http://foobar?lalll=###test###&bar=%5B%5Bfoobar%5D%5D&test=[[foobar]]&foo={{lall}}" style="max-width:600px;" alt="Ihr Unternehmen in den wichtigsten Online-Verzeichnissen" class="headerImage" mc:label="header_image" mc:edit="header_image" mc:allowdesigner mc:allowtext /></a>' => '<a href="" data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=\');"><span>lalll=###test###&bar=%5B%5Bfoobar%5D%5D&test=[[foobar]]&foo={{lall}}</span><img src="http://foobar?lalll=###test###&bar=%5B%5Bfoobar%5D%5D&test=[[foobar]]&foo={{lall}}" style="max-width:600px;" alt="Ihr Unternehmen in den wichtigsten Online-Verzeichnissen" class="headerImage" mc:label="header_image" mc:edit="header_image" mc:allowdesigner mc:allowtext></a>',
-        'this is a test <a href="http://menadwork.com/test/?foo=1">test1</a> lall <a href="http://menadwork.com/test/?foo=1&lall=2">test2</a> ... <a href="http://menadwork.com">test3</a>' => 'this is a test <a href="http://menadwork.com/test/?foo=1" data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=menadwork.com\');">test1</a> lall <a href="http://menadwork.com/test/?foo=1&lall=2" data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=menadwork.com\');">test2</a> ... <a href="http://menadwork.com" data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=menadwork.com\');">test3</a>',
-  );
+        'this is a test <a href="http://menadwork.com/test/?foo=1">test1</a> lall <a href="http://menadwork.com/test/?foo=1&lall=2">test2</a> ... <a href="http://menadwork.com">test3</a>'                                                                                                                                                                                                         => 'this is a test <a href="http://menadwork.com/test/?foo=1" data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=menadwork.com\');">test1</a> lall <a href="http://menadwork.com/test/?foo=1&lall=2" data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=menadwork.com\');">test2</a> ... <a href="http://menadwork.com" data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=menadwork.com\');">test3</a>',
+    ];
 
     foreach ($texts as $text => $expected) {
       $dom = HtmlDomParser::str_get_html($text);
@@ -1012,28 +1028,28 @@ HTML;
 
   public function testReplaceToPreserveHtmlEntities()
   {
-    $tests = array(
-        // non url && non dom special chars -> no changes
-        ''                                                                                                 => '',
-        // non url && non dom special chars -> no changes
-        ' '                                                                                                => ' ',
-        // non url && non dom special chars -> no changes
-        'abc'                                                                                              => 'abc',
-        // non url && non dom special chars -> no changes
-        'öäü'                                                                                              => 'öäü',
-        // non url && non dom special chars -> no changes
-        '`?/=()=$"?#![{`'                                                                                  => '`?/=()=$"?#![{`',
-        // non url && non dom special chars -> no changes
-        '{{foo}}'                                                                                          => '{{foo}}',
-        // dom special chars -> changes
-        '`?/=()=$&,|,+,%"?#![{`'                                                                           => '`?/=()=$!!!!SIMPLE_HTML_DOM__VOKU__AMP!!!!,!!!!SIMPLE_HTML_DOM__VOKU__PIPE!!!!,!!!!SIMPLE_HTML_DOM__VOKU__PLUS!!!!,!!!!SIMPLE_HTML_DOM__VOKU__PERCENT!!!!"?#![{`',
-        // non url && non dom special chars -> no changes
-        'www.domain.de/foo.php?foobar=1&email=lars%40moelleken.org&guid=test1233312&{{foo}}'               => 'www.domain.de/foo.php?foobar=1!!!!SIMPLE_HTML_DOM__VOKU__AMP!!!!email=lars!!!!SIMPLE_HTML_DOM__VOKU__PERCENT!!!!40moelleken.org!!!!SIMPLE_HTML_DOM__VOKU__AMP!!!!guid=test1233312!!!!SIMPLE_HTML_DOM__VOKU__AMP!!!!{{foo}}',
-        // url -> changes
-        '[https://www.domain.de/foo.php?foobar=1&email=lars%40moelleken.org&guid=test1233312&{{foo}}#bar]' => '!!!!SIMPLE_HTML_DOM__VOKU__SQUARE_BRACKET_LEFT!!!!https://www.domain.de/foo.php?foobar=1!!!!SIMPLE_HTML_DOM__VOKU__AMP!!!!email=lars!!!!SIMPLE_HTML_DOM__VOKU__PERCENT!!!!40moelleken.org!!!!SIMPLE_HTML_DOM__VOKU__AMP!!!!guid=test1233312!!!!SIMPLE_HTML_DOM__VOKU__AMP!!!!!!!!SIMPLE_HTML_DOM__VOKU__BRACKET_LEFT!!!!!!!!SIMPLE_HTML_DOM__VOKU__BRACKET_LEFT!!!!foo!!!!SIMPLE_HTML_DOM__VOKU__BRACKET_RIGHT!!!!!!!!SIMPLE_HTML_DOM__VOKU__BRACKET_RIGHT!!!!#bar!!!!SIMPLE_HTML_DOM__VOKU__SQUARE_BRACKET_RIGHT!!!!',
-        // url -> changes
-        'https://www.domain.de/foo.php?foobar=1&email=lars%40moelleken.org&guid=test1233312&{{foo}}#foo'       => 'https://www.domain.de/foo.php?foobar=1!!!!SIMPLE_HTML_DOM__VOKU__AMP!!!!email=lars!!!!SIMPLE_HTML_DOM__VOKU__PERCENT!!!!40moelleken.org!!!!SIMPLE_HTML_DOM__VOKU__AMP!!!!guid=test1233312!!!!SIMPLE_HTML_DOM__VOKU__AMP!!!!!!!!SIMPLE_HTML_DOM__VOKU__BRACKET_LEFT!!!!!!!!SIMPLE_HTML_DOM__VOKU__BRACKET_LEFT!!!!foo!!!!SIMPLE_HTML_DOM__VOKU__BRACKET_RIGHT!!!!!!!!SIMPLE_HTML_DOM__VOKU__BRACKET_RIGHT!!!!#foo',
-    );
+    $tests = [
+      // non url && non dom special chars -> no changes
+      ''                                                                                                 => '',
+      // non url && non dom special chars -> no changes
+      ' '                                                                                                => ' ',
+      // non url && non dom special chars -> no changes
+      'abc'                                                                                              => 'abc',
+      // non url && non dom special chars -> no changes
+      'öäü'                                                                                              => 'öäü',
+      // non url && non dom special chars -> no changes
+      '`?/=()=$"?#![{`'                                                                                  => '`?/=()=$"?#![{`',
+      // non url && non dom special chars -> no changes
+      '{{foo}}'                                                                                          => '{{foo}}',
+      // dom special chars -> changes
+      '`?/=()=$&,|,+,%"?#![{`'                                                                           => '`?/=()=$!!!!SIMPLE_HTML_DOM__VOKU__AMP!!!!,!!!!SIMPLE_HTML_DOM__VOKU__PIPE!!!!,!!!!SIMPLE_HTML_DOM__VOKU__PLUS!!!!,!!!!SIMPLE_HTML_DOM__VOKU__PERCENT!!!!"?#![{`',
+      // non url && non dom special chars -> no changes
+      'www.domain.de/foo.php?foobar=1&email=lars%40moelleken.org&guid=test1233312&{{foo}}'               => 'www.domain.de/foo.php?foobar=1!!!!SIMPLE_HTML_DOM__VOKU__AMP!!!!email=lars!!!!SIMPLE_HTML_DOM__VOKU__PERCENT!!!!40moelleken.org!!!!SIMPLE_HTML_DOM__VOKU__AMP!!!!guid=test1233312!!!!SIMPLE_HTML_DOM__VOKU__AMP!!!!{{foo}}',
+      // url -> changes
+      '[https://www.domain.de/foo.php?foobar=1&email=lars%40moelleken.org&guid=test1233312&{{foo}}#bar]' => '!!!!SIMPLE_HTML_DOM__VOKU__SQUARE_BRACKET_LEFT!!!!https://www.domain.de/foo.php?foobar=1!!!!SIMPLE_HTML_DOM__VOKU__AMP!!!!email=lars!!!!SIMPLE_HTML_DOM__VOKU__PERCENT!!!!40moelleken.org!!!!SIMPLE_HTML_DOM__VOKU__AMP!!!!guid=test1233312!!!!SIMPLE_HTML_DOM__VOKU__AMP!!!!!!!!SIMPLE_HTML_DOM__VOKU__BRACKET_LEFT!!!!!!!!SIMPLE_HTML_DOM__VOKU__BRACKET_LEFT!!!!foo!!!!SIMPLE_HTML_DOM__VOKU__BRACKET_RIGHT!!!!!!!!SIMPLE_HTML_DOM__VOKU__BRACKET_RIGHT!!!!#bar!!!!SIMPLE_HTML_DOM__VOKU__SQUARE_BRACKET_RIGHT!!!!',
+      // url -> changes
+      'https://www.domain.de/foo.php?foobar=1&email=lars%40moelleken.org&guid=test1233312&{{foo}}#foo'   => 'https://www.domain.de/foo.php?foobar=1!!!!SIMPLE_HTML_DOM__VOKU__AMP!!!!email=lars!!!!SIMPLE_HTML_DOM__VOKU__PERCENT!!!!40moelleken.org!!!!SIMPLE_HTML_DOM__VOKU__AMP!!!!guid=test1233312!!!!SIMPLE_HTML_DOM__VOKU__AMP!!!!!!!!SIMPLE_HTML_DOM__VOKU__BRACKET_LEFT!!!!!!!!SIMPLE_HTML_DOM__VOKU__BRACKET_LEFT!!!!foo!!!!SIMPLE_HTML_DOM__VOKU__BRACKET_RIGHT!!!!!!!!SIMPLE_HTML_DOM__VOKU__BRACKET_RIGHT!!!!#foo',
+    ];
 
     foreach ($tests as $test => $expected) {
       $result = HtmlDomParser::replaceToPreserveHtmlEntities($test);
