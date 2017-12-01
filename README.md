@@ -17,7 +17,7 @@ A HTML DOM parser written in PHP - let you manipulate HTML in a very easy way!
 
 This is a fork of [PHP Simple HTML DOM Parser project](http://simplehtmldom.sourceforge.net/) but instead of string manipulation we use DOMDocument and modern php classes like "Symfony CssSelector".
 
-- PHP 5.3+ Support
+- PHP 7.0+ Support
 - PHP-FIG Standard
 - Composer & PSR-4 support
 - PHPUnit testing via Travis CI
@@ -29,7 +29,7 @@ This is a fork of [PHP Simple HTML DOM Parser project](http://simplehtmldom.sour
 
 
 ## Install via "composer require"
-tf8
+
 ```shell
 composer require voku/simple_html_dom
 composer require voku/portable-utf8 # if you need e.g. UTF-8 fixed output
