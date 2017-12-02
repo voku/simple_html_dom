@@ -537,7 +537,7 @@ class HtmlDomParser
    *
    * @return string
    */
-  protected function fixHtmlOutput(string $content, bool $multiDecodeNewHtmlEntity = false): string
+  public function fixHtmlOutput(string $content, bool $multiDecodeNewHtmlEntity = false): string
   {
     // INFO: DOMDocument will encapsulate plaintext into a paragraph tag (<p>),
     //          so we try to remove it here again ...
@@ -581,12 +581,14 @@ class HtmlDomParser
             '</simpleHtmlDomP>',
             '<head><head>',
             '</head></head>',
+            '<br></br>',
         ],
         [
             '',
             '',
             '<head>',
             '</head>',
+            '<br>',
         ],
         $content
     );
