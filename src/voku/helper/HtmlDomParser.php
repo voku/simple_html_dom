@@ -492,6 +492,18 @@ class HtmlDomParser
   }
 
   /**
+   * Find one node with a CSS selector.
+   *
+   * @param string $selector
+   *
+   * @return SimpleHtmlDom|SimpleHtmlDomNodeInterface
+   */
+  public function findOne(string $selector)
+  {
+    return $this->find($selector, 0);
+  }
+
+  /**
    * Find list of nodes with a CSS selector.
    *
    * @param string $selector
@@ -831,5 +843,10 @@ class HtmlDomParser
   public function text(bool $multiDecodeNewHtmlEntity = false): string
   {
     return $this->fixHtmlOutput($this->document->textContent, $multiDecodeNewHtmlEntity);
+  }
+
+  public function __clone()
+  {
+    $this->document = clone $this->document;
   }
 }

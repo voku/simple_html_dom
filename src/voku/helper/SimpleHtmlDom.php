@@ -224,6 +224,18 @@ class SimpleHtmlDom implements \IteratorAggregate
   }
 
   /**
+   * Find one node with a CSS selector.
+   *
+   * @param string $selector
+   *
+   * @return SimpleHtmlDom|SimpleHtmlDomNodeInterface
+   */
+  public function findOne(string $selector)
+  {
+    return $this->find($selector, 0);
+  }
+
+  /**
    * Returns the first child of node.
    *
    * @return SimpleHtmlDom|null

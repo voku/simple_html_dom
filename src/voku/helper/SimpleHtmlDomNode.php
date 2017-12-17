@@ -80,6 +80,18 @@ class SimpleHtmlDomNode extends \ArrayObject implements SimpleHtmlDomNodeInterfa
   }
 
   /**
+   * Find one node with a CSS selector.
+   *
+   * @param string $selector
+   *
+   * @return SimpleHtmlDomNode|null
+   */
+  public function findOne(string $selector)
+  {
+    return $this->find($selector, 0);
+  }
+
+  /**
    * Find list of nodes with a CSS selector.
    *
    * @param string $selector
