@@ -1,9 +1,12 @@
+[PHP Simple HTML Dom v4.1.x]
+1: "HtmlDomParser" -> fix clone method for "document"
+2: add "findOne($selector)" === "find($selector, 0)"
+
+
 [PHP Simple HTML Dom v4.0.x]
 1: drop support for PHP < 7.0
 2: use "strict_types"
 3: "Portable UTF-8" is now optional
-4: "HtmlDomParser" -> fix clone method for "document"
-5: add "findOne($selector)" === "find($selector, 0)"
 
 
 [PHP Simple HTML Dom v3.1.x]
