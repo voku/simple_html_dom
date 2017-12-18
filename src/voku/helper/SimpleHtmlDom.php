@@ -289,7 +289,7 @@ class SimpleHtmlDom implements \IteratorAggregate
    *
    * @param string $id
    *
-   * @return SimpleHtmlDom|SimpleHtmlDomNodeBlank
+   * @return SimpleHtmlDom|SimpleHtmlDomNodeInterface
    */
   public function getElementById(string $id)
   {
@@ -320,7 +320,7 @@ class SimpleHtmlDom implements \IteratorAggregate
    * @param string   $id
    * @param null|int $idx
    *
-   * @return SimpleHtmlDom[]|SimpleHtmlDom|SimpleHtmlDomNodeBlank
+   * @return SimpleHtmlDom|SimpleHtmlDom[]|SimpleHtmlDomNodeInterface
    */
   public function getElementsById(string $id, $idx = null)
   {
@@ -333,7 +333,7 @@ class SimpleHtmlDom implements \IteratorAggregate
    * @param string   $name
    * @param null|int $idx
    *
-   * @return SimpleHtmlDomNode|SimpleHtmlDomNode[]|SimpleHtmlDomNodeBlank
+   * @return SimpleHtmlDomNode|SimpleHtmlDom[]|SimpleHtmlDomNodeBlank
    */
   public function getElementsByTagName(string $name, $idx = null)
   {
