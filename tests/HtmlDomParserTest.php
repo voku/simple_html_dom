@@ -231,7 +231,7 @@ class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
         [$html, 'input[id=in]', 1],
         [$html, '#in', 1],
         [$html, '*[id]', 52],
-        [$html, 'text', 462],
+        [$html, 'text', 640],
         [$html, 'comment', 3],
     ];
 
@@ -371,7 +371,7 @@ HTML;
     $html->find('div[id=hello]', 0)->innertext = '<foo>bar</foo>';
 
     self::assertSame(
-        '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd"><html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head><body><div id="hello"><foo>bar</foo></div><div id="world" class="bar">World</div></body></html>',
+        '<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head><body><div id="hello"><foo>bar</foo></div><div id="world" class="bar">World</div></body></html>',
         str_replace(
             [
                 "\r\n",

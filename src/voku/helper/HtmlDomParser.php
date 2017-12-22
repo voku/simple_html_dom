@@ -348,31 +348,25 @@ class HtmlDomParser
     $disableEntityLoader = \libxml_disable_entity_loader(true);
     \libxml_clear_errors();
 
-    $optionsSimpleXml = LIBXML_DTDLOAD | LIBXML_DTDATTR | LIBXML_NONET;
-    $optionsXml = 0;
+    $optionsXml = LIBXML_DTDLOAD | LIBXML_DTDATTR | LIBXML_NONET;
 
     if (\defined('LIBXML_BIGLINES')) {
-      $optionsSimpleXml |= LIBXML_BIGLINES;
+      $optionsXml |= LIBXML_BIGLINES;
     }
 
     if (\defined('LIBXML_COMPACT')) {
-      $optionsSimpleXml |= LIBXML_COMPACT;
-    }
-
-    if (\defined('LIBXML_HTML_NOIMPLIED')) {
-      $optionsSimpleXml |= LIBXML_HTML_NOIMPLIED;
+      $optionsXml |= LIBXML_COMPACT;
     }
 
     if (\defined('LIBXML_HTML_NODEFDTD')) {
-      $optionsSimpleXml |= LIBXML_HTML_NODEFDTD;
+      $optionsXml |= LIBXML_HTML_NODEFDTD;
     }
 
     if ($libXMLExtraOptions !== null) {
-      $optionsSimpleXml |= $libXMLExtraOptions;
       $optionsXml |= $libXMLExtraOptions;
     }
 
-    $sxe = \simplexml_load_string($html, 'SimpleXMLElement', $optionsSimpleXml);
+    $sxe = \simplexml_load_string($html, 'SimpleXMLElement', $optionsXml);
     if ($sxe !== false && \count(\libxml_get_errors()) === 0) {
       $this->document = \dom_import_simplexml($sxe)->ownerDocument;
     } else {

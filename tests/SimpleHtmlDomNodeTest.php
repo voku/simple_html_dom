@@ -61,7 +61,7 @@ class SimpleHtmlDomNodeTest extends \PHPUnit\Framework\TestCase
         [$html, 'input[id]', 23],
         [$html, 'input[id=in]', 1],
         [$html, '#in', 1],
-        [$html, 'text', 390],
+        [$html, 'text', 539],
         [$html, '*[id]', 51],
     ];
 

@@ -136,7 +136,7 @@ class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
         [$html, 'input[id=in]', 1],
         [$html, '#in', 1],
         [$html, '*[id]', 52],
-        [$html, 'text', 462],
+        [$html, 'text', 640],
         [$html, 'comment', 3],
     ];
 
