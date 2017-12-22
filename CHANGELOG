@@ -2,6 +2,8 @@
 1: "HtmlDomParser" -> fix clone method for "document"
 2: add "findOne($selector)" === "find($selector, 0)"
 3: update "symfony/css-selector" (optional)
+4: use LIBXML options for every html-loading task
+
 
 [PHP Simple HTML Dom v4.0.x]
 1: drop support for PHP < 7.0
