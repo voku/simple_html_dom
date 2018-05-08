@@ -3,6 +3,7 @@
 2: add "findOne($selector)" === "find($selector, 0)"
 3: update "symfony/css-selector" (optional)
 4: use LIBXML options for every html-loading task
+5: fix for vuejs (attributes beginning with "@")
 
 
 [PHP Simple HTML Dom v4.0.x]
