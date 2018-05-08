@@ -53,10 +53,10 @@ class HtmlDomParser
   protected static $domLinkReplaceHelper = [
       'orig' => ['[', ']', '{', '}',],
       'tmp'  => [
-          '!!!!SIMPLE_HTML_DOM__VOKU__SQUARE_BRACKET_LEFT!!!!',
-          '!!!!SIMPLE_HTML_DOM__VOKU__SQUARE_BRACKET_RIGHT!!!!',
-          '!!!!SIMPLE_HTML_DOM__VOKU__BRACKET_LEFT!!!!',
-          '!!!!SIMPLE_HTML_DOM__VOKU__BRACKET_RIGHT!!!!',
+          '____SIMPLE_HTML_DOM__VOKU__SQUARE_BRACKET_LEFT____',
+          '____SIMPLE_HTML_DOM__VOKU__SQUARE_BRACKET_RIGHT____',
+          '____SIMPLE_HTML_DOM__VOKU__BRACKET_LEFT____',
+          '____SIMPLE_HTML_DOM__VOKU__BRACKET_RIGHT____',
       ],
   ];
 
@@ -64,12 +64,13 @@ class HtmlDomParser
    * @var array
    */
   protected static $domReplaceHelper = [
-      'orig' => ['&', '|', '+', '%'],
+      'orig' => ['&', '|', '+', '%', '@'],
       'tmp'  => [
-          '!!!!SIMPLE_HTML_DOM__VOKU__AMP!!!!',
-          '!!!!SIMPLE_HTML_DOM__VOKU__PIPE!!!!',
-          '!!!!SIMPLE_HTML_DOM__VOKU__PLUS!!!!',
-          '!!!!SIMPLE_HTML_DOM__VOKU__PERCENT!!!!',
+        '____SIMPLE_HTML_DOM__VOKU__AMP____',
+        '____SIMPLE_HTML_DOM__VOKU__PIPE____',
+        '____SIMPLE_HTML_DOM__VOKU__PLUS____',
+        '____SIMPLE_HTML_DOM__VOKU__PERCENT____',
+        '____SIMPLE_HTML_DOM__VOKU__AT____',
       ],
   ];
 
