@@ -1044,7 +1044,7 @@ HTML;
       // non url && non dom special chars -> no changes
       '{{foo}}'                                                                                          => '{{foo}}',
       // dom special chars -> changes
-      '`?/=()=$&,|,+,%"?#![{@`'                                                                           => '`?/=()=$____SIMPLE_HTML_DOM__VOKU__AMP____,____SIMPLE_HTML_DOM__VOKU__PIPE____,____SIMPLE_HTML_DOM__VOKU__PLUS____,____SIMPLE_HTML_DOM__VOKU__PERCENT____"?#![{____SIMPLE_HTML_DOM__VOKU__AT____`',
+      '`?/=()=$&,|,+,%"?#![{@`'                                                                          => '`?/=()=$____SIMPLE_HTML_DOM__VOKU__AMP____,____SIMPLE_HTML_DOM__VOKU__PIPE____,____SIMPLE_HTML_DOM__VOKU__PLUS____,____SIMPLE_HTML_DOM__VOKU__PERCENT____"?#![{____SIMPLE_HTML_DOM__VOKU__AT____`',
       // non url && non dom special chars -> no changes
       'www.domain.de/foo.php?foobar=1&email=lars%40moelleken.org&guid=test1233312&{{foo}}'               => 'www.domain.de/foo.php?foobar=1____SIMPLE_HTML_DOM__VOKU__AMP____email=lars____SIMPLE_HTML_DOM__VOKU__PERCENT____40moelleken.org____SIMPLE_HTML_DOM__VOKU__AMP____guid=test1233312____SIMPLE_HTML_DOM__VOKU__AMP____{{foo}}',
       // url -> changes
@@ -1137,5 +1137,21 @@ HTML;
     $a[0]->innerHtml = '';
     unset($a);
     self::assertSame('<div class="all"></div>', (string)$dom);
+  }
+
+  public function testSpecialCharsAndPlaintext()
+  {
+    $file = __DIR__ . '/fixtures/test_page_plaintext.html';
+    $dom = new HtmlDomParser();
+    $dom->loadHtmlFile($file);
+
+    $review_content = $dom->findOne('.review-content p');
+    self::assertTrue($review_content instanceof SimpleHtmlDom);
+
+    $allReviews = '';
+    foreach ($review_content as $review) {
+      $allReviews .= $review->plaintext . "\n";
+    }
+    self::assertTrue(strlen($allReviews) > 0);
   }
 }

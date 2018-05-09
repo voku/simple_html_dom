@@ -66,11 +66,11 @@ class HtmlDomParser
   protected static $domReplaceHelper = [
       'orig' => ['&', '|', '+', '%', '@'],
       'tmp'  => [
-        '____SIMPLE_HTML_DOM__VOKU__AMP____',
-        '____SIMPLE_HTML_DOM__VOKU__PIPE____',
-        '____SIMPLE_HTML_DOM__VOKU__PLUS____',
-        '____SIMPLE_HTML_DOM__VOKU__PERCENT____',
-        '____SIMPLE_HTML_DOM__VOKU__AT____',
+          '____SIMPLE_HTML_DOM__VOKU__AMP____',
+          '____SIMPLE_HTML_DOM__VOKU__PIPE____',
+          '____SIMPLE_HTML_DOM__VOKU__PLUS____',
+          '____SIMPLE_HTML_DOM__VOKU__PERCENT____',
+          '____SIMPLE_HTML_DOM__VOKU__AT____',
       ],
   ];
 
@@ -455,7 +455,7 @@ class HtmlDomParser
    * @param string   $name
    * @param null|int $idx
    *
-   * @return SimpleHtmlDomNode|SimpleHtmlDomNode[]|SimpleHtmlDomNodeBlank
+   * @return SimpleHtmlDomNode|SimpleHtmlDom[]|SimpleHtmlDom|SimpleHtmlDomNodeBlank
    */
   public function getElementsByTagName(string $name, $idx = null)
   {
@@ -736,6 +736,7 @@ class HtmlDomParser
    */
   public function innerHtml(bool $multiDecodeNewHtmlEntity = false): string
   {
+    // init
     $text = '';
 
     foreach ($this->document->documentElement->childNodes as $node) {

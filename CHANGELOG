@@ -4,7 +4,7 @@
 3: update "symfony/css-selector" (optional)
 4: use LIBXML options for every html-loading task
 5: fix for vuejs (attributes beginning with "@")
-
+6: fix plaintext output
 
 [PHP Simple HTML Dom v4.0.x]
 1: drop support for PHP < 7.0

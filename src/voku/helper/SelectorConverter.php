@@ -13,7 +13,7 @@ use Symfony\Component\CssSelector\CssSelectorConverter;
  */
 class SelectorConverter
 {
-  protected static $compiled = array();
+  protected static $compiled = [];
 
   /**
    * @param string $selector

@@ -22,10 +22,10 @@ class SimpleHtmlDomNode extends \ArrayObject implements SimpleHtmlDomNodeInterfa
    */
   public function __get($name)
   {
-    $name = strtolower($name);
+    $name = \strtolower($name);
 
     if ($this->count() > 0) {
-      $return = array();
+      $return = [];
 
       foreach ($this as $node) {
         if ($node instanceof SimpleHtmlDom) {
@@ -133,7 +133,7 @@ class SimpleHtmlDomNode extends \ArrayObject implements SimpleHtmlDomNodeInterfa
    */
   public function innerHtml(): array
   {
-    $html = array();
+    $html = [];
     foreach ($this as $node) {
       $html[] = $node->outertext;
     }
@@ -148,7 +148,7 @@ class SimpleHtmlDomNode extends \ArrayObject implements SimpleHtmlDomNodeInterfa
    */
   public function text(): array
   {
-    $text = array();
+    $text = [];
     foreach ($this as $node) {
       $text[] = $node->plaintext;
     }

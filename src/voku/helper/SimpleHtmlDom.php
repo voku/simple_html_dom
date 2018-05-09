@@ -22,7 +22,8 @@ use RuntimeException;
  * @property-read string tag       <p>Get dom node name.</p>
  * @property-read string attr      <p>Get dom node attributes.</p>
  *
- * @method SimpleHtmlDomNode|SimpleHtmlDom|null children() children($idx = -1) <p>Returns children of node.</p>
+ * @method SimpleHtmlDomNode|SimpleHtmlDom[]|SimpleHtmlDom|null children() children($idx = -1) <p>Returns children of
+ *         node.</p>
  * @method SimpleHtmlDom|null first_child() <p>Returns the first child of node.</p>
  * @method SimpleHtmlDom|null last_child() <p>Returns the last child of node.</p>
  * @method SimpleHtmlDom|null next_sibling() <p>Returns the next sibling of node.</p>
@@ -39,7 +40,7 @@ class SimpleHtmlDom implements \IteratorAggregate
   /**
    * @var array
    */
-  protected static $functionAliases = array(
+  protected static $functionAliases = [
       'children'     => 'childNodes',
       'first_child'  => 'firstChild',
       'last_child'   => 'lastChild',
@@ -50,7 +51,7 @@ class SimpleHtmlDom implements \IteratorAggregate
       'outerhtml'    => 'html',
       'innertext'    => 'innerHtml',
       'innerhtml'    => 'innerHtml',
-  );
+  ];
 
   /**
    * @var DOMElement
@@ -69,7 +70,7 @@ class SimpleHtmlDom implements \IteratorAggregate
 
   /**
    * @param string $name
-   * @param array $arguments
+   * @param array  $arguments
    *
    * @return null|string|SimpleHtmlDom
    *
@@ -80,7 +81,7 @@ class SimpleHtmlDom implements \IteratorAggregate
     $name = \strtolower($name);
 
     if (isset(self::$functionAliases[$name])) {
-      return \call_user_func_array(array($this, self::$functionAliases[$name]), $arguments);
+      return \call_user_func_array([$this, self::$functionAliases[$name]], $arguments);
     }
 
     throw new BadMethodCallException('Method does not exist');
@@ -132,7 +133,7 @@ class SimpleHtmlDom implements \IteratorAggregate
    */
   public function __isset($name)
   {
-    $name = strtolower($name);
+    $name = \strtolower($name);
 
     switch ($name) {
       case 'outertext':
@@ -156,7 +157,7 @@ class SimpleHtmlDom implements \IteratorAggregate
    */
   public function __set($name, $value)
   {
-    $name = strtolower($name);
+    $name = \strtolower($name);
 
     switch ($name) {
       case 'outerhtml':
@@ -193,7 +194,7 @@ class SimpleHtmlDom implements \IteratorAggregate
    *
    * @param int $idx
    *
-   * @return SimpleHtmlDomNode|SimpleHtmlDom|null
+   * @return SimpleHtmlDomNode|SimpleHtmlDom[]|SimpleHtmlDom|null
    */
   public function childNodes(int $idx = -1)
   {
@@ -259,7 +260,7 @@ class SimpleHtmlDom implements \IteratorAggregate
   public function getAllAttributes()
   {
     if ($this->node->hasAttributes()) {
-      $attributes = array();
+      $attributes = [];
       foreach ($this->node->attributes as $attr) {
         $attributes[$attr->name] = HtmlDomParser::putReplacedBackToPreserveHtmlEntities($attr->value);
       }
@@ -333,7 +334,7 @@ class SimpleHtmlDom implements \IteratorAggregate
    * @param string   $name
    * @param null|int $idx
    *
-   * @return SimpleHtmlDomNode|SimpleHtmlDom[]|SimpleHtmlDomNodeBlank
+   * @return SimpleHtmlDomNode|SimpleHtmlDom[]|SimpleHtmlDom|SimpleHtmlDomNodeBlank
    */
   public function getElementsByTagName(string $name, $idx = null)
   {
@@ -576,30 +577,30 @@ class SimpleHtmlDom implements \IteratorAggregate
       $string = $input->outerText();
 
       if ($input->getIsDOMDocumentCreatedWithoutHeadWrapper() === true) {
-        $string = str_replace(array('<head>', '</head>'), '', $string);
+        $string = \str_replace(['<head>', '</head>'], '', $string);
       }
     } else {
       $string = (string)$input;
     }
 
     return
-        urlencode(
-            urldecode(
-                trim(
-                    str_replace(
-                        array(
+        \urlencode(
+            \urldecode(
+                \trim(
+                    \str_replace(
+                        [
                             ' ',
                             "\n",
                             "\r",
                             '/>',
-                        ),
-                        array(
+                        ],
+                        [
                             '',
                             '',
                             '',
                             '>',
-                        ),
-                        strtolower($string)
+                        ],
+                        \strtolower($string)
                     )
                 )
             )
@@ -686,7 +687,7 @@ class SimpleHtmlDom implements \IteratorAggregate
    *
    * @param string      $name       <p>The name of the html-attribute.</p>
    * @param string|null $value      <p>Set to NULL or empty string, to remove the attribute.</p>
-   * @param bool $strict            </p>
+   * @param bool        $strict     </p>
    *                                $value must be NULL, to remove the attribute,
    *                                so that you can set an empty string as attribute-value e.g. autofocus=""
    *                                </p>
@@ -729,6 +730,6 @@ class SimpleHtmlDom implements \IteratorAggregate
    */
   public function text(): string
   {
-    return $this->node->textContent;
+    return $this->getHtmlDomParser()->fixHtmlOutput($this->node->textContent);
   }
 }
