@@ -1145,13 +1145,15 @@ HTML;
     $dom = new HtmlDomParser();
     $dom->loadHtmlFile($file);
 
-    $review_content = $dom->findOne('.review-content p');
-    self::assertTrue($review_content instanceof SimpleHtmlDom);
+    $review_content = $dom->find('.review-content p');
+    self::assertTrue($review_content instanceof \voku\helper\SimpleHtmlDomNodeInterface);
 
     $allReviews = '';
     foreach ($review_content as $review) {
       $allReviews .= $review->plaintext . "\n";
     }
     self::assertTrue(strlen($allReviews) > 0);
+    self::assertContains('It&#39;s obvious having', $allReviews);
+    self::assertContains('2006 Volvo into Dave&#39;s due', $allReviews);
   }
 }
