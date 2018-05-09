@@ -2,6 +2,7 @@
 
 use voku\helper\HtmlDomParser;
 use voku\helper\SimpleHtmlDom;
+use voku\helper\SimpleHtmlDomNodeInterface;
 
 /**
  * Class HtmlDomParserTest
@@ -201,7 +202,7 @@ class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
     $elements = $document->find($selector);
 
     self::assertInstanceOf('voku\helper\SimpleHtmlDomNode', $elements);
-    self::assertSame($count, count($elements));
+    self::assertCount($count, $elements);
 
     foreach ($elements as $element) {
       self::assertInstanceOf('voku\helper\SimpleHtmlDom', $element);
@@ -244,12 +245,12 @@ class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
     $document = new HtmlDomParser($html);
 
     $htmlTmp = $document->html();
-    self::assertTrue(is_string($htmlTmp));
+    self::assertInternalType('string', $htmlTmp);
 
     $xmlTmp = $document->xml();
-    self::assertTrue(is_string($xmlTmp));
+    self::assertInternalType('string', $xmlTmp);
 
-    self::assertTrue(is_string($document->outertext));
+    self::assertInternalType('string', $document->outertext);
     self::assertTrue(strlen($document) > 0);
 
     $html = '<div>foo</div>';
@@ -284,7 +285,7 @@ class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
     $html = $this->loadFixture('test_page.html');
     $document = new HtmlDomParser($html);
 
-    self::assertTrue(is_string($document->save()));
+    self::assertInternalType('string', $document->save());
   }
 
   public function testClear()
@@ -317,7 +318,7 @@ HTML;
       }
     }
 
-    self::assertSame(3, count($checkboxArray));
+    self::assertCount(3, $checkboxArray);
     self::assertSame('checked', $checkboxArray['checkbox1']);
     self::assertSame('not checked', $checkboxArray['checkbox2']);
     self::assertSame('checked', $checkboxArray['checkbox3']);
@@ -654,7 +655,7 @@ HTML;
 
     // test toString
     $htmlTmp = (string)$htmlTmp;
-    self::assertSame(16, count($tmpArray));
+    self::assertCount(16, $tmpArray);
     self::assertContains('<img src="foobar" alt="" width="5" height="3" border="0">', $htmlTmp);
     self::assertContains('© 2015 Test', $htmlTmp);
   }
@@ -1146,7 +1147,7 @@ HTML;
     $dom->loadHtmlFile($file);
 
     $review_content = $dom->find('.review-content p');
-    self::assertTrue($review_content instanceof \voku\helper\SimpleHtmlDomNodeInterface);
+    self::assertInstanceOf(SimpleHtmlDomNodeInterface::class, $review_content);
 
     $allReviews = '';
     foreach ($review_content as $review) {
