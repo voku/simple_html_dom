@@ -10,12 +10,19 @@ cache:
   directories:
     - $HOME/.composer/cache
 
-php:
-  - 7.0
-  - 7.1
-  - 7.2
+matrix:
+  fast_finish: true
+  allow_failures:
+    - php: nightly
+  include:
+    - php: 7.0
+    - php: 7.1
+    - php: 7.2
+    - php: nightly
 
 before_script:
+  - php --version
+  - echo "LIBXML_DOTTED_VERSION:"
   - php -r "var_dump(LIBXML_DOTTED_VERSION);"
   - wget https://scrutinizer-ci.com/ocular.phar
   - travis_retry composer self-update
