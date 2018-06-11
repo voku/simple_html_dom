@@ -1,11 +1,11 @@
 [![Build Status](https://travis-ci.org/voku/simple_html_dom.svg?branch=master)](https://travis-ci.org/voku/simple_html_dom)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fvoku%2Fsimple_html_dom.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fvoku%2Fsimple_html_dom?ref=badge_shield)
 [![Coverage Status](https://coveralls.io/repos/github/voku/simple_html_dom/badge.svg?branch=master)](https://coveralls.io/github/voku/simple_html_dom?branch=master)
 [![codecov.io](http://codecov.io/github/voku/simple_html_dom/coverage.svg?branch=master)](http://codecov.io/github/voku/simple_html_dom?branch=master)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/voku/simple_html_dom/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/voku/simple_html_dom/?branch=master)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/3290fdc35c8f49ad9abdf053582466eb)](https://www.codacy.com/app/voku/simple_html_dom?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=voku/simple_html_dom&amp;utm_campaign=Badge_Grade)
 [![SensioLabsInsight](https://insight.sensiolabs.com/projects/be3e4851-272f-4499-9fc4-4b2704a43301/mini.png)](https://insight.sensiolabs.com/projects/be3e4851-272f-4499-9fc4-4b2704a43301)
-[![Latest Stable Version](https://poser.pugx.org/voku/simple_html_dom/v/stable)](https://packagist.org/packages/voku/simple_html_dom) [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fvoku%2Fsimple_html_dom.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fvoku%2Fsimple_html_dom?ref=badge_shield)
-
+[![Latest Stable Version](https://poser.pugx.org/voku/simple_html_dom/v/stable)](https://packagist.org/packages/voku/simple_html_dom) 
 [![Total Downloads](https://poser.pugx.org/voku/simple_html_dom/downloads)](https://packagist.org/packages/voku/simple_html_dom) 
 [![Latest Unstable Version](https://poser.pugx.org/voku/simple_html_dom/v/unstable)](https://packagist.org/packages/voku/simple_html_dom)
 [![License](https://poser.pugx.org/voku/simple_html_dom/license)](https://packagist.org/packages/voku/simple_html_dom)
