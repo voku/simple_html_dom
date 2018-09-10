@@ -1140,6 +1140,29 @@ HTML;
     self::assertSame('<div class="all"></div>', (string)$dom);
   }
 
+  public function testScriptInCommentHtml()
+  {
+    // --- via load()
+
+    $dom = new HtmlDomParser();
+    $dom->load('
+      <script class="script_1" type="text/javascript">someCode</script>
+      <!-- <script class="script_2" type="text/javascript">someCode</script> -->
+    ');
+    $script = $dom->find('script');
+    self::assertSame('<script class="script_1" type="text/javascript">someCode</script>', (string)$script);
+
+    // --- via "str_get_html()"
+
+    $dom = HtmlDomParser::str_get_html('
+      <script class="script_1" type="text/javascript">someCode</script>
+      <!-- <script class="script_2" type="text/javascript">someCode</script> -->
+    ');
+    $script = $dom->find('script');
+    self::assertSame('<script class="script_1" type="text/javascript">someCode</script>', (string)$script);
+
+  }
+
   public function testSpecialCharsAndPlaintext()
   {
     $file = __DIR__ . '/fixtures/test_page_plaintext.html';
