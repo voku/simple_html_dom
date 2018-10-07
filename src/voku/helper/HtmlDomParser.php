@@ -27,7 +27,8 @@ namespace voku\helper;
  * @method static HtmlDomParser str_get_html() str_get_html($html, $libXMLExtraOptions = null) <p>Load HTML from
  *         string.</p>
  */
-class HtmlDomParser {
+class HtmlDomParser
+{
   /**
    * @var array
    */
@@ -792,7 +793,7 @@ class HtmlDomParser {
    *
    * @return HtmlDomParser
    */
-  public function useKeepBrokenHtml(bool $keepBrokenHtml): HtmlDomParser {
+  public function useKeepBrokenHtml(bool $keepBrokenHtml): self {
     $this->keepBrokenHtml = $keepBrokenHtml;
 
     return $this;
