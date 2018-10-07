@@ -33,39 +33,39 @@ class HtmlDomParser
    * @var array
    */
   protected static $functionAliases = [
-    'outertext' => 'html',
-    'outerhtml' => 'html',
-    'innertext' => 'innerHtml',
-    'innerhtml' => 'innerHtml',
-    'load'      => 'loadHtml',
-    'load_file' => 'loadHtmlFile',
+      'outertext' => 'html',
+      'outerhtml' => 'html',
+      'innertext' => 'innerHtml',
+      'innerhtml' => 'innerHtml',
+      'load'      => 'loadHtml',
+      'load_file' => 'loadHtmlFile',
   ];
 
   /**
    * @var string[][]
    */
   protected static $domLinkReplaceHelper = [
-    'orig' => ['[', ']', '{', '}',],
-    'tmp'  => [
-      '____SIMPLE_HTML_DOM__VOKU__SQUARE_BRACKET_LEFT____',
-      '____SIMPLE_HTML_DOM__VOKU__SQUARE_BRACKET_RIGHT____',
-      '____SIMPLE_HTML_DOM__VOKU__BRACKET_LEFT____',
-      '____SIMPLE_HTML_DOM__VOKU__BRACKET_RIGHT____',
-    ],
+      'orig' => ['[', ']', '{', '}',],
+      'tmp'  => [
+          '____SIMPLE_HTML_DOM__VOKU__SQUARE_BRACKET_LEFT____',
+          '____SIMPLE_HTML_DOM__VOKU__SQUARE_BRACKET_RIGHT____',
+          '____SIMPLE_HTML_DOM__VOKU__BRACKET_LEFT____',
+          '____SIMPLE_HTML_DOM__VOKU__BRACKET_RIGHT____',
+      ],
   ];
 
   /**
    * @var array
    */
   protected static $domReplaceHelper = [
-    'orig' => ['&', '|', '+', '%', '@'],
-    'tmp'  => [
-      '____SIMPLE_HTML_DOM__VOKU__AMP____',
-      '____SIMPLE_HTML_DOM__VOKU__PIPE____',
-      '____SIMPLE_HTML_DOM__VOKU__PLUS____',
-      '____SIMPLE_HTML_DOM__VOKU__PERCENT____',
-      '____SIMPLE_HTML_DOM__VOKU__AT____',
-    ],
+      'orig' => ['&', '|', '+', '%', '@'],
+      'tmp'  => [
+          '____SIMPLE_HTML_DOM__VOKU__AMP____',
+          '____SIMPLE_HTML_DOM__VOKU__PIPE____',
+          '____SIMPLE_HTML_DOM__VOKU__PLUS____',
+          '____SIMPLE_HTML_DOM__VOKU__PERCENT____',
+          '____SIMPLE_HTML_DOM__VOKU__AT____',
+      ],
   ];
 
   /**
@@ -120,7 +120,8 @@ class HtmlDomParser
    *
    * @throws \InvalidArgumentException
    */
-  public function __construct($element = null) {
+  public function __construct($element = null)
+  {
     $this->document = new \DOMDocument('1.0', $this->getEncoding());
 
     // reset
@@ -155,7 +156,8 @@ class HtmlDomParser
    *
    * @return bool|mixed
    */
-  public function __call($name, $arguments) {
+  public function __call($name, $arguments)
+  {
     $name = \strtolower($name);
 
     if (isset(self::$functionAliases[$name])) {
@@ -175,7 +177,8 @@ class HtmlDomParser
    * @throws \RuntimeException
    * @throws \InvalidArgumentException
    */
-  public static function __callStatic($name, $arguments) {
+  public static function __callStatic($name, $arguments)
+  {
     $arguments0 = '';
     if (isset($arguments[0])) {
       $arguments0 = $arguments[0];
@@ -207,7 +210,8 @@ class HtmlDomParser
    *
    * @return string
    */
-  public function __get($name) {
+  public function __get($name)
+  {
     $name = \strtolower($name);
 
     switch ($name) {
@@ -231,14 +235,16 @@ class HtmlDomParser
    *
    * @return SimpleHtmlDom[]|SimpleHtmlDom|SimpleHtmlDomNodeInterface
    */
-  public function __invoke($selector, $idx = null) {
+  public function __invoke($selector, $idx = null)
+  {
     return $this->find($selector, $idx);
   }
 
   /**
    * @return string
    */
-  public function __toString() {
+  public function __toString()
+  {
     return $this->html();
   }
 
@@ -249,7 +255,8 @@ class HtmlDomParser
    *
    * @return bool
    */
-  public function clear(): bool {
+  public function clear(): bool
+  {
     return true;
   }
 
@@ -258,7 +265,8 @@ class HtmlDomParser
    *
    * @return string
    */
-  public static function replaceToPreserveHtmlEntities(string $html): string {
+  public static function replaceToPreserveHtmlEntities(string $html): string
+  {
     // init
     $linksNew = [];
     $linksOld = [];
@@ -273,9 +281,9 @@ class HtmlDomParser
         $linksOld = $linksOld[1];
         foreach ((array)$linksOld as $linkKey => $linkOld) {
           $linksNew[$linkKey] = \str_replace(
-            self::$domLinkReplaceHelper['orig'],
-            self::$domLinkReplaceHelper['tmp'],
-            $linkOld
+              self::$domLinkReplaceHelper['orig'],
+              self::$domLinkReplaceHelper['tmp'],
+              $linkOld
           );
         }
       }
@@ -298,24 +306,25 @@ class HtmlDomParser
    *
    * @return string
    */
-  public static function putReplacedBackToPreserveHtmlEntities(string $html): string {
+  public static function putReplacedBackToPreserveHtmlEntities(string $html): string
+  {
     static $DOM_REPLACE__HELPER_CACHE = null;
 
     if ($DOM_REPLACE__HELPER_CACHE === null) {
       $DOM_REPLACE__HELPER_CACHE['tmp'] = \array_merge(
-        self::$domLinkReplaceHelper['tmp'],
-        self::$domReplaceHelper['tmp']
+          self::$domLinkReplaceHelper['tmp'],
+          self::$domReplaceHelper['tmp']
       );
       $DOM_REPLACE__HELPER_CACHE['orig'] = \array_merge(
-        self::$domLinkReplaceHelper['orig'],
-        self::$domReplaceHelper['orig']
+          self::$domLinkReplaceHelper['orig'],
+          self::$domReplaceHelper['orig']
       );
     }
 
     if (
-      \count(self::$domBrokenReplaceHelper) > 0
-      &&
-      \count(self::$domBrokenReplaceHelper['tmp']) > 0
+        \count(self::$domBrokenReplaceHelper) > 0
+        &&
+        \count(self::$domBrokenReplaceHelper['tmp']) > 0
     ) {
       $html = \str_replace(self::$domBrokenReplaceHelper['tmp'], self::$domBrokenReplaceHelper['orig'], $html);
 
@@ -333,7 +342,8 @@ class HtmlDomParser
    *
    * @return \DOMDocument
    */
-  private function createDOMDocument(string $html, $libXMLExtraOptions = null): \DOMDocument {
+  private function createDOMDocument(string $html, $libXMLExtraOptions = null): \DOMDocument
+  {
     if (\strpos($html, '<') === false) {
       $this->isDOMDocumentCreatedWithoutHtml = true;
     } elseif (\strpos(\ltrim($html), '<') !== 0) {
@@ -421,22 +431,23 @@ class HtmlDomParser
    *
    * @return string
    */
-  protected function keepBrokenHtml(string $html): string {
+  protected function keepBrokenHtml(string $html): string
+  {
     $backup = $html;
 
     do {
       $original = $html;
 
       $html = (string)preg_replace_callback(
-        '/(?<start>.*)<(?<element_start>[a-z]+)(?<element_start_addon> [^>]*)?>(?<value>.*?)<\/(?<element_end>\2)>(?<end>.*)/sui',
-        function ($matches) {
-          return $matches['start'] .
-                 '°lt_simple_html_dom__voku_°' . $matches['element_start'] . $matches['element_start_addon'] . '°gt_simple_html_dom__voku_°' .
-                 $matches['value'] .
-                 '°lt/_simple_html_dom__voku_°' . $matches['element_end'] . '°gt_simple_html_dom__voku_°' .
-                 $matches['end'];
-        },
-        $html
+          '/(?<start>.*)<(?<element_start>[a-z]+)(?<element_start_addon> [^>]*)?>(?<value>.*?)<\/(?<element_end>\2)>(?<end>.*)/sui',
+          function ($matches) {
+            return $matches['start'] .
+                   '°lt_simple_html_dom__voku_°' . $matches['element_start'] . $matches['element_start_addon'] . '°gt_simple_html_dom__voku_°' .
+                   $matches['value'] .
+                   '°lt/_simple_html_dom__voku_°' . $matches['element_end'] . '°gt_simple_html_dom__voku_°' .
+                   $matches['end'];
+          },
+          $html
       );
 
       // DEBUG
@@ -448,23 +459,23 @@ class HtmlDomParser
       $original = $html;
 
       $html = (string)preg_replace_callback(
-        '/(?<start>[^<]*)?(?<broken>(?:(?:<\/\w+(?:\s+\w+=\\"[^\"]+\\")*+)(?:[^<]+)>)+)(?<end>.*)/u',
-        function ($matches) {
+          '/(?<start>[^<]*)?(?<broken>(?:(?:<\/\w+(?:\s+\w+=\\"[^\"]+\\")*+)(?:[^<]+)>)+)(?<end>.*)/u',
+          function ($matches) {
 
-          $matches['broken'] = str_replace(
-            array('°lt/_simple_html_dom__voku_°', '°lt_simple_html_dom__voku_°', '°gt_simple_html_dom__voku_°'),
-            array('</', '<', '>'),
-            $matches['broken']
-          );
+            $matches['broken'] = str_replace(
+                ['°lt/_simple_html_dom__voku_°', '°lt_simple_html_dom__voku_°', '°gt_simple_html_dom__voku_°'],
+                ['</', '<', '>'],
+                $matches['broken']
+            );
 
-          //var_dump($matches['broken']);
+            //var_dump($matches['broken']);
 
-          self::$domBrokenReplaceHelper['orig'][] = $matches['broken'];
-          self::$domBrokenReplaceHelper['tmp'][] = $matchesHash = '____simple_html_dom__voku__broken_html____' . crc32($matches['broken']);
+            self::$domBrokenReplaceHelper['orig'][] = $matches['broken'];
+            self::$domBrokenReplaceHelper['tmp'][] = $matchesHash = '____simple_html_dom__voku__broken_html____' . crc32($matches['broken']);
 
-          return $matches['start'] . $matchesHash . $matches['end'];
-        },
-        $html
+            return $matches['start'] . $matchesHash . $matches['end'];
+          },
+          $html
       );
 
       // DEBUG
@@ -473,9 +484,9 @@ class HtmlDomParser
     } while ($original !== $html);
 
     $html = str_replace(
-      array('°lt/_simple_html_dom__voku_°', '°lt_simple_html_dom__voku_°', '°gt_simple_html_dom__voku_°'),
-      array('</', '<', '>'),
-      $html
+        ['°lt/_simple_html_dom__voku_°', '°lt_simple_html_dom__voku_°', '°gt_simple_html_dom__voku_°'],
+        ['</', '<', '>'],
+        $html
     );
 
     if ($backup !== $html) {
@@ -492,7 +503,8 @@ class HtmlDomParser
    *
    * @return SimpleHtmlDom|SimpleHtmlDomNodeBlank
    */
-  public function getElementById(string $id) {
+  public function getElementById(string $id)
+  {
     return $this->find("#$id", 0);
   }
 
@@ -503,7 +515,8 @@ class HtmlDomParser
    *
    * @return SimpleHtmlDom|SimpleHtmlDomNodeBlank
    */
-  public function getElementByTagName(string $name) {
+  public function getElementByTagName(string $name)
+  {
     $node = $this->document->getElementsByTagName($name)->item(0);
 
     if ($node === null) {
@@ -521,7 +534,8 @@ class HtmlDomParser
    *
    * @return SimpleHtmlDom[]|SimpleHtmlDom|SimpleHtmlDomNodeInterface
    */
-  public function getElementsById(string $id, $idx = null) {
+  public function getElementsById(string $id, $idx = null)
+  {
     return $this->find("#$id", $idx);
   }
 
@@ -533,7 +547,8 @@ class HtmlDomParser
    *
    * @return SimpleHtmlDomNode|SimpleHtmlDom[]|SimpleHtmlDom|SimpleHtmlDomNodeBlank
    */
-  public function getElementsByTagName(string $name, $idx = null) {
+  public function getElementsByTagName(string $name, $idx = null)
+  {
     $nodesList = $this->document->getElementsByTagName($name);
 
     $elements = new SimpleHtmlDomNode();
@@ -568,7 +583,8 @@ class HtmlDomParser
    *
    * @return SimpleHtmlDom|SimpleHtmlDomNodeInterface
    */
-  public function findOne(string $selector) {
+  public function findOne(string $selector)
+  {
     return $this->find($selector, 0);
   }
 
@@ -580,7 +596,8 @@ class HtmlDomParser
    *
    * @return SimpleHtmlDom[]|SimpleHtmlDom|SimpleHtmlDomNodeInterface
    */
-  public function find(string $selector, $idx = null) {
+  public function find(string $selector, $idx = null)
+  {
     $xPathQuery = SelectorConverter::toXPath($selector);
 
     $xPath = new \DOMXPath($this->document);
@@ -616,34 +633,35 @@ class HtmlDomParser
    *
    * @return string
    */
-  public function fixHtmlOutput(string $content, bool $multiDecodeNewHtmlEntity = false): string {
+  public function fixHtmlOutput(string $content, bool $multiDecodeNewHtmlEntity = false): string
+  {
     // INFO: DOMDocument will encapsulate plaintext into a e.g. paragraph tag (<p>),
     //          so we try to remove it here again ...
 
     if ($this->isDOMDocumentCreatedWithoutHtmlWrapper === true) {
       $content = \str_replace(
-        [
-          "\n",
-          "\r\n",
-          "\r",
-          '<body>',
-          '</body>',
-          '<html>',
-          '</html>',
-        ],
-        '',
-        $content
+          [
+              "\n",
+              "\r\n",
+              "\r",
+              '<body>',
+              '</body>',
+              '<html>',
+              '</html>',
+          ],
+          '',
+          $content
       );
     }
 
     if ($this->isDOMDocumentCreatedWithoutHeadWrapper === true) {
       $content = \str_replace(
-        [
-          '<head>',
-          '</head>',
-        ],
-        '',
-        $content
+          [
+              '<head>',
+              '</head>',
+          ],
+          '',
+          $content
       );
     }
 
@@ -654,36 +672,36 @@ class HtmlDomParser
 
     if ($this->isDOMDocumentCreatedWithoutHtml === true) {
       $content = \str_replace(
-        [
-          '<p>',
-          '</p>',
-          '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">',
-        ],
-        '',
-        $content
+          [
+              '<p>',
+              '</p>',
+              '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">',
+          ],
+          '',
+          $content
       );
     }
 
     /** @noinspection CheckTagEmptyBody */
     /** @noinspection HtmlExtraClosingTag */
     $content = \trim(
-      \str_replace(
-        [
-          '<simpleHtmlDomP>',
-          '</simpleHtmlDomP>',
-          '<head><head>',
-          '</head></head>',
-          '<br></br>',
-        ],
-        [
-          '',
-          '',
-          '<head>',
-          '</head>',
-          '<br>',
-        ],
-        $content
-      )
+        \str_replace(
+            [
+                '<simpleHtmlDomP>',
+                '</simpleHtmlDomP>',
+                '<head><head>',
+                '</head></head>',
+                '<br></br>',
+            ],
+            [
+                '',
+                '',
+                '<head>',
+                '</head>',
+                '<br>',
+            ],
+            $content
+        )
     );
 
     if ($multiDecodeNewHtmlEntity === true) {
@@ -698,10 +716,10 @@ class HtmlDomParser
           $content_compare = $content;
 
           $content = \rawurldecode(
-            \html_entity_decode(
-              $content,
-              ENT_QUOTES | ENT_HTML5
-            )
+              \html_entity_decode(
+                  $content,
+                  ENT_QUOTES | ENT_HTML5
+              )
           );
 
         } while ($content_compare !== $content);
@@ -711,10 +729,10 @@ class HtmlDomParser
     } else {
 
       $content = \rawurldecode(
-        \html_entity_decode(
-          $content,
-          ENT_QUOTES | ENT_HTML5
-        )
+          \html_entity_decode(
+              $content,
+              ENT_QUOTES | ENT_HTML5
+          )
       );
     }
 
@@ -726,7 +744,8 @@ class HtmlDomParser
   /**
    * @return \DOMDocument
    */
-  public function getDocument(): \DOMDocument {
+  public function getDocument(): \DOMDocument
+  {
     return $this->document;
   }
 
@@ -735,35 +754,40 @@ class HtmlDomParser
    *
    * @return string
    */
-  private function getEncoding(): string {
+  private function getEncoding(): string
+  {
     return $this->encoding;
   }
 
   /**
    * @return bool
    */
-  public function getIsDOMDocumentCreatedWithoutHtml(): bool {
+  public function getIsDOMDocumentCreatedWithoutHtml(): bool
+  {
     return $this->isDOMDocumentCreatedWithoutHtml;
   }
 
   /**
    * @return bool
    */
-  public function getIsDOMDocumentCreatedWithoutHtmlWrapper(): bool {
+  public function getIsDOMDocumentCreatedWithoutHtmlWrapper(): bool
+  {
     return $this->isDOMDocumentCreatedWithoutHtmlWrapper;
   }
 
   /**
    * @return bool
    */
-  public function getIsDOMDocumentCreatedWithoutHeadWrapper(): bool {
+  public function getIsDOMDocumentCreatedWithoutHeadWrapper(): bool
+  {
     return $this->isDOMDocumentCreatedWithoutHeadWrapper;
   }
 
   /**
    * @return bool
    */
-  public function getIsDOMDocumentCreatedWithoutWrapper(): bool {
+  public function getIsDOMDocumentCreatedWithoutWrapper(): bool
+  {
     return $this->isDOMDocumentCreatedWithoutWrapper;
   }
 
@@ -774,7 +798,8 @@ class HtmlDomParser
    *
    * @return string
    */
-  public function html(bool $multiDecodeNewHtmlEntity = false): string {
+  public function html(bool $multiDecodeNewHtmlEntity = false): string
+  {
     if ($this::$callback !== null) {
       \call_user_func($this::$callback, [$this]);
     }
@@ -793,7 +818,8 @@ class HtmlDomParser
    *
    * @return HtmlDomParser
    */
-  public function useKeepBrokenHtml(bool $keepBrokenHtml): self {
+  public function useKeepBrokenHtml(bool $keepBrokenHtml): self
+  {
     $this->keepBrokenHtml = $keepBrokenHtml;
 
     return $this;
@@ -806,7 +832,8 @@ class HtmlDomParser
    *
    * @return string
    */
-  public function xml(bool $multiDecodeNewHtmlEntity = false): string {
+  public function xml(bool $multiDecodeNewHtmlEntity = false): string
+  {
     $xml = $this->document->saveXML(null, \LIBXML_NOEMPTYTAG);
 
     // remove the XML-header
@@ -822,7 +849,8 @@ class HtmlDomParser
    *
    * @return string
    */
-  public function innerHtml(bool $multiDecodeNewHtmlEntity = false): string {
+  public function innerHtml(bool $multiDecodeNewHtmlEntity = false): string
+  {
     // init
     $text = '';
 
@@ -843,7 +871,8 @@ class HtmlDomParser
    *
    * @throws \InvalidArgumentException if argument is not string
    */
-  public function loadHtml(string $html, $libXMLExtraOptions = null): self {
+  public function loadHtml(string $html, $libXMLExtraOptions = null): self
+  {
     $this->document = $this->createDOMDocument($html, $libXMLExtraOptions);
 
     return $this;
@@ -860,11 +889,12 @@ class HtmlDomParser
    * @throws \RuntimeException
    * @throws \InvalidArgumentException
    */
-  public function loadHtmlFile(string $filePath, $libXMLExtraOptions = null): self {
+  public function loadHtmlFile(string $filePath, $libXMLExtraOptions = null): self
+  {
     if (
-      !\preg_match("/^https?:\/\//i", $filePath)
-      &&
-      !\file_exists($filePath)
+        !\preg_match("/^https?:\/\//i", $filePath)
+        &&
+        !\file_exists($filePath)
     ) {
       throw new \RuntimeException("File $filePath not found");
     }
@@ -896,7 +926,8 @@ class HtmlDomParser
    *
    * @return string
    */
-  public function save(string $filepath = ''): string {
+  public function save(string $filepath = ''): string
+  {
     $string = $this->innerHtml();
     if ($filepath !== '') {
       \file_put_contents($filepath, $string, LOCK_EX);
@@ -908,7 +939,8 @@ class HtmlDomParser
   /**
    * @param $functionName
    */
-  public function set_callback($functionName) {
+  public function set_callback($functionName)
+  {
     $this::$callback = $functionName;
   }
 
@@ -919,11 +951,13 @@ class HtmlDomParser
    *
    * @return string
    */
-  public function text(bool $multiDecodeNewHtmlEntity = false): string {
+  public function text(bool $multiDecodeNewHtmlEntity = false): string
+  {
     return $this->fixHtmlOutput($this->document->textContent, $multiDecodeNewHtmlEntity);
   }
 
-  public function __clone() {
+  public function __clone()
+  {
     $this->document = clone $this->document;
   }
 }
