@@ -863,6 +863,32 @@ HTML;
     self::assertSame('<br foo bar>', (string)$br);
   }
 
+  public function testBrokenHtmlAtTheBeginOfTheInput()
+  {
+    $dom = new HtmlDomParser();
+    $dom->useKeepBrokenHtml(true);
+    /* @noinspection JSUnresolvedVariable */
+    /* @noinspection UnterminatedStatementJS */
+    /* @noinspection BadExpressionStatementJS */
+    /* @noinspection JSUndeclaredVariable */
+    $html = '</script><script async src="cdnjs"></script>';
+    $dom->load($html);
+    self::assertSame('</script><script async src="cdnjs"></script>', $dom->innerHtml);
+  }
+
+  public function testBrokenHtmlInTheMiddleOfTheInput() {
+    $dom = new HtmlDomParser();
+    $dom->useKeepBrokenHtml(true);
+    /* @noinspection JSUnresolvedVariable */
+    /* @noinspection UnterminatedStatementJS */
+    /* @noinspection BadExpressionStatementJS */
+    /* @noinspection JSUndeclaredVariable */
+    $html = '<script async src="cdnjs"></script></borken foo="lall"><p>some text ...</p>';
+    $dom->load($html);
+    self::assertSame('<script async src="cdnjs"></script></borken foo="lall"><p>some text ...</p>', $dom->innerHtml);
+
+  }
+
   public function testLoadNoOpeningTag()
   {
     $dom = new HtmlDomParser();

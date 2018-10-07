@@ -24,7 +24,10 @@
   ],
   "require": {
     "php": ">=7.0.0",
-    "symfony/css-selector": "~3.0|~4.0"
+    "symfony/css-selector": "~3.0|~4.0",
+    "ext-dom": "*",
+    "ext-libxml": "*",
+    "ext-simplexml": "*"
   },
   "suggest": {
     "voku/portable-utf8": "~4.0"
