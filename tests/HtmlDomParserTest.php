@@ -933,6 +933,17 @@ HTML;
     self::assertSame('<div class="content"><div ui-view class="grid-container">Main content here</div></div>', $dom->innerHtml);
   }
 
+  public function testSimpleHtmlViaSimpleXmlLoadString()
+  {
+    $html = (new HtmlDomParser())->load('<span>&lt;</span>');
+
+    $expected = '<span>&lt;</span>';
+
+    self::assertSame($expected, $html->xml());
+    self::assertSame($expected, $html->html(false));
+    self::assertSame($expected, $html->html(true));
+  }
+
   public function testLoadUpperCase()
   {
     $dom = new HtmlDomParser();
@@ -986,8 +997,22 @@ HTML;
   public function testGetMagic()
   {
     $dom = new HtmlDomParser();
-    $dom->load('<div class="all"><p>Hey bro, <a href="google.com">click here</a><br /> :)</p></div>');
-    self::assertSame('<p>Hey bro, <a href="google.com">click here</a><br> :)</p>', $dom->innerHtml);
+
+    $html = '<div class="all"><p>Hey bro, <a href="google.com">click here</a><br /> :)</p></div>';
+    $expected = '<p>Hey bro, <a href="google.com">click here</a><br> :)</p>';
+
+    $dom->load($html);
+    self::assertSame($expected, $dom->innerHtml);
+
+    // ---
+
+    $dom = new HtmlDomParser();
+
+    $html = '<div class="all"><p>Hey bro, <a href="google.com">click here</a><br /> :)</p></div>';
+    $expected = '<div class="all"><p>Hey bro, <a href="google.com">click here</a><br> :)</p></div>';
+
+    $dom->load($html);
+    self::assertSame($expected, $dom->html());
   }
 
   public function testGetElementById()

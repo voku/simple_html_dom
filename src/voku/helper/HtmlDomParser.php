@@ -68,6 +68,8 @@ class HtmlDomParser
       ],
   ];
 
+  protected static $domHtmlWrapperHelper = '____simple_html_dom__voku__html_wrapper____';
+
   /**
    * @var array
    */
@@ -319,16 +321,20 @@ class HtmlDomParser
           self::$domLinkReplaceHelper['orig'],
           self::$domReplaceHelper['orig']
       );
+
+      $DOM_REPLACE__HELPER_CACHE['tmp']['html_wrapper__start'] = '<' . self::$domHtmlWrapperHelper . '>';
+      $DOM_REPLACE__HELPER_CACHE['tmp']['html_wrapper__end'] = '</' . self::$domHtmlWrapperHelper . '>';
+
+      $DOM_REPLACE__HELPER_CACHE['orig']['html_wrapper__start'] = '';
+      $DOM_REPLACE__HELPER_CACHE['orig']['html_wrapper__end'] = '';
     }
 
     if (
-        \count(self::$domBrokenReplaceHelper) > 0
+        isset(self::$domBrokenReplaceHelper['tmp'])
         &&
         \count(self::$domBrokenReplaceHelper['tmp']) > 0
     ) {
       $html = \str_replace(self::$domBrokenReplaceHelper['tmp'], self::$domBrokenReplaceHelper['orig'], $html);
-
-      $html = \preg_replace('/<____simple_html_dom__voku__broken_html_wrapper____[^>]*>(.*)<\/____simple_html_dom__voku__broken_html_wrapper____[^>]*>/i', '$1', $html);
     }
 
     return \str_replace($DOM_REPLACE__HELPER_CACHE['tmp'], $DOM_REPLACE__HELPER_CACHE['orig'], $html);
@@ -344,6 +350,10 @@ class HtmlDomParser
    */
   private function createDOMDocument(string $html, $libXMLExtraOptions = null): \DOMDocument
   {
+    if ($this->keepBrokenHtml === true) {
+      $html = $this->keepBrokenHtml(trim($html));
+    }
+
     if (\strpos($html, '<') === false) {
       $this->isDOMDocumentCreatedWithoutHtml = true;
     } elseif (\strpos(\ltrim($html), '<') !== 0) {
@@ -381,16 +391,22 @@ class HtmlDomParser
       $optionsXml |= $libXMLExtraOptions;
     }
 
-    $sxe = \simplexml_load_string($html, 'SimpleXMLElement', $optionsXml);
+    if (
+        $this->isDOMDocumentCreatedWithoutWrapper === true
+        ||
+        $this->keepBrokenHtml === true
+    ) {
+      $html = '<' . self::$domHtmlWrapperHelper . '>' . $html . '</' . self::$domHtmlWrapperHelper . '>';
+    }
+
+    $html = self::replaceToPreserveHtmlEntities($html);
+
+    $sxe = \simplexml_load_string($html, \SimpleXMLElement::class, $optionsXml);
     if ($sxe !== false && \count(\libxml_get_errors()) === 0) {
+
       $this->document = \dom_import_simplexml($sxe)->ownerDocument;
+
     } else {
-
-      $html = \trim($html);
-
-      if ($this->keepBrokenHtml === true) {
-        $html = $this->keepBrokenHtml($html);
-      }
 
       // UTF-8 hack: http://php.net/manual/en/domdocument.loadhtml.php#95251
       $xmlHackUsed = false;
@@ -398,8 +414,6 @@ class HtmlDomParser
         $xmlHackUsed = true;
         $html = '<?xml encoding="' . $this->getEncoding() . '" ?>' . $html;
       }
-
-      $html = self::replaceToPreserveHtmlEntities($html);
 
       $this->document->loadHTML($html, $optionsXml);
 
@@ -412,14 +426,13 @@ class HtmlDomParser
           }
         }
       }
-
-      \libxml_clear_errors();
     }
 
     // set encoding
     $this->document->encoding = $this->getEncoding();
 
     // restore lib-xml settings
+    \libxml_clear_errors();
     \libxml_use_internal_errors($internalErrors);
     \libxml_disable_entity_loader($disableEntityLoader);
 
@@ -433,8 +446,6 @@ class HtmlDomParser
    */
   protected function keepBrokenHtml(string $html): string
   {
-    $backup = $html;
-
     do {
       $original = $html;
 
@@ -449,9 +460,6 @@ class HtmlDomParser
           },
           $html
       );
-
-      // DEBUG
-      //var_dump($html);
 
     } while ($original !== $html);
 
@@ -468,8 +476,6 @@ class HtmlDomParser
                 $matches['broken']
             );
 
-            //var_dump($matches['broken']);
-
             self::$domBrokenReplaceHelper['orig'][] = $matches['broken'];
             self::$domBrokenReplaceHelper['tmp'][] = $matchesHash = '____simple_html_dom__voku__broken_html____' . crc32($matches['broken']);
 
@@ -478,9 +484,6 @@ class HtmlDomParser
           $html
       );
 
-      // DEBUG
-      //var_dump($html);
-
     } while ($original !== $html);
 
     $html = str_replace(
@@ -488,10 +491,6 @@ class HtmlDomParser
         ['</', '<', '>'],
         $html
     );
-
-    if ($backup !== $html) {
-      $html = '<____simple_html_dom__voku__broken_html_wrapper____>' . $html . '</____simple_html_dom__voku__broken_html_wrapper____>';
-    }
 
     return $html;
   }
