@@ -876,7 +876,8 @@ HTML;
     self::assertSame('</script><script async src="cdnjs"></script>', $dom->innerHtml);
   }
 
-  public function testBrokenHtmlInTheMiddleOfTheInput() {
+  public function testBrokenHtmlInTheMiddleOfTheInput()
+  {
     $dom = new HtmlDomParser();
     $dom->useKeepBrokenHtml(true);
     /* @noinspection JSUnresolvedVariable */
@@ -917,6 +918,36 @@ HTML;
     $dom = new HtmlDomParser();
     $dom->load('<div class="all"><br><p>Hey bro, <a href="google.com">click here</a></br></div>');
     self::assertSame('<br><p>Hey bro, <a href="google.com">click here</a></p>', $dom->find('div', 0)->innerHtml);
+  }
+
+  public function testScriptInHeadScript()
+  {
+    $dom = new HtmlDomParser();
+    $dom->load(
+        '
+      <!DOCTYPE html>
+      <html>
+      <head>
+          <meta name="robots" content="noindex, follow">
+          <style>
+              /** quick fix because bootstrap <pre> has a background-color. */
+              pre code { background-color: inherit; }
+          </style>
+      </head>
+      <body class="blog">
+      <header>
+          <nav>
+          </nav>
+      </header>
+      <script>window.jQuery || document.write(\'<script src="http://lall/jquery/jquery.min.js"><\/script>\')</script>
+      </body>
+      </html>
+      '
+    );
+    self::assertSame(
+        '<script>window.jQuery || document.write(\'<script src="http://lall/jquery/jquery.min.js"><\/script>\')</script>',
+        $dom->findOne('script')->html()
+    );
   }
 
   public function testLoadNoValueAttribute()
