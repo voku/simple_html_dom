@@ -6,299 +6,289 @@ use voku\helper\SimpleHtmlDomNodeInterface;
 
 /**
  * Class HtmlDomParserTest
+ *
+ * @internal
  */
-class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
+final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
 {
-  /**
-   * @param $filename
-   *
-   * @return null|string
-   */
-  protected function loadFixture($filename)
-  {
-    $path = __DIR__ . '/fixtures/' . $filename;
-    if (file_exists($path)) {
-      return file_get_contents($path);
+    /**
+     * @param $filename
+     *
+     * @return string|null
+     */
+    protected function loadFixture($filename)
+    {
+        $path = __DIR__ . '/fixtures/' . $filename;
+        if (\file_exists($path)) {
+            return \file_get_contents($path);
+        }
+
+        return null;
     }
 
-    return null;
-  }
+    public function testConstructWithInvalidArgument()
+    {
+        $this->expectException(\TypeError::class);
 
-  /**
-   * @expectedException TypeError
-   */
-  public function testConstructWithInvalidArgument()
-  {
-    new HtmlDomParser(['foo']);
-  }
-
-  /**
-   * @expectedException TypeError
-   */
-  public function testLoadHtmlWithInvalidArgument()
-  {
-    $document = new HtmlDomParser();
-    $document->loadHtml(['foo']);
-  }
-
-  /**
-   * @expectedException TypeError
-   */
-  public function testLoadWithInvalidArgument()
-  {
-    $document = new HtmlDomParser();
-    $document->load(['foo']);
-  }
-
-  /**
-   * @expectedException TypeError
-   */
-  public function testLoadHtmlFileWithInvalidArgument()
-  {
-    $document = new HtmlDomParser();
-    $document->loadHtmlFile(['foo']);
-  }
-
-  /**
-   * @expectedException TypeError
-   */
-  public function testLoad_fileWithInvalidArgument()
-  {
-    $document = new HtmlDomParser();
-    $document->load_file(['foo']);
-  }
-
-  /**
-   * @expectedException RuntimeException
-   */
-  public function testLoadHtmlFileWithNotExistingFile()
-  {
-    $document = new HtmlDomParser();
-    $document->loadHtmlFile('/path/to/file');
-  }
-
-  /**
-   * @expectedException RuntimeException
-   */
-  public function testLoadHtmlFileWithNotLoadFile()
-  {
-    $document = new HtmlDomParser();
-    $document->loadHtmlFile('http://fobar');
-  }
-
-  /**
-   * @expectedException BadMethodCallException
-   */
-  public function testMethodNotExist()
-  {
-    $document = new HtmlDomParser();
-    /** @noinspection PhpUndefinedMethodInspection */
-    $document->bar();
-  }
-
-  /**
-   * @expectedException BadMethodCallException
-   */
-  public function testStaticMethodNotExist()
-  {
-    /** @noinspection PhpUndefinedMethodInspection */
-    HtmlDomParser::bar();
-  }
-
-  public function testNotExistProperty()
-  {
-    $document = new HtmlDomParser();
-
-    /** @noinspection PhpUndefinedFieldInspection */
-    self::assertNull($document->foo);
-  }
-
-  public function testConstruct()
-  {
-    $html = '<div>foo</div>';
-    $document = new HtmlDomParser($html);
-
-    $element = new SimpleHtmlDom($document->getDocument()->documentElement);
-
-    self::assertSame($html, $element->outertext);
-  }
-
-  public function testWebComponent()
-  {
-    $html = '<button is="shopping-cart">Add to cart</button>';
-    $dom = HtmlDomParser::str_get_html($html);
-
-    self::assertSame($html, $dom->outertext);
-  }
-
-  public function testWindows1252()
-  {
-    $file = __DIR__ . '/fixtures/windows-1252-example.html';
-    $document = new HtmlDomParser();
-
-    $document->loadHtmlFile($file);
-    self::assertNotNull(count($document('li')));
-
-    $document->load_file($file);
-    self::assertNotNull(count($document('li')));
-
-    $document = HtmlDomParser::file_get_html($file);
-    self::assertNotNull(count($document('li')));
-
-    // ---
-
-    // this only works with "UTF8"-helpers
-    if (class_exists('\voku\helper\UTF8')) {
-      self::assertEquals(['ÅÄÖ', 'åäö'], $document->find('li')->text());
-    }
-  }
-
-  public function testLoadHtmlFile()
-  {
-    $file = __DIR__ . '/fixtures/test_page.html';
-    $document = new HtmlDomParser();
-
-    $document->loadHtmlFile($file);
-    self::assertNotNull(count($document('div')));
-
-    $document->load_file($file);
-    self::assertNotNull(count($document('div')));
-
-    $document = HtmlDomParser::file_get_html($file);
-    self::assertNotNull(count($document('div')));
-  }
-
-  public function testLoadHtml()
-  {
-    $html = $this->loadFixture('test_page.html');
-    $document = new HtmlDomParser();
-
-    $document->loadHtml($html);
-    self::assertNotNull(count($document('div')));
-
-    $document->load($html);
-    self::assertNotNull(count($document('div')));
-
-    $document = HtmlDomParser::str_get_html($html);
-    self::assertNotNull(count($document('div')));
-  }
-
-  public function testGetDocument()
-  {
-    $document = new HtmlDomParser();
-    self::assertInstanceOf('DOMDocument', $document->getDocument());
-  }
-
-  /**
-   * @dataProvider findTests
-   *
-   * @param $html
-   * @param $selector
-   * @param $count
-   */
-  public function testFind($html, $selector, $count)
-  {
-    $document = new HtmlDomParser($html);
-    $elements = $document->find($selector);
-
-    self::assertInstanceOf('voku\helper\SimpleHtmlDomNode', $elements);
-    self::assertCount($count, $elements);
-
-    foreach ($elements as $element) {
-      self::assertInstanceOf('voku\helper\SimpleHtmlDom', $element);
+        new HtmlDomParser(['foo']);
     }
 
-    if ($count !== 0) {
-      $element = $document->find($selector, -1);
-      self::assertInstanceOf('voku\helper\SimpleHtmlDom', $element);
+    public function testLoadHtmlWithInvalidArgument()
+    {
+        $this->expectException(\TypeError::class);
+
+        $document = new HtmlDomParser();
+        $document->loadHtml(['foo']);
     }
-  }
 
-  /**
-   * @return array
-   */
-  public function findTests()
-  {
-    $html = $this->loadFixture('test_page.html');
+    public function testLoadWithInvalidArgument()
+    {
+        $this->expectException(\TypeError::class);
 
-    $tests = [
-        [$html, '.fake h2', 0],
-        [$html, 'article', 16],
-        [$html, '.radio', 3],
-        [$html, 'input.radio', 3],
-        [$html, 'ul li', 35],
-        [$html, 'fieldset#forms__checkbox li, fieldset#forms__radio li', 6],
-        [$html, 'input[id]', 23],
-        [$html, 'input[id=in]', 1],
-        [$html, '#in', 1],
-        [$html, '*[id]', 52],
-        [$html, 'text', 640],
-        [$html, 'comment', 3],
-    ];
+        $document = new HtmlDomParser();
+        $document->load(['foo']);
+    }
 
-    return $tests;
-  }
+    public function testLoadHtmlFileWithInvalidArgument()
+    {
+        $this->expectException(\TypeError::class);
 
-  public function testHtml()
-  {
-    $html = $this->loadFixture('test_page.html');
-    $document = new HtmlDomParser($html);
+        $document = new HtmlDomParser();
+        $document->loadHtmlFile(['foo']);
+    }
 
-    $htmlTmp = $document->html();
-    self::assertInternalType('string', $htmlTmp);
+    public function testLoadFileWithInvalidArgument()
+    {
+        $this->expectException(\TypeError::class);
 
-    $xmlTmp = $document->xml();
-    self::assertInternalType('string', $xmlTmp);
+        $document = new HtmlDomParser();
+        $document->load_file(['foo']);
+    }
 
-    self::assertInternalType('string', $document->outertext);
-    self::assertTrue(strlen($document) > 0);
+    public function testLoadHtmlFileWithNotExistingFile()
+    {
+        $this->expectException(\RuntimeException::class);
 
-    $html = '<div>foo</div>';
-    $document = new HtmlDomParser($html);
+        $document = new HtmlDomParser();
+        $document->loadHtmlFile('/path/to/file');
+    }
 
-    self::assertSame($html, $document->html());
-    self::assertSame($html, $document->outertext);
-    self::assertSame($html, (string)$document);
-  }
+    public function testLoadHtmlFileWithNotLoadFile()
+    {
+        $this->expectException(\RuntimeException::class);
 
-  public function testInnerHtml()
-  {
-    $html = '<div><div>foo</div></div>';
-    $document = new HtmlDomParser($html);
+        $document = new HtmlDomParser();
+        $document->loadHtmlFile('http://fobar');
+    }
 
-    self::assertSame('<div>foo</div>', $document->innerHtml());
-    self::assertSame('<div>foo</div>', $document->innerText());
-    self::assertSame('<div>foo</div>', $document->innertext);
-  }
+    public function testMethodNotExist()
+    {
+        $this->expectException(\BadMethodCallException::class);
 
-  public function testText()
-  {
-    $html = '<div>foo</div>';
-    $document = new HtmlDomParser($html);
+        $document = new HtmlDomParser();
+        /** @noinspection PhpUndefinedMethodInspection */
+        $document->bar();
+    }
 
-    self::assertSame('foo', $document->text());
-    self::assertSame('foo', $document->plaintext);
-  }
+    public function testStaticMethodNotExist()
+    {
+        $this->expectException(\BadMethodCallException::class);
 
-  public function testSave()
-  {
-    $html = $this->loadFixture('test_page.html');
-    $document = new HtmlDomParser($html);
+        /** @noinspection PhpUndefinedMethodInspection */
+        HtmlDomParser::bar();
+    }
 
-    self::assertInternalType('string', $document->save());
-  }
+    public function testNotExistProperty()
+    {
+        $document = new HtmlDomParser();
 
-  public function testClear()
-  {
-    $document = new HtmlDomParser();
+        /** @noinspection PhpUndefinedFieldInspection */
+        static::assertNull($document->foo);
+    }
 
-    self::assertTrue($document->clear());
-  }
+    public function testConstruct()
+    {
+        $html = '<div>foo</div>';
+        $document = new HtmlDomParser($html);
 
+        $element = new SimpleHtmlDom($document->getDocument()->documentElement);
 
-  public function testStrGetHtml()
-  {
-    $str = <<<HTML
+        static::assertSame($html, $element->outertext);
+    }
+
+    public function testWebComponent()
+    {
+        $html = '<button is="shopping-cart">Add to cart</button>';
+        $dom = HtmlDomParser::str_get_html($html);
+
+        static::assertSame($html, $dom->outertext);
+    }
+
+    public function testWindows1252()
+    {
+        $file = __DIR__ . '/fixtures/windows-1252-example.html';
+        $document = new HtmlDomParser();
+
+        $document->loadHtmlFile($file);
+        static::assertNotNull(\count($document('li')));
+
+        $document->load_file($file);
+        static::assertNotNull(\count($document('li')));
+
+        $document = HtmlDomParser::file_get_html($file);
+        static::assertNotNull(\count($document('li')));
+
+        // ---
+
+        // this only works with "UTF8"-helpers
+        if (\class_exists('\voku\helper\UTF8')) {
+            static::assertSame(['ÅÄÖ', 'åäö'], $document->find('li')->text());
+        }
+    }
+
+    public function testLoadHtmlFile()
+    {
+        $file = __DIR__ . '/fixtures/test_page.html';
+        $document = new HtmlDomParser();
+
+        $document->loadHtmlFile($file);
+        static::assertNotNull(\count($document('div')));
+
+        $document->load_file($file);
+        static::assertNotNull(\count($document('div')));
+
+        $document = HtmlDomParser::file_get_html($file);
+        static::assertNotNull(\count($document('div')));
+    }
+
+    public function testLoadHtml()
+    {
+        $html = $this->loadFixture('test_page.html');
+        $document = new HtmlDomParser();
+
+        $document->loadHtml($html);
+        static::assertNotNull(\count($document('div')));
+
+        $document->load($html);
+        static::assertNotNull(\count($document('div')));
+
+        $document = HtmlDomParser::str_get_html($html);
+        static::assertNotNull(\count($document('div')));
+    }
+
+    public function testGetDocument()
+    {
+        $document = new HtmlDomParser();
+        static::assertInstanceOf('DOMDocument', $document->getDocument());
+    }
+
+    /**
+     * @dataProvider findTests
+     *
+     * @param $html
+     * @param $selector
+     * @param $count
+     */
+    public function testFind($html, $selector, $count)
+    {
+        $document = new HtmlDomParser($html);
+        $elements = $document->find($selector);
+
+        static::assertInstanceOf('voku\helper\SimpleHtmlDomNode', $elements);
+        static::assertCount($count, $elements);
+
+        foreach ($elements as $element) {
+            static::assertInstanceOf('voku\helper\SimpleHtmlDom', $element);
+        }
+
+        if ($count !== 0) {
+            $element = $document->find($selector, -1);
+            static::assertInstanceOf('voku\helper\SimpleHtmlDom', $element);
+        }
+    }
+
+    /**
+     * @return array
+     */
+    public function findTests()
+    {
+        $html = $this->loadFixture('test_page.html');
+
+        return [
+            [$html, '.fake h2', 0],
+            [$html, 'article', 16],
+            [$html, '.radio', 3],
+            [$html, 'input.radio', 3],
+            [$html, 'ul li', 35],
+            [$html, 'fieldset#forms__checkbox li, fieldset#forms__radio li', 6],
+            [$html, 'input[id]', 23],
+            [$html, 'input[id=in]', 1],
+            [$html, '#in', 1],
+            [$html, '*[id]', 52],
+            [$html, 'text', 640],
+            [$html, 'comment', 3],
+        ];
+    }
+
+    public function testHtml()
+    {
+        $html = $this->loadFixture('test_page.html');
+        $document = new HtmlDomParser($html);
+
+        $htmlTmp = $document->html();
+        static::assertInternalType('string', $htmlTmp);
+
+        $xmlTmp = $document->xml();
+        static::assertInternalType('string', $xmlTmp);
+
+        static::assertInternalType('string', $document->outertext);
+        static::assertTrue(\strlen($document) > 0);
+
+        $html = '<div>foo</div>';
+        $document = new HtmlDomParser($html);
+
+        static::assertSame($html, $document->html());
+        static::assertSame($html, $document->outertext);
+        static::assertSame($html, (string) $document);
+    }
+
+    public function testInnerHtml()
+    {
+        $html = '<div><div>foo</div></div>';
+        $document = new HtmlDomParser($html);
+
+        static::assertSame('<div>foo</div>', $document->innerHtml());
+        static::assertSame('<div>foo</div>', $document->innerText());
+        static::assertSame('<div>foo</div>', $document->innertext);
+    }
+
+    public function testText()
+    {
+        $html = '<div>foo</div>';
+        $document = new HtmlDomParser($html);
+
+        static::assertSame('foo', $document->text());
+        static::assertSame('foo', $document->plaintext);
+    }
+
+    public function testSave()
+    {
+        $html = $this->loadFixture('test_page.html');
+        $document = new HtmlDomParser($html);
+
+        static::assertInternalType('string', $document->save());
+    }
+
+    public function testClear()
+    {
+        $document = new HtmlDomParser();
+
+        static::assertTrue($document->clear());
+    }
+
+    public function testStrGetHtml()
+    {
+        $str = <<<HTML
 中
 
 <form name="form1" method="post" action="">
@@ -308,118 +298,123 @@ class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
 </form>
 HTML;
 
-    $html = HtmlDomParser::str_get_html($str);
-    $checkboxArray = [];
-    foreach ($html->find('input[type=checkbox]') as $checkbox) {
-      if ($checkbox->checked) {
-        $checkboxArray[(string)$checkbox->name] = 'checked';
-      } else {
-        $checkboxArray[(string)$checkbox->name] = 'not checked';
-      }
+        $html = HtmlDomParser::str_get_html($str);
+        $checkboxArray = [];
+        foreach ($html->find('input[type=checkbox]') as $checkbox) {
+            if ($checkbox->checked) {
+                $checkboxArray[(string) $checkbox->name] = 'checked';
+            } else {
+                $checkboxArray[(string) $checkbox->name] = 'not checked';
+            }
+        }
+
+        static::assertCount(3, $checkboxArray);
+        static::assertSame('checked', $checkboxArray['checkbox1']);
+        static::assertSame('not checked', $checkboxArray['checkbox2']);
+        static::assertSame('checked', $checkboxArray['checkbox3']);
     }
 
-    self::assertCount(3, $checkboxArray);
-    self::assertSame('checked', $checkboxArray['checkbox1']);
-    self::assertSame('not checked', $checkboxArray['checkbox2']);
-    self::assertSame('checked', $checkboxArray['checkbox3']);
-  }
-
-  public function testOutertext()
-  {
-    $str = <<<HTML
+    public function testOutertext()
+    {
+        $str = <<<HTML
 <form name="form1" method="post" action=""><input type="checkbox" name="checkbox1" value="checkbox1" checked>中文空白</form>
 HTML;
 
-    $html = HtmlDomParser::str_get_html($str);
+        $html = HtmlDomParser::str_get_html($str);
 
-    foreach ($html->find('input') as $e) {
-      $e->outertext = '[INPUT]';
+        foreach ($html->find('input') as $e) {
+            $e->outertext = '[INPUT]';
+        }
+
+        static::assertSame('<form name="form1" method="post" action="">[INPUT]中文空白</form>', (string) $html);
     }
 
-    self::assertSame('<form name="form1" method="post" action="">[INPUT]中文空白</form>', (string)$html);
-  }
-
-  public function testInnertextWithHtmlHeadTag()
-  {
-    $str = <<<HTML
+    public function testInnertextWithHtmlHeadTag()
+    {
+        $str = <<<HTML
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd"><html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head><body><div id="hello">Hello</div><div id="world">World</div></body></html>
 HTML;
 
-    $html = HtmlDomParser::str_get_html($str);
+        $html = HtmlDomParser::str_get_html($str);
 
-    $html->find('head', 0)->innerText = '<meta http-equiv="Content-Type" content="text/html; charset=utf-7">';
+        $html->find('head', 0)->innerText = '<meta http-equiv="Content-Type" content="text/html; charset=utf-7">';
 
-    self::assertSame(
-        '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd"><html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-7"></head><body><div id="hello">Hello</div><div id="world">World</div></body></html>', str_replace(
-                                                                                                                                                                                                                                                                                        [
-                                                                                                                                                                                                                                                                                            "\r\n",
-                                                                                                                                                                                                                                                                                            "\r",
-                                                                                                                                                                                                                                                                                            "\n",
-                                                                                                                                                                                                                                                                                        ], '', (string)$html
-                                                                                                                                                                                                                                                                                    )
-    );
-  }
+        static::assertSame(
+            '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd"><html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-7"></head><body><div id="hello">Hello</div><div id="world">World</div></body></html>',
+            \str_replace(
+                [
+                    "\r\n",
+                    "\r",
+                    "\n",
+                ],
+                '',
+                (string) $html
+            )
+        );
+    }
 
-  public function testInnertextWithHtml()
-  {
-    $str = <<<HTML
+    public function testInnertextWithHtml()
+    {
+        $str = <<<HTML
 <html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head><body><div id="hello">Hello</div><div id="world">World</div></body></html>
 HTML;
 
-    $html = HtmlDomParser::str_get_html($str);
+        $html = HtmlDomParser::str_get_html($str);
 
-    $html->find('div', 1)->class = 'bar';
-    $html->find('div[id=hello]', 0)->innertext = '<foo>bar</foo>';
+        $html->find('div', 1)->class = 'bar';
+        $html->find('div[id=hello]', 0)->innertext = '<foo>bar</foo>';
 
-    self::assertSame(
-        '<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head><body><div id="hello"><foo>bar</foo></div><div id="world" class="bar">World</div></body></html>',
-        str_replace(
-            [
-                "\r\n",
-                "\r",
-                "\n",
-            ], '', (string)$html
-        )
-    );
-  }
+        static::assertSame(
+            '<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head><body><div id="hello"><foo>bar</foo></div><div id="world" class="bar">World</div></body></html>',
+            \str_replace(
+                [
+                    "\r\n",
+                    "\r",
+                    "\n",
+                ],
+                '',
+                (string) $html
+            )
+        );
+    }
 
-  public function testInnertext()
-  {
-    $str = <<<HTML
+    public function testInnertext()
+    {
+        $str = <<<HTML
 <div id="hello">Hello</div><div id="world">World</div>
 HTML;
 
-    $html = HtmlDomParser::str_get_html($str);
+        $html = HtmlDomParser::str_get_html($str);
 
-    $html->find('div', 1)->class = 'bar';
-    $html->find('div[id=hello]', 0)->innertext = 'foo';
+        $html->find('div', 1)->class = 'bar';
+        $html->find('div[id=hello]', 0)->innertext = 'foo';
 
-    self::assertSame('<div id="hello">foo</div><div id="world" class="bar">World</div>', (string)$html);
-  }
+        static::assertSame('<div id="hello">foo</div><div id="world" class="bar">World</div>', (string) $html);
+    }
 
-  public function testMail2()
-  {
-    $filename = __DIR__ . '/fixtures/test_mail.html';
-    $filenameExpected = __DIR__ . '/fixtures/test_mail_expected.html';
+    public function testMail2()
+    {
+        $filename = __DIR__ . '/fixtures/test_mail.html';
+        $filenameExpected = __DIR__ . '/fixtures/test_mail_expected.html';
 
-    $html = HtmlDomParser::file_get_html($filename);
-    $htmlExpected = str_replace(["\r\n", "\r", "\n"], "\n", file_get_contents($filenameExpected));
+        $html = HtmlDomParser::file_get_html($filename);
+        $htmlExpected = \str_replace(["\r\n", "\r", "\n"], "\n", \file_get_contents($filenameExpected));
 
-    // object to sting
-    self::assertSame(
-        $htmlExpected,
-        str_replace(["\r\n", "\r", "\n"], "\n", (string)$html)
-    );
+        // object to sting
+        static::assertSame(
+            $htmlExpected,
+            \str_replace(["\r\n", "\r", "\n"], "\n", (string) $html)
+        );
 
-    $preHeaderContentArray = $html->find('.preheaderContent');
+        $preHeaderContentArray = $html->find('.preheaderContent');
 
-    self::assertSame('padding-top:10px; padding-right:20px; padding-bottom:10px; padding-left:20px;', $preHeaderContentArray[0]->style);
-    self::assertSame('top', $preHeaderContentArray[0]->valign);
-  }
+        static::assertSame('padding-top:10px; padding-right:20px; padding-bottom:10px; padding-left:20px;', $preHeaderContentArray[0]->style);
+        static::assertSame('top', $preHeaderContentArray[0]->valign);
+    }
 
-  public function testMail()
-  {
-    $str = <<<HTML
+    public function testMail()
+    {
+        $str = <<<HTML
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
@@ -591,675 +586,677 @@ test3Html.html                      <foo id="foo">bar</foo>
 </html>
 HTML;
 
-    $htmlTmp = HtmlDomParser::str_get_html($str);
-    self::assertInstanceOf('voku\helper\HtmlDomParser', $htmlTmp);
+        $htmlTmp = HtmlDomParser::str_get_html($str);
+        static::assertInstanceOf('voku\helper\HtmlDomParser', $htmlTmp);
 
-    // replace all images with "foobar"
-    $tmpArray = [];
-    foreach ($htmlTmp->find('img') as $e) {
-      if ($e->src != '') {
-        $tmpArray[] = $e->src;
+        // replace all images with "foobar"
+        $tmpArray = [];
+        foreach ($htmlTmp->find('img') as $e) {
+            if ($e->src !== '') {
+                $tmpArray[] = $e->src;
 
-        $e->src = 'foobar';
-      }
-    }
-
-    $testString = false;
-    $tmpCounter = 0;
-    foreach ($htmlTmp->find('table tr td img') as $e) {
-      if ($e->alt == '○●◎ earth 中文空白') {
-        $testString = $e->alt;
-        break;
-      }
-      $tmpCounter++;
-    }
-    self::assertSame(15, $tmpCounter);
-    self::assertSame('○●◎ earth 中文空白', $testString);
-
-    // get the content from the css-selector
-
-    $testStringUtf8_v1 = $htmlTmp->find('html .utf8');
-    self::assertSame('דיעס איז אַ פּרובירן!', $testStringUtf8_v1[0]->innertext);
-    self::assertSame('<span class="utf8">דיעס איז אַ פּרובירן!</span>', $testStringUtf8_v1[0]->html(true));
-
-    $testStringUtf8_v2 = $htmlTmp->find('span.utf8');
-    self::assertSame('דיעס איז אַ פּרובירן!', $testStringUtf8_v2[0]->innertext);
-    self::assertSame('<span class="utf8">דיעס איז אַ פּרובירן!</span>', $testStringUtf8_v2[0]->html(true));
-
-    $testStringUtf8_v3 = $htmlTmp->find('.utf8');
-    self::assertSame('דיעס איז אַ פּרובירן!', $testStringUtf8_v3[0]->innertext);
-    self::assertSame('<span class="utf8">דיעס איז אַ פּרובירן!</span>', $testStringUtf8_v3[0]->html(true));
-
-    $testStringUtf8_v4 = $htmlTmp->find('foo');
-    self::assertSame('bar', $testStringUtf8_v4[0]->innertext);
-    self::assertSame('<foo id="foo">bar</foo>', $testStringUtf8_v4[0]->html(true));
-
-    $testStringUtf8_v5 = $htmlTmp->find('#foo');
-    self::assertSame('bar', $testStringUtf8_v5[0]->innertext);
-    self::assertSame('<foo id="foo">bar</foo>', $testStringUtf8_v5[0]->outertext);
-
-    $testStringUtf8_v6 = $htmlTmp->find('test_');
-    self::assertSame('lall', $testStringUtf8_v6[0]->innertext);
-    self::assertSame('<test_>lall</test_>', $testStringUtf8_v6[0]->outertext);
-
-    $testStringUtf8_v7 = $htmlTmp->getElementById('foo');
-    self::assertSame('bar', $testStringUtf8_v7->innertext);
-
-    $testStringUtf8_v8 = $htmlTmp->getElementByTagName('foo');
-    self::assertSame('bar', $testStringUtf8_v8->innertext);
-
-    $testStringUtf8_v9 = $htmlTmp->getElementsByTagName('img', 15);
-    self::assertSame('○●◎ earth 中文空白', $testStringUtf8_v9->alt);
-    self::assertSame('', $testStringUtf8_v9->innertext);
-    self::assertSame('<img src="foobar" alt="○●◎ earth 中文空白" width="5" height="20" border="0">', $testStringUtf8_v9->html(true));
-
-    // test toString
-    $htmlTmp = (string)$htmlTmp;
-    self::assertCount(16, $tmpArray);
-    self::assertContains('<img src="foobar" alt="" width="5" height="3" border="0">', $htmlTmp);
-    self::assertContains('© 2015 Test', $htmlTmp);
-  }
-
-  public function testSetAttr()
-  {
-    $html = '<html><script type="application/ld+json"></script><p></p><div id="p1" class="post">foo</div><div class="post" id="p2">bar</div></html>';
-    $expected = '<html><script type="application/ld+json"></script><p></p><div class="post" id="p1">foo</div><div class="post" id="p2">bar</div></html>';
-
-    $document = new HtmlDomParser($html);
-
-    foreach ($document->find('div') as $e) {
-      $attrs = [];
-      foreach ($e->getAllAttributes() as $attrKey => $attrValue) {
-        $attrs[$attrKey] = $attrValue;
-        $e->$attrKey = null;
-      }
-
-      ksort($attrs);
-
-      foreach ($attrs as $attrKey => $attrValue) {
-        $e->$attrKey = $attrValue;
-      }
-    }
-
-    self::assertSame($expected, $document->html());
-  }
-
-  public function testEditLinks()
-  {
-    $texts = [
-        '<a href="http://foobar.de" class="  more  "  >Mehr</a><a href="http://foobar.de" class="  more  "  >Mehr</a>'                                                                                                                                                                                                                                                                              => '<a href="http://foobar.de" class="  more  " data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de\');">Mehr</a><a href="http://foobar.de" class="  more  " data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de\');">Mehr</a>',
-        ' <p><a href="http://foobar.de" class="  more  "  >Mehr</a></p>'                                                                                                                                                                                                                                                                                                                            => '<p><a href="http://foobar.de" class="  more  " data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de\');">Mehr</a></p>',
-        '<a <a href="http://foobar.de">foo</a><div></div>'                                                                                                                                                                                                                                                                                                                                          => '<a href="http://foobar.de" data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de\');">foo</a><div></div>',
-        ' <p></p>'                                                                                                                                                                                                                                                                                                                                                                                  => '<p></p>',
-        ' <p>'                                                                                                                                                                                                                                                                                                                                                                                      => '<p></p>',
-        'p>'                                                                                                                                                                                                                                                                                                                                                                                        => 'p>',
-        'p'                                                                                                                                                                                                                                                                                                                                                                                         => 'p',
-        'Google+ && Twitter || Lînux'                                                                                                                                                                                                                                                                                                                                                               => 'Google+ && Twitter || Lînux',
-        '<p>Google+ && Twitter || Lînux</p>'                                                                                                                                                                                                                                                                                                                                                        => '<p>Google+ && Twitter || Lînux</p>',
-        '<p>Google+ && Twitter ||&nbsp;Lînux</p>'                                                                                                                                                                                                                                                                                                                                                   => '<p>Google+ && Twitter ||&nbsp;Lînux</p>',
-        '<a href="http://foobar.de[[foo]]&{{foobar}}&lall=1">foo</a>'                                                                                                                                                                                                                                                                                                                               => '<a href="http://foobar.de[[foo]]&{{foobar}}&lall=1" data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de[[foo]]&{{foobar}}&lall=1\');">foo</a>',
-        '<div><a href="http://foobar.de[[foo]]&{{foobar}}&lall=1">foo</a>'                                                                                                                                                                                                                                                                                                                          => '<div><a href="http://foobar.de[[foo]]&{{foobar}}&lall=1" data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de[[foo]]&{{foobar}}&lall=1\');">foo</a></div>',
-        ''                                                                                                                                                                                                                                                                                                                                                                                          => '',
-        '<a href=""><span>lalll=###test###&bar=%5B%5Bfoobar%5D%5D&test=[[foobar]]&foo={{lall}}</span><img src="http://foobar?lalll=###test###&bar=%5B%5Bfoobar%5D%5D&test=[[foobar]]&foo={{lall}}" style="max-width:600px;" alt="Ihr Unternehmen in den wichtigsten Online-Verzeichnissen" class="headerImage" mc:label="header_image" mc:edit="header_image" mc:allowdesigner mc:allowtext /></a>' => '<a href="" data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=\');"><span>lalll=###test###&bar=%5B%5Bfoobar%5D%5D&test=[[foobar]]&foo={{lall}}</span><img src="http://foobar?lalll=###test###&bar=%5B%5Bfoobar%5D%5D&test=[[foobar]]&foo={{lall}}" style="max-width:600px;" alt="Ihr Unternehmen in den wichtigsten Online-Verzeichnissen" class="headerImage" mc:label="header_image" mc:edit="header_image" mc:allowdesigner mc:allowtext></a>',
-        'this is a test <a href="http://menadwork.com/test/?foo=1">test1</a> lall <a href="http://menadwork.com/test/?foo=1&lall=2">test2</a> ... <a href="http://menadwork.com">test3</a>'                                                                                                                                                                                                         => 'this is a test <a href="http://menadwork.com/test/?foo=1" data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=menadwork.com\');">test1</a> lall <a href="http://menadwork.com/test/?foo=1&lall=2" data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=menadwork.com\');">test2</a> ... <a href="http://menadwork.com" data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=menadwork.com\');">test3</a>',
-    ];
-
-    foreach ($texts as $text => $expected) {
-      $dom = HtmlDomParser::str_get_html($text);
-
-      foreach ($dom->find('a') as $item) {
-        $href = $item->getAttribute('href');
-        $dataUrlParse = $item->getAttribute('data-url-parse');
-
-        if ($dataUrlParse) {
-          continue;
+                $e->src = 'foobar';
+            }
         }
 
-        $parseLink = parse_url($href);
-        $domain = (isset($parseLink['host']) ? $parseLink['host'] : '');
+        $testString = false;
+        $tmpCounter = 0;
+        foreach ($htmlTmp->find('table tr td img') as $e) {
+            if ($e->alt === '○●◎ earth 中文空白') {
+                $testString = $e->alt;
 
-        $item->setAttribute('data-url-parse', 'done');
-        $item->setAttribute('onClick', '$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=' . urlencode($domain) . '\');');
-      }
+                break;
+            }
+            $tmpCounter++;
+        }
+        static::assertSame(15, $tmpCounter);
+        static::assertSame('○●◎ earth 中文空白', $testString);
 
-      self::assertSame($expected, $dom->html(true), 'tested: ' . $text);
+        // get the content from the css-selector
+
+        $testStringUtf8_v1 = $htmlTmp->find('html .utf8');
+        static::assertSame('דיעס איז אַ פּרובירן!', $testStringUtf8_v1[0]->innertext);
+        static::assertSame('<span class="utf8">דיעס איז אַ פּרובירן!</span>', $testStringUtf8_v1[0]->html(true));
+
+        $testStringUtf8_v2 = $htmlTmp->find('span.utf8');
+        static::assertSame('דיעס איז אַ פּרובירן!', $testStringUtf8_v2[0]->innertext);
+        static::assertSame('<span class="utf8">דיעס איז אַ פּרובירן!</span>', $testStringUtf8_v2[0]->html(true));
+
+        $testStringUtf8_v3 = $htmlTmp->find('.utf8');
+        static::assertSame('דיעס איז אַ פּרובירן!', $testStringUtf8_v3[0]->innertext);
+        static::assertSame('<span class="utf8">דיעס איז אַ פּרובירן!</span>', $testStringUtf8_v3[0]->html(true));
+
+        $testStringUtf8_v4 = $htmlTmp->find('foo');
+        static::assertSame('bar', $testStringUtf8_v4[0]->innertext);
+        static::assertSame('<foo id="foo">bar</foo>', $testStringUtf8_v4[0]->html(true));
+
+        $testStringUtf8_v5 = $htmlTmp->find('#foo');
+        static::assertSame('bar', $testStringUtf8_v5[0]->innertext);
+        static::assertSame('<foo id="foo">bar</foo>', $testStringUtf8_v5[0]->outertext);
+
+        $testStringUtf8_v6 = $htmlTmp->find('test_');
+        static::assertSame('lall', $testStringUtf8_v6[0]->innertext);
+        static::assertSame('<test_>lall</test_>', $testStringUtf8_v6[0]->outertext);
+
+        $testStringUtf8_v7 = $htmlTmp->getElementById('foo');
+        static::assertSame('bar', $testStringUtf8_v7->innertext);
+
+        $testStringUtf8_v8 = $htmlTmp->getElementByTagName('foo');
+        static::assertSame('bar', $testStringUtf8_v8->innertext);
+
+        $testStringUtf8_v9 = $htmlTmp->getElementsByTagName('img', 15);
+        static::assertSame('○●◎ earth 中文空白', $testStringUtf8_v9->alt);
+        static::assertSame('', $testStringUtf8_v9->innertext);
+        static::assertSame('<img src="foobar" alt="○●◎ earth 中文空白" width="5" height="20" border="0">', $testStringUtf8_v9->html(true));
+
+        // test toString
+        $htmlTmp = (string) $htmlTmp;
+        static::assertCount(16, $tmpArray);
+        static::assertContains('<img src="foobar" alt="" width="5" height="3" border="0">', $htmlTmp);
+        static::assertContains('© 2015 Test', $htmlTmp);
     }
-  }
 
-  public function testWithUTF8()
-  {
-    $str = '<p>イリノイ州シカゴにて</p>';
+    public function testSetAttr()
+    {
+        $html = '<html><script type="application/ld+json"></script><p></p><div id="p1" class="post">foo</div><div class="post" id="p2">bar</div></html>';
+        $expected = '<html><script type="application/ld+json"></script><p></p><div class="post" id="p1">foo</div><div class="post" id="p2">bar</div></html>';
 
-    $html = HtmlDomParser::str_get_html($str);
+        $document = new HtmlDomParser($html);
 
-    $html->find('p', 1)->class = 'bar';
+        foreach ($document->find('div') as $e) {
+            $attrs = [];
+            foreach ($e->getAllAttributes() as $attrKey => $attrValue) {
+                $attrs[$attrKey] = $attrValue;
+                $e->{$attrKey} = null;
+            }
 
-    self::assertSame(
-        '<p>イリノイ州シカゴにて</p>',
-        $html->html()
-    );
+            \ksort($attrs);
 
-    self::assertSame(
-        'イリノイ州シカゴにて',
-        $html->text()
-    );
+            foreach ($attrs as $attrKey => $attrValue) {
+                $e->{$attrKey} = $attrValue;
+            }
+        }
 
-    // ---
+        static::assertSame($expected, $document->html());
+    }
 
-    $str = '<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF8"><title>jusqu’à 51% de rabais!</title></head><body></body></html>';
+    public function testEditLinks()
+    {
+        $texts = [
+            '<a href="http://foobar.de" class="  more  "  >Mehr</a><a href="http://foobar.de" class="  more  "  >Mehr</a>'                                                                                                                                                                                                                                                                              => '<a href="http://foobar.de" class="  more  " data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de\');">Mehr</a><a href="http://foobar.de" class="  more  " data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de\');">Mehr</a>',
+            ' <p><a href="http://foobar.de" class="  more  "  >Mehr</a></p>'                                                                                                                                                                                                                                                                                                                            => '<p><a href="http://foobar.de" class="  more  " data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de\');">Mehr</a></p>',
+            '<a <a href="http://foobar.de">foo</a><div></div>'                                                                                                                                                                                                                                                                                                                                          => '<a href="http://foobar.de" data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de\');">foo</a><div></div>',
+            ' <p></p>'                                                                                                                                                                                                                                                                                                                                                                                  => '<p></p>',
+            ' <p>'                                                                                                                                                                                                                                                                                                                                                                                      => '<p></p>',
+            'p>'                                                                                                                                                                                                                                                                                                                                                                                        => 'p>',
+            'p'                                                                                                                                                                                                                                                                                                                                                                                         => 'p',
+            'Google+ && Twitter || Lînux'                                                                                                                                                                                                                                                                                                                                                               => 'Google+ && Twitter || Lînux',
+            '<p>Google+ && Twitter || Lînux</p>'                                                                                                                                                                                                                                                                                                                                                        => '<p>Google+ && Twitter || Lînux</p>',
+            '<p>Google+ && Twitter ||&nbsp;Lînux</p>'                                                                                                                                                                                                                                                                                                                                                   => '<p>Google+ && Twitter ||&nbsp;Lînux</p>',
+            '<a href="http://foobar.de[[foo]]&{{foobar}}&lall=1">foo</a>'                                                                                                                                                                                                                                                                                                                               => '<a href="http://foobar.de[[foo]]&{{foobar}}&lall=1" data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de[[foo]]&{{foobar}}&lall=1\');">foo</a>',
+            '<div><a href="http://foobar.de[[foo]]&{{foobar}}&lall=1">foo</a>'                                                                                                                                                                                                                                                                                                                          => '<div><a href="http://foobar.de[[foo]]&{{foobar}}&lall=1" data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de[[foo]]&{{foobar}}&lall=1\');">foo</a></div>',
+            ''                                                                                                                                                                                                                                                                                                                                                                                          => '',
+            '<a href=""><span>lalll=###test###&bar=%5B%5Bfoobar%5D%5D&test=[[foobar]]&foo={{lall}}</span><img src="http://foobar?lalll=###test###&bar=%5B%5Bfoobar%5D%5D&test=[[foobar]]&foo={{lall}}" style="max-width:600px;" alt="Ihr Unternehmen in den wichtigsten Online-Verzeichnissen" class="headerImage" mc:label="header_image" mc:edit="header_image" mc:allowdesigner mc:allowtext /></a>' => '<a href="" data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=\');"><span>lalll=###test###&bar=%5B%5Bfoobar%5D%5D&test=[[foobar]]&foo={{lall}}</span><img src="http://foobar?lalll=###test###&bar=%5B%5Bfoobar%5D%5D&test=[[foobar]]&foo={{lall}}" style="max-width:600px;" alt="Ihr Unternehmen in den wichtigsten Online-Verzeichnissen" class="headerImage" mc:label="header_image" mc:edit="header_image" mc:allowdesigner mc:allowtext></a>',
+            'this is a test <a href="http://menadwork.com/test/?foo=1">test1</a> lall <a href="http://menadwork.com/test/?foo=1&lall=2">test2</a> ... <a href="http://menadwork.com">test3</a>'                                                                                                                                                                                                         => 'this is a test <a href="http://menadwork.com/test/?foo=1" data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=menadwork.com\');">test1</a> lall <a href="http://menadwork.com/test/?foo=1&lall=2" data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=menadwork.com\');">test2</a> ... <a href="http://menadwork.com" data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=menadwork.com\');">test3</a>',
+        ];
 
-    $html = HtmlDomParser::str_get_html($str);
+        foreach ($texts as $text => $expected) {
+            $dom = HtmlDomParser::str_get_html($text);
 
-    $title = $html->find('title', 0);
+            foreach ($dom->find('a') as $item) {
+                $href = $item->getAttribute('href');
+                $dataUrlParse = $item->getAttribute('data-url-parse');
 
-    self::assertSame(
-        'jusqu’à 51% de rabais!',
-        $title->innerHtml
-    );
+                if ($dataUrlParse) {
+                    continue;
+                }
 
-    self::assertSame(
-        'jusqu’à 51% de rabais!',
-        $title->innerHtml()
-    );
+                $parseLink = \parse_url($href);
+                $domain = ($parseLink['host'] ?? '');
 
-    self::assertSame(
-        'jusqu’à 51% de rabais!',
-        $title->innerText
-    );
+                $item->setAttribute('data-url-parse', 'done');
+                $item->setAttribute('onClick', '$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=' . \urlencode($domain) . '\');');
+            }
 
-    self::assertSame(
-        'jusqu’à 51% de rabais!',
-        $title->innerText()
-    );
-  }
+            static::assertSame($expected, $dom->html(true), 'tested: ' . $text);
+        }
+    }
 
-  public function testWithExtraXmlOptions()
-  {
-    $str = <<<HTML
+    public function testWithUTF8()
+    {
+        $str = '<p>イリノイ州シカゴにて</p>';
+
+        $html = HtmlDomParser::str_get_html($str);
+
+        $html->find('p', 1)->class = 'bar';
+
+        static::assertSame(
+            '<p>イリノイ州シカゴにて</p>',
+            $html->html()
+        );
+
+        static::assertSame(
+            'イリノイ州シカゴにて',
+            $html->text()
+        );
+
+        // ---
+
+        $str = '<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF8"><title>jusqu’à 51% de rabais!</title></head><body></body></html>';
+
+        $html = HtmlDomParser::str_get_html($str);
+
+        $title = $html->find('title', 0);
+
+        static::assertSame(
+            'jusqu’à 51% de rabais!',
+            $title->innerHtml
+        );
+
+        static::assertSame(
+            'jusqu’à 51% de rabais!',
+            $title->innerHtml()
+        );
+
+        static::assertSame(
+            'jusqu’à 51% de rabais!',
+            $title->innerText
+        );
+
+        static::assertSame(
+            'jusqu’à 51% de rabais!',
+            $title->innerText()
+        );
+    }
+
+    public function testWithExtraXmlOptions()
+    {
+        $str = <<<HTML
 <div id="hello">Hello</div><div id="world">World</div><strong></strong>
 HTML;
 
-    $html = HtmlDomParser::str_get_html($str, LIBXML_NOERROR);
+        $html = HtmlDomParser::str_get_html($str, \LIBXML_NOERROR);
 
-    $html->find('div', 1)->class = 'bar';
-    $html->find('div[id=hello]', 0)->innertext = 'foo';
-    $html->findOne('div[id=hello]')->innertext = 'foo';
+        $html->find('div', 1)->class = 'bar';
+        $html->find('div[id=hello]', 0)->innertext = 'foo';
+        $html->findOne('div[id=hello]')->innertext = 'foo';
 
-    self::assertSame(
-        '<div id="hello">foo</div><div id="world" class="bar">World</div><strong></strong>',
-        $html->html()
-    );
+        static::assertSame(
+            '<div id="hello">foo</div><div id="world" class="bar">World</div><strong></strong>',
+            $html->html()
+        );
 
-    // -------------
+        // -------------
 
-    $html->find('div[id=fail]', 0)->innertext = 'foobar';
+        $html->find('div[id=fail]', 0)->innertext = 'foobar';
 
-    self::assertSame(
-        '<div id="hello">foo</div><div id="world" class="bar">World</div><strong></strong>',
-        (string)$html
-    );
-  }
+        static::assertSame(
+            '<div id="hello">foo</div><div id="world" class="bar">World</div><strong></strong>',
+            (string) $html
+        );
+    }
 
-  public function testEditInnerText()
-  {
-    $str = <<<HTML
+    public function testEditInnerText()
+    {
+        $str = <<<HTML
 <div id="hello">Hello</div><div id="world">World</div>
 HTML;
 
-    $html = HtmlDomParser::str_get_html($str);
+        $html = HtmlDomParser::str_get_html($str);
 
-    $html->find('div', 1)->class = 'bar';
-    $html->find('div[id=hello]', 0)->innertext = 'foo';
+        $html->find('div', 1)->class = 'bar';
+        $html->find('div[id=hello]', 0)->innertext = 'foo';
 
-    self::assertSame('<div id="hello">foo</div><div id="world" class="bar">World</div>', (string)$html);
+        static::assertSame('<div id="hello">foo</div><div id="world" class="bar">World</div>', (string) $html);
 
-    // -------------
+        // -------------
 
-    $html->find('div[id=fail]', 0)->innertext = 'foobar';
+        $html->find('div[id=fail]', 0)->innertext = 'foobar';
 
-    self::assertSame('<div id="hello">foo</div><div id="world" class="bar">World</div>', (string)$html);
-  }
-
-  public function testLoad()
-  {
-    $dom = new HtmlDomParser();
-    $dom->load('<div class="all"><p>Hey bro, <a href="google.com">click here</a><br /> :)</p></div>');
-    $div = $dom->find('div', 0);
-    self::assertSame(
-        '<div class="all"><p>Hey bro, <a href="google.com">click here</a><br> :)</p></div>',
-        $div->outertext
-    );
-  }
-
-  public function testNotLoaded()
-  {
-    $dom = new HtmlDomParser();
-    $div = $dom->find('div', 0);
-
-    self::assertSame('', $div->plaintext);
-  }
-
-  public function testIncorrectAccess()
-  {
-    $dom = new HtmlDomParser();
-    $dom->load('<div class="all"><p>Hey bro, <a href="google.com">click here</a><br /> :)</p></div>');
-    $div = $dom->find('div', 0);
-    self::assertSame('', $div->foo);
-  }
-
-  public function testLoadSelfclosingAttr()
-  {
-    $dom = new HtmlDomParser();
-    $dom->load("<div class='all'><br  foo  bar  />baz</div>");
-    $br = $dom->find('br', 0);
-    self::assertSame('<br foo bar>', $br->outerHtml);
-  }
-
-  public function testLoadSelfclosingAttrToString()
-  {
-    $dom = new HtmlDomParser();
-    $dom->load("<div class='all'><br  foo  bar  />baz</div>");
-    $br = $dom->find('br', 0);
-    self::assertSame('<br foo bar>', (string)$br);
-  }
-
-  public function testBrokenHtmlAtTheBeginOfTheInput()
-  {
-    $dom = new HtmlDomParser();
-    $dom->useKeepBrokenHtml(true);
-    /* @noinspection JSUnresolvedVariable */
-    /* @noinspection UnterminatedStatementJS */
-    /* @noinspection BadExpressionStatementJS */
-    /* @noinspection JSUndeclaredVariable */
-    $html = '</script><script async src="cdnjs"></script>';
-    $dom->load($html);
-    self::assertSame('</script><script async src="cdnjs"></script>', $dom->innerHtml);
-  }
-
-  public function testBrokenHtmlInTheMiddleOfTheInput()
-  {
-    $dom = new HtmlDomParser();
-    $dom->useKeepBrokenHtml(true);
-    /* @noinspection JSUnresolvedVariable */
-    /* @noinspection UnterminatedStatementJS */
-    /* @noinspection BadExpressionStatementJS */
-    /* @noinspection JSUndeclaredVariable */
-    $html = '<script async src="cdnjs"></script></borken foo="lall"><p>some text ...</p>';
-    $dom->load($html);
-    self::assertSame('<script async src="cdnjs"></script></borken foo="lall"><p>some text ...</p>', $dom->innerHtml);
-
-  }
-
-  public function testLoadNoOpeningTag()
-  {
-    $dom = new HtmlDomParser();
-    $dom->load('<div class="all"><font color="red"><strong>PR Manager</strong></font></b><div class="content">content</div></div>');
-    self::assertSame('content', $dom->find('.content', 0)->text);
-  }
-
-  public function testLoadNoClosingTag()
-  {
-    $dom = new HtmlDomParser();
-    $dom->load('<div class="all"><p>Hey bro, <a href="google.com">click here</a></div>');
-    $root = $dom->find('div', 0);
-    self::assertSame('<div class="all"><p>Hey bro, <a href="google.com">click here</a></p></div>', $root->outerHtml);
-  }
-
-  public function testLoadAttributeOnSelfClosing()
-  {
-    $dom = new HtmlDomParser();
-    $dom->load('<div class="all"><p>Hey bro, <a href="google.com">click here</a></div><br class="both" />');
-    $br = $dom->find('br', 0);
-    self::assertSame('both', $br->getAttribute('class'));
-  }
-
-  public function testLoadClosingTagOnSelfClosing()
-  {
-    $dom = new HtmlDomParser();
-    $dom->load('<div class="all"><br><p>Hey bro, <a href="google.com">click here</a></br></div>');
-    self::assertSame('<br><p>Hey bro, <a href="google.com">click here</a></p>', $dom->find('div', 0)->innerHtml);
-  }
-
-  public function testScriptInHeadScript()
-  {
-    $dom = new HtmlDomParser();
-    $dom->load(
-        '
-      <!DOCTYPE html>
-      <html>
-      <head>
-          <meta name="robots" content="noindex, follow">
-          <style>
-              /** quick fix because bootstrap <pre> has a background-color. */
-              pre code { background-color: inherit; }
-          </style>
-      </head>
-      <body class="blog">
-      <header>
-          <nav>
-          </nav>
-      </header>
-      <script>window.jQuery || document.write(\'<script src="http://lall/jquery/jquery.min.js"><\/script>\')</script>
-      </body>
-      </html>
-      '
-    );
-    self::assertSame(
-        '<script>window.jQuery || document.write(\'<script src="http://lall/jquery/jquery.min.js"><\/script>\')</script>',
-        $dom->findOne('script')->html()
-    );
-  }
-
-  public function testLoadNoValueAttribute()
-  {
-    $dom = new HtmlDomParser();
-    $dom->load('<div class="content"><div class="grid-container" ui-view>Main content here</div></div>');
-    self::assertSame('<div class="content"><div class="grid-container" ui-view>Main content here</div></div>', $dom->innerHtml);
-  }
-
-  public function testLoadNoValueAttributeBefore()
-  {
-    $dom = new HtmlDomParser();
-    $dom->load('<div class="content"><div ui-view class="grid-container">Main content here</div></div>');
-    self::assertSame('<div class="content"><div ui-view class="grid-container">Main content here</div></div>', $dom->innerHtml);
-  }
-
-  public function testSimpleHtmlViaSimpleXmlLoadString()
-  {
-    $html = (new HtmlDomParser())->load('<span>&lt;</span>');
-
-    $expected = '<span>&lt;</span>';
-
-    self::assertSame($expected, $html->xml());
-    self::assertSame($expected, $html->html(false));
-    self::assertSame($expected, $html->html(true));
-  }
-
-  public function testLoadUpperCase()
-  {
-    $dom = new HtmlDomParser();
-    $dom->load('<DIV CLASS="ALL"><BR><P>hEY BRO, <A HREF="GOOGLE.COM">click here</A></BR></DIV>');
-    self::assertSame('<br><p>hEY BRO, <a href="GOOGLE.COM">click here</a></p>', $dom->find('div', 0)->innerHtml);
-  }
-
-  public function testLoadWithFile()
-  {
-    $dom = new HtmlDomParser();
-    $dom->load_file(__DIR__ . '/fixtures/small.html');
-    self::assertSame('VonBurgermeister', $dom->find('.post-user font', 0)->text);
-  }
-
-  public function testLoadFromFile()
-  {
-    $dom = new HtmlDomParser();
-    $dom->load_file(__DIR__ . '/fixtures/small.html');
-    self::assertSame('VonBurgermeister', $dom->find('.post-user font', 0)->text);
-  }
-
-  public function testLoadFromFileFind()
-  {
-    $dom = new HtmlDomParser();
-    $dom->load_file(__DIR__ . '/fixtures/small.html');
-    self::assertSame('VonBurgermeister', $dom->find('.post-row div .post-user font', 0)->text);
-  }
-
-  public function testLoadUtf8()
-  {
-    $dom = new HtmlDomParser();
-    $dom->load('<p>Dzień</p>');
-    self::assertSame('Dzień', $dom->find('p', 0)->text);
-  }
-
-  public function testLoadFileBigTwice()
-  {
-    $dom = new HtmlDomParser();
-    $dom->loadHtmlFile(__DIR__ . '/fixtures/big.html');
-    $post = $dom->find('.post-row', 0);
-    self::assertSame('<p>Журчанье воды<br>' . "\n" . 'Черно-белые тени<br>' . "\n" . 'Вновь на фонтане</p>', $post->find('.post-message', 0)->innerHtml);
-  }
-
-  public function testToStringMagic()
-  {
-    $dom = new HtmlDomParser();
-    $dom->load('<div class="all"><p>Hey bro, <a href="google.com">click here</a><br /> :)</p></div>');
-    self::assertSame('<div class="all"><p>Hey bro, <a href="google.com">click here</a><br> :)</p></div>', (string)$dom);
-  }
-
-  public function testGetMagic()
-  {
-    $dom = new HtmlDomParser();
-
-    $html = '<div class="all"><p>Hey bro, <a href="google.com">click here</a><br /> :)</p></div>';
-    $expected = '<p>Hey bro, <a href="google.com">click here</a><br> :)</p>';
-
-    $dom->load($html);
-    self::assertSame($expected, $dom->innerHtml);
-
-    // ---
-
-    $dom = new HtmlDomParser();
-
-    $html = '<div class="all"><p>Hey bro, <a href="google.com">click here</a><br /> :)</p></div>';
-    $expected = '<div class="all"><p>Hey bro, <a href="google.com">click here</a><br> :)</p></div>';
-
-    $dom->load($html);
-    self::assertSame($expected, $dom->html());
-  }
-
-  public function testGetElementById()
-  {
-    $dom = new HtmlDomParser();
-    $dom->load('<div class="all"><p>Hey bro, <a href="google.com" id="78">click here</a></div><br />');
-    self::assertSame('<a href="google.com" id="78">click here</a>', $dom->getElementById('78')->outerHtml);
-  }
-
-  public function testGetElementsByTag()
-  {
-    $dom = new HtmlDomParser();
-    $dom->load('<div class="all"><p>Hey bro, <a href="google.com" id="78">click here</a></div><br />');
-    $elm = $dom->getElementsByTagName('p');
-    self::assertSame(
-        '<p>Hey bro, <a href="google.com" id="78">click here</a></p>',
-        $elm[0]->outerHtml
-    );
-  }
-
-  public function testGetElementsByClass()
-  {
-    $dom = new HtmlDomParser();
-    $dom->load('<div class="all"><p>Hey bro, <a href="google.com" id="78">click here</a></div><br />');
-    $elm = $dom->find('.all');
-    self::assertSame(
-        '<p>Hey bro, <a href="google.com" id="78">click here</a></p>',
-        $elm[0]->innerHtml
-    );
-  }
-
-  public function testUtf8AndBrokenHtmlEncoding()
-  {
-    $dom = new HtmlDomParser();
-    $dom->load('hi سلام<div>の家庭に、9 ☆<><');
-    self::assertSame(
-        'hi سلام<div>の家庭に、9 ☆</div>',
-        $dom->innerHtml
-    );
-
-    // ---
-
-    $dom = new HtmlDomParser();
-    $dom->load('hi</b>سلام<div>の家庭に、9 ☆<><');
-    self::assertSame(
-        'hiسلام<div>の家庭に、9 ☆</div>',
-        $dom->innerHtml
-    );
-
-    // ---
-
-    $dom = new HtmlDomParser();
-    $dom->load('hi</b><p>سلام<div>の家庭に、9 ☆<><');
-    self::assertSame(
-        'hi<p>سلام<div>の家庭に、9 ☆</div>',
-        $dom->innerHtml
-    );
-  }
-
-  public function testEnforceEncoding()
-  {
-    $dom = new HtmlDomParser();
-    $dom->load('tests/files/horrible.html');
-
-    self::assertNotEquals('<input type="submit" tabindex="0" name="submit" value="Информации" />', $dom->find('table input', 1)->outerHtml);
-  }
-
-  public function testReplaceToPreserveHtmlEntities()
-  {
-    $tests = [
-      // non url && non dom special chars -> no changes
-      ''                                                                                                 => '',
-      // non url && non dom special chars -> no changes
-      ' '                                                                                                => ' ',
-      // non url && non dom special chars -> no changes
-      'abc'                                                                                              => 'abc',
-      // non url && non dom special chars -> no changes
-      'öäü'                                                                                              => 'öäü',
-      // non url && non dom special chars -> no changes
-      '`?/=()=$"?#![{`'                                                                                  => '`?/=()=$"?#![{`',
-      // non url && non dom special chars -> no changes
-      '{{foo}}'                                                                                          => '{{foo}}',
-      // dom special chars -> changes
-      '`?/=()=$&,|,+,%"?#![{@`'                                                                          => '`?/=()=$____SIMPLE_HTML_DOM__VOKU__AMP____,____SIMPLE_HTML_DOM__VOKU__PIPE____,____SIMPLE_HTML_DOM__VOKU__PLUS____,____SIMPLE_HTML_DOM__VOKU__PERCENT____"?#![{____SIMPLE_HTML_DOM__VOKU__AT____`',
-      // non url && non dom special chars -> no changes
-      'www.domain.de/foo.php?foobar=1&email=lars%40moelleken.org&guid=test1233312&{{foo}}'               => 'www.domain.de/foo.php?foobar=1____SIMPLE_HTML_DOM__VOKU__AMP____email=lars____SIMPLE_HTML_DOM__VOKU__PERCENT____40moelleken.org____SIMPLE_HTML_DOM__VOKU__AMP____guid=test1233312____SIMPLE_HTML_DOM__VOKU__AMP____{{foo}}',
-      // url -> changes
-      '[https://www.domain.de/foo.php?foobar=1&email=lars%40moelleken.org&guid=test1233312&{{foo}}#bar]' => '____SIMPLE_HTML_DOM__VOKU__SQUARE_BRACKET_LEFT____https://www.domain.de/foo.php?foobar=1____SIMPLE_HTML_DOM__VOKU__AMP____email=lars____SIMPLE_HTML_DOM__VOKU__PERCENT____40moelleken.org____SIMPLE_HTML_DOM__VOKU__AMP____guid=test1233312____SIMPLE_HTML_DOM__VOKU__AMP________SIMPLE_HTML_DOM__VOKU__BRACKET_LEFT________SIMPLE_HTML_DOM__VOKU__BRACKET_LEFT____foo____SIMPLE_HTML_DOM__VOKU__BRACKET_RIGHT________SIMPLE_HTML_DOM__VOKU__BRACKET_RIGHT____#bar____SIMPLE_HTML_DOM__VOKU__SQUARE_BRACKET_RIGHT____',
-      // url -> changes
-      'https://www.domain.de/foo.php?foobar=1&email=lars%40moelleken.org&guid=test1233312&{{foo}}#foo'   => 'https://www.domain.de/foo.php?foobar=1____SIMPLE_HTML_DOM__VOKU__AMP____email=lars____SIMPLE_HTML_DOM__VOKU__PERCENT____40moelleken.org____SIMPLE_HTML_DOM__VOKU__AMP____guid=test1233312____SIMPLE_HTML_DOM__VOKU__AMP________SIMPLE_HTML_DOM__VOKU__BRACKET_LEFT________SIMPLE_HTML_DOM__VOKU__BRACKET_LEFT____foo____SIMPLE_HTML_DOM__VOKU__BRACKET_RIGHT________SIMPLE_HTML_DOM__VOKU__BRACKET_RIGHT____#foo',
-    ];
-
-    foreach ($tests as $test => $expected) {
-      $result = HtmlDomParser::replaceToPreserveHtmlEntities($test);
-      self::assertSame($expected, $result);
-
-      $result = HtmlDomParser::putReplacedBackToPreserveHtmlEntities($result);
-      self::assertSame($test, $result);
+        static::assertSame('<div id="hello">foo</div><div id="world" class="bar">World</div>', (string) $html);
     }
-  }
 
-  public function testUseXPath()
-  {
-    $dom = new HtmlDomParser();
-    $dom->loadHtml(
-        '
-        <html>
-          <head></head>
-          <body>
+    public function testLoad()
+    {
+        $dom = new HtmlDomParser();
+        $dom->load('<div class="all"><p>Hey bro, <a href="google.com">click here</a><br /> :)</p></div>');
+        $div = $dom->find('div', 0);
+        static::assertSame(
+            '<div class="all"><p>Hey bro, <a href="google.com">click here</a><br> :)</p></div>',
+            $div->outertext
+        );
+    }
+
+    public function testNotLoaded()
+    {
+        $dom = new HtmlDomParser();
+        $div = $dom->find('div', 0);
+
+        static::assertSame('', $div->plaintext);
+    }
+
+    public function testIncorrectAccess()
+    {
+        $dom = new HtmlDomParser();
+        $dom->load('<div class="all"><p>Hey bro, <a href="google.com">click here</a><br /> :)</p></div>');
+        $div = $dom->find('div', 0);
+        static::assertSame('', $div->foo);
+    }
+
+    public function testLoadSelfclosingAttr()
+    {
+        $dom = new HtmlDomParser();
+        $dom->load("<div class='all'><br  foo  bar  />baz</div>");
+        $br = $dom->find('br', 0);
+        static::assertSame('<br foo bar>', $br->outerHtml);
+    }
+
+    public function testLoadSelfclosingAttrToString()
+    {
+        $dom = new HtmlDomParser();
+        $dom->load("<div class='all'><br  foo  bar  />baz</div>");
+        $br = $dom->find('br', 0);
+        static::assertSame('<br foo bar>', (string) $br);
+    }
+
+    public function testBrokenHtmlAtTheBeginOfTheInput()
+    {
+        $dom = new HtmlDomParser();
+        $dom->useKeepBrokenHtml(true);
+        /* @noinspection JSUnresolvedVariable */
+        /* @noinspection UnterminatedStatementJS */
+        /* @noinspection BadExpressionStatementJS */
+        /* @noinspection JSUndeclaredVariable */
+        $html = '</script><script async src="cdnjs"></script>';
+        $dom->load($html);
+        static::assertSame('</script><script async src="cdnjs"></script>', $dom->innerHtml);
+    }
+
+    public function testBrokenHtmlInTheMiddleOfTheInput()
+    {
+        $dom = new HtmlDomParser();
+        $dom->useKeepBrokenHtml(true);
+        /* @noinspection JSUnresolvedVariable */
+        /* @noinspection UnterminatedStatementJS */
+        /* @noinspection BadExpressionStatementJS */
+        /* @noinspection JSUndeclaredVariable */
+        $html = '<script async src="cdnjs"></script></borken foo="lall"><p>some text ...</p>';
+        $dom->load($html);
+        static::assertSame('<script async src="cdnjs"></script></borken foo="lall"><p>some text ...</p>', $dom->innerHtml);
+    }
+
+    public function testLoadNoOpeningTag()
+    {
+        $dom = new HtmlDomParser();
+        $dom->load('<div class="all"><font color="red"><strong>PR Manager</strong></font></b><div class="content">content</div></div>');
+        static::assertSame('content', $dom->find('.content', 0)->text);
+    }
+
+    public function testLoadNoClosingTag()
+    {
+        $dom = new HtmlDomParser();
+        $dom->load('<div class="all"><p>Hey bro, <a href="google.com">click here</a></div>');
+        $root = $dom->find('div', 0);
+        static::assertSame('<div class="all"><p>Hey bro, <a href="google.com">click here</a></p></div>', $root->outerHtml);
+    }
+
+    public function testLoadAttributeOnSelfClosing()
+    {
+        $dom = new HtmlDomParser();
+        $dom->load('<div class="all"><p>Hey bro, <a href="google.com">click here</a></div><br class="both" />');
+        $br = $dom->find('br', 0);
+        static::assertSame('both', $br->getAttribute('class'));
+    }
+
+    public function testLoadClosingTagOnSelfClosing()
+    {
+        $dom = new HtmlDomParser();
+        $dom->load('<div class="all"><br><p>Hey bro, <a href="google.com">click here</a></br></div>');
+        static::assertSame('<br><p>Hey bro, <a href="google.com">click here</a></p>', $dom->find('div', 0)->innerHtml);
+    }
+
+    public function testScriptInHeadScript()
+    {
+        $dom = new HtmlDomParser();
+        $dom->load(
+            '
+              <!DOCTYPE html>
+              <html>
+              <head>
+                  <meta name="robots" content="noindex, follow">
+                  <style>
+                      /** quick fix because bootstrap <pre> has a background-color. */
+                      pre code { background-color: inherit; }
+                  </style>
+              </head>
+              <body class="blog">
+              <header>
+                  <nav>
+                  </nav>
+              </header>
+              <script>window.jQuery || document.write(\'<script src="http://lall/jquery/jquery.min.js"><\/script>\')</script>
+              </body>
+              </html>
+              '
+        );
+        static::assertSame(
+            '<script>window.jQuery || document.write(\'<script src="http://lall/jquery/jquery.min.js"><\/script>\')</script>',
+            $dom->findOne('script')->html()
+        );
+    }
+
+    public function testLoadNoValueAttribute()
+    {
+        $dom = new HtmlDomParser();
+        $dom->load('<div class="content"><div class="grid-container" ui-view>Main content here</div></div>');
+        static::assertSame('<div class="content"><div class="grid-container" ui-view>Main content here</div></div>', $dom->innerHtml);
+    }
+
+    public function testLoadNoValueAttributeBefore()
+    {
+        $dom = new HtmlDomParser();
+        $dom->load('<div class="content"><div ui-view class="grid-container">Main content here</div></div>');
+        static::assertSame('<div class="content"><div ui-view class="grid-container">Main content here</div></div>', $dom->innerHtml);
+    }
+
+    public function testSimpleHtmlViaSimpleXmlLoadString()
+    {
+        $html = (new HtmlDomParser())->load('<span>&lt;</span>');
+
+        $expected = '<span>&lt;</span>';
+
+        static::assertSame($expected, $html->xml());
+        static::assertSame($expected, $html->html(false));
+        static::assertSame($expected, $html->html(true));
+    }
+
+    public function testLoadUpperCase()
+    {
+        $dom = new HtmlDomParser();
+        $dom->load('<DIV CLASS="ALL"><BR><P>hEY BRO, <A HREF="GOOGLE.COM">click here</A></BR></DIV>');
+        static::assertSame('<br><p>hEY BRO, <a href="GOOGLE.COM">click here</a></p>', $dom->find('div', 0)->innerHtml);
+    }
+
+    public function testLoadWithFile()
+    {
+        $dom = new HtmlDomParser();
+        $dom->load_file(__DIR__ . '/fixtures/small.html');
+        static::assertSame('VonBurgermeister', $dom->find('.post-user font', 0)->text);
+    }
+
+    public function testLoadFromFile()
+    {
+        $dom = new HtmlDomParser();
+        $dom->load_file(__DIR__ . '/fixtures/small.html');
+        static::assertSame('VonBurgermeister', $dom->find('.post-user font', 0)->text);
+    }
+
+    public function testLoadFromFileFind()
+    {
+        $dom = new HtmlDomParser();
+        $dom->load_file(__DIR__ . '/fixtures/small.html');
+        static::assertSame('VonBurgermeister', $dom->find('.post-row div .post-user font', 0)->text);
+    }
+
+    public function testLoadUtf8()
+    {
+        $dom = new HtmlDomParser();
+        $dom->load('<p>Dzień</p>');
+        static::assertSame('Dzień', $dom->find('p', 0)->text);
+    }
+
+    public function testLoadFileBigTwice()
+    {
+        $dom = new HtmlDomParser();
+        $dom->loadHtmlFile(__DIR__ . '/fixtures/big.html');
+        $post = $dom->find('.post-row', 0);
+        static::assertSame('<p>Журчанье воды<br>' . "\n" . 'Черно-белые тени<br>' . "\n" . 'Вновь на фонтане</p>', $post->find('.post-message', 0)->innerHtml);
+    }
+
+    public function testToStringMagic()
+    {
+        $dom = new HtmlDomParser();
+        $dom->load('<div class="all"><p>Hey bro, <a href="google.com">click here</a><br /> :)</p></div>');
+        static::assertSame('<div class="all"><p>Hey bro, <a href="google.com">click here</a><br> :)</p></div>', (string) $dom);
+    }
+
+    public function testGetMagic()
+    {
+        $dom = new HtmlDomParser();
+
+        $html = '<div class="all"><p>Hey bro, <a href="google.com">click here</a><br /> :)</p></div>';
+        $expected = '<p>Hey bro, <a href="google.com">click here</a><br> :)</p>';
+
+        $dom->load($html);
+        static::assertSame($expected, $dom->innerHtml);
+
+        // ---
+
+        $dom = new HtmlDomParser();
+
+        $html = '<div class="all"><p>Hey bro, <a href="google.com">click here</a><br /> :)</p></div>';
+        $expected = '<div class="all"><p>Hey bro, <a href="google.com">click here</a><br> :)</p></div>';
+
+        $dom->load($html);
+        static::assertSame($expected, $dom->html());
+    }
+
+    public function testGetElementById()
+    {
+        $dom = new HtmlDomParser();
+        $dom->load('<div class="all"><p>Hey bro, <a href="google.com" id="78">click here</a></div><br />');
+        static::assertSame('<a href="google.com" id="78">click here</a>', $dom->getElementById('78')->outerHtml);
+    }
+
+    public function testGetElementsByTag()
+    {
+        $dom = new HtmlDomParser();
+        $dom->load('<div class="all"><p>Hey bro, <a href="google.com" id="78">click here</a></div><br />');
+        $elm = $dom->getElementsByTagName('p');
+        static::assertSame(
+            '<p>Hey bro, <a href="google.com" id="78">click here</a></p>',
+            $elm[0]->outerHtml
+        );
+    }
+
+    public function testGetElementsByClass()
+    {
+        $dom = new HtmlDomParser();
+        $dom->load('<div class="all"><p>Hey bro, <a href="google.com" id="78">click here</a></div><br />');
+        $elm = $dom->find('.all');
+        static::assertSame(
+            '<p>Hey bro, <a href="google.com" id="78">click here</a></p>',
+            $elm[0]->innerHtml
+        );
+    }
+
+    public function testUtf8AndBrokenHtmlEncoding()
+    {
+        $dom = new HtmlDomParser();
+        $dom->load('hi سلام<div>の家庭に、9 ☆<><');
+        static::assertSame(
+            'hi سلام<div>の家庭に、9 ☆</div>',
+            $dom->innerHtml
+        );
+
+        // ---
+
+        $dom = new HtmlDomParser();
+        $dom->load('hi</b>سلام<div>の家庭に、9 ☆<><');
+        static::assertSame(
+            'hiسلام<div>の家庭に、9 ☆</div>',
+            $dom->innerHtml
+        );
+
+        // ---
+
+        $dom = new HtmlDomParser();
+        $dom->load('hi</b><p>سلام<div>の家庭に、9 ☆<><');
+        static::assertSame(
+            'hi<p>سلام<div>の家庭に、9 ☆</div>',
+            $dom->innerHtml
+        );
+    }
+
+    public function testEnforceEncoding()
+    {
+        $dom = new HtmlDomParser();
+        $dom->load('tests/files/horrible.html');
+
+        static::assertNotSame('<input type="submit" tabindex="0" name="submit" value="Информации" />', $dom->find('table input', 1)->outerHtml);
+    }
+
+    public function testReplaceToPreserveHtmlEntities()
+    {
+        $tests = [
+            // non url && non dom special chars -> no changes
+            '' => '',
+            // non url && non dom special chars -> no changes
+            ' ' => ' ',
+            // non url && non dom special chars -> no changes
+            'abc' => 'abc',
+            // non url && non dom special chars -> no changes
+            'öäü' => 'öäü',
+            // non url && non dom special chars -> no changes
+            '`?/=()=$"?#![{`' => '`?/=()=$"?#![{`',
+            // non url && non dom special chars -> no changes
+            '{{foo}}' => '{{foo}}',
+            // dom special chars -> changes
+            '`?/=()=$&,|,+,%"?#![{@`' => '`?/=()=$____SIMPLE_HTML_DOM__VOKU__AMP____,____SIMPLE_HTML_DOM__VOKU__PIPE____,____SIMPLE_HTML_DOM__VOKU__PLUS____,____SIMPLE_HTML_DOM__VOKU__PERCENT____"?#![{____SIMPLE_HTML_DOM__VOKU__AT____`',
+            // non url && non dom special chars -> no changes
+            'www.domain.de/foo.php?foobar=1&email=lars%40moelleken.org&guid=test1233312&{{foo}}' => 'www.domain.de/foo.php?foobar=1____SIMPLE_HTML_DOM__VOKU__AMP____email=lars____SIMPLE_HTML_DOM__VOKU__PERCENT____40moelleken.org____SIMPLE_HTML_DOM__VOKU__AMP____guid=test1233312____SIMPLE_HTML_DOM__VOKU__AMP____{{foo}}',
+            // url -> changes
+            '[https://www.domain.de/foo.php?foobar=1&email=lars%40moelleken.org&guid=test1233312&{{foo}}#bar]' => '____SIMPLE_HTML_DOM__VOKU__SQUARE_BRACKET_LEFT____https://www.domain.de/foo.php?foobar=1____SIMPLE_HTML_DOM__VOKU__AMP____email=lars____SIMPLE_HTML_DOM__VOKU__PERCENT____40moelleken.org____SIMPLE_HTML_DOM__VOKU__AMP____guid=test1233312____SIMPLE_HTML_DOM__VOKU__AMP________SIMPLE_HTML_DOM__VOKU__BRACKET_LEFT________SIMPLE_HTML_DOM__VOKU__BRACKET_LEFT____foo____SIMPLE_HTML_DOM__VOKU__BRACKET_RIGHT________SIMPLE_HTML_DOM__VOKU__BRACKET_RIGHT____#bar____SIMPLE_HTML_DOM__VOKU__SQUARE_BRACKET_RIGHT____',
+            // url -> changes
+            'https://www.domain.de/foo.php?foobar=1&email=lars%40moelleken.org&guid=test1233312&{{foo}}#foo' => 'https://www.domain.de/foo.php?foobar=1____SIMPLE_HTML_DOM__VOKU__AMP____email=lars____SIMPLE_HTML_DOM__VOKU__PERCENT____40moelleken.org____SIMPLE_HTML_DOM__VOKU__AMP____guid=test1233312____SIMPLE_HTML_DOM__VOKU__AMP________SIMPLE_HTML_DOM__VOKU__BRACKET_LEFT________SIMPLE_HTML_DOM__VOKU__BRACKET_LEFT____foo____SIMPLE_HTML_DOM__VOKU__BRACKET_RIGHT________SIMPLE_HTML_DOM__VOKU__BRACKET_RIGHT____#foo',
+        ];
+
+        foreach ($tests as $test => $expected) {
+            $result = HtmlDomParser::replaceToPreserveHtmlEntities($test);
+            static::assertSame($expected, $result);
+
+            $result = HtmlDomParser::putReplacedBackToPreserveHtmlEntities($result);
+            static::assertSame($test, $result);
+        }
+    }
+
+    public function testUseXPath()
+    {
+        $dom = new HtmlDomParser();
+        $dom->loadHtml(
+            '
+            <html>
+              <head></head>
+              <body>
+                <p>.....</p>
+                <script>
+                Some code ... 
+                document.write("<script src=\'some script\'><\/script>") 
+                Some code ... 
+                </script>
+                <p>....</p>
+              </body>
+            </html>'
+        );
+        $elm = $dom->find('*');
+        static::assertSame('.....', $elm[3]->innerHtml);
+
+        $elm = $dom->find('//*');
+        static::assertSame('.....', $elm[3]->innerHtml);
+    }
+
+    public function testScriptCleanerScriptTag()
+    {
+        $dom = new HtmlDomParser();
+        $dom->load(
+            '
             <p>.....</p>
             <script>
             Some code ... 
             document.write("<script src=\'some script\'><\/script>") 
             Some code ... 
             </script>
-            <p>....</p>
-          </body>
-        </html>'
-    );
-    $elm = $dom->find('*');
-    self::assertSame('.....', $elm[3]->innerHtml);
-
-
-    $elm = $dom->find('//*');
-    self::assertSame('.....', $elm[3]->innerHtml);
-  }
-
-  public function testScriptCleanerScriptTag()
-  {
-    $dom = new HtmlDomParser();
-    $dom->load(
-        '
-        <p>.....</p>
-        <script>
-        Some code ... 
-        document.write("<script src=\'some script\'><\/script>") 
-        Some code ... 
-        </script>
-        <p>....</p>'
-    );
-    $elm = $dom->getElementsByTagName('p');
-    self::assertSame('....', $elm[1]->innerHtml);
-  }
-
-  public function testBeforeClosingTag()
-  {
-    $dom = new HtmlDomParser();
-    $dom->load('<div class="stream-container "  > <div class="stream-item js-new-items-bar-container"> </div> <div class="stream">');
-    self::assertSame('<div class="stream-container "> <div class="stream-item js-new-items-bar-container"> </div> <div class="stream"></div></div>', (string)$dom);
-  }
-
-  public function testCodeTag()
-  {
-    $dom = new HtmlDomParser();
-    $dom->load('<strong>hello</strong><code class="language-php">$foo = "bar";</code>');
-    self::assertSame('<strong>hello</strong><code class="language-php">$foo = "bar";</code>', (string)$dom);
-  }
-
-  public function testDeleteNodeOuterHtml()
-  {
-    $dom = new HtmlDomParser();
-    $dom->load('<div class="all"><p>Hey bro, <a href="google.com">click here</a><br /> :)</p></div>');
-    $a = $dom->find('a');
-    $a[0]->outerHtml = '';
-    unset($a);
-    self::assertSame('<div class="all"><p>Hey bro, <br> :)</p></div>', (string)$dom);
-  }
-
-  public function testDeleteNodeInnerHtml()
-  {
-    $dom = new HtmlDomParser();
-    $dom->load('<div class="all"><p>Hey bro, <a href="google.com">click here</a><br /> :)</p></div>');
-    $a = $dom->find('div.all');
-    $a[0]->innerHtml = '';
-    unset($a);
-    self::assertSame('<div class="all"></div>', (string)$dom);
-  }
-
-  public function testScriptInCommentHtml()
-  {
-    // --- via load()
-
-    $dom = new HtmlDomParser();
-    $dom->load('
-      <script class="script_1" type="text/javascript">someCode</script>
-      <!-- <script class="script_2" type="text/javascript">someCode</script> -->
-    ');
-    $script = $dom->find('script');
-    self::assertSame('<script class="script_1" type="text/javascript">someCode</script>', (string)$script);
-
-    // --- via "str_get_html()"
-
-    $dom = HtmlDomParser::str_get_html('
-      <script class="script_1" type="text/javascript">someCode</script>
-      <!-- <script class="script_2" type="text/javascript">someCode</script> -->
-    ');
-    $script = $dom->find('script');
-    self::assertSame('<script class="script_1" type="text/javascript">someCode</script>', (string)$script);
-
-  }
-
-  public function testSpecialCharsAndPlaintext()
-  {
-    $file = __DIR__ . '/fixtures/test_page_plaintext.html';
-    $dom = new HtmlDomParser();
-    $dom->loadHtmlFile($file);
-
-    $review_content = $dom->find('.review-content p');
-    self::assertInstanceOf(SimpleHtmlDomNodeInterface::class, $review_content);
-
-    $allReviews = '';
-    foreach ($review_content as $review) {
-      $allReviews .= $review->plaintext . "\n";
+            <p>....</p>'
+        );
+        $elm = $dom->getElementsByTagName('p');
+        static::assertSame('....', $elm[1]->innerHtml);
     }
-    self::assertTrue(strlen($allReviews) > 0);
-    self::assertContains('It&#39;s obvious having', $allReviews);
-    self::assertContains('2006 Volvo into Dave&#39;s due', $allReviews);
-  }
+
+    public function testBeforeClosingTag()
+    {
+        $dom = new HtmlDomParser();
+        $dom->load('<div class="stream-container "  > <div class="stream-item js-new-items-bar-container"> </div> <div class="stream">');
+        static::assertSame('<div class="stream-container "> <div class="stream-item js-new-items-bar-container"> </div> <div class="stream"></div></div>', (string) $dom);
+    }
+
+    public function testCodeTag()
+    {
+        $dom = new HtmlDomParser();
+        $dom->load('<strong>hello</strong><code class="language-php">$foo = "bar";</code>');
+        static::assertSame('<strong>hello</strong><code class="language-php">$foo = "bar";</code>', (string) $dom);
+    }
+
+    public function testDeleteNodeOuterHtml()
+    {
+        $dom = new HtmlDomParser();
+        $dom->load('<div class="all"><p>Hey bro, <a href="google.com">click here</a><br /> :)</p></div>');
+        $a = $dom->find('a');
+        $a[0]->outerHtml = '';
+        unset($a);
+        static::assertSame('<div class="all"><p>Hey bro, <br> :)</p></div>', (string) $dom);
+    }
+
+    public function testDeleteNodeInnerHtml()
+    {
+        $dom = new HtmlDomParser();
+        $dom->load('<div class="all"><p>Hey bro, <a href="google.com">click here</a><br /> :)</p></div>');
+        $a = $dom->find('div.all');
+        $a[0]->innerHtml = '';
+        unset($a);
+        static::assertSame('<div class="all"></div>', (string) $dom);
+    }
+
+    public function testScriptInCommentHtml()
+    {
+        // --- via load()
+
+        $dom = new HtmlDomParser();
+        $dom->load(
+            '
+      <script class="script_1" type="text/javascript">someCode</script>
+      <!-- <script class="script_2" type="text/javascript">someCode</script> -->
+    '
+        );
+        $script = $dom->find('script');
+        static::assertSame('<script class="script_1" type="text/javascript">someCode</script>', (string) $script);
+
+        // --- via "str_get_html()"
+
+        $dom = HtmlDomParser::str_get_html(
+            '
+      <script class="script_1" type="text/javascript">someCode</script>
+      <!-- <script class="script_2" type="text/javascript">someCode</script> -->
+    '
+        );
+        $script = $dom->find('script');
+        static::assertSame('<script class="script_1" type="text/javascript">someCode</script>', (string) $script);
+    }
+
+    public function testSpecialCharsAndPlaintext()
+    {
+        $file = __DIR__ . '/fixtures/test_page_plaintext.html';
+        $dom = new HtmlDomParser();
+        $dom->loadHtmlFile($file);
+
+        $review_content = $dom->find('.review-content p');
+        static::assertInstanceOf(SimpleHtmlDomNodeInterface::class, $review_content);
+
+        $allReviews = '';
+        foreach ($review_content as $review) {
+            $allReviews .= $review->plaintext . "\n";
+        }
+        static::assertTrue(\strlen($allReviews) > 0);
+        static::assertContains('It&#39;s obvious having', $allReviews);
+        static::assertContains('2006 Volvo into Dave&#39;s due', $allReviews);
+    }
 }

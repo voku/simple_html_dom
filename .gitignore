@@ -1,5 +1,15 @@
 # Created by http://www.gitignore.io
 
+# php (composer)
+vendor
+composer.lock
+
+# php (phpunit)
+build/
+
+# php (phpcs fixer)
+.php_cs.cache
+
 ### PhpStorm ###
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm
 
@@ -34,7 +44,6 @@ com_crashlytics_export_strings.xml
 
 ### NetBeans ###
 nbproject/private/
-build/
 nbbuild/
 dist/
 nbdist/
@@ -65,7 +74,3 @@ $RECYCLE.BIN/
 
 # KDE directory preferences
 .directory
-
-# composer
-vendor
-composer.lock
