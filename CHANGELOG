@@ -3,8 +3,10 @@
 2: add "findOne($selector)" === "find($selector, 0)"
 3: update "symfony/css-selector" (optional)
 4: use LIBXML options for every html-loading task
-5: fix for vuejs (attributes beginning with "@")
-6: fix plaintext output
+5: fix -> for vuejs (attributes beginning with "@")
+6: fix -> plaintext output
+7: fix -> document.write issue from DomDocument
+8: fix -> remove (auto-added) head element
 
 [PHP Simple HTML Dom v4.0.x]
 1: drop support for PHP < 7.0
