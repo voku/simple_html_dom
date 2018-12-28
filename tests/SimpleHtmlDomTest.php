@@ -51,6 +51,23 @@ final class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
         static::assertInstanceOf('DOMNode', $element->getNode());
     }
 
+    public function testReplaceText()
+    {
+        $html = '<div>foo</div>';
+        $replace = '<h1>bar</h1>';
+        $document = new HtmlDomParser($html);
+        $node = $document->getDocument()->documentElement;
+        $element = new SimpleHtmlDom($node);
+        $element->plaintext = $replace;
+        static::assertSame('<h1>bar</h1>', $document->outertext);
+        static::assertSame($replace, $document->plaintext);
+        static::assertSame('<h1>bar</h1>', $element->outertext);
+        static::assertSame($replace, $element->plaintext);
+        $element->plaintext = '';
+        static::assertSame('', $document->outertext);
+        static::assertSame('', $document->plaintext);
+    }
+
     public function testReplaceNode()
     {
         $html = '<div>foo</div>';

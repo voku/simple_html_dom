@@ -14,7 +14,7 @@ use RuntimeException;
  * @property string      outerHtml <p>Get dom node's outer html.</p>
  * @property string      innerText <p>Get dom node's inner html (alias for "innerHtml").</p>
  * @property string      innerHtml <p>Get dom node's inner html.</p>
- * @property-read string plaintext <p>Get dom node's plain text.</p>
+ * @property string      plaintext <p>Get dom node's plain text.</p>
  * @property-read string tag       <p>Get dom node name.</p>
  * @property-read string attr      <p>Get dom node attributes.</p>
  *
@@ -160,6 +160,8 @@ class SimpleHtmlDom implements \IteratorAggregate
             case 'innertext':
             case 'innerhtml':
                 return $this->replaceChild($value);
+            case 'plaintext':
+                return $this->replaceText($value);
             default:
                 return $this->setAttribute($name, $value);
         }
@@ -520,6 +522,29 @@ class SimpleHtmlDom implements \IteratorAggregate
             /** @noinspection UnusedFunctionResultInspection */
             $this->node->appendChild($newNode);
         }
+
+        return $this;
+    }
+
+    /**
+     * Replace this node with text
+     *
+     * @param $string
+     *
+     * @return null|$this
+     */
+    protected function replaceText($string)
+    {
+        if (empty($string)) {
+            $this->node->parentNode->removeChild($this->node);
+
+            return null;
+        }
+
+        $newElement = $this->node->ownerDocument->createTextNode($string);
+        $newNode = $this->node->ownerDocument->importNode($newElement, true);
+        $this->node->parentNode->replaceChild($newNode, $this->node);
+        $this->node = $newNode;
 
         return $this;
     }
