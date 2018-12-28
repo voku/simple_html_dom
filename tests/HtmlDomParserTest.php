@@ -915,6 +915,17 @@ HTML;
         static::assertSame('<br><p>Hey bro, <a href="google.com">click here</a></p>', $dom->find('div', 0)->innerHtml);
     }
 
+    public function testScriptWithoutScriptTag()
+    {
+        $test = 'window.jQuery || document.write(\'<script src="http://lall/jquery/jquery.min.js"><\/script>\')';
+        $dom = new HtmlDomParser();
+        $dom->load($test);
+        static::assertSame(
+            'window.jQuery || document.write(\'<script src="http://lall/jquery/jquery.min.js"><\/script>\')',
+            $dom->html()
+        );
+    }
+
     public function testScriptInHeadScript()
     {
         $dom = new HtmlDomParser();
@@ -941,6 +952,16 @@ HTML;
         );
         static::assertSame(
             '<script>window.jQuery || document.write(\'<script src="http://lall/jquery/jquery.min.js"><\/script>\')</script>',
+            $dom->findOne('script')->html()
+        );
+
+        // ---
+
+        $script = $dom->findOne('script');
+        $script->outerHtml = '<script>window.jQuery||document.write(\'<script src="http://lall/jquery/jquery.min.js"><\/script>\')</script>';
+
+        static::assertSame(
+            '<script>window.jQuery||document.write(\'<script src="http://lall/jquery/jquery.min.js"><\/script>\')</script>',
             $dom->findOne('script')->html()
         );
     }

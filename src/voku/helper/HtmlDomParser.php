@@ -105,6 +105,11 @@ class HtmlDomParser
     /**
      * @var bool
      */
+    protected $isDOMDocumentCreatedWithFakeEndScript = false;
+
+    /**
+     * @var bool
+     */
     protected $keepBrokenHtml;
 
     /**
@@ -133,6 +138,7 @@ class HtmlDomParser
             $domNode = $this->document->importNode($element, true);
 
             if ($domNode instanceof \DOMNode) {
+                /** @noinspection UnusedFunctionResultInspection */
                 $this->document->appendChild($domNode);
             }
 
@@ -140,6 +146,7 @@ class HtmlDomParser
         }
 
         if ($element !== null) {
+            /** @noinspection UnusedFunctionResultInspection */
             $this->loadHtml($element);
         }
     }
@@ -362,6 +369,14 @@ class HtmlDomParser
             $this->isDOMDocumentCreatedWithoutHeadWrapper = true;
         }
 
+        if (
+            \strpos($html, '</script>') === false
+            &&
+            \strpos($html, '<\/script>') !== false
+        ) {
+            $this->isDOMDocumentCreatedWithFakeEndScript = true;
+        }
+
         // set error level
         $internalErrors = \libxml_use_internal_errors(true);
         $disableEntityLoader = \libxml_disable_entity_loader(true);
@@ -413,6 +428,7 @@ class HtmlDomParser
             if ($xmlHackUsed === true) {
                 foreach ($this->document->childNodes as $child) {
                     if ($child->nodeType === \XML_PI_NODE) {
+                        /** @noinspection UnusedFunctionResultInspection */
                         $this->document->removeChild($child);
 
                         break;
@@ -555,12 +571,7 @@ class HtmlDomParser
         }
 
         // return one element
-        if (isset($elements[$idx])) {
-            return $elements[$idx];
-        }
-
-        // return a blank-element
-        return new SimpleHtmlDomNodeBlank();
+        return $elements[$idx] ?? new SimpleHtmlDomNodeBlank();
     }
 
     /**
@@ -606,12 +617,7 @@ class HtmlDomParser
         }
 
         // return one element
-        if (isset($elements[$idx])) {
-            return $elements[$idx];
-        }
-
-        // return a blank-element
-        return new SimpleHtmlDomNodeBlank();
+        return $elements[$idx] ?? new SimpleHtmlDomNodeBlank();
     }
 
     /**
@@ -649,6 +655,14 @@ class HtmlDomParser
                     '<head>',
                     '</head>',
                 ],
+                '',
+                $content
+            );
+        }
+
+        if ($this->isDOMDocumentCreatedWithFakeEndScript === true) {
+            $content = \str_replace(
+                '</script>',
                 '',
                 $content
             );
