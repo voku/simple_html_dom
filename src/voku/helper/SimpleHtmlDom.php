@@ -560,6 +560,23 @@ class SimpleHtmlDom implements \IteratorAggregate
         $this->node->parentNode->replaceChild($newNode, $this->node);
         $this->node = $newNode;
 
+        // Remove head element, preserving child nodes. (again)
+        if ($newDocument->getIsDOMDocumentCreatedWithoutHeadWrapper() === true) {
+            $html = $this->node->parentNode->getElementsByTagName('head')[0];
+            if ($this->node->parentNode->ownerDocument !== null) {
+                $fragment = $this->node->parentNode->ownerDocument->createDocumentFragment();
+                if ($html !== null) {
+                    /** @var DOMNode $html */
+                    while ($html->childNodes->length > 0) {
+                        /** @noinspection UnusedFunctionResultInspection */
+                        $fragment->appendChild($html->childNodes->item(0));
+                    }
+                    /** @noinspection UnusedFunctionResultInspection */
+                    $html->parentNode->replaceChild($fragment, $html);
+                }
+            }
+        }
+
         return $this;
     }
 
