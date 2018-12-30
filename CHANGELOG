@@ -1,13 +1,16 @@
+[PHP Simple HTML Dom v4.2.x]
+1: add "val()" method for form elements
+2: add simple access to DOMElement via "SimpleHtmlDom"
+
 [PHP Simple HTML Dom v4.1.x]
 1: "HtmlDomParser" -> fix clone method for "document"
 2: add "findOne($selector)" === "find($selector, 0)"
-3: add "val()" method for form elements
-4: update "symfony/css-selector" (optional)
-5: use LIBXML options for every html-loading task
-6: fix -> for vuejs (attributes beginning with "@")
-7: fix -> plaintext output
-8: fix -> document.write issue from DomDocument
-9: fix -> remove (auto-added) head element
+3: update "symfony/css-selector" (optional)
+4: use LIBXML options for every html-loading task
+5: fix -> for vuejs (attributes beginning with "@")
+6: fix -> plaintext output
+7: fix -> document.write issue from DomDocument
+8: fix -> remove (auto-added) head element
 
 [PHP Simple HTML Dom v4.0.x]
 1: drop support for PHP < 7.0
