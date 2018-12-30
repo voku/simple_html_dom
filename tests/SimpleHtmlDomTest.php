@@ -40,6 +40,34 @@ final class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
         static::assertSame('John', $element->value);
     }
 
+    public function testSetInput()
+    {
+        $html = '
+        <input name="text" type="text" value="">Text</input>
+        <textarea name="textarea"></textarea>
+        <input name="checkbox" type="checkbox" value="3">Text</input>
+        <select name="select" multiple>
+          <option value="1" selected>1</option>
+          <option value="2" selected>2</option>
+          <option value="3">2</option>
+        </select>
+        ';
+
+        $document = new HtmlDomParser($html);
+
+        $inputs = $document->find('input, textarea');
+        foreach ($inputs as $input) {
+            static::assertNotSame('3', $input->val());
+
+            $input->val('3');
+
+            static::assertSame('3', $input->val(), 'tested:' . $input->html());
+        }
+
+        $expected = '<input name="text" type="text" value="3">Text        <textarea name="textarea">3</textarea>        <input name="checkbox" type="checkbox" value="3" checked>Text        <select name="select" multiple>          <option value="1" selected>1</option>          <option value="2" selected>2</option>          <option value="3">2</option>        </select>';
+        static::assertSame($expected, $document->html());
+    }
+
     public function testGetNode()
     {
         $html = '<div>foo</div>';
@@ -171,6 +199,7 @@ final class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
 
         static::assertInstanceOf('voku\helper\SimpleHtmlDom', $node);
         static::assertSame('input', $node->tag);
+        static::assertSame('input', $node->nodeName);
         static::assertSame('number', $node->type);
         static::assertSame('5', $node->value);
     }

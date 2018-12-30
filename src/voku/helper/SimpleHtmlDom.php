@@ -17,9 +17,10 @@ use RuntimeException;
  * @property string      plaintext <p>Get dom node's plain text.</p>
  * @property-read string tag       <p>Get dom node name.</p>
  * @property-read string attr      <p>Get dom node attributes.</p>
+ * @property-read string text      <p>Get dom node name.</p>
+ * @property-read string html      <p>Get dom node's outer html.</p>
  *
- * @method SimpleHtmlDom|SimpleHtmlDom[]|SimpleHtmlDomNode|null children() children($idx = -1) <p>Returns children of
- *         node.</p>
+ * @method SimpleHtmlDom|SimpleHtmlDom[]|SimpleHtmlDomNode|null children() children($idx = -1) <p>Returns children of node.</p>
  * @method SimpleHtmlDom|null first_child() <p>Returns the first child of node.</p>
  * @method SimpleHtmlDom|null last_child() <p>Returns the last child of node.</p>
  * @method SimpleHtmlDom|null next_sibling() <p>Returns the next sibling of node.</p>
@@ -88,11 +89,13 @@ class SimpleHtmlDom implements \IteratorAggregate
      */
     public function __get($name)
     {
+        $nameOrig = $name;
         $name = \strtolower($name);
 
         switch ($name) {
             case 'outerhtml':
             case 'outertext':
+            case 'html':
                 return $this->html();
             case 'innerhtml':
             case 'innertext':
@@ -105,6 +108,10 @@ class SimpleHtmlDom implements \IteratorAggregate
             case 'attr':
                 return $this->getAllAttributes();
             default:
+                if (\property_exists($this->node, $nameOrig) === true) {
+                    return $this->node->{$nameOrig};
+                }
+
                 return $this->getAttribute($name);
         }
     }
@@ -127,6 +134,7 @@ class SimpleHtmlDom implements \IteratorAggregate
      */
     public function __isset($name)
     {
+        $nameOrig = $name;
         $name = \strtolower($name);
 
         switch ($name) {
@@ -139,6 +147,10 @@ class SimpleHtmlDom implements \IteratorAggregate
             case 'tag':
                 return true;
             default:
+                if (\property_exists($this->node, $nameOrig) === true) {
+                    return isset($this->node->{$nameOrig});
+                }
+
                 return $this->hasAttribute($name);
         }
     }
@@ -151,18 +163,23 @@ class SimpleHtmlDom implements \IteratorAggregate
      */
     public function __set($name, $value)
     {
+        $nameOrig = $name;
         $name = \strtolower($name);
 
         switch ($name) {
             case 'outerhtml':
             case 'outertext':
-                return $this->replaceNode($value);
+                return $this->replaceNodeWithString($value);
             case 'innertext':
             case 'innerhtml':
-                return $this->replaceChild($value);
+                return $this->replaceChildWithString($value);
             case 'plaintext':
-                return $this->replaceText($value);
+                return $this->replaceTextWithString($value);
             default:
+                if (\property_exists($this->node, $nameOrig) === true) {
+                    return $this->node->{$nameOrig} = $value;
+                }
+
                 return $this->setAttribute($name, $value);
         }
     }
@@ -493,7 +510,7 @@ class SimpleHtmlDom implements \IteratorAggregate
      *
      * @return $this
      */
-    protected function replaceChild(string $string): self
+    protected function replaceChildWithString(string $string): self
     {
         if (!empty($string)) {
             $newDocument = new HtmlDomParser($string);
@@ -529,11 +546,11 @@ class SimpleHtmlDom implements \IteratorAggregate
     /**
      * Replace this node with text
      *
-     * @param $string
+     * @param string $string
      *
-     * @return null|$this
+     * @return $this|null
      */
-    protected function replaceText($string)
+    protected function replaceTextWithString($string)
     {
         if (empty($string)) {
             $this->node->parentNode->removeChild($this->node);
@@ -558,7 +575,7 @@ class SimpleHtmlDom implements \IteratorAggregate
      *
      * @return $this|null
      */
-    protected function replaceNode(string $string)
+    protected function replaceNodeWithString(string $string)
     {
         if (empty($string)) {
             $this->node->parentNode->removeChild($this->node);
@@ -781,6 +798,85 @@ class SimpleHtmlDom implements \IteratorAggregate
         }
 
         return $this;
+    }
+
+    /**
+     * @param string|string[]|null $value <p>
+     *                                    null === get the current input value
+     *                                    text === set a new input value
+     *                                    </p>
+     *
+     * @return string|string[]|null
+     */
+    public function val($value = null)
+    {
+        if ($value === null) {
+            if (
+                $this->tag === 'input'
+                &&
+                (
+                    $this->getAttribute('type') === 'text'
+                    ||
+                    $this->hasAttribute('type') === false
+                )
+            ) {
+                return $this->getAttribute('value');
+            }
+
+            if (
+                $this->hasAttribute('checked') === true
+                &&
+                \in_array($this->getAttribute('type'), ['checkbox', 'radio'], true)
+            ) {
+                return $this->getAttribute('value');
+            }
+
+            if ($this->node->nodeName === 'select') {
+                $valuesFromDom = [];
+                foreach ($this->getElementsByTagName('option') as $option) {
+                    if ($this->hasAttribute('checked') === true) {
+                        $valuesFromDom[] = $option->getAttribute('value');
+                    }
+                }
+
+                if (\count($valuesFromDom) === 0) {
+                    return null;
+                }
+
+                return $valuesFromDom;
+            }
+
+            if ($this->node->nodeName === 'textarea') {
+                return $this->node->nodeValue;
+            }
+        } else {
+            if (\in_array($this->getAttribute('type'), ['checkbox', 'radio'], true)) {
+                if ($value === $this->getAttribute('value')) {
+                    /** @noinspection UnusedFunctionResultInspection */
+                    $this->setAttribute('checked', 'checked');
+                } else {
+                    $this->removeAttribute('checked');
+                }
+            } elseif ($this->node->nodeName === 'select') {
+                foreach ($this->node->getElementsByTagName('option') as $option) {
+                    /** @var DOMElement $option */
+                    if ($value === $option->getAttribute('value')) {
+                        /** @noinspection UnusedFunctionResultInspection */
+                        $option->setAttribute('selected', 'selected');
+                    } else {
+                        $option->removeAttribute('selected');
+                    }
+                }
+            } elseif ($this->node->nodeName === 'input') {
+                // Set value for input elements
+                /** @noinspection UnusedFunctionResultInspection */
+                $this->setAttribute('value', (string) $value);
+            } elseif ($this->node->nodeName === 'textarea') {
+                $this->node->nodeValue = (string) $value;
+            }
+        }
+
+        return null;
     }
 
     /**
