@@ -62,6 +62,8 @@ class HtmlDomParser
 
     protected static $domHtmlWrapperHelper = '____simple_html_dom__voku__html_wrapper____';
 
+    protected static $domHtmlSpecialScriptHelper = '____simple_html_dom__voku__html_special_sctipt____';
+
     /**
      * @var array
      */
@@ -327,6 +329,12 @@ class HtmlDomParser
 
             $DOM_REPLACE__HELPER_CACHE['orig']['html_wrapper__start'] = '';
             $DOM_REPLACE__HELPER_CACHE['orig']['html_wrapper__end'] = '';
+
+            $DOM_REPLACE__HELPER_CACHE['tmp']['html_special_script__start'] = '<' . self::$domHtmlSpecialScriptHelper;
+            $DOM_REPLACE__HELPER_CACHE['tmp']['html_special_script__end'] = '</' . self::$domHtmlSpecialScriptHelper . '>';
+
+            $DOM_REPLACE__HELPER_CACHE['orig']['html_special_script__start'] = '<script';
+            $DOM_REPLACE__HELPER_CACHE['orig']['html_special_script__end'] = '</script>';
         }
 
         if (
@@ -375,6 +383,14 @@ class HtmlDomParser
             \strpos($html, '<\/script>') !== false
         ) {
             $this->isDOMDocumentCreatedWithFakeEndScript = true;
+        }
+
+        if (
+            \strpos($html, 'type="text/html"') !== false
+            ||
+            \strpos($html, 'type=\'text/html\'') !== false
+        ) {
+            $this->keepSpecialScriptTags($html);
         }
 
         // set error level
@@ -446,6 +462,26 @@ class HtmlDomParser
         \libxml_disable_entity_loader($disableEntityLoader);
 
         return $this->document;
+    }
+
+    /**
+     * @param string $html
+     */
+    protected function keepSpecialScriptTags(string &$html)
+    {
+        $specialScripts = [];
+        // regEx for e.g.: [<script id="elements-image-1" type="text/html">...<script>]
+        $regExSpecialScript = '/<(script) [^>]*type=("|\')text\/html\2([^>]*)>.*<\/\1>/isU';
+        \preg_match_all($regExSpecialScript, $html, $specialScripts);
+
+        if (isset($specialScripts[0])) {
+            foreach ($specialScripts[0] as $specialScript) {
+                $specialNonScript = '<' . self::$domHtmlSpecialScriptHelper . substr($specialScript, strlen('<script'));
+                $specialNonScript = substr($specialNonScript, 0, -strlen('</script>')) . '</' . self::$domHtmlSpecialScriptHelper . '>';
+
+                $html = \str_replace($specialScript, $specialNonScript, $html);
+            }
+        }
     }
 
     /**

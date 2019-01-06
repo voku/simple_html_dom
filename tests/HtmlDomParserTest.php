@@ -1203,6 +1203,86 @@ HTML;
         static::assertSame('....', $elm[1]->innerHtml);
     }
 
+    public function testSpecialScriptTag()
+    {
+        // init
+        $html = '
+        <!doctype html>
+        <html lang="fr">
+        <head>
+            <title>Test</title>
+        </head>
+        <body>
+            A Body
+        
+            <script id="elements-image-1" type="text/html">
+                <div class="place badge-carte">Place du Village<br>250m - 2mn à pied</div>
+                <div class="telecabine badge-carte">Télécabine du Chamois<br>250m - 2mn à pied</div>
+                <div class="situation badge-carte"><img src="https://domain.tld/assets/frontOffice/kneiss/template-assets/assets/dist/img/08ecd8a.png" alt=""></div>
+            </script>
+            
+            <script id="elements-image-2" type="text/html">
+                <div class="place badge-carte">Place du Village<br>250m - 2mn à pied</div>
+                <div class="telecabine badge-carte">Télécabine du Chamois<br>250m - 2mn à pied</div>
+                <div class="situation badge-carte"><img src="https://domain.tld/assets/frontOffice/kneiss/template-assets/assets/dist/img/08ecd8a.png" alt=""></div>
+            </script>
+            
+            <script class="foobar" type="text/html">
+                <div class="place badge-carte">Place du Village<br>250m - 2mn à pied</div>
+                <div class="telecabine badge-carte">Télécabine du Chamois<br>250m - 2mn à pied</div>
+                <div class="situation badge-carte"><img src="https://domain.tld/assets/frontOffice/kneiss/template-assets/assets/dist/img/08ecd8a.png" alt=""></div>
+            </script>
+            <script class="foobar" type="text/html">
+                <div class="place badge-carte">Place du Village<br>250m - 2mn à pied</div>
+                <div class="telecabine badge-carte">Télécabine du Chamois<br>250m - 2mn à pied</div>
+                <div class="situation badge-carte"><img src="https://domain.tld/assets/frontOffice/kneiss/template-assets/assets/dist/img/08ecd8a.png" alt=""></div>
+            </script>
+        </body>
+        </html>
+        ';
+
+        $expected = '
+        <!DOCTYPE html>' . "\n" . '<html lang="fr">
+        <head>
+            <title>Test</title>
+        </head>
+        <body>
+            A Body
+        
+            <script id="elements-image-1" type="text/html">
+                <div class="place badge-carte">Place du Village<br>250m - 2mn à pied</div>
+                <div class="telecabine badge-carte">Télécabine du Chamois<br>250m - 2mn à pied</div>
+                <div class="situation badge-carte"><img src="https://domain.tld/assets/frontOffice/kneiss/template-assets/assets/dist/img/08ecd8a.png" alt=""></div>
+            </script>
+            
+            <script id="elements-image-2" type="text/html">
+                <div class="place badge-carte">Place du Village<br>250m - 2mn à pied</div>
+                <div class="telecabine badge-carte">Télécabine du Chamois<br>250m - 2mn à pied</div>
+                <div class="situation badge-carte"><img src="https://domain.tld/assets/frontOffice/kneiss/template-assets/assets/dist/img/08ecd8a.png" alt=""></div>
+            </script>
+            
+            <script class="foobar" type="text/html">
+                <div class="place badge-carte">Place du Village<br>250m - 2mn à pied</div>
+                <div class="telecabine badge-carte">Télécabine du Chamois<br>250m - 2mn à pied</div>
+                <div class="situation badge-carte"><img src="https://domain.tld/assets/frontOffice/kneiss/template-assets/assets/dist/img/08ecd8a.png" alt=""></div>
+            </script>
+            <script class="foobar" type="text/html">
+                <div class="place badge-carte">Place du Village<br>250m - 2mn à pied</div>
+                <div class="telecabine badge-carte">Télécabine du Chamois<br>250m - 2mn à pied</div>
+                <div class="situation badge-carte"><img src="https://domain.tld/assets/frontOffice/kneiss/template-assets/assets/dist/img/08ecd8a.png" alt=""></div>
+            </script>
+        </body>
+        </html>
+        ';
+
+        $dom = new HtmlDomParser();
+
+        $html = \str_replace(["\r\n", "\r", "\n"], "\n", (string) $dom->load($html));
+        $expected = \str_replace(["\r\n", "\r", "\n"], "\n", $expected);
+
+        static::assertSame(\trim($expected), \trim($html));
+    }
+
     public function testBeforeClosingTag()
     {
         $dom = new HtmlDomParser();
