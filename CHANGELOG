@@ -1,6 +1,7 @@
 [PHP Simple HTML Dom v4.2.x]
 1: add "val()" method for form elements
 2: add simple access to DOMElement via "SimpleHtmlDom"
+3: fix -> for special script tags with type="text/html"
 
 [PHP Simple HTML Dom v4.1.x]
 1: "HtmlDomParser" -> fix clone method for "document"
