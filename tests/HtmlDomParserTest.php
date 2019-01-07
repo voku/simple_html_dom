@@ -1283,6 +1283,47 @@ HTML;
         static::assertSame(\trim($expected), \trim($html));
     }
 
+    public function testHtmlEmbeddedInJavaScript()
+    {
+        $html = '
+        <!doctype html>
+        <html lang="fr">
+        <head>
+            <title>Test</title>
+        </head>
+        <body>
+            A Body
+        
+            <script id="elements-image-1">
+              var strJS = "<strong>foobar<\/strong>";
+            </script>
+        </body>
+        </html>
+        ';
+
+        $expected = '
+        <!DOCTYPE html>' . "\n" . '<html lang="fr">
+        <head>
+            <title>Test</title>
+        </head>
+        <body>
+            A Body
+        
+            <script id="elements-image-1">
+              var strJS = "<strong>foobar<\/strong>";
+            </script>
+        </body>
+        </html>';
+
+        $dom = new HtmlDomParser();
+
+        $html = \str_replace(["\r\n", "\r", "\n"], "\n", (string) $dom->load($html));
+        $expected = \str_replace(["\r\n", "\r", "\n"], "\n", $expected);
+
+        static::assertSame(\trim($expected), \trim($html));
+
+    }
+
     public function testBeforeClosingTag()
     {
         $dom = new HtmlDomParser();
