@@ -182,15 +182,9 @@ class HtmlDomParser
      */
     public static function __callStatic($name, $arguments)
     {
-        $arguments0 = '';
-        if (isset($arguments[0])) {
-            $arguments0 = $arguments[0];
-        }
+        $arguments0 = $arguments[0] ?? '';
 
-        $arguments1 = null;
-        if (isset($arguments[1])) {
-            $arguments1 = $arguments[1];
-        }
+        $arguments1 = $arguments[1] ?? null;
 
         if ($name === 'str_get_html') {
             $parser = new self();
@@ -358,7 +352,7 @@ class HtmlDomParser
      */
     private function createDOMDocument(string $html, $libXMLExtraOptions = null): \DOMDocument
     {
-        if ($this->keepBrokenHtml === true) {
+        if ($this->keepBrokenHtml) {
             $html = $this->keepBrokenHtml(\trim($html));
         }
 
@@ -417,9 +411,9 @@ class HtmlDomParser
         }
 
         if (
-            $this->isDOMDocumentCreatedWithoutWrapper === true
+            $this->isDOMDocumentCreatedWithoutWrapper
             ||
-            $this->keepBrokenHtml === true
+            $this->keepBrokenHtml
         ) {
             $html = '<' . self::$domHtmlWrapperHelper . '>' . $html . '</' . self::$domHtmlWrapperHelper . '>';
         }
@@ -441,7 +435,7 @@ class HtmlDomParser
             $this->document->loadHTML($html, $optionsXml);
 
             // remove the "xml-encoding" hack
-            if ($xmlHackUsed === true) {
+            if ($xmlHackUsed) {
                 foreach ($this->document->childNodes as $child) {
                     if ($child->nodeType === \XML_PI_NODE) {
                         /** @noinspection UnusedFunctionResultInspection */
@@ -471,7 +465,7 @@ class HtmlDomParser
     {
         $specialScripts = [];
         // regEx for e.g.: [<script id="elements-image-1" type="text/html">...<script>]
-        $regExSpecialScript = '/<(script) [^>]*type=("|\')text\/html\2([^>]*)>.*<\/\1>/isU';
+        $regExSpecialScript = '/<(script) [^>]*type=(["|\'])text\/html\2([^>]*)>.*<\/\1>/isU';
         \preg_match_all($regExSpecialScript, $html, $specialScripts);
 
         if (isset($specialScripts[0])) {
@@ -667,7 +661,7 @@ class HtmlDomParser
         // INFO: DOMDocument will encapsulate plaintext into a e.g. paragraph tag (<p>),
         //          so we try to remove it here again ...
 
-        if ($this->isDOMDocumentCreatedWithoutHtmlWrapper === true) {
+        if ($this->isDOMDocumentCreatedWithoutHtmlWrapper) {
             /** @noinspection HtmlRequiredLangAttribute */
             $content = \str_replace(
                 [
@@ -684,7 +678,7 @@ class HtmlDomParser
             );
         }
 
-        if ($this->isDOMDocumentCreatedWithoutHeadWrapper === true) {
+        if ($this->isDOMDocumentCreatedWithoutHeadWrapper) {
             /** @noinspection HtmlRequiredTitleElement */
             $content = \str_replace(
                 [
@@ -696,7 +690,7 @@ class HtmlDomParser
             );
         }
 
-        if ($this->isDOMDocumentCreatedWithFakeEndScript === true) {
+        if ($this->isDOMDocumentCreatedWithFakeEndScript) {
             $content = \str_replace(
                 '</script>',
                 '',
@@ -704,12 +698,12 @@ class HtmlDomParser
             );
         }
 
-        if ($this->isDOMDocumentCreatedWithoutWrapper === true) {
+        if ($this->isDOMDocumentCreatedWithoutWrapper) {
             $content = (string) \preg_replace('/^<p>/', '', $content);
             $content = (string) \preg_replace('/<\/p>/', '', $content);
         }
 
-        if ($this->isDOMDocumentCreatedWithoutHtml === true) {
+        if ($this->isDOMDocumentCreatedWithoutHtml) {
             $content = \str_replace(
                 [
                     '<p>',
@@ -744,7 +738,7 @@ class HtmlDomParser
             )
         );
 
-        if ($multiDecodeNewHtmlEntity === true) {
+        if ($multiDecodeNewHtmlEntity) {
             if (\class_exists('\voku\helper\UTF8')) {
 
                 /** @noinspection PhpUndefinedClassInspection */

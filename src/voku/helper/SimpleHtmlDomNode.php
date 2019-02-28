@@ -116,11 +116,7 @@ class SimpleHtmlDomNode extends \ArrayObject implements SimpleHtmlDomNodeInterfa
         }
 
         // return one element
-        if (isset($elements[$idx])) {
-            return $elements[$idx];
-        }
-
-        return null;
+        return $elements[$idx] ?? null;
     }
 
     /**

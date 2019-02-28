@@ -108,7 +108,7 @@ class SimpleHtmlDom implements \IteratorAggregate
             case 'attr':
                 return $this->getAllAttributes();
             default:
-                if (\property_exists($this->node, $nameOrig) === true) {
+                if (\property_exists($this->node, $nameOrig)) {
                     return $this->node->{$nameOrig};
                 }
 
@@ -147,7 +147,7 @@ class SimpleHtmlDom implements \IteratorAggregate
             case 'tag':
                 return true;
             default:
-                if (\property_exists($this->node, $nameOrig) === true) {
+                if (\property_exists($this->node, $nameOrig)) {
                     return isset($this->node->{$nameOrig});
                 }
 
@@ -176,7 +176,7 @@ class SimpleHtmlDom implements \IteratorAggregate
             case 'plaintext':
                 return $this->replaceTextWithString($value);
             default:
-                if (\property_exists($this->node, $nameOrig) === true) {
+                if (\property_exists($this->node, $nameOrig)) {
                     return $this->node->{$nameOrig} = $value;
                 }
 
@@ -486,6 +486,18 @@ class SimpleHtmlDom implements \IteratorAggregate
     }
 
     /**
+     * Nodes can get partially destroyed in which they're still an
+     * actual DOM node (such as \DOMElement) but almost their entire
+     * body is gone, including the `nodeType` attribute.
+     *
+     * @return bool true if node has been destroyed
+     */
+    public function isRemoved(): bool
+    {
+        return !isset($this->node->nodeType);
+    }
+
+    /**
      * Returns the previous sibling of node.
      *
      * @return SimpleHtmlDom|null
@@ -603,7 +615,7 @@ class SimpleHtmlDom implements \IteratorAggregate
         $this->node = $newNode;
 
         // Remove head element, preserving child nodes. (again)
-        if ($newDocument->getIsDOMDocumentCreatedWithoutHeadWrapper() === true) {
+        if ($newDocument->getIsDOMDocumentCreatedWithoutHeadWrapper()) {
             $html = $this->node->parentNode->getElementsByTagName('head')[0];
             if ($this->node->parentNode->ownerDocument !== null) {
                 $fragment = $this->node->parentNode->ownerDocument->createDocumentFragment();
@@ -634,7 +646,7 @@ class SimpleHtmlDom implements \IteratorAggregate
         if ($input instanceof HtmlDomParser) {
             $string = $input->outerText();
 
-            if ($input->getIsDOMDocumentCreatedWithoutHeadWrapper() === true) {
+            if ($input->getIsDOMDocumentCreatedWithoutHeadWrapper()) {
                 /** @noinspection HtmlRequiredTitleElement */
                 $string = \str_replace(['<head>', '</head>'], '', $string);
             }
@@ -675,9 +687,9 @@ class SimpleHtmlDom implements \IteratorAggregate
     protected function cleanHtmlWrapper(HtmlDomParser $newDocument, $removeExtraHeadTag = false): HtmlDomParser
     {
         if (
-            $newDocument->getIsDOMDocumentCreatedWithoutHtml() === true
+            $newDocument->getIsDOMDocumentCreatedWithoutHtml()
             ||
-            $newDocument->getIsDOMDocumentCreatedWithoutHtmlWrapper() === true
+            $newDocument->getIsDOMDocumentCreatedWithoutHtmlWrapper()
         ) {
 
             // Remove doc-type node.
@@ -721,9 +733,9 @@ class SimpleHtmlDom implements \IteratorAggregate
 
         // Remove head element, preserving child nodes.
         if (
-            $removeExtraHeadTag === true
+            $removeExtraHeadTag
             &&
-            $newDocument->getIsDOMDocumentCreatedWithoutHeadWrapper() === true
+            $newDocument->getIsDOMDocumentCreatedWithoutHeadWrapper()
         ) {
             $html = $this->node->parentNode->getElementsByTagName('head')[0];
             if ($this->node->parentNode->ownerDocument !== null) {
@@ -787,9 +799,9 @@ class SimpleHtmlDom implements \IteratorAggregate
     public function setAttribute(string $name, $value = null, bool $strict = false): self
     {
         if (
-            ($strict === true && $value === null)
+            ($strict && $value === null)
             ||
-            ($strict === false && empty($value))
+            (!$strict && empty($value))
         ) {
             $this->node->removeAttribute($name);
         } else {
@@ -817,14 +829,14 @@ class SimpleHtmlDom implements \IteratorAggregate
                 (
                     $this->getAttribute('type') === 'text'
                     ||
-                    $this->hasAttribute('type') === false
+                    !$this->hasAttribute('type')
                 )
             ) {
                 return $this->getAttribute('value');
             }
 
             if (
-                $this->hasAttribute('checked') === true
+                $this->hasAttribute('checked')
                 &&
                 \in_array($this->getAttribute('type'), ['checkbox', 'radio'], true)
             ) {
@@ -834,7 +846,7 @@ class SimpleHtmlDom implements \IteratorAggregate
             if ($this->node->nodeName === 'select') {
                 $valuesFromDom = [];
                 foreach ($this->getElementsByTagName('option') as $option) {
-                    if ($this->hasAttribute('checked') === true) {
+                    if ($this->hasAttribute('checked')) {
                         $valuesFromDom[] = $option->getAttribute('value');
                     }
                 }

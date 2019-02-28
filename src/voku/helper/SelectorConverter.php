@@ -8,6 +8,9 @@ use Symfony\Component\CssSelector\CssSelectorConverter;
 
 class SelectorConverter
 {
+    /**
+     * @var array
+     */
     protected static $compiled = [];
 
     /**
