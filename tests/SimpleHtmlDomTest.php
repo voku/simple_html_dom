@@ -64,7 +64,15 @@ final class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
             static::assertSame('3', $input->val(), 'tested:' . $input->html());
         }
 
-        $expected = '<input name="text" type="text" value="3">Text        <textarea name="textarea">3</textarea>        <input name="checkbox" type="checkbox" value="3" checked>Text        <select name="select" multiple>          <option value="1" selected>1</option>          <option value="2" selected>2</option>          <option value="3">2</option>        </select>';
+        $expected = '<input name="text" type="text" value="3">Text
+        <textarea name="textarea">3</textarea>
+        <input name="checkbox" type="checkbox" value="3" checked>Text
+        <select name="select" multiple>
+          <option value="1" selected>1</option>
+          <option value="2" selected>2</option>
+          <option value="3">2</option>
+        </select>';
+
         static::assertSame($expected, $document->html());
     }
 

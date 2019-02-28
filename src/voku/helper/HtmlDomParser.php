@@ -665,9 +665,6 @@ class HtmlDomParser
             /** @noinspection HtmlRequiredLangAttribute */
             $content = \str_replace(
                 [
-                    "\n",
-                    "\r\n",
-                    "\r",
                     '<body>',
                     '</body>',
                     '<html>',
