@@ -3,6 +3,8 @@
 2: add simple access to DOMElement via "SimpleHtmlDom"
 3: fix -> for special script tags with type="text/html"
 4: add "isRemoved()" method for "SimpleHtmlDom"
+5: fix -> do not remove newlines from the output
+
 
 [PHP Simple HTML Dom v4.1.x]
 1: "HtmlDomParser" -> fix clone method for "document"
@@ -13,6 +15,7 @@
 6: fix -> plaintext output
 7: fix -> document.write issue from DomDocument
 8: fix -> remove (auto-added) head element
+
 
 [PHP Simple HTML Dom v4.0.x]
 1: drop support for PHP < 7.0
