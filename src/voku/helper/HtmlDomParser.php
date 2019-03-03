@@ -379,12 +379,16 @@ class HtmlDomParser
             $this->isDOMDocumentCreatedWithFakeEndScript = true;
         }
 
-        if (
-            \strpos($html, 'type="text/html"') !== false
-            ||
-            \strpos($html, 'type=\'text/html\'') !== false
-        ) {
-            $this->keepSpecialScriptTags($html);
+        if (\strpos($html, '<script') !== false) {
+            $this->html5FallbackForScriptTags($html);
+
+            if (
+                \strpos($html, 'type="text/html"') !== false
+                ||
+                \strpos($html, 'type=\'text/html\'') !== false
+            ) {
+                $this->keepSpecialScriptTags($html);
+            }
         }
 
         // set error level
@@ -459,19 +463,36 @@ class HtmlDomParser
     }
 
     /**
+     * workaround for bug: https://bugs.php.net/bug.php?id=74628
+     *
+     * @param string $html
+     */
+    protected function html5FallbackForScriptTags(string &$html)
+    {
+        // regEx for e.g.: [<script id="elements-image-2">...<script>]
+        $regExSpecialScript = '/<(script)(?<attr>[^>]*)>(?<content>.*)<\/\1>/isU';
+        $html = \preg_replace_callback($regExSpecialScript, function($scripts) {
+            return '<script' . $scripts['attr'] . '>' . \str_replace('</', '<\/',$scripts['content']) . '</script>';
+        },$html);
+    }
+
+    /**
      * @param string $html
      */
     protected function keepSpecialScriptTags(string &$html)
     {
         $specialScripts = [];
-        // regEx for e.g.: [<script id="elements-image-1" type="text/html">...<script>]
+        // regEx for e.g.: [<script id="elements-image-1" type="text/html">...</script>]
         $regExSpecialScript = '/<(script) [^>]*type=(["|\'])text\/html\2([^>]*)>.*<\/\1>/isU';
         \preg_match_all($regExSpecialScript, $html, $specialScripts);
 
         if (isset($specialScripts[0])) {
             foreach ($specialScripts[0] as $specialScript) {
-                $specialNonScript = '<' . self::$domHtmlSpecialScriptHelper . substr($specialScript, strlen('<script'));
-                $specialNonScript = substr($specialNonScript, 0, -strlen('</script>')) . '</' . self::$domHtmlSpecialScriptHelper . '>';
+
+                $specialNonScript = '<' . self::$domHtmlSpecialScriptHelper . \substr($specialScript, \strlen('<script'));
+                $specialNonScript = \substr($specialNonScript, 0, -\strlen('</script>')) . '</' . self::$domHtmlSpecialScriptHelper . '>';
+                // remove the html5 fallback
+                $specialNonScript = \str_replace('<\/', '</', $specialNonScript);
 
                 $html = \str_replace($specialScript, $specialNonScript, $html);
             }

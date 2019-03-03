@@ -1384,6 +1384,15 @@ HTML;
         static::assertSame('<script class="script_1" type="text/javascript">someCode</script>', (string) $script);
     }
 
+    public function testHtmlAndJavaScriptMix()
+    {
+        $htmlAndJs = '<p>Text 1</p><script>$(".second-column-mobile-inner").wrapAll("<div class=\'collapse\' id=\'second-column\'></div>");</script><p>Text 2</p>';
+
+        $dom = HtmlDomParser::str_get_html($htmlAndJs);
+        $script = $dom->find('script');
+        static::assertSame('<script>$(".second-column-mobile-inner").wrapAll("<div class=\'collapse\' id=\'second-column\'><\/div>");</script>', (string) $script);
+    }
+
     public function testSpecialCharsAndPlaintext()
     {
         $file = __DIR__ . '/fixtures/test_page_plaintext.html';
