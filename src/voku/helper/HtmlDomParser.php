@@ -473,9 +473,9 @@ class HtmlDomParser
     {
         // regEx for e.g.: [<script id="elements-image-2">...<script>]
         $regExSpecialScript = '/<(script)(?<attr>[^>]*)>(?<content>.*)<\/\1>/isU';
-        $html = \preg_replace_callback($regExSpecialScript, function($scripts) {
-            return '<script' . $scripts['attr'] . '>' . \str_replace('</', '<\/',$scripts['content']) . '</script>';
-        },$html);
+        $html = \preg_replace_callback($regExSpecialScript, function ($scripts) {
+            return '<script' . $scripts['attr'] . '>' . \str_replace('</', '<\/', $scripts['content']) . '</script>';
+        }, $html);
     }
 
     /**
