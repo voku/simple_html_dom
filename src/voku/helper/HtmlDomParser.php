@@ -386,6 +386,8 @@ class HtmlDomParser
                 \strpos($html, 'type="text/html"') !== false
                 ||
                 \strpos($html, 'type=\'text/html\'') !== false
+                ||
+                \strpos($html, 'type=text/html') !== false
             ) {
                 $this->keepSpecialScriptTags($html);
             }
@@ -483,7 +485,7 @@ class HtmlDomParser
     {
         $specialScripts = [];
         // regEx for e.g.: [<script id="elements-image-1" type="text/html">...</script>]
-        $regExSpecialScript = '/<(script) [^>]*type=(["|\'])text\/html\2([^>]*)>.*<\/\1>/isU';
+        $regExSpecialScript = '/<(script) [^>]*type=(["\']){0,1}text\/html\2{0,1}([^>]*)>.*<\/\1>/isU';
         \preg_match_all($regExSpecialScript, $html, $specialScripts);
 
         if (isset($specialScripts[0])) {

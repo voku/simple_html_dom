@@ -1232,7 +1232,13 @@ HTML;
                 <div class="telecabine badge-carte">Télécabine du Chamois<br>250m - 2mn à pied</div>
                 <div class="situation badge-carte"><img src="https://domain.tld/assets/frontOffice/kneiss/template-assets/assets/dist/img/08ecd8a.png" alt=""></div>
             </script>
-            <script class="foobar" type="text/html">
+            <script class="foobar" type=\'text/html\'>
+                <div class="place badge-carte">Place du Village<br>250m - 2mn à pied</div>
+                <div class="telecabine badge-carte">Télécabine du Chamois<br>250m - 2mn à pied</div>
+                <div class="situation badge-carte"><img src="https://domain.tld/assets/frontOffice/kneiss/template-assets/assets/dist/img/08ecd8a.png" alt=""></div>
+            </script>
+            
+            <script class="foobar" type=text/html>
                 <div class="place badge-carte">Place du Village<br>250m - 2mn à pied</div>
                 <div class="telecabine badge-carte">Télécabine du Chamois<br>250m - 2mn à pied</div>
                 <div class="situation badge-carte"><img src="https://domain.tld/assets/frontOffice/kneiss/template-assets/assets/dist/img/08ecd8a.png" alt=""></div>
@@ -1266,6 +1272,12 @@ HTML;
                 <div class="telecabine badge-carte">Télécabine du Chamois<br>250m - 2mn à pied</div>
                 <div class="situation badge-carte"><img src="https://domain.tld/assets/frontOffice/kneiss/template-assets/assets/dist/img/08ecd8a.png" alt=""></div>
             </script>
+            <script class="foobar" type="text/html">
+                <div class="place badge-carte">Place du Village<br>250m - 2mn à pied</div>
+                <div class="telecabine badge-carte">Télécabine du Chamois<br>250m - 2mn à pied</div>
+                <div class="situation badge-carte"><img src="https://domain.tld/assets/frontOffice/kneiss/template-assets/assets/dist/img/08ecd8a.png" alt=""></div>
+            </script>
+            
             <script class="foobar" type="text/html">
                 <div class="place badge-carte">Place du Village<br>250m - 2mn à pied</div>
                 <div class="telecabine badge-carte">Télécabine du Chamois<br>250m - 2mn à pied</div>
