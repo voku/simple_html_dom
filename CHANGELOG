@@ -5,6 +5,7 @@
 4: add "isRemoved()" method for "SimpleHtmlDom"
 5: fix -> do not remove newlines from the output
 6: fix -> keep HTML closing tags in <script> tags
+7: add "findMulti()" method for "SimpleDomParser"
 
 
 [PHP Simple HTML Dom v4.1.x]
