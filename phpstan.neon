@@ -1,0 +1,11 @@
+parameters:
+    reportUnmatchedIgnoredErrors: false
+    excludes_analyse:
+        - %rootDir%/vendor/*
+        - %rootDir%/tests/*
+    autoload_files:
+        - %rootDir%/vendor/autoload.php
+    ignoreErrors:
+        - '#on an unknown class voku\\helper\\UTF8#'
+        - '#function of function call_user_func_array expects callable#'
+        - '#iterable<voku\\helper\\SimpleHtmlDom>#'

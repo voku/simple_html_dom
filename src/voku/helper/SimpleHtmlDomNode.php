@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace voku\helper;
 
 /**
- * @property-read string outertext <p>Get dom node's outer html.</p>
- * @property-read string plaintext <p>Get dom node's plain text.</p>
+ * @property-read string[] $outertext
+ *                                    <p>Get dom node's outer html.</p>
+ * @property-read string[] $plaintext
+ *                                    <p>Get dom node's plain text.</p>
  */
 class SimpleHtmlDomNode extends \ArrayObject implements SimpleHtmlDomNodeInterface
 {
@@ -19,6 +21,7 @@ class SimpleHtmlDomNode extends \ArrayObject implements SimpleHtmlDomNodeInterfa
      */
     public function __get($name)
     {
+        // init
         $name = \strtolower($name);
 
         if ($this->count() > 0) {
@@ -33,23 +36,11 @@ class SimpleHtmlDomNode extends \ArrayObject implements SimpleHtmlDomNodeInterfa
             return $return;
         }
 
+        if ($name === 'plaintext' || $name === 'outertext') {
+            return [];
+        }
+
         return null;
-    }
-
-    /**
-     * alias for "$this->innerHtml()" (added for compatibly-reasons with v1.x)
-     */
-    public function outertext()
-    {
-        return $this->innerHtml();
-    }
-
-    /**
-     * alias for "$this->innerHtml()" (added for compatibly-reasons with v1.x)
-     */
-    public function innertext()
-    {
-        return $this->innerHtml();
     }
 
     /**
@@ -68,24 +59,14 @@ class SimpleHtmlDomNode extends \ArrayObject implements SimpleHtmlDomNodeInterfa
      */
     public function __toString()
     {
+        // init
         $html = '';
+
         foreach ($this as $node) {
             $html .= $node->outertext;
         }
 
         return $html;
-    }
-
-    /**
-     * Find one node with a CSS selector.
-     *
-     * @param string $selector
-     *
-     * @return SimpleHtmlDomNode|null
-     */
-    public function findOne(string $selector)
-    {
-        return $this->find($selector, 0);
     }
 
     /**
@@ -98,7 +79,9 @@ class SimpleHtmlDomNode extends \ArrayObject implements SimpleHtmlDomNodeInterfa
      */
     public function find(string $selector, $idx = null)
     {
+        // init
         $elements = new self();
+
         foreach ($this as $node) {
             foreach ($node->find($selector) as $res) {
                 $elements->append($res);
@@ -120,13 +103,27 @@ class SimpleHtmlDomNode extends \ArrayObject implements SimpleHtmlDomNodeInterfa
     }
 
     /**
+     * Find one node with a CSS selector.
+     *
+     * @param string $selector
+     *
+     * @return SimpleHtmlDomNode|null
+     */
+    public function findOne(string $selector)
+    {
+        return $this->find($selector, 0);
+    }
+
+    /**
      * Get html of elements.
      *
-     * @return array
+     * @return string[]
      */
     public function innerHtml(): array
     {
+        // init
         $html = [];
+
         foreach ($this as $node) {
             $html[] = $node->outertext;
         }
@@ -135,13 +132,31 @@ class SimpleHtmlDomNode extends \ArrayObject implements SimpleHtmlDomNodeInterfa
     }
 
     /**
+     * alias for "$this->innerHtml()" (added for compatibly-reasons with v1.x)
+     */
+    public function innertext()
+    {
+        return $this->innerHtml();
+    }
+
+    /**
+     * alias for "$this->innerHtml()" (added for compatibly-reasons with v1.x)
+     */
+    public function outertext()
+    {
+        return $this->innerHtml();
+    }
+
+    /**
      * Get plain text.
      *
-     * @return array
+     * @return string[]
      */
     public function text(): array
     {
+        // init
         $text = [];
+
         foreach ($this as $node) {
             $text[] = $node->plaintext;
         }

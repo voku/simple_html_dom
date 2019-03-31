@@ -89,6 +89,39 @@ final class SimpleHtmlDomNodeTest extends \PHPUnit\Framework\TestCase
         static::assertSame(['foo', 'bar'], $element->plaintext);
     }
 
+    public function testNonText()
+    {
+        $html = '<div><p>foo</p><p>bar</p></div>';
+        $document = new HtmlDomParser($html);
+        $element = $document->find('span');
+
+        static::assertInstanceOf(\voku\helper\SimpleHtmlDomNode::class, $element);
+        static::assertSame([], $element->text());
+        static::assertSame([], $element->plaintext);
+    }
+
+    public function testNonText0()
+    {
+        $html = '<div><p>foo</p><p>bar</p></div>';
+        $document = new HtmlDomParser($html);
+        $element = $document->find('span', 0);
+
+        static::assertInstanceOf(\voku\helper\SimpleHtmlDomNodeBlank::class, $element);
+        static::assertSame([], $element->text());
+        static::assertSame([], $element->plaintext);
+    }
+
+    public function testNonText1()
+    {
+        $html = '<div><p>foo</p><p>bar</p></div>';
+        $document = new HtmlDomParser($html);
+        $element = $document->find('span', 1);
+
+        static::assertInstanceOf(\voku\helper\SimpleHtmlDomNodeBlank::class, $element);
+        static::assertSame([], $element->text());
+        static::assertSame([], $element->plaintext);
+    }
+
     public function testGetFirstDomElement()
     {
         $html = '<div><p class="lall">foo</p><p>lall</p></div>';

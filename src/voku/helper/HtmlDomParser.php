@@ -5,19 +5,31 @@ declare(strict_types=1);
 namespace voku\helper;
 
 /**
- * @property-read string outerText <p>Get dom node's outer html (alias for "outerHtml").</p>
- * @property-read string outerHtml <p>Get dom node's outer html.</p>
- * @property-read string innerText <p>Get dom node's inner html (alias for "innerHtml").</p>
- * @property-read string innerHtml <p>Get dom node's inner html.</p>
- * @property-read string plaintext <p>Get dom node's plain text.</p>
+ * @property-read string $outerText
+ *                                 <p>Get dom node's outer html (alias for "outerHtml").</p>
+ * @property-read string $outerHtml
+ *                                 <p>Get dom node's outer html.</p>
+ * @property-read string $innerText
+ *                                 <p>Get dom node's inner html (alias for "innerHtml").</p>
+ * @property-read string $innerHtml
+ *                                 <p>Get dom node's inner html.</p>
+ * @property-read string $plaintext
+ *                                 <p>Get dom node's plain text.</p>
  *
- * @method string outerText() <p>Get dom node's outer html (alias for "outerHtml()").</p>
- * @method string outerHtml() <p>Get dom node's outer html.</p>
- * @method string innerText() <p>Get dom node's inner html (alias for "innerHtml()").</p>
- * @method HtmlDomParser load() load($html) <p>Load HTML from string.</p>
- * @method HtmlDomParser load_file() load_file($html) <p>Load HTML from file.</p>
- * @method static HtmlDomParser file_get_html() file_get_html($html, $libXMLExtraOptions = null) <p>Load HTML from file.</p>
- * @method static HtmlDomParser str_get_html() str_get_html($html, $libXMLExtraOptions = null) <p>Load HTML from string.</p>
+ * @method string outerText()
+ *                            <p>Get dom node's outer html (alias for "outerHtml()").</p>
+ * @method string outerHtml()
+ *                            <p>Get dom node's outer html.</p>
+ * @method string innerText()
+ *                            <p>Get dom node's inner html (alias for "innerHtml()").</p>
+ * @method HtmlDomParser load(string $html)
+ *                                   <p>Load HTML from string.</p>
+ * @method HtmlDomParser load_file(string $html)
+ *                                        <p>Load HTML from file.</p>
+ * @method static HtmlDomParser file_get_html($html, $libXMLExtraOptions = null)
+ *                                                                               <p>Load HTML from file.</p>
+ * @method static HtmlDomParser str_get_html($html, $libXMLExtraOptions = null)
+ *                                                                              <p>Load HTML from string.</p>
  */
 class HtmlDomParser
 {
@@ -154,8 +166,8 @@ class HtmlDomParser
     }
 
     /**
-     * @param $name
-     * @param $arguments
+     * @param string $name
+     * @param array  $arguments
      *
      * @return bool|mixed
      */
@@ -171,8 +183,8 @@ class HtmlDomParser
     }
 
     /**
-     * @param $name
-     * @param $arguments
+     * @param string $name
+     * @param array  $arguments
      *
      * @throws \BadMethodCallException
      * @throws \RuntimeException
@@ -204,9 +216,9 @@ class HtmlDomParser
     /** @noinspection MagicMethodsValidityInspection */
 
     /**
-     * @param $name
+     * @param string $name
      *
-     * @return string
+     * @return null|string
      */
     public function __get($name)
     {
@@ -426,10 +438,17 @@ class HtmlDomParser
 
         $html = self::replaceToPreserveHtmlEntities($html);
 
+        $documentFound = false;
         $sxe = \simplexml_load_string($html, \SimpleXMLElement::class, $optionsXml);
         if ($sxe !== false && \count(\libxml_get_errors()) === 0) {
-            $this->document = \dom_import_simplexml($sxe)->ownerDocument;
-        } else {
+            $domElementTmp = \dom_import_simplexml($sxe);
+            if ($domElementTmp) {
+                $documentFound = true;
+                $this->document = $domElementTmp->ownerDocument;
+            }
+        }
+
+        if ($documentFound === false) {
 
             // UTF-8 hack: http://php.net/manual/en/domdocument.loadhtml.php#95251
             $xmlHackUsed = false;
@@ -472,8 +491,9 @@ class HtmlDomParser
     protected function html5FallbackForScriptTags(string &$html)
     {
         // regEx for e.g.: [<script id="elements-image-2">...<script>]
+        /** @noinspection HtmlDeprecatedTag */
         $regExSpecialScript = '/<(script)(?<attr>[^>]*)>(?<content>.*)<\/\1>/isU';
-        $html = \preg_replace_callback($regExSpecialScript, function ($scripts) {
+        $html = \preg_replace_callback($regExSpecialScript, static function ($scripts) {
             return '<script' . $scripts['attr'] . '>' . \str_replace('</', '<\/', $scripts['content']) . '</script>';
         }, $html);
     }
@@ -513,7 +533,7 @@ class HtmlDomParser
 
             $html = (string) \preg_replace_callback(
                 '/(?<start>.*)<(?<element_start>[a-z]+)(?<element_start_addon> [^>]*)?>(?<value>.*?)<\/(?<element_end>\2)>(?<end>.*)/sui',
-                function ($matches) {
+                static function ($matches) {
                     return $matches['start'] .
                            '°lt_simple_html_dom__voku_°' . $matches['element_start'] . $matches['element_start_addon'] . '°gt_simple_html_dom__voku_°' .
                            $matches['value'] .
@@ -529,7 +549,7 @@ class HtmlDomParser
 
             $html = (string) \preg_replace_callback(
                 '/(?<start>[^<]*)?(?<broken>(?:(?:<\/\w+(?:\s+\w+=\\"[^\"]+\\")*+)(?:[^<]+)>)+)(?<end>.*)/u',
-                function ($matches) {
+                static function ($matches) {
                     $matches['broken'] = \str_replace(
                         ['°lt/_simple_html_dom__voku_°', '°lt_simple_html_dom__voku_°', '°gt_simple_html_dom__voku_°'],
                         ['</', '<', '>'],
@@ -557,9 +577,9 @@ class HtmlDomParser
      *
      * @param string $id
      *
-     * @return SimpleHtmlDom|SimpleHtmlDomNodeBlank
+     * @return SimpleHtmlDom
      */
-    public function getElementById(string $id)
+    public function getElementById(string $id): SimpleHtmlDom
     {
         return $this->find("#${id}", 0);
     }
@@ -632,18 +652,30 @@ class HtmlDomParser
      *
      * @param string $selector
      *
-     * @return SimpleHtmlDom|SimpleHtmlDomNodeInterface
+     * @return SimpleHtmlDom
      */
-    public function findOne(string $selector)
+    public function findOne(string $selector): SimpleHtmlDom
     {
         return $this->find($selector, 0);
     }
 
     /**
-     * Find list of nodes with a CSS selector.
+     * Find one node with a CSS selector.
      *
      * @param string $selector
-     * @param int    $idx
+     *
+     * @return SimpleHtmlDom[]|SimpleHtmlDomNodeInterface
+     */
+    public function findMulti(string $selector)
+    {
+        return $this->find($selector, null);
+    }
+
+    /**
+     * Find list of nodes with a CSS selector.
+     *
+     * @param string   $selector
+     * @param null|int $idx
      *
      * @return SimpleHtmlDom|SimpleHtmlDom[]|SimpleHtmlDomNodeInterface
      */
@@ -856,6 +888,10 @@ class HtmlDomParser
             $content = $this->document->saveHTML();
         }
 
+        if ($content === false) {
+            return '';
+        }
+
         return $this->fixHtmlOutput($content, $multiDecodeNewHtmlEntity);
     }
 
@@ -981,11 +1017,11 @@ class HtmlDomParser
     }
 
     /**
-     * @param $functionName
+     * @param callable $functionName
      */
     public function set_callback($functionName)
     {
-        $this::$callback = $functionName;
+        static::$callback = $functionName;
     }
 
     /**

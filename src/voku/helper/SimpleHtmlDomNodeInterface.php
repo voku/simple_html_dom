@@ -1,16 +1,18 @@
 <?php
 
-declare(strict_types=1);
-
 namespace voku\helper;
 
+
 /**
- * Interface for SimpleHtmlDomNode
+ * @property-read string[] $outertext
+ *                                    <p>Get dom node's outer html.</p>
+ * @property-read string[] $plaintext
+ *                                    <p>Get dom node's plain text.</p>
  */
 interface SimpleHtmlDomNodeInterface
 {
     /**
-     * Find list of nodes with a CSS selector
+     * Find list of nodes with a CSS selector.
      *
      * @param string $selector
      * @param int    $idx
@@ -20,16 +22,35 @@ interface SimpleHtmlDomNodeInterface
     public function find(string $selector, $idx = null);
 
     /**
-     * Get html of Elements
+     * Find one node with a CSS selector.
      *
-     * @return string|string[]
+     * @param string $selector
+     *
+     * @return SimpleHtmlDomNode|null
      */
-    public function innerHtml();
+    public function findOne(string $selector);
 
     /**
-     * Get plain text
+     * Get html of elements.
      *
-     * @return string|string[]
+     * @return string[]
      */
-    public function text();
+    public function innerHtml(): array;
+
+    /**
+     * alias for "$this->innerHtml()" (added for compatibly-reasons with v1.x)
+     */
+    public function innertext();
+
+    /**
+     * alias for "$this->innerHtml()" (added for compatibly-reasons with v1.x)
+     */
+    public function outertext();
+
+    /**
+     * Get plain text.
+     *
+     * @return string[]
+     */
+    public function text(): array;
 }

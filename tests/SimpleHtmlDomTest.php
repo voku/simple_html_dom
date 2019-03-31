@@ -165,7 +165,7 @@ final class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
         static::assertCount($count, $elements);
 
         foreach ($elements as $node) {
-            static::assertInstanceOf('voku\helper\SimpleHtmlDom', $node);
+            static::assertInstanceOf(voku\helper\SimpleHtmlDom::class, $node);
         }
 
         $elements = $element($selector);
@@ -205,7 +205,7 @@ final class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
 
         $node = $element->getElementById('in');
 
-        static::assertInstanceOf('voku\helper\SimpleHtmlDom', $node);
+        static::assertInstanceOf(voku\helper\SimpleHtmlDom::class, $node);
         static::assertSame('input', $node->tag);
         static::assertSame('input', $node->nodeName);
         static::assertSame('number', $node->type);
@@ -221,7 +221,7 @@ final class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
 
         $node = $element->getElementByTagName('div');
 
-        static::assertInstanceOf('voku\helper\SimpleHtmlDom', $node);
+        static::assertInstanceOf(voku\helper\SimpleHtmlDom::class, $node);
         static::assertSame('div', $node->tag);
         static::assertSame('top', $node->id);
         static::assertSame('page', $node->class);
@@ -236,11 +236,11 @@ final class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
 
         $elements = $element->getElementsByTagName('div');
 
-        static::assertInstanceOf('voku\helper\SimpleHtmlDomNode', $elements);
+        static::assertInstanceOf(\voku\helper\SimpleHtmlDomNode::class, $elements);
         static::assertCount(16, $elements);
 
         foreach ($elements as $node) {
-            static::assertInstanceOf('voku\helper\SimpleHtmlDom', $node);
+            static::assertInstanceOf(voku\helper\SimpleHtmlDom::class, $node);
         }
     }
 
@@ -253,16 +253,16 @@ final class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
 
         $nodes = $element->childNodes();
 
-        static::assertInstanceOf('voku\helper\SimpleHtmlDomNode', $nodes);
+        static::assertInstanceOf(voku\helper\SimpleHtmlDomNode::class, $nodes);
         static::assertCount(2, $nodes);
 
         foreach ($nodes as $node) {
-            static::assertInstanceOf('voku\helper\SimpleHtmlDom', $node);
+            static::assertInstanceOf(voku\helper\SimpleHtmlDom::class, $node);
         }
 
         $node = $element->childNodes(1);
 
-        static::assertInstanceOf('voku\helper\SimpleHtmlDom', $node);
+        static::assertInstanceOf(voku\helper\SimpleHtmlDom::class, $node);
 
         static::assertSame('<p>bar</p>', $node->outertext);
         static::assertSame('bar', $node->plaintext);
@@ -280,16 +280,16 @@ final class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
 
         $nodes = $element->children();
 
-        static::assertInstanceOf('voku\helper\SimpleHtmlDomNode', $nodes);
+        static::assertInstanceOf(voku\helper\SimpleHtmlDomNode::class, $nodes);
         static::assertCount(2, $nodes);
 
         foreach ($nodes as $node) {
-            static::assertInstanceOf('voku\helper\SimpleHtmlDom', $node);
+            static::assertInstanceOf(voku\helper\SimpleHtmlDom::class, $node);
         }
 
         $node = $element->children(1);
 
-        static::assertInstanceOf('voku\helper\SimpleHtmlDom', $node);
+        static::assertInstanceOf(voku\helper\SimpleHtmlDom::class, $node);
 
         static::assertSame('<p>bar</p>', $node->outertext);
         static::assertSame('bar', $node->plaintext);
@@ -304,13 +304,13 @@ final class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
 
         $node = $element->firstChild();
 
-        static::assertInstanceOf('voku\helper\SimpleHtmlDom', $node);
+        static::assertInstanceOf(voku\helper\SimpleHtmlDom::class, $node);
         static::assertSame('<p>foo</p>', $node->outertext);
         static::assertSame('foo', $node->plaintext);
 
         $node = $element->lastChild();
 
-        static::assertInstanceOf('voku\helper\SimpleHtmlDom', $node);
+        static::assertInstanceOf(voku\helper\SimpleHtmlDom::class, $node);
         static::assertSame('<p></p>', $node->outertext);
         static::assertSame('', $node->plaintext);
 
@@ -327,13 +327,13 @@ final class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
 
         $node = $element->lastChild();
 
-        static::assertInstanceOf('voku\helper\SimpleHtmlDom', $node);
+        static::assertInstanceOf(voku\helper\SimpleHtmlDom::class, $node);
         static::assertSame('<p>bar</p>', $node->outertext);
         static::assertSame('bar', $node->plaintext);
 
         $node = $element->firstChild();
 
-        static::assertInstanceOf('voku\helper\SimpleHtmlDom', $node);
+        static::assertInstanceOf(voku\helper\SimpleHtmlDom::class, $node);
         static::assertSame('<p></p>', $node->outertext);
         static::assertSame('', $node->plaintext);
 
@@ -351,7 +351,7 @@ final class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
         $node = $element->firstChild();
         $sibling = $node->nextSibling();
 
-        static::assertInstanceOf('voku\helper\SimpleHtmlDom', $sibling);
+        static::assertInstanceOf(voku\helper\SimpleHtmlDom::class, $sibling);
         static::assertSame('<p>bar</p>', $sibling->outertext);
         static::assertSame('bar', $sibling->plaintext);
 
@@ -371,7 +371,7 @@ final class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
         $node = $element->lastChild();
         $sibling = $node->previousSibling();
 
-        static::assertInstanceOf('voku\helper\SimpleHtmlDom', $sibling);
+        static::assertInstanceOf(voku\helper\SimpleHtmlDom::class, $sibling);
         static::assertSame('<p>foo</p>', $sibling->outertext);
         static::assertSame('foo', $sibling->plaintext);
 
@@ -390,7 +390,7 @@ final class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
 
         $node = $element->parentNode();
 
-        static::assertInstanceOf('voku\helper\SimpleHtmlDom', $node);
+        static::assertInstanceOf(voku\helper\SimpleHtmlDom::class, $node);
         static::assertSame('div', $node->tag);
         /** @noinspection PhpUndefinedFieldInspection */
         static::assertSame('div', $element->parent()->tag);

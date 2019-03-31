@@ -322,7 +322,7 @@ HTML;
 
         $html = HtmlDomParser::str_get_html($str);
 
-        foreach ($html->find('input') as $e) {
+        foreach ($html->findMulti('input') as $e) {
             $e->outertext = '[INPUT]';
         }
 
@@ -832,7 +832,7 @@ HTML;
         $dom = new HtmlDomParser();
         $div = $dom->find('div', 0);
 
-        static::assertSame('', $div->plaintext);
+        static::assertSame([], $div->plaintext);
     }
 
     public function testIncorrectAccess()

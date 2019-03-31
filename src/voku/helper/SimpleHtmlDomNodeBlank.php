@@ -5,32 +5,57 @@ declare(strict_types=1);
 namespace voku\helper;
 
 /**
- * @property-read string outertext <p>Get dom node's outer html.</p>
- * @property-read string plaintext <p>Get dom node's plain text.</p>
+ * @property-read string[] $outertext
+ *                                    <p>Get dom node's outer html.</p>
+ * @property-read string[] $plaintext
+ *                                    <p>Get dom node's plain text.</p>
  */
 class SimpleHtmlDomNodeBlank extends \ArrayObject implements SimpleHtmlDomNodeInterface
 {
     /** @noinspection MagicMethodsValidityInspection */
 
     /**
-     * @param $name
+     * @param string $name
+     * @param mixed  $arguments
      *
-     * @return string
-     */
-    public function __get($name)
-    {
-        return '';
-    }
-
-    /**
-     * @param $name
-     * @param $arguments
-     *
-     * @return string
+     * @return null
      */
     public function __call($name, $arguments)
     {
         return null;
+    }
+
+    /**
+     * @param string $name
+     *
+     * @return string|array
+     */
+    public function __get($name)
+    {
+        if ($name === 'plaintext' || $name === 'outertext') {
+            return [];
+        }
+
+        return '';
+    }
+
+    /**
+     * @param string $name
+     * @param mixed  $value
+     */
+    public function __set($name, $value)
+    {
+        return;
+    }
+
+    /**
+     * @param string $name
+     *
+     * @return bool
+     */
+    public function __isset($name)
+    {
+        return false;
     }
 
     /**
@@ -53,16 +78,6 @@ class SimpleHtmlDomNodeBlank extends \ArrayObject implements SimpleHtmlDomNodeIn
     }
 
     /**
-     * Get html of Elements
-     *
-     * @return string
-     */
-    public function innerHtml(): string
-    {
-        return '';
-    }
-
-    /**
      * @param string $selector
      * @param null   $idx
      *
@@ -74,12 +89,50 @@ class SimpleHtmlDomNodeBlank extends \ArrayObject implements SimpleHtmlDomNodeIn
     }
 
     /**
+     * Find one node with a CSS selector.
+     *
+     * @param string $selector
+     *
+     * @return null
+     */
+    public function findOne(string $selector)
+    {
+        return null;
+    }
+
+    /**
+     * Get html of Elements
+     *
+     * @return string[]
+     */
+    public function innerHtml(): array
+    {
+        return [];
+    }
+
+    /**
+     * alias for "$this->innerHtml()" (added for compatibly-reasons with v1.x)
+     */
+    public function innertext()
+    {
+        return [];
+    }
+
+    /**
+     * alias for "$this->innerHtml()" (added for compatibly-reasons with v1.x)
+     */
+    public function outertext()
+    {
+        return [];
+    }
+
+    /**
      * Get plain text
      *
-     * @return string
+     * @return string[]
      */
-    public function text(): string
+    public function text(): array
     {
-        return '';
+        return [];
     }
 }
