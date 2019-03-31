@@ -42,9 +42,9 @@ $dom = HtmlDomParser::str_get_html($str);
 // or 
 $dom = HtmlDomParser::file_get_html($file);
 
-$elems = $dom->findOne('#css-selector');
+$element = $dom->findOne('#css-selector'); // "$element" === instance of "SimpleHtmlDom"
 
-$elems = $dom->findMulti('.css-selector');
+$elements = $dom->findMulti('.css-selector'); // "$elements" === instance of SimpleHtmlDomNodeInterface<int, SimpleHtmlDom>
 ...
 
 ```
