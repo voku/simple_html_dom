@@ -258,7 +258,7 @@ class SimpleHtmlDom implements \IteratorAggregate
      *
      * @return SimpleHtmlDom
      */
-    public function findOne(string $selector): SimpleHtmlDom
+    public function findOne(string $selector): self
     {
         return $this->find($selector, 0);
     }
@@ -324,7 +324,7 @@ class SimpleHtmlDom implements \IteratorAggregate
      *
      * @return SimpleHtmlDom
      */
-    public function getElementById(string $id): SimpleHtmlDom
+    public function getElementById(string $id): self
     {
         return $this->find("#${id}", 0);
     }
@@ -397,7 +397,7 @@ class SimpleHtmlDom implements \IteratorAggregate
         }
 
         // return one element
-        return $elements[$idx] ?? new SimpleHtmlDom(new DOMNode());
+        return $elements[$idx] ?? new self(new DOMNode());
     }
 
     /**
