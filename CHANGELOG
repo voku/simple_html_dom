@@ -1,11 +1,18 @@
+[PHP Simple HTML Dom v4.4.x]
+1: add "findMulti()" method for "SimpleDomParser"
+2: fix -> phpdoc improvements via phpstan
+
+
+[PHP Simple HTML Dom v4.3.x]
+1: add "isRemoved()" method for "SimpleHtmlDom"
+2: fix -> do not remove newlines from the output
+3: fix -> keep HTML closing tags in <script> tags
+
+
 [PHP Simple HTML Dom v4.2.x]
 1: add "val()" method for form elements
 2: add simple access to DOMElement via "SimpleHtmlDom"
 3: fix -> for special script tags with type="text/html"
-4: add "isRemoved()" method for "SimpleHtmlDom"
-5: fix -> do not remove newlines from the output
-6: fix -> keep HTML closing tags in <script> tags
-7: add "findMulti()" method for "SimpleDomParser"
 
 
 [PHP Simple HTML Dom v4.1.x]
