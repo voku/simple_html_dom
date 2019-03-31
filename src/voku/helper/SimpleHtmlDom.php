@@ -264,6 +264,18 @@ class SimpleHtmlDom implements \IteratorAggregate
     }
 
     /**
+     * Find nodes with a CSS selector.
+     *
+     * @param string $selector
+     *
+     * @return SimpleHtmlDom[]|SimpleHtmlDomNodeInterface
+     */
+    public function findMulti(string $selector)
+    {
+        return $this->find($selector, null);
+    }
+
+    /**
      * Returns the first child of node.
      *
      * @return SimpleHtmlDom|null
@@ -326,29 +338,7 @@ class SimpleHtmlDom implements \IteratorAggregate
      */
     public function getElementById(string $id): SimpleHtmlDom
     {
-        return $this->find("#${id}", 0);
-    }
-
-    /**
-     * Return element by tag name.
-     *
-     * @param string $name
-     *
-     * @return SimpleHtmlDom|null
-     */
-    public function getElementByTagName(string $name)
-    {
-        if ($this->node instanceof DOMElement) {
-            $node = $this->node->getElementsByTagName($name)->item(0);
-        } else {
-            $node = null;
-        }
-
-        if ($node === null) {
-            return null;
-        }
-
-        return new self($node);
+        return $this->findOne("#${id}");
     }
 
     /**
@@ -362,6 +352,40 @@ class SimpleHtmlDom implements \IteratorAggregate
     public function getElementsById(string $id, $idx = null)
     {
         return $this->find("#${id}", $idx);
+    }
+
+    /**
+     * Return elements by .class.
+     *
+     * @param string $class
+     *
+     * @return SimpleHtmlDom[]|SimpleHtmlDomNodeInterface
+     */
+    public function getElementByClass(string $class)
+    {
+        return $this->findMulti(".${class}");
+    }
+
+    /**
+     * Return element by tag name.
+     *
+     * @param string $name
+     *
+     * @return SimpleHtmlDom|SimpleHtmlDomNodeBlank
+     */
+    public function getElementByTagName(string $name)
+    {
+        if ($this->node instanceof DOMElement) {
+            $node = $this->node->getElementsByTagName($name)->item(0);
+        } else {
+            $node = null;
+        }
+
+        if ($node === null) {
+            return new SimpleHtmlDomNodeBlank();
+        }
+
+        return new self($node);
     }
 
     /**

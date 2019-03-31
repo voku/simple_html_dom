@@ -581,7 +581,32 @@ class HtmlDomParser
      */
     public function getElementById(string $id): SimpleHtmlDom
     {
-        return $this->find("#${id}", 0);
+        return $this->findOne("#${id}");
+    }
+
+    /**
+     * Returns elements by #id.
+     *
+     * @param string   $id
+     * @param int|null $idx
+     *
+     * @return SimpleHtmlDom|SimpleHtmlDom[]|SimpleHtmlDomNodeInterface
+     */
+    public function getElementsById(string $id, $idx = null)
+    {
+        return $this->find("#${id}", $idx);
+    }
+
+    /**
+     * Return elements by .class.
+     *
+     * @param string $class
+     *
+     * @return SimpleHtmlDom[]|SimpleHtmlDomNodeInterface
+     */
+    public function getElementByClass(string $class)
+    {
+        return $this->findMulti(".${class}");
     }
 
     /**
@@ -600,19 +625,6 @@ class HtmlDomParser
         }
 
         return new SimpleHtmlDom($node);
-    }
-
-    /**
-     * Returns elements by #id.
-     *
-     * @param string   $id
-     * @param int|null $idx
-     *
-     * @return SimpleHtmlDom|SimpleHtmlDom[]|SimpleHtmlDomNodeInterface
-     */
-    public function getElementsById(string $id, $idx = null)
-    {
-        return $this->find("#${id}", $idx);
     }
 
     /**
@@ -660,7 +672,7 @@ class HtmlDomParser
     }
 
     /**
-     * Find one node with a CSS selector.
+     * Find nodes with a CSS selector.
      *
      * @param string $selector
      *

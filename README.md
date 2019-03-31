@@ -42,7 +42,9 @@ $dom = HtmlDomParser::str_get_html($str);
 // or 
 $dom = HtmlDomParser::file_get_html($file);
 
-$elems = $dom->find('#css-selector');
+$elems = $dom->findOne('#css-selector');
+
+$elems = $dom->findMulti('.css-selector');
 ...
 
 ```

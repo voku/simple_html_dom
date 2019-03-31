@@ -406,7 +406,7 @@ HTML;
             \str_replace(["\r\n", "\r", "\n"], "\n", (string) $html)
         );
 
-        $preHeaderContentArray = $html->find('.preheaderContent');
+        $preHeaderContentArray = $html->findMulti('.preheaderContent');
 
         static::assertSame('padding-top:10px; padding-right:20px; padding-bottom:10px; padding-left:20px;', $preHeaderContentArray[0]->style);
         static::assertSame('top', $preHeaderContentArray[0]->valign);
@@ -591,7 +591,7 @@ HTML;
 
         // replace all images with "foobar"
         $tmpArray = [];
-        foreach ($htmlTmp->find('img') as $e) {
+        foreach ($htmlTmp->findMulti('img') as $e) {
             if ($e->src !== '') {
                 $tmpArray[] = $e->src;
 
@@ -601,7 +601,7 @@ HTML;
 
         $testString = false;
         $tmpCounter = 0;
-        foreach ($htmlTmp->find('table tr td img') as $e) {
+        foreach ($htmlTmp->findMulti('table tr td img') as $e) {
             if ($e->alt === '○●◎ earth 中文空白') {
                 $testString = $e->alt;
 
