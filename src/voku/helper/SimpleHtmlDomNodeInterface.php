@@ -2,7 +2,6 @@
 
 namespace voku\helper;
 
-
 /**
  * @property-read string[] $outertext
  *                                    <p>Get dom node's outer html.</p>
