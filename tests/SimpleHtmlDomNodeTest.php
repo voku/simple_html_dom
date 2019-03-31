@@ -38,11 +38,11 @@ final class SimpleHtmlDomNodeTest extends \PHPUnit\Framework\TestCase
 
         $elements = $nodeList->find($selector);
 
-        static::assertInstanceOf('voku\helper\SimpleHtmlDomNode', $elements);
+        static::assertInstanceOf(voku\helper\SimpleHtmlDomNode::class, $elements);
         static::assertCount($count, $elements);
 
         foreach ($elements as $node) {
-            static::assertInstanceOf('voku\helper\SimpleHtmlDom', $node);
+            static::assertInstanceOf(voku\helper\SimpleHtmlDom::class, $node);
         }
     }
 

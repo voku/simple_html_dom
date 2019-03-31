@@ -84,7 +84,7 @@ final class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
         $node = $document->getDocument()->documentElement;
         $element = new SimpleHtmlDom($node);
 
-        static::assertInstanceOf('DOMNode', $element->getNode());
+        static::assertInstanceOf(\DOMNode::class, $element->getNode());
     }
 
     public function testReplaceText()
@@ -144,7 +144,7 @@ final class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
         $node = $document->getDocument()->documentElement;
         $element = new SimpleHtmlDom($node);
 
-        static::assertInstanceOf('voku\helper\HtmlDomParser', $element->getHtmlDomParser());
+        static::assertInstanceOf(voku\helper\HtmlDomParser::class, $element->getHtmlDomParser());
     }
 
     /**
@@ -161,7 +161,7 @@ final class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
 
         $elements = $element->find($selector);
 
-        static::assertInstanceOf('voku\helper\SimpleHtmlDomNode', $elements);
+        static::assertInstanceOf(voku\helper\SimpleHtmlDomNode::class, $elements);
         static::assertCount($count, $elements);
 
         foreach ($elements as $node) {
@@ -170,7 +170,7 @@ final class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
 
         $elements = $element($selector);
 
-        static::assertInstanceOf('voku\helper\SimpleHtmlDomNode', $elements);
+        static::assertInstanceOf(voku\helper\SimpleHtmlDomNode::class, $elements);
     }
 
     /**

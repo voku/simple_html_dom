@@ -179,7 +179,7 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
     public function testGetDocument()
     {
         $document = new HtmlDomParser();
-        static::assertInstanceOf('DOMDocument', $document->getDocument());
+        static::assertInstanceOf(\DOMDocument::class, $document->getDocument());
     }
 
     /**
@@ -194,16 +194,16 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
         $document = new HtmlDomParser($html);
         $elements = $document->find($selector);
 
-        static::assertInstanceOf('voku\helper\SimpleHtmlDomNode', $elements);
+        static::assertInstanceOf(voku\helper\SimpleHtmlDomNode::class, $elements);
         static::assertCount($count, $elements);
 
         foreach ($elements as $element) {
-            static::assertInstanceOf('voku\helper\SimpleHtmlDom', $element);
+            static::assertInstanceOf(voku\helper\SimpleHtmlDom::class, $element);
         }
 
         if ($count !== 0) {
             $element = $document->find($selector, -1);
-            static::assertInstanceOf('voku\helper\SimpleHtmlDom', $element);
+            static::assertInstanceOf(voku\helper\SimpleHtmlDom::class, $element);
         }
     }
 
@@ -587,7 +587,7 @@ test3Html.html                      <foo id="foo">bar</foo>
 HTML;
 
         $htmlTmp = HtmlDomParser::str_get_html($str);
-        static::assertInstanceOf('voku\helper\HtmlDomParser', $htmlTmp);
+        static::assertInstanceOf(voku\helper\HtmlDomParser::class, $htmlTmp);
 
         // replace all images with "foobar"
         $tmpArray = [];
