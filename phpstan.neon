@@ -6,6 +6,7 @@ parameters:
     autoload_files:
         - %rootDir%/vendor/autoload.php
     ignoreErrors:
+        - '#Parameter \#1 \$var of function count expects array\|Countable, DOMNodeList given#'
         - '#on an unknown class voku\\helper\\UTF8#'
         - '#function of function call_user_func_array expects callable#'
         - '#Method voku\\helper\\HtmlDomParser::findOne\(\) should return#'
