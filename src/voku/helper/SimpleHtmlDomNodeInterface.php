@@ -30,6 +30,15 @@ interface SimpleHtmlDomNodeInterface
     public function findOne(string $selector);
 
     /**
+     * Find nodes with a CSS selector.
+     *
+     * @param string $selector
+     *
+     * @return SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface
+     */
+    public function findMulti(string $selector): self;
+
+    /**
      * Get html of elements.
      *
      * @return string[]
@@ -52,4 +61,24 @@ interface SimpleHtmlDomNodeInterface
      * @return string[]
      */
     public function text(): array;
+
+    /**
+     * @param string $name
+     *
+     * @return array|null
+     */
+    public function __get($name);
+
+    /**
+     * @param string $selector
+     * @param int    $idx
+     *
+     * @return SimpleHtmlDomNodeInterface|SimpleHtmlDomNodeInterface[]|null
+     */
+    public function __invoke($selector, $idx = null);
+
+    /**
+     * @return string
+     */
+    public function __toString();
 }

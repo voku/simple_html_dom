@@ -38,7 +38,7 @@ final class SimpleHtmlDomNodeTest extends \PHPUnit\Framework\TestCase
 
         $elements = $nodeList->find($selector);
 
-        static::assertInstanceOf(voku\helper\SimpleHtmlDomNode::class, $elements);
+        static::assertInstanceOf(voku\helper\SimpleHtmlDomNodeInterface::class, $elements);
         static::assertCount($count, $elements);
 
         foreach ($elements as $node) {
@@ -49,7 +49,7 @@ final class SimpleHtmlDomNodeTest extends \PHPUnit\Framework\TestCase
     /**
      * @return array
      */
-    public function findTests()
+    public function findTests(): array
     {
         $html = $this->loadFixture('test_page.html');
 
@@ -95,7 +95,8 @@ final class SimpleHtmlDomNodeTest extends \PHPUnit\Framework\TestCase
         $document = new HtmlDomParser($html);
         $element = $document->find('span');
 
-        static::assertInstanceOf(\voku\helper\SimpleHtmlDomNode::class, $element);
+        static::assertInstanceOf(\voku\helper\SimpleHtmlDomNodeInterface::class, $element);
+        static::assertInstanceOf(\voku\helper\SimpleHtmlDomNodeBlank::class, $element);
         static::assertSame([], $element->text());
         static::assertSame([], $element->plaintext);
     }
@@ -106,29 +107,50 @@ final class SimpleHtmlDomNodeTest extends \PHPUnit\Framework\TestCase
         $document = new HtmlDomParser($html);
         $element = $document->find('span', 0);
 
-        static::assertInstanceOf(\voku\helper\SimpleHtmlDomNodeBlank::class, $element);
-        static::assertSame([], $element->text());
-        static::assertSame([], $element->plaintext);
+        static::assertInstanceOf(\voku\helper\SimpleHtmlDomInterface::class, $element);
+        static::assertInstanceOf(\voku\helper\SimpleHtmlDomBlank::class, $element);
+        static::assertSame('', $element->class);
+        static::assertSame('', $element->text());
+        static::assertSame('', $element->plaintext);
     }
 
     public function testNonText1()
     {
         $html = '<div><p>foo</p><p>bar</p></div>';
         $document = new HtmlDomParser($html);
-        $element = $document->find('span', 1);
+        $elements = $document->find('span', 1);
 
-        static::assertInstanceOf(\voku\helper\SimpleHtmlDomNodeBlank::class, $element);
-        static::assertSame([], $element->text());
-        static::assertSame([], $element->plaintext);
+        static::assertCount(0, $elements);
+        static::assertInstanceOf(\voku\helper\SimpleHtmlDomInterface::class, $elements);
+        static::assertInstanceOf(\voku\helper\SimpleHtmlDomBlank::class, $elements);
+        static::assertSame('', $elements->class);
+        static::assertSame('', $elements->text());
+        static::assertSame('', $elements->plaintext);
     }
 
     public function testGetFirstDomElement()
     {
         $html = '<div><p class="lall">foo</p><p>lall</p></div>';
         $document = new HtmlDomParser($html);
-        $element = $document->find('p');
+        $elements = $document->findMulti('p');
 
-        static::assertSame(['lall', ''], $element->class);
-        static::assertSame(['foo', 'lall'], $element->plaintext);
+        static::assertCount(2, $elements);
+        static::assertSame(['lall', ''], $elements->class);
+        static::assertSame(['foo', 'lall'], $elements->text());
+        static::assertSame(['foo', 'lall'], $elements->plaintext);
+        static::assertSame('lall', $elements[0]->class);
+        static::assertSame('foo', $elements[0]->text());
+        static::assertSame('foo', $elements[0]->plaintext);
+
+        // ---
+
+        $html = '<div><p class="lall">foo</p><p>lall</p></div>';
+        $document = new HtmlDomParser($html);
+        $element = $document->find('p', 0);
+
+        static::assertCount(1, $element);
+        static::assertSame('lall', $element->class);
+        static::assertSame('foo', $element->text());
+        static::assertSame('foo', $element->plaintext);
     }
 }

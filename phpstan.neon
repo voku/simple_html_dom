@@ -8,4 +8,10 @@ parameters:
     ignoreErrors:
         - '#on an unknown class voku\\helper\\UTF8#'
         - '#function of function call_user_func_array expects callable#'
-        - '#iterable<voku\\helper\\SimpleHtmlDom>#'
+        - '#Method voku\\helper\\HtmlDomParser::findOne\(\) should return#'
+        - '#Method voku\\helper\\HtmlDomParser::findMulti\(\) should return#'
+        - '#Method voku\\helper\\SimpleHtmlDom::findOne\(\) should return#'
+        - '#Method voku\\helper\\SimpleHtmlDom::findMulti\(\) should return#'
+        - '#Method voku\\helper\\SimpleHtmlDomNode::findOne\(\) should return#'
+        - '#Method voku\\helper\\SimpleHtmlDomNode::findMulti\(\) should return#'
+        - '#@return with type array<voku\\helper\\SimpleHtmlDomInterface>\|voku\\helper\\SimpleHtmlDomNodeInterface#'

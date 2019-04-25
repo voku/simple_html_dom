@@ -4,83 +4,20 @@ declare(strict_types=1);
 
 namespace voku\helper;
 
-/**
- * @property-read string[] $outertext
- *                                    <p>Get dom node's outer html.</p>
- * @property-read string[] $plaintext
- *                                    <p>Get dom node's plain text.</p>
- */
-class SimpleHtmlDomNode extends \ArrayObject implements SimpleHtmlDomNodeInterface
+class SimpleHtmlDomNode extends AbstractSimpleHtmlDomNode implements SimpleHtmlDomNodeInterface
 {
-    /** @noinspection MagicMethodsValidityInspection */
-
-    /**
-     * @param string $name
-     *
-     * @return array|null
-     */
-    public function __get($name)
-    {
-        // init
-        $name = \strtolower($name);
-
-        if ($this->count() > 0) {
-            $return = [];
-
-            foreach ($this as $node) {
-                if ($node instanceof SimpleHtmlDom) {
-                    $return[] = $node->{$name};
-                }
-            }
-
-            return $return;
-        }
-
-        if ($name === 'plaintext' || $name === 'outertext') {
-            return [];
-        }
-
-        return null;
-    }
-
-    /**
-     * @param string $selector
-     * @param int    $idx
-     *
-     * @return SimpleHtmlDomNode|SimpleHtmlDomNode[]|null
-     */
-    public function __invoke($selector, $idx = null)
-    {
-        return $this->find($selector, $idx);
-    }
-
-    /**
-     * @return string
-     */
-    public function __toString()
-    {
-        // init
-        $html = '';
-
-        foreach ($this as $node) {
-            $html .= $node->outertext;
-        }
-
-        return $html;
-    }
-
     /**
      * Find list of nodes with a CSS selector.
      *
-     * @param string $selector
-     * @param int    $idx
+     * @param string   $selector
+     * @param int|null $idx
      *
-     * @return SimpleHtmlDomNode|SimpleHtmlDomNode[]|null
+     * @return SimpleHtmlDomNodeInterface|SimpleHtmlDomNodeInterface[]|null
      */
     public function find(string $selector, $idx = null)
     {
         // init
-        $elements = new self();
+        $elements = new static();
 
         foreach ($this as $node) {
             foreach ($node->find($selector) as $res) {
@@ -90,6 +27,10 @@ class SimpleHtmlDomNode extends \ArrayObject implements SimpleHtmlDomNodeInterfa
 
         // return all elements
         if ($idx === null) {
+            if (\count($elements) === 0) {
+                return new SimpleHtmlDomNodeBlank();
+            }
+
             return $elements;
         }
 
@@ -107,11 +48,23 @@ class SimpleHtmlDomNode extends \ArrayObject implements SimpleHtmlDomNodeInterfa
      *
      * @param string $selector
      *
-     * @return SimpleHtmlDomNode|null
+     * @return SimpleHtmlDomNodeInterface|null
      */
     public function findOne(string $selector)
     {
         return $this->find($selector, 0);
+    }
+
+    /**
+     * Find nodes with a CSS selector.
+     *
+     * @param string $selector
+     *
+     * @return SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface
+     */
+    public function findMulti(string $selector): SimpleHtmlDomNodeInterface
+    {
+        return $this->find($selector, null);
     }
 
     /**

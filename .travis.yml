@@ -27,13 +27,15 @@ before_script:
   - php -r "var_dump(LIBXML_DOTTED_VERSION);"
   - wget https://scrutinizer-ci.com/ocular.phar
   - travis_retry composer self-update
-  - travis_retry composer require satooshi/php-coveralls:1.0.0
+  - travis_retry composer require satooshi/php-coveralls
+  - travis_retry composer require phpstan/phpstan-shim
   - travis_retry composer install --no-interaction --prefer-source
   - composer dump-autoload -o
 
 script:
   - mkdir -p build/logs
   - php vendor/bin/phpunit -c phpunit.xml
+  - php vendor/bin/phpstan analyse --level=7 --configuration=phpstan.neon src
 
 after_script:
   - php vendor/bin/coveralls -v

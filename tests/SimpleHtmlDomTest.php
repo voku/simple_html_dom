@@ -161,16 +161,16 @@ final class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
 
         $elements = $element->find($selector);
 
-        static::assertInstanceOf(voku\helper\SimpleHtmlDomNode::class, $elements);
+        static::assertInstanceOf(voku\helper\SimpleHtmlDomNodeInterface::class, $elements);
         static::assertCount($count, $elements);
 
         foreach ($elements as $node) {
-            static::assertInstanceOf(voku\helper\SimpleHtmlDom::class, $node);
+            static::assertInstanceOf(voku\helper\SimpleHtmlDomInterface::class, $node);
         }
 
         $elements = $element($selector);
 
-        static::assertInstanceOf(voku\helper\SimpleHtmlDomNode::class, $elements);
+        static::assertInstanceOf(voku\helper\SimpleHtmlDomNodeInterface::class, $elements);
     }
 
     /**
@@ -472,6 +472,7 @@ final class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
         static::assertSame('bar', $element->getAttribute('id'));
         static::assertSame('value', $element->getAttribute('data'));
         static::assertEmpty($element->getAttribute('class'));
+        static::assertSame('<div id="bar" data="value">foo</div>', $element->html());
     }
 
     public function testHasAttribute()

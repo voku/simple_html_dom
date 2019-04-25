@@ -2,7 +2,7 @@
 
 use voku\helper\HtmlDomParser;
 use voku\helper\SimpleHtmlDom;
-use voku\helper\SimpleHtmlDomNodeInterface;
+use voku\helper\SimpleHtmlDomNode;
 
 /**
  * Class HtmlDomParserTest
@@ -194,16 +194,16 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
         $document = new HtmlDomParser($html);
         $elements = $document->find($selector);
 
-        static::assertInstanceOf(voku\helper\SimpleHtmlDomNode::class, $elements);
+        static::assertInstanceOf(voku\helper\SimpleHtmlDomNodeInterface::class, $elements);
         static::assertCount($count, $elements);
 
         foreach ($elements as $element) {
-            static::assertInstanceOf(voku\helper\SimpleHtmlDom::class, $element);
+            static::assertInstanceOf(voku\helper\SimpleHtmlDomInterface::class, $element);
         }
 
         if ($count !== 0) {
             $element = $document->find($selector, -1);
-            static::assertInstanceOf(voku\helper\SimpleHtmlDom::class, $element);
+            static::assertInstanceOf(voku\helper\SimpleHtmlDomInterface::class, $element);
         }
     }
 
@@ -288,7 +288,7 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
 
     public function testStrGetHtml()
     {
-        $str = <<<HTML
+        $str = <<<'HTML'
 中
 
 <form name="form1" method="post" action="">
@@ -316,7 +316,7 @@ HTML;
 
     public function testOutertext()
     {
-        $str = <<<HTML
+        $str = <<<'HTML'
 <form name="form1" method="post" action=""><input type="checkbox" name="checkbox1" value="checkbox1" checked>中文空白</form>
 HTML;
 
@@ -331,7 +331,7 @@ HTML;
 
     public function testInnertextWithHtmlHeadTag()
     {
-        $str = <<<HTML
+        $str = <<<'HTML'
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd"><html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head><body><div id="hello">Hello</div><div id="world">World</div></body></html>
 HTML;
 
@@ -355,7 +355,7 @@ HTML;
 
     public function testInnertextWithHtml()
     {
-        $str = <<<HTML
+        $str = <<<'HTML'
 <html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head><body><div id="hello">Hello</div><div id="world">World</div></body></html>
 HTML;
 
@@ -380,7 +380,7 @@ HTML;
 
     public function testInnertext()
     {
-        $str = <<<HTML
+        $str = <<<'HTML'
 <div id="hello">Hello</div><div id="world">World</div>
 HTML;
 
@@ -607,7 +607,7 @@ HTML;
 
                 break;
             }
-            $tmpCounter++;
+            ++$tmpCounter;
         }
         static::assertSame(15, $tmpCounter);
         static::assertSame('○●◎ earth 中文空白', $testString);
@@ -771,7 +771,7 @@ HTML;
 
     public function testWithExtraXmlOptions()
     {
-        $str = <<<HTML
+        $str = <<<'HTML'
 <div id="hello">Hello</div><div id="world">World</div><strong></strong>
 HTML;
 
@@ -798,7 +798,7 @@ HTML;
 
     public function testEditInnerText()
     {
-        $str = <<<HTML
+        $str = <<<'HTML'
 <div id="hello">Hello</div><div id="world">World</div>
 HTML;
 
@@ -832,7 +832,7 @@ HTML;
         $dom = new HtmlDomParser();
         $div = $dom->find('div', 0);
 
-        static::assertSame([], $div->plaintext);
+        static::assertSame('', $div->plaintext);
     }
 
     public function testIncorrectAccess()
@@ -1333,7 +1333,6 @@ HTML;
         $expected = \str_replace(["\r\n", "\r", "\n"], "\n", $expected);
 
         static::assertSame(\trim($expected), \trim($html));
-
     }
 
     public function testBeforeClosingTag()
@@ -1412,7 +1411,7 @@ HTML;
         $dom->loadHtmlFile($file);
 
         $review_content = $dom->find('.review-content p');
-        static::assertInstanceOf(SimpleHtmlDomNodeInterface::class, $review_content);
+        static::assertInstanceOf(SimpleHtmlDomNode::class, $review_content);
 
         $allReviews = '';
         foreach ($review_content as $review) {

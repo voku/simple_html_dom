@@ -17,19 +17,19 @@ namespace voku\helper;
  *                                 <p>Get dom node's plain text.</p>
  *
  * @method string outerText()
- *                            <p>Get dom node's outer html (alias for "outerHtml()").</p>
+ *                                 <p>Get dom node's outer html (alias for "outerHtml()").</p>
  * @method string outerHtml()
- *                            <p>Get dom node's outer html.</p>
+ *                                 <p>Get dom node's outer html.</p>
  * @method string innerText()
- *                            <p>Get dom node's inner html (alias for "innerHtml()").</p>
+ *                                 <p>Get dom node's inner html (alias for "innerHtml()").</p>
  * @method HtmlDomParser load(string $html)
- *                                   <p>Load HTML from string.</p>
+ *                                 <p>Load HTML from string.</p>
  * @method HtmlDomParser load_file(string $html)
- *                                        <p>Load HTML from file.</p>
+ *                                 <p>Load HTML from file.</p>
  * @method static HtmlDomParser file_get_html($html, $libXMLExtraOptions = null)
- *                                                                               <p>Load HTML from file.</p>
+ *                                 <p>Load HTML from file.</p>
  * @method static HtmlDomParser str_get_html($html, $libXMLExtraOptions = null)
- *                                                                              <p>Load HTML from string.</p>
+ *                                 <p>Load HTML from string.</p>
  */
 class HtmlDomParser
 {
@@ -129,7 +129,7 @@ class HtmlDomParser
     /**
      * Constructor
      *
-     * @param \DOMNode|SimpleHtmlDom|string $element HTML code or SimpleHtmlDom, \DOMNode
+     * @param \DOMNode|SimpleHtmlDomInterface|string $element HTML code or SimpleHtmlDomInterface, \DOMNode
      *
      * @throws \InvalidArgumentException
      */
@@ -144,7 +144,7 @@ class HtmlDomParser
         $this->document->preserveWhiteSpace = true;
         $this->document->formatOutput = true;
 
-        if ($element instanceof SimpleHtmlDom) {
+        if ($element instanceof SimpleHtmlDomInterface) {
             $element = $element->getNode();
         }
 
@@ -199,13 +199,13 @@ class HtmlDomParser
         $arguments1 = $arguments[1] ?? null;
 
         if ($name === 'str_get_html') {
-            $parser = new self();
+            $parser = new static();
 
             return $parser->loadHtml($arguments0, $arguments1);
         }
 
         if ($name === 'file_get_html') {
-            $parser = new self();
+            $parser = new static();
 
             return $parser->loadHtmlFile($arguments0, $arguments1);
         }
@@ -218,7 +218,7 @@ class HtmlDomParser
     /**
      * @param string $name
      *
-     * @return null|string
+     * @return string|null
      */
     public function __get($name)
     {
@@ -243,7 +243,7 @@ class HtmlDomParser
      * @param string $selector
      * @param int    $idx
      *
-     * @return SimpleHtmlDom|SimpleHtmlDom[]|SimpleHtmlDomNodeInterface
+     * @return SimpleHtmlDomInterface|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface
      */
     public function __invoke($selector, $idx = null)
     {
@@ -510,7 +510,6 @@ class HtmlDomParser
 
         if (isset($specialScripts[0])) {
             foreach ($specialScripts[0] as $specialScript) {
-
                 $specialNonScript = '<' . self::$domHtmlSpecialScriptHelper . \substr($specialScript, \strlen('<script'));
                 $specialNonScript = \substr($specialNonScript, 0, -\strlen('</script>')) . '</' . self::$domHtmlSpecialScriptHelper . '>';
                 // remove the html5 fallback
@@ -577,9 +576,9 @@ class HtmlDomParser
      *
      * @param string $id
      *
-     * @return SimpleHtmlDom
+     * @return SimpleHtmlDomInterface
      */
-    public function getElementById(string $id): SimpleHtmlDom
+    public function getElementById(string $id): SimpleHtmlDomInterface
     {
         return $this->findOne("#${id}");
     }
@@ -590,7 +589,7 @@ class HtmlDomParser
      * @param string   $id
      * @param int|null $idx
      *
-     * @return SimpleHtmlDom|SimpleHtmlDom[]|SimpleHtmlDomNodeInterface
+     * @return SimpleHtmlDomInterface|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface
      */
     public function getElementsById(string $id, $idx = null)
     {
@@ -602,9 +601,9 @@ class HtmlDomParser
      *
      * @param string $class
      *
-     * @return SimpleHtmlDom[]|SimpleHtmlDomNodeInterface
+     * @return SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface
      */
-    public function getElementByClass(string $class)
+    public function getElementByClass(string $class): SimpleHtmlDomNodeInterface
     {
         return $this->findMulti(".${class}");
     }
@@ -614,14 +613,14 @@ class HtmlDomParser
      *
      * @param string $name
      *
-     * @return SimpleHtmlDom|SimpleHtmlDomNodeBlank
+     * @return SimpleHtmlDomInterface
      */
-    public function getElementByTagName(string $name)
+    public function getElementByTagName(string $name): SimpleHtmlDomInterface
     {
         $node = $this->document->getElementsByTagName($name)->item(0);
 
         if ($node === null) {
-            return new SimpleHtmlDomNodeBlank();
+            return new SimpleHtmlDomBlank();
         }
 
         return new SimpleHtmlDom($node);
@@ -633,7 +632,7 @@ class HtmlDomParser
      * @param string   $name
      * @param int|null $idx
      *
-     * @return SimpleHtmlDom|SimpleHtmlDom[]|SimpleHtmlDomNode|SimpleHtmlDomNodeBlank
+     * @return SimpleHtmlDomInterface|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface
      */
     public function getElementsByTagName(string $name, $idx = null)
     {
@@ -647,6 +646,10 @@ class HtmlDomParser
 
         // return all elements
         if ($idx === null) {
+            if (\count($elements) === 0) {
+                return new SimpleHtmlDomNodeBlank();
+            }
+
             return $elements;
         }
 
@@ -664,9 +667,9 @@ class HtmlDomParser
      *
      * @param string $selector
      *
-     * @return SimpleHtmlDom
+     * @return SimpleHtmlDomInterface
      */
-    public function findOne(string $selector): SimpleHtmlDom
+    public function findOne(string $selector): SimpleHtmlDomInterface
     {
         return $this->find($selector, 0);
     }
@@ -676,9 +679,9 @@ class HtmlDomParser
      *
      * @param string $selector
      *
-     * @return SimpleHtmlDom[]|SimpleHtmlDomNodeInterface
+     * @return SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface
      */
-    public function findMulti(string $selector)
+    public function findMulti(string $selector): SimpleHtmlDomNodeInterface
     {
         return $this->find($selector, null);
     }
@@ -687,9 +690,9 @@ class HtmlDomParser
      * Find list of nodes with a CSS selector.
      *
      * @param string   $selector
-     * @param null|int $idx
+     * @param int|null $idx
      *
-     * @return SimpleHtmlDom|SimpleHtmlDom[]|SimpleHtmlDomNodeInterface
+     * @return SimpleHtmlDomInterface|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface
      */
     public function find(string $selector, $idx = null)
     {
@@ -705,6 +708,10 @@ class HtmlDomParser
 
         // return all elements
         if ($idx === null) {
+            if (\count($elements) === 0) {
+                return new SimpleHtmlDomNodeBlank();
+            }
+
             return $elements;
         }
 
@@ -714,7 +721,7 @@ class HtmlDomParser
         }
 
         // return one element
-        return $elements[$idx] ?? new SimpleHtmlDomNodeBlank();
+        return $elements[$idx] ?? new SimpleHtmlDomBlank();
     }
 
     /**
