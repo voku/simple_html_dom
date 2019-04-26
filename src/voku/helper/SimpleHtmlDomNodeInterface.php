@@ -8,7 +8,7 @@ namespace voku\helper;
  * @property-read string[] $plaintext
  *                                    <p>Get dom node's plain text.</p>
  */
-interface SimpleHtmlDomNodeInterface
+interface SimpleHtmlDomNodeInterface extends \IteratorAggregate
 {
     /**
      * Find list of nodes with a CSS selector.

@@ -41,7 +41,7 @@ namespace voku\helper;
  * @method string innerText()
  *                                           <p>Get dom node's inner html (alias for "innerHtml()").</p>
  */
-interface SimpleHtmlDomInterface
+interface SimpleHtmlDomInterface extends \IteratorAggregate
 {
     /**
      * Returns children of node.
