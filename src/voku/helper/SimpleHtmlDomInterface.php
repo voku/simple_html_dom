@@ -310,4 +310,9 @@ interface SimpleHtmlDomInterface extends \IteratorAggregate
      * @return SimpleHtmlDomInterface|string|null
      */
     public function __call($name, $arguments);
+
+    /**
+     * @return string
+     */
+    public function __toString();
 }
