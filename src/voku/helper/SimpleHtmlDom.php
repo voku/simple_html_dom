@@ -433,7 +433,11 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
         if (!empty($newDocument)) {
             $newDocument = $this->cleanHtmlWrapper($newDocument);
             $ownerDocument = $this->node->ownerDocument;
-            if ($ownerDocument !== null) {
+            if (
+                $ownerDocument !== null
+                &&
+                $newDocument->getDocument()->documentElement !== null
+            ) {
                 $newNode = $ownerDocument->importNode($newDocument->getDocument()->documentElement, true);
                 /** @noinspection UnusedFunctionResultInspection */
                 $this->node->appendChild($newNode);
@@ -498,7 +502,11 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
 
         $newDocument = $this->cleanHtmlWrapper($newDocument, true);
         $ownerDocument = $this->node->ownerDocument;
-        if ($ownerDocument === null) {
+        if (
+            $ownerDocument === null
+            ||
+            $newDocument->getDocument()->documentElement === null
+        ) {
             return $this;
         }
 

@@ -955,8 +955,10 @@ class HtmlDomParser
         // init
         $text = '';
 
-        foreach ($this->document->documentElement->childNodes as $node) {
-            $text .= $this->document->saveHTML($node);
+        if ($this->document->documentElement) {
+            foreach ($this->document->documentElement->childNodes as $node) {
+                $text .= $this->document->saveHTML($node);
+            }
         }
 
         return $this->fixHtmlOutput($text, $multiDecodeNewHtmlEntity);

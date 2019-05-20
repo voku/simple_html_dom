@@ -1,10 +1,10 @@
 parameters:
     reportUnmatchedIgnoredErrors: false
     excludes_analyse:
-        - %rootDir%/vendor/*
-        - %rootDir%/tests/*
+        - %currentWorkingDirectory%/vendor/*
+        - %currentWorkingDirectory%/tests/*
     autoload_files:
-        - %rootDir%/vendor/autoload.php
+        - %currentWorkingDirectory%/vendor/autoload.php
     ignoreErrors:
         - '#Parameter \#1 \$var of function count expects array\|Countable, DOMNodeList given#'
         - '#on an unknown class voku\\helper\\UTF8#'
