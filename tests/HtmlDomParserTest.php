@@ -1203,6 +1203,14 @@ HTML;
         static::assertSame('....', $elm[1]->innerHtml);
     }
 
+    public function testEmptyString()
+    {
+        $dom = HtmlDomParser::str_get_html('');
+        $tag = $dom->findOne('meta[name="myToken"]');
+
+        static::assertSame('', $tag->innerText());
+    }
+
     public function testSpecialScriptTag()
     {
         // init
