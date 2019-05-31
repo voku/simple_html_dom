@@ -1429,4 +1429,66 @@ HTML;
         static::assertContains('It&#39;s obvious having', $allReviews);
         static::assertContains('2006 Volvo into Dave&#39;s due', $allReviews);
     }
+
+    /**
+     * This assumes that a script with the variable "$json_variable" is present containing the
+     * complete dataset.
+     *
+     * @param string $html
+     * @param string $json_variable
+     *
+     * @return stdClass|null
+     */
+    private function extractJson(string $html, string $json_variable = 'INITIAL_DATA')
+    {
+        // init
+        $content_line = null;
+
+        if (!$html) {
+            return null;
+        }
+
+        $dom = HtmlDomParser::str_get_html($html);
+
+        foreach ($dom->find('script') as $script) {
+            $content = $script->innerHtml();
+
+            if (\strpos($content, $json_variable) !== false) {
+                $content_exploded = \explode("\n", $content);
+
+                foreach ($content_exploded as $content_tmp) {
+                    if (\strpos($content_tmp, $json_variable) !== false) {
+                        $content_line = \trim($content_tmp);
+
+                        break 2;
+                    }
+                }
+            }
+        }
+
+        if (!$content_line) {
+            return null;
+        }
+
+        $json_helper_position = \mb_strpos($content_line, '{');
+        $json = \mb_substr($content_line, $json_helper_position, \mb_strrpos($content_line, '}') - $json_helper_position + 1);
+
+        /** @noinspection PhpComposerExtensionStubsInspection */
+        $data = \json_decode($json, false);
+
+        return $data ?: null;
+    }
+
+    public function testExtractJson()
+    {
+        $data = '<script type="text/javascript">
+        var CONFIG = {"environment":"production","environmentSuffix":"","baseUri":"\/","debug":false,"gtmCode":"GTM-WJRBWVS","disallowAll":false,"defaultLanguage":"nl","languages":["nl","en"],"bioPortalUrl":"http:\/\/bioportal.naturalis.nl\/specimen\/","absoluteUrl":"http:\/\/topstukken.naturalis.nl","currentPath":"object\/malacostraca-podophthalmata-brittanniae","currentUrl":"http:\/\/topstukken.naturalis.nl\/object\/malacostraca-podophthalmata-brittanniae"};
+        var INITIAL_DATA = {"general":{"title":"Naturalis","nav":{"main":[{"url":"\/","label":"Overzicht"},{"url":"http:\/\/naturalis.nl","label":"Naturalis.nl","external":true}],"latestLabel":"Laatst toegevoegd","latest":[{"url":"\/object\/syrische-bruine-beer","label":"Syrische bruine beer"},{"url":"\/object\/siberische-tijger","label":"Siberische tijger"},{"url":"\/object\/zwarte-wolf","label":"Zwarte wolf"}],"social":[{"type":"facebook","url":"https:\/\/www.facebook.com\/museumnaturalis\/"},{"type":"twitter","url":"https:\/\/twitter.com\/museumnaturalis"},{"type":"instagram","url":"https:\/\/www.instagram.com\/naturalismuseum\/"},{"type":"youtube","url":"https:\/\/www.youtube.com\/user\/NaturalisLeiden"}],"legal":[],"copyright":"&copy; Naturalis Biodiversity Center","about":{"title":"Over Topstukken","body":"Natuurhistorische collecties zijn al eeuwen de spil van het onderzoek naar de natuur. Ze vormen een belangrijk modern wetenschappelijk instrument voor de mens om vat te krijgen op de natuurlijke omgeving en diens oorsprong. De collecties, de daarin verborgen en daaraan gekoppelde informatie, vormen de ruggengraat van het onderzoek naar geologische en biologische diversiteit. Ze helpen om de biodiversiteit uit heden en verleden in kaart te brengen, te benoemen en te begrijpen. Ze spelen een sleutelrol in het zoeken naar oplossingen voor een gezonde toekomst van de mensheid.<br><br>Naturalis heeft wereldwijd \u00e9\u00e9n van de grootste natuurhistorische collecties. Met meer dan 41 miljoen objecten is de collectie is van grote maatschappelijke, historische en wetenschappelijke waarde. De collectie is bovendien uitzonderlijk goed ontsloten, doordat de gehele verzameling digitaal is geregistreerd en toegankelijk gemaakt.<br><br>Onze onderzoekers en collectiebeheerders selecteren steeds weer de meest mooie of bijzondere objecten om die in Naturalis en op het web een plek te geven. Daarmee proberen we iedereen het WAUW!-effect te laten beleven dat wij zelf dagelijks ervaren als wij werken met de collectie."}}},"locale":{"infoTitle":"Details","info":{"scientificName":"Wetenschappelijke naam","collection":"Hoort bij collectie","year":"Jaar","country":"Land van herkomst","expedition":"Verzameld tijdens expeditie","collector":"Verzamelaar","author":"Auteur","illustrator":"Illustrator","registrationNumber":"Registratienummer"},"infoActionLabel":"Alle gegevens van dit object"},"alternate":null,"grid":null,"specimen":{"title":"Malacostraca Podophthalmata Brittanniae","titleSoftHyphen":null,"id":207,"registrationNumber":"RBR Holt 00626 & RBR Holt 00732","slug":"malacostraca-podophthalmata-brittanniae","language":"nl","metatags":{"title":false,"description":false},"opengraph":{"image":{"src":"\/assets\/styles\/og_image\/public\/content\/specimen\/image\/DSC_3463test_0.jpg?h=c818156e&itok=dNnJ_Z2n","alt":"","aspectRatio":1,"placeholder":"\/assets\/styles\/researcher_placeholder\/public\/content\/specimen\/image\/DSC_3463test_0.jpg?itok=70dDOiNr"}},"subtitle":null,"image":{"srcSet":{"1920":"\/assets\/styles\/specimen_header_1920\/public\/content\/specimen\/image\/DSC_3463test_0.jpg?h=43b24274&itok=sIwXRgEp","1280":"\/assets\/styles\/specimen_header_1280\/public\/content\/specimen\/image\/DSC_3463test_0.jpg?h=43b24274&itok=szXLga7d","960":"\/assets\/styles\/specimen_header_960\/public\/content\/specimen\/image\/DSC_3463test_0.jpg?h=43b24274&itok=aZhryErb","640":"\/assets\/styles\/specimen_header_640\/public\/content\/specimen\/image\/DSC_3463test_0.jpg?h=43b24274&itok=Ceou5BJz","320":"\/assets\/styles\/specimen_header_320\/public\/content\/specimen\/image\/DSC_3463test_0.jpg?h=43b24274&itok=X7V_sVbe"},"alt":"","aspectRatio":1.7778,"placeholder":"\/assets\/styles\/specimen_header_placeholder\/public\/content\/specimen\/image\/DSC_3463test_0.jpg?h=43b24274&itok=Ag2eqNDJ"},"info":{"collection":"Bibliotheek en archief","country":"Verenigd Koninkrijk","scientificName":null,"year":"1815","expedition":null,"collector":null,"registrationNumber":"RBR Holt 00626 & RBR Holt 00732"},"bioPortal":false,"blocks":[{"type":"textAndImage","title":"Mooiste kreeftenboek","body":"<p dir=\"ltr\">Zonder twijfel is Malacostraca Podophthalmata Brittanniae (1815-1875) een van de mooiste publicaties gewijd aan kreeftachtigen. Dit fantastische overzicht met in totaal 54 fraaie handgekleurde platen is het werk van twee bekende namen in de Britse natuurgeschiedenis: de jonge zo\u00f6loog William Elford Leach (1791-1836) en de ervaren naturalist en graveur James Sowerby (1757-1822). Leach\u2019 wetenschappelijke productiviteit was enorm, maar zijn carri\u00e8re kwam vroegtijdig tot een einde door een inzinking waar hij niet meer van herstelde. Na de zeventiende aflevering die in 1820 verscheen, stopte de publicatie. Pas in 1875 werd het boek met twee extra afleveringen en zes nieuwe platen door de uitgever voltooid op aandringen van de zoon van James.<\/p>\r\n","images":{"srcSet":{"940":"\/assets\/styles\/specimen_content_item_940\/public\/content\/paragraph\/content-block-image\/15_05%20%281%29test_0.jpg?h=2d399185&itok=XnrWaqqU","705":"\/assets\/styles\/specimen_content_item_705\/public\/content\/paragraph\/content-block-image\/15_05%20%281%29test_0.jpg?h=2d399185&itok=qJBuiRGq","470":"\/assets\/styles\/specimen_content_item_470\/public\/content\/paragraph\/content-block-image\/15_05%20%281%29test_0.jpg?h=2d399185&itok=8Dh5dLJZ","235":"\/assets\/styles\/specimen_content_item_235\/public\/content\/paragraph\/content-block-image\/15_05%20%281%29test_0.jpg?h=2d399185&itok=P43ZVVdU"},"alt":"Malacostraca Podophthalmata Brittanniae","aspectRatio":0.8704,"placeholder":"\/assets\/styles\/specimen_content_item_placeholder\/public\/content\/paragraph\/content-block-image\/15_05%20%281%29test_0.jpg?h=2d399185&itok=WAnO49iI"},"buttons":[],"researcher":null},{"type":"textAndImage","title":"Kostbare drukproeven","body":"<p dir=\"ltr\">In de bibliotheek van Naturalis bevinden zich twee versies van dit bijzondere werk: een prachtig gebonden exemplaar versierd met vergulde krabben, en een complete set van de negentien losse afleveringen. Ze maken deel uit van de Bibliotheca Carcinologica, een unieke collectie van voormalig Naturalis curator Lipke Bijdeley Holthuis (1921-2008). Holthuis was al in bezit van het gebonden exemplaar toen hij voor veel geld de losse afleveringen kocht. Dat lijkt wat overdreven, maar het zijn de originele drukproeven met aantekeningen die Leach maakte voor Sowerby. De drukproeven geven dus een bijzonder mooi inzicht in de publicatiegeschiedenis en de manier waarop de twee naturalisten samenwerkten.<\/p>\r\n","images":{"srcSet":{"940":"\/assets\/styles\/specimen_content_item_940\/public\/content\/paragraph\/content-block-image\/DSC_3476test_0.jpg?h=8a700d67&itok=fTCB5t-d","705":"\/assets\/styles\/specimen_content_item_705\/public\/content\/paragraph\/content-block-image\/DSC_3476test_0.jpg?h=8a700d67&itok=BS_8ewLd","470":"\/assets\/styles\/specimen_content_item_470\/public\/content\/paragraph\/content-block-image\/DSC_3476test_0.jpg?h=8a700d67&itok=0EeQd9f_","235":"\/assets\/styles\/specimen_content_item_235\/public\/content\/paragraph\/content-block-image\/DSC_3476test_0.jpg?h=8a700d67&itok=153tqwMq"},"alt":"Malacostraca Podophthalmata Brittannia","aspectRatio":0.8704,"placeholder":"\/assets\/styles\/specimen_content_item_placeholder\/public\/content\/paragraph\/content-block-image\/DSC_3476test_0.jpg?h=8a700d67&itok=CmnTyPiY"},"buttons":[{"label":"Meer weten? Lees deze blogpost","url":"https:\/\/blog.biodiversitylibrary.org\/2017\/12\/magnificent-crustacea-leach-and-sowerbys-malacostraca-podophthalmata-brittanniae.html","external":true},{"label":"Bekijk het boek in de Biodiversity Heritage Library","url":"https:\/\/www.biodiversitylibrary.org\/page\/51482094?utm_medium=social%20media&utm_source=blogger&utm_campaign=Book%20of%20the%20Month&utm_content=Naturalis%20Biodiversity%20Center#page\/5\/mode\/1up","external":true}],"researcher":{"name":"Lipke Bijdeley Holthuis","role":"Onderzoeker kreeftachtigen (1921-2008)","image":{"src":"\/assets\/styles\/researcher\/public\/content\/researcher\/17_04_Holthuis1_Volkskrant_2001.jpg?h=20fd3246&itok=DOaetnxM","alt":"","aspectRatio":1,"placeholder":"\/assets\/styles\/researcher_placeholder\/public\/content\/researcher\/17_04_Holthuis1_Volkskrant_2001.jpg?h=20fd3246&itok=CI7RI_uW"}}}],"related":{"title":"Bekijk ook","items":[{"title":"Schorswants","id":173,"language":"nl","url":"schorswants","image":{"srcSet":{"1920":"\/assets\/styles\/specimen_header_1920\/public\/content\/specimen\/image\/PSE%20Kopie%20van%20RMNH.INS_.1089600%206.jpg?h=10080870&itok=IXOnjXjW","1280":"\/assets\/styles\/specimen_header_1280\/public\/content\/specimen\/image\/PSE%20Kopie%20van%20RMNH.INS_.1089600%206.jpg?h=10080870&itok=LCsG-WJn","960":"\/assets\/styles\/specimen_header_960\/public\/content\/specimen\/image\/PSE%20Kopie%20van%20RMNH.INS_.1089600%206.jpg?h=10080870&itok=4YosWKRa","640":"\/assets\/styles\/specimen_header_640\/public\/content\/specimen\/image\/PSE%20Kopie%20van%20RMNH.INS_.1089600%206.jpg?h=10080870&itok=QUrxxuiJ","320":"\/assets\/styles\/specimen_header_320\/public\/content\/specimen\/image\/PSE%20Kopie%20van%20RMNH.INS_.1089600%206.jpg?h=10080870&itok=Z_FS7_kG"},"alt":"","aspectRatio":1.7778,"placeholder":"\/assets\/styles\/specimen_header_placeholder\/public\/content\/specimen\/image\/PSE%20Kopie%20van%20RMNH.INS_.1089600%206.jpg?h=10080870&itok=tQlkb8R2"}},{"title":"Gevleugelde papiernautilus","id":120,"language":"nl","url":"gevleugelde-papiernautilus","image":{"srcSet":{"1920":"\/assets\/styles\/specimen_header_1920\/public\/content\/specimen\/image\/RMNH.MOL_.8-9_2_HL_1bewerktbreed.jpg?h=318c2c63&itok=WHkeq3YQ","1280":"\/assets\/styles\/specimen_header_1280\/public\/content\/specimen\/image\/RMNH.MOL_.8-9_2_HL_1bewerktbreed.jpg?h=318c2c63&itok=zH_Y_l5n","960":"\/assets\/styles\/specimen_header_960\/public\/content\/specimen\/image\/RMNH.MOL_.8-9_2_HL_1bewerktbreed.jpg?h=318c2c63&itok=9jvOIqqE","640":"\/assets\/styles\/specimen_header_640\/public\/content\/specimen\/image\/RMNH.MOL_.8-9_2_HL_1bewerktbreed.jpg?h=318c2c63&itok=YNKgxKFA","320":"\/assets\/styles\/specimen_header_320\/public\/content\/specimen\/image\/RMNH.MOL_.8-9_2_HL_1bewerktbreed.jpg?h=318c2c63&itok=dhapG-Rr"},"alt":"","aspectRatio":1.7778,"placeholder":"\/assets\/styles\/specimen_header_placeholder\/public\/content\/specimen\/image\/RMNH.MOL_.8-9_2_HL_1bewerktbreed.jpg?h=318c2c63&itok=YWQ5snQF"}}]}}};
+        </script>';
+
+        $result = $this->extractJson($data);
+
+        static::assertNotNull($result);
+        static::assertInstanceOf(\stdClass::class, $result, \print_r($result));
+    }
 }
