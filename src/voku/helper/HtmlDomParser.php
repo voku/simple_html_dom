@@ -62,13 +62,14 @@ class HtmlDomParser
      * @var array
      */
     protected static $domReplaceHelper = [
-        'orig' => ['&', '|', '+', '%', '@'],
+        'orig' => ['&', '|', '+', '%', '@', '<html ⚡'],
         'tmp'  => [
             '____SIMPLE_HTML_DOM__VOKU__AMP____',
             '____SIMPLE_HTML_DOM__VOKU__PIPE____',
             '____SIMPLE_HTML_DOM__VOKU__PLUS____',
             '____SIMPLE_HTML_DOM__VOKU__PERCENT____',
             '____SIMPLE_HTML_DOM__VOKU__AT____',
+            '<html ____SIMPLE_HTML_DOM__VOKU__GOOGLE_AMP____="true"',
         ],
     ];
 
