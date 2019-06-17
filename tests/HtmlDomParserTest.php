@@ -1391,8 +1391,8 @@ HTML;
 
         $dom = new HtmlDomParser();
         $dom->load($html);
-        $div = $dom->find('button');
-        static::assertSame($html, (string) $div);
+        $button = $dom->find('button');
+        static::assertSame($html, (string) $button);
     }
 
     public function testAmpHtmlStuff()
