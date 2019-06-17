@@ -1385,12 +1385,22 @@ HTML;
         static::assertSame('<div data-json=\'{"key":"value"}\'></div>', (string) $div);
     }
 
+    public function testHtmlInAttribute()
+    {
+        $html = '<button type="button" id="rotate_crop" class="btn btn-primary" data-loading-text="<i class=\'fa fa-spinner fa-spin\'></i> Rotando..." style="">Rotar</button>';
+
+        $dom = new HtmlDomParser();
+        $dom->load($html);
+        $div = $dom->find('button');
+        static::assertSame($html, (string) $div);
+    }
+
     public function testAmpHtmlStuff()
     {
         $dom = new HtmlDomParser();
         $dom->load('<html ⚡>foo</html>');
-        $div = $dom->find('html');
-        static::assertSame('<html ⚡>foo</html>', (string) $div);
+        $html = $dom->find('html');
+        static::assertSame('<html ⚡>foo</html>', (string) $html);
 
         // ---
 
@@ -1449,8 +1459,8 @@ HTML;
 
         $dom = new HtmlDomParser();
         $dom->load($html);
-        $div = $dom->find('html');
-        static::assertSame($expected, (string) $div);
+        $html = $dom->find('html');
+        static::assertSame($expected, (string) $html);
     }
 
     public function testScriptInCommentHtml()
