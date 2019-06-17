@@ -3,6 +3,7 @@
 2: add abstract class and interface for "Dom Elements" (SimpleHtmlDom*)
 3: and abstract class and interface for "Dom Nodes" (SimpleHtmlDomNode*)
 4: fix -> errors reported by phpstan (level 7)
+5: fix -> error with Google AMP (<html ⚡>) & Php DomDocument
 
 
 [PHP Simple HTML Dom v4.4.x]
