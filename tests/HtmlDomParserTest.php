@@ -1575,6 +1575,6 @@ HTML;
         $result = $this->extractJson($data);
 
         static::assertNotNull($result);
-        static::assertInstanceOf(\stdClass::class, $result, \print_r($result));
+        static::assertInstanceOf(\stdClass::class, $result, \print_r($result, true));
     }
 }
