@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace voku\helper;
 
-class SimpleHtmlDomNodeBlank extends AbstractSimpleHtmlDomNode implements SimpleHtmlDomNodeInterface
+class SimpleXmlDomNodeBlank extends AbstractSimpleXmlDomNode implements SimpleXmlDomNodeInterface
 {
     /**
      * @param string   $selector
@@ -22,9 +22,9 @@ class SimpleHtmlDomNodeBlank extends AbstractSimpleHtmlDomNode implements Simple
      *
      * @param string $selector
      *
-     * @return SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface
+     * @return SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface
      */
-    public function findMulti(string $selector): SimpleHtmlDomNodeInterface
+    public function findMulti(string $selector): SimpleXmlDomNodeInterface
     {
         return new self();
     }

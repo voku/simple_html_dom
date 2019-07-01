@@ -8,6 +8,7 @@ parameters:
     ignoreErrors:
         - '#Parameter \#1 \$var of function count expects array\|Countable, DOMNodeList given#'
         - '#on an unknown class voku\\helper\\UTF8#'
+        - '#DOMNode\|null#'
         - '#function of function call_user_func_array expects callable#'
         - '#Method voku\\helper\\HtmlDomParser::findOne\(\) should return#'
         - '#Method voku\\helper\\HtmlDomParser::findMulti\(\) should return#'
@@ -16,3 +17,10 @@ parameters:
         - '#Method voku\\helper\\SimpleHtmlDomNode::findOne\(\) should return#'
         - '#Method voku\\helper\\SimpleHtmlDomNode::findMulti\(\) should return#'
         - '#@return with type array<voku\\helper\\SimpleHtmlDomInterface>\|voku\\helper\\SimpleHtmlDomNodeInterface#'
+        - '#Method voku\\helper\\XmlDomParser::findOne\(\) should return#'
+        - '#Method voku\\helper\\XmlDomParser::findMulti\(\) should return#'
+        - '#Method voku\\helper\\SimpleXmlDom::findOne\(\) should return#'
+        - '#Method voku\\helper\\SimpleXmlDom::findMulti\(\) should return#'
+        - '#Method voku\\helper\\SimpleXmlDomNode::findOne\(\) should return#'
+        - '#Method voku\\helper\\SimpleXmlDomNode::findMulti\(\) should return#'
+        - '#@return with type array<voku\\helper\\SimpleXmlDomInterface>\|voku\\helper\\SimpleXmlDomNodeInterface#'

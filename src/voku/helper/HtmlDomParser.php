@@ -31,7 +31,7 @@ namespace voku\helper;
  * @method static HtmlDomParser str_get_html($html, $libXMLExtraOptions = null)
  *                                 <p>Load HTML from string.</p>
  */
-class HtmlDomParser
+class HtmlDomParser extends AbstractDomParser
 {
     /**
      * @var string[]
@@ -44,69 +44,6 @@ class HtmlDomParser
         'load'      => 'loadHtml',
         'load_file' => 'loadHtmlFile',
     ];
-
-    /**
-     * @var string[][]
-     */
-    protected static $domLinkReplaceHelper = [
-        'orig' => ['[', ']', '{', '}'],
-        'tmp'  => [
-            '____SIMPLE_HTML_DOM__VOKU__SQUARE_BRACKET_LEFT____',
-            '____SIMPLE_HTML_DOM__VOKU__SQUARE_BRACKET_RIGHT____',
-            '____SIMPLE_HTML_DOM__VOKU__BRACKET_LEFT____',
-            '____SIMPLE_HTML_DOM__VOKU__BRACKET_RIGHT____',
-        ],
-    ];
-
-    /**
-     * @var string[][]
-     */
-    protected static $domReplaceHelper = [
-        'orig' => ['&', '|', '+', '%', '@', '<html ⚡'],
-        'tmp'  => [
-            '____SIMPLE_HTML_DOM__VOKU__AMP____',
-            '____SIMPLE_HTML_DOM__VOKU__PIPE____',
-            '____SIMPLE_HTML_DOM__VOKU__PLUS____',
-            '____SIMPLE_HTML_DOM__VOKU__PERCENT____',
-            '____SIMPLE_HTML_DOM__VOKU__AT____',
-            '<html ____SIMPLE_HTML_DOM__VOKU__GOOGLE_AMP____="true"',
-        ],
-    ];
-
-    /**
-     * @var string
-     */
-    protected static $domHtmlWrapperHelper = '____simple_html_dom__voku__html_wrapper____';
-
-    /**
-     * @var string
-     */
-    protected static $domHtmlSpecialScriptHelper = '____simple_html_dom__voku__html_special_sctipt____';
-
-    /**
-     * @var array
-     */
-    protected static $domBrokenReplaceHelper = [];
-
-    /**
-     * @var callable
-     */
-    protected static $callback;
-
-    /**
-     * @var string[]
-     */
-    protected $namespaces = [];
-
-    /**
-     * @var \DOMDocument
-     */
-    protected $document;
-
-    /**
-     * @var string
-     */
-    protected $encoding = 'UTF-8';
 
     /**
      * @var bool
@@ -139,8 +76,6 @@ class HtmlDomParser
     protected $keepBrokenHtml;
 
     /**
-     * Constructor
-     *
      * @param \DOMNode|SimpleHtmlDomInterface|string $element HTML code or SimpleHtmlDomInterface, \DOMNode
      */
     public function __construct($element = null)
@@ -196,8 +131,8 @@ class HtmlDomParser
      * @param string $name
      * @param array  $arguments
      *
-     * @throws \RuntimeException
      * @throws \BadMethodCallException
+     * @throws \RuntimeException
      *
      * @return HtmlDomParser
      */
@@ -220,11 +155,6 @@ class HtmlDomParser
         }
 
         throw new \BadMethodCallException('Method does not exist');
-    }
-
-    public function __clone()
-    {
-        $this->document = clone $this->document;
     }
 
     /** @noinspection MagicMethodsValidityInspection */
@@ -251,17 +181,6 @@ class HtmlDomParser
         }
 
         return null;
-    }
-
-    /**
-     * @param string $selector
-     * @param int    $idx
-     *
-     * @return SimpleHtmlDomInterface|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface
-     */
-    public function __invoke($selector, $idx = null)
-    {
-        return $this->find($selector, $idx);
     }
 
     /**
@@ -414,48 +333,6 @@ class HtmlDomParser
     }
 
     /**
-     * @param string $content
-     * @param bool   $multiDecodeNewHtmlEntity
-     *
-     * @return string
-     */
-    protected function decodeHtmlEntity(string $content, bool $multiDecodeNewHtmlEntity): string
-    {
-        if ($multiDecodeNewHtmlEntity) {
-            if (\class_exists('\voku\helper\UTF8')) {
-                /** @noinspection PhpUndefinedClassInspection */
-                $content = UTF8::rawurldecode($content, true);
-            } else {
-                do {
-                    $content_compare = $content;
-
-                    $content = \rawurldecode(
-                        \html_entity_decode(
-                            $content,
-                            \ENT_QUOTES | \ENT_HTML5
-                        )
-                    );
-                } while ($content_compare !== $content);
-            }
-        } else {
-            /** @noinspection NestedPositiveIfStatementsInspection */
-            if (\class_exists('\voku\helper\UTF8')) {
-                /** @noinspection PhpUndefinedClassInspection */
-                $content = UTF8::rawurldecode($content, false);
-            } else {
-                $content = \rawurldecode(
-                    \html_entity_decode(
-                        $content,
-                        \ENT_QUOTES | \ENT_HTML5
-                    )
-                );
-            }
-        }
-
-        return $content;
-    }
-
-    /**
      * Find list of nodes with a CSS selector.
      *
      * @param string   $selector
@@ -470,11 +347,6 @@ class HtmlDomParser
         $xPath = new \DOMXPath($this->document);
         $nodesList = $xPath->query($xPathQuery);
         $elements = new SimpleHtmlDomNode();
-
-        // register the namespaces
-        foreach ($this->namespaces as $namespace => $url) {
-            $xPath->registerNamespace($namespace, $url);
-        }
 
         foreach ($nodesList as $node) {
             $elements[] = new SimpleHtmlDom($node);
@@ -613,14 +485,6 @@ class HtmlDomParser
     }
 
     /**
-     * @return \DOMDocument
-     */
-    public function getDocument(): \DOMDocument
-    {
-        return $this->document;
-    }
-
-    /**
      * Return elements by .class.
      *
      * @param string $class
@@ -712,13 +576,210 @@ class HtmlDomParser
     }
 
     /**
-     * Get the encoding to use.
+     * Get dom node's outer html.
+     *
+     * @param bool $multiDecodeNewHtmlEntity
      *
      * @return string
      */
-    protected function getEncoding(): string
+    public function html(bool $multiDecodeNewHtmlEntity = false): string
     {
-        return $this->encoding;
+        if ($this::$callback !== null) {
+            \call_user_func($this::$callback, [$this]);
+        }
+
+        if ($this->getIsDOMDocumentCreatedWithoutHtmlWrapper()) {
+            $content = $this->document->saveHTML($this->document->documentElement);
+        } else {
+            $content = $this->document->saveHTML();
+        }
+
+        if ($content === false) {
+            return '';
+        }
+
+        return $this->fixHtmlOutput($content, $multiDecodeNewHtmlEntity);
+    }
+
+    /**
+     * Load HTML from string.
+     *
+     * @param string   $html
+     * @param int|null $libXMLExtraOptions
+     *
+     * @return HtmlDomParser
+     */
+    public function loadHtml(string $html, $libXMLExtraOptions = null): DomParserInterface
+    {
+        $this->document = $this->createDOMDocument($html, $libXMLExtraOptions);
+
+        return $this;
+    }
+
+    /**
+     * Load HTML from file.
+     *
+     * @param string   $filePath
+     * @param int|null $libXMLExtraOptions
+     *
+     * @throws \RuntimeException
+     *
+     * @return HtmlDomParser
+     */
+    public function loadHtmlFile(string $filePath, $libXMLExtraOptions = null): DomParserInterface
+    {
+        if (
+            !\preg_match("/^https?:\/\//i", $filePath)
+            &&
+            !\file_exists($filePath)
+        ) {
+            throw new \RuntimeException("File ${filePath} not found");
+        }
+
+        try {
+            if (\class_exists('\voku\helper\UTF8')) {
+                /** @noinspection PhpUndefinedClassInspection */
+                $html = UTF8::file_get_contents($filePath);
+            } else {
+                $html = \file_get_contents($filePath);
+            }
+        } catch (\Exception $e) {
+            throw new \RuntimeException("Could not load file ${filePath}");
+        }
+
+        if ($html === false) {
+            throw new \RuntimeException("Could not load file ${filePath}");
+        }
+
+        return $this->loadHtml($html, $libXMLExtraOptions);
+    }
+
+    /**
+     * @param string $html
+     *
+     * @return string
+     */
+    public static function putReplacedBackToPreserveHtmlEntities(string $html): string
+    {
+        static $DOM_REPLACE__HELPER_CACHE = null;
+
+        if ($DOM_REPLACE__HELPER_CACHE === null) {
+            $DOM_REPLACE__HELPER_CACHE['tmp'] = \array_merge(
+                self::$domLinkReplaceHelper['tmp'],
+                self::$domReplaceHelper['tmp']
+            );
+            $DOM_REPLACE__HELPER_CACHE['orig'] = \array_merge(
+                self::$domLinkReplaceHelper['orig'],
+                self::$domReplaceHelper['orig']
+            );
+
+            $DOM_REPLACE__HELPER_CACHE['tmp']['html_wrapper__start'] = '<' . self::$domHtmlWrapperHelper . '>';
+            $DOM_REPLACE__HELPER_CACHE['tmp']['html_wrapper__end'] = '</' . self::$domHtmlWrapperHelper . '>';
+
+            $DOM_REPLACE__HELPER_CACHE['orig']['html_wrapper__start'] = '';
+            $DOM_REPLACE__HELPER_CACHE['orig']['html_wrapper__end'] = '';
+
+            $DOM_REPLACE__HELPER_CACHE['tmp']['html_special_script__start'] = '<' . self::$domHtmlSpecialScriptHelper;
+            $DOM_REPLACE__HELPER_CACHE['tmp']['html_special_script__end'] = '</' . self::$domHtmlSpecialScriptHelper . '>';
+
+            $DOM_REPLACE__HELPER_CACHE['orig']['html_special_script__start'] = '<script';
+            $DOM_REPLACE__HELPER_CACHE['orig']['html_special_script__end'] = '</script>';
+        }
+
+        if (
+            isset(self::$domBrokenReplaceHelper['tmp'])
+            &&
+            \count(self::$domBrokenReplaceHelper['tmp']) > 0
+        ) {
+            $html = \str_replace(self::$domBrokenReplaceHelper['tmp'], self::$domBrokenReplaceHelper['orig'], $html);
+        }
+
+        return \str_replace($DOM_REPLACE__HELPER_CACHE['tmp'], $DOM_REPLACE__HELPER_CACHE['orig'], $html);
+    }
+
+    /**
+     * @param string $html
+     *
+     * @return string
+     */
+    public static function replaceToPreserveHtmlEntities(string $html): string
+    {
+        // init
+        $linksNew = [];
+        $linksOld = [];
+
+        if (\strpos($html, 'http') !== false) {
+
+            // regEx for e.g.: [https://www.domain.de/foo.php?foobar=1&email=lars%40moelleken.org&guid=test1233312&{{foo}}#foo]
+            $regExUrl = '/(\[?\bhttps?:\/\/[^\s<>]+(?:\([\w]+\)|[^[:punct:]\s]|\/|\}|\]))/i';
+            \preg_match_all($regExUrl, $html, $linksOld);
+
+            if (!empty($linksOld[1])) {
+                $linksOld = $linksOld[1];
+                foreach ((array) $linksOld as $linkKey => $linkOld) {
+                    $linksNew[$linkKey] = \str_replace(
+                        self::$domLinkReplaceHelper['orig'],
+                        self::$domLinkReplaceHelper['tmp'],
+                        $linkOld
+                    );
+                }
+            }
+        }
+
+        $linksNewCount = \count($linksNew);
+        if ($linksNewCount > 0 && \count($linksOld) === $linksNewCount) {
+            $search = \array_merge($linksOld, self::$domReplaceHelper['orig']);
+            $replace = \array_merge($linksNew, self::$domReplaceHelper['tmp']);
+        } else {
+            $search = self::$domReplaceHelper['orig'];
+            $replace = self::$domReplaceHelper['tmp'];
+        }
+
+        return \str_replace($search, $replace, $html);
+    }
+
+    /**
+     * Get the HTML as XML or plain XML if needed.
+     *
+     * @param bool $multiDecodeNewHtmlEntity
+     * @param bool $htmlToXml
+     * @param bool $removeXmlHeader
+     * @param int  $options
+     *
+     * @return string
+     */
+    public function xml(
+        bool $multiDecodeNewHtmlEntity = false,
+        bool $htmlToXml = true,
+        bool $removeXmlHeader = true,
+        int $options = \LIBXML_NOEMPTYTAG
+    ): string {
+        $xml = $this->document->saveXML(null, $options);
+
+        if ($removeXmlHeader) {
+            $xml = \ltrim((string) \preg_replace('/<\?xml.*\?>/', '', $xml));
+        }
+
+        if ($htmlToXml) {
+            $return = $this->fixHtmlOutput($xml, $multiDecodeNewHtmlEntity);
+        } else {
+            $xml = $this->decodeHtmlEntity($xml, $multiDecodeNewHtmlEntity);
+
+            $return = self::putReplacedBackToPreserveHtmlEntities($xml);
+        }
+
+        return $return;
+    }
+
+    /**
+     * @param string $selector
+     * @param int    $idx
+     *
+     * @return SimpleHtmlDomInterface|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface
+     */
+    public function __invoke($selector, $idx = null)
+    {
+        return $this->find($selector, $idx);
     }
 
     /**
@@ -751,83 +812,6 @@ class HtmlDomParser
     public function getIsDOMDocumentCreatedWithoutWrapper(): bool
     {
         return $this->isDOMDocumentCreatedWithoutWrapper;
-    }
-
-    /**
-     * Get the list of registered namespaces as an array.
-     *
-     * @return array
-     *   An array in form ['prefix' => 'namespace-uri']
-     */
-    public function getNamespaces(): array
-    {
-        return $this->namespaces;
-    }
-
-    /**
-     * Get dom node's outer html.
-     *
-     * @param bool $multiDecodeNewHtmlEntity
-     *
-     * @return string
-     */
-    public function html(bool $multiDecodeNewHtmlEntity = false): string
-    {
-        if ($this::$callback !== null) {
-            \call_user_func($this::$callback, [$this]);
-        }
-
-        if ($this->getIsDOMDocumentCreatedWithoutHtmlWrapper()) {
-            $content = $this->document->saveHTML($this->document->documentElement);
-        } else {
-            $content = $this->document->saveHTML();
-        }
-
-        if ($content === false) {
-            return '';
-        }
-
-        return $this->fixHtmlOutput($content, $multiDecodeNewHtmlEntity);
-    }
-
-    /**
-     * workaround for bug: https://bugs.php.net/bug.php?id=74628
-     *
-     * @param string $html
-     */
-    protected function html5FallbackForScriptTags(string &$html)
-    {
-        // regEx for e.g.: [<script id="elements-image-2">...<script>]
-        /** @noinspection HtmlDeprecatedTag */
-        $regExSpecialScript = '/<(script)(?<attr>[^>]*)>(?<content>.*)<\/\1>/isU';
-        $html = \preg_replace_callback(
-            $regExSpecialScript,
-            static function ($scripts) {
-                return '<script' . $scripts['attr'] . '>' . \str_replace('</', '<\/', $scripts['content']) . '</script>';
-            },
-            $html
-        );
-    }
-
-    /**
-     * Get dom node's inner html.
-     *
-     * @param bool $multiDecodeNewHtmlEntity
-     *
-     * @return string
-     */
-    public function innerHtml(bool $multiDecodeNewHtmlEntity = false): string
-    {
-        // init
-        $text = '';
-
-        if ($this->document->documentElement) {
-            foreach ($this->document->documentElement->childNodes as $node) {
-                $text .= $this->document->saveHTML($node);
-            }
-        }
-
-        return $this->fixHtmlOutput($text, $multiDecodeNewHtmlEntity);
     }
 
     /**
@@ -904,234 +888,14 @@ class HtmlDomParser
     }
 
     /**
-     * Load HTML from string.
-     *
-     * @param string   $html
-     * @param int|null $libXMLExtraOptions
-     *
-     * @return HtmlDomParser
-     */
-    public function loadHtml(string $html, $libXMLExtraOptions = null): self
-    {
-        $this->document = $this->createDOMDocument($html, $libXMLExtraOptions);
-
-        return $this;
-    }
-
-    /**
-     * Load HTML from file.
-     *
-     * @param string   $filePath
-     * @param int|null $libXMLExtraOptions
-     *
-     * @throws \RuntimeException
-     *
-     * @return HtmlDomParser
-     */
-    public function loadHtmlFile(string $filePath, $libXMLExtraOptions = null): self
-    {
-        if (
-            !\preg_match("/^https?:\/\//i", $filePath)
-            &&
-            !\file_exists($filePath)
-        ) {
-            throw new \RuntimeException("File ${filePath} not found");
-        }
-
-        try {
-            if (\class_exists('\voku\helper\UTF8')) {
-                /** @noinspection PhpUndefinedClassInspection */
-                $html = UTF8::file_get_contents($filePath);
-            } else {
-                $html = \file_get_contents($filePath);
-            }
-        } catch (\Exception $e) {
-            throw new \RuntimeException("Could not load file ${filePath}");
-        }
-
-        if ($html === false) {
-            throw new \RuntimeException("Could not load file ${filePath}");
-        }
-
-        return $this->loadHtml($html, $libXMLExtraOptions);
-    }
-
-    /**
-     * @param string $html
-     *
-     * @return string
-     */
-    public static function putReplacedBackToPreserveHtmlEntities(string $html): string
-    {
-        static $DOM_REPLACE__HELPER_CACHE = null;
-
-        if ($DOM_REPLACE__HELPER_CACHE === null) {
-            $DOM_REPLACE__HELPER_CACHE['tmp'] = \array_merge(
-                self::$domLinkReplaceHelper['tmp'],
-                self::$domReplaceHelper['tmp']
-            );
-            $DOM_REPLACE__HELPER_CACHE['orig'] = \array_merge(
-                self::$domLinkReplaceHelper['orig'],
-                self::$domReplaceHelper['orig']
-            );
-
-            $DOM_REPLACE__HELPER_CACHE['tmp']['html_wrapper__start'] = '<' . self::$domHtmlWrapperHelper . '>';
-            $DOM_REPLACE__HELPER_CACHE['tmp']['html_wrapper__end'] = '</' . self::$domHtmlWrapperHelper . '>';
-
-            $DOM_REPLACE__HELPER_CACHE['orig']['html_wrapper__start'] = '';
-            $DOM_REPLACE__HELPER_CACHE['orig']['html_wrapper__end'] = '';
-
-            $DOM_REPLACE__HELPER_CACHE['tmp']['html_special_script__start'] = '<' . self::$domHtmlSpecialScriptHelper;
-            $DOM_REPLACE__HELPER_CACHE['tmp']['html_special_script__end'] = '</' . self::$domHtmlSpecialScriptHelper . '>';
-
-            $DOM_REPLACE__HELPER_CACHE['orig']['html_special_script__start'] = '<script';
-            $DOM_REPLACE__HELPER_CACHE['orig']['html_special_script__end'] = '</script>';
-        }
-
-        if (
-            isset(self::$domBrokenReplaceHelper['tmp'])
-            &&
-            \count(self::$domBrokenReplaceHelper['tmp']) > 0
-        ) {
-            $html = \str_replace(self::$domBrokenReplaceHelper['tmp'], self::$domBrokenReplaceHelper['orig'], $html);
-        }
-
-        return \str_replace($DOM_REPLACE__HELPER_CACHE['tmp'], $DOM_REPLACE__HELPER_CACHE['orig'], $html);
-    }
-
-    /**
-     * Register a namespace to be used in xpath queries.
-     *
-     * @param string $prefix
-     *   Namespace prefix to register
-     * @param string $url
-     *   Connonical URL for this namespace prefix
-     */
-    protected function registerNamespace($prefix, $url)
-    {
-        $this->namespaces[$prefix] = $url;
-    }
-
-    /**
-     * @param string $html
-     *
-     * @return string
-     */
-    public static function replaceToPreserveHtmlEntities(string $html): string
-    {
-        // init
-        $linksNew = [];
-        $linksOld = [];
-
-        if (\strpos($html, 'http') !== false) {
-
-            // regEx for e.g.: [https://www.domain.de/foo.php?foobar=1&email=lars%40moelleken.org&guid=test1233312&{{foo}}#foo]
-            $regExUrl = '/(\[?\bhttps?:\/\/[^\s<>]+(?:\([\w]+\)|[^[:punct:]\s]|\/|\}|\]))/i';
-            \preg_match_all($regExUrl, $html, $linksOld);
-
-            if (!empty($linksOld[1])) {
-                $linksOld = $linksOld[1];
-                foreach ((array) $linksOld as $linkKey => $linkOld) {
-                    $linksNew[$linkKey] = \str_replace(
-                        self::$domLinkReplaceHelper['orig'],
-                        self::$domLinkReplaceHelper['tmp'],
-                        $linkOld
-                    );
-                }
-            }
-        }
-
-        $linksNewCount = \count($linksNew);
-        if ($linksNewCount > 0 && \count($linksOld) === $linksNewCount) {
-            $search = \array_merge($linksOld, self::$domReplaceHelper['orig']);
-            $replace = \array_merge($linksNew, self::$domReplaceHelper['tmp']);
-        } else {
-            $search = self::$domReplaceHelper['orig'];
-            $replace = self::$domReplaceHelper['tmp'];
-        }
-
-        return \str_replace($search, $replace, $html);
-    }
-
-    /**
-     * Save the html-dom as string.
-     *
-     * @param string $filepath
-     *
-     * @return string
-     */
-    public function save(string $filepath = ''): string
-    {
-        $string = $this->innerHtml();
-        if ($filepath !== '') {
-            \file_put_contents($filepath, $string, \LOCK_EX);
-        }
-
-        return $string;
-    }
-
-    /**
-     * @param callable $functionName
-     */
-    public function set_callback($functionName)
-    {
-        static::$callback = $functionName;
-    }
-
-    /**
-     * Get dom node's plain text.
-     *
-     * @param bool $multiDecodeNewHtmlEntity
-     *
-     * @return string
-     */
-    public function text(bool $multiDecodeNewHtmlEntity = false): string
-    {
-        return $this->fixHtmlOutput($this->document->textContent, $multiDecodeNewHtmlEntity);
-    }
-
-    /**
      * @param bool $keepBrokenHtml
      *
      * @return HtmlDomParser
      */
-    public function useKeepBrokenHtml(bool $keepBrokenHtml): self
+    public function useKeepBrokenHtml(bool $keepBrokenHtml): DomParserInterface
     {
         $this->keepBrokenHtml = $keepBrokenHtml;
 
         return $this;
-    }
-
-    /**
-     * Get the HTML as XML or plain XML if needed.
-     *
-     * @param bool $multiDecodeNewHtmlEntity
-     * @param bool $htmlToXml
-     * @param bool $removeXmlHeader
-     * @param int  $options
-     *
-     * @return string
-     */
-    public function xml(
-        bool $multiDecodeNewHtmlEntity = false,
-        bool $htmlToXml = true,
-        bool $removeXmlHeader = true,
-        int $options = \LIBXML_NOEMPTYTAG
-    ): string {
-        $xml = $this->document->saveXML(null, $options);
-
-        if ($removeXmlHeader) {
-            $xml = \ltrim((string) \preg_replace('/<\?xml.*\?>/', '', $xml));
-        }
-
-        if ($htmlToXml) {
-            $return = $this->fixHtmlOutput($xml, $multiDecodeNewHtmlEntity);
-        } else {
-            $xml = $this->decodeHtmlEntity($xml, $multiDecodeNewHtmlEntity);
-
-            $return = self::putReplacedBackToPreserveHtmlEntities($xml);
-        }
-
-        return $return;
     }
 }

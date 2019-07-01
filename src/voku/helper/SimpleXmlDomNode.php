@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace voku\helper;
 
-class SimpleHtmlDomNode extends AbstractSimpleHtmlDomNode implements SimpleHtmlDomNodeInterface
+class SimpleXmlDomNode extends AbstractSimpleXmlDomNode implements SimpleXmlDomNodeInterface
 {
     /**
      * Find list of nodes with a CSS selector.
@@ -12,7 +12,7 @@ class SimpleHtmlDomNode extends AbstractSimpleHtmlDomNode implements SimpleHtmlD
      * @param string   $selector
      * @param int|null $idx
      *
-     * @return SimpleHtmlDomNodeInterface|SimpleHtmlDomNodeInterface[]|null
+     * @return SimpleXmlDomNodeInterface|SimpleXmlDomNodeInterface[]|null
      */
     public function find(string $selector, $idx = null)
     {
@@ -28,7 +28,7 @@ class SimpleHtmlDomNode extends AbstractSimpleHtmlDomNode implements SimpleHtmlD
         // return all elements
         if ($idx === null) {
             if (\count($elements) === 0) {
-                return new SimpleHtmlDomNodeBlank();
+                return new SimpleXmlDomNodeBlank();
             }
 
             return $elements;
@@ -48,9 +48,9 @@ class SimpleHtmlDomNode extends AbstractSimpleHtmlDomNode implements SimpleHtmlD
      *
      * @param string $selector
      *
-     * @return SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface
+     * @return SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface
      */
-    public function findMulti(string $selector): SimpleHtmlDomNodeInterface
+    public function findMulti(string $selector): SimpleXmlDomNodeInterface
     {
         return $this->find($selector, null);
     }
@@ -60,7 +60,7 @@ class SimpleHtmlDomNode extends AbstractSimpleHtmlDomNode implements SimpleHtmlD
      *
      * @param string $selector
      *
-     * @return SimpleHtmlDomNodeInterface|null
+     * @return SimpleXmlDomNodeInterface|null
      */
     public function findOne(string $selector)
     {

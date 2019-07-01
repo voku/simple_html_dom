@@ -1,18 +1,18 @@
 <?php
 
-use voku\helper\XmlParser;
+use voku\helper\XmlDomParser;
 
 /**
  * @internal
  */
-final class XmlParserTest extends \PHPUnit\Framework\TestCase
+final class XmlDomParserTest extends \PHPUnit\Framework\TestCase
 {
     public function testXml()
     {
         $filename = __DIR__ . '/fixtures/test_xml.xml';
         $filenameExpected = __DIR__ . '/fixtures/test_xml_expected.xml';
 
-        $xml = XmlParser::file_get_xml($filename);
+        $xml = XmlDomParser::file_get_xml($filename);
         $xmlExpected = \str_replace(["\r\n", "\r", "\n"], "\n", \file_get_contents($filenameExpected));
 
         // object to sting
@@ -27,7 +27,7 @@ final class XmlParserTest extends \PHPUnit\Framework\TestCase
         $filename = __DIR__ . '/fixtures/test_xml.xml';
         $filenameExpected = __DIR__ . '/fixtures/test_xml_replace_expected.xml';
 
-        $xml = XmlParser::file_get_xml($filename);
+        $xml = XmlDomParser::file_get_xml($filename);
         $xmlExpected = \str_replace(["\r\n", "\r", "\n"], "\n", \file_get_contents($filenameExpected));
 
         $xml->replaceTextWithCallback(static function ($oldValue) {
@@ -67,7 +67,7 @@ final class XmlParserTest extends \PHPUnit\Framework\TestCase
 </book>
 EOD;
 
-        $xmlParser = XmlParser::str_get_xml($xml);
+        $xmlParser = XmlDomParser::str_get_xml($xml);
 
         static::assertSame('Chapter 1', $xmlParser->findOne('//chap:title')->getNode()->textContent);
     }

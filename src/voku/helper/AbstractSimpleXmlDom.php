@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace voku\helper;
 
-abstract class AbstractSimpleHtmlDom
+abstract class AbstractSimpleXmlDom
 {
     /**
      * @var array
@@ -16,10 +16,6 @@ abstract class AbstractSimpleHtmlDom
         'next_sibling' => 'nextSibling',
         'prev_sibling' => 'previousSibling',
         'parent'       => 'parentNode',
-        'outertext'    => 'html',
-        'outerhtml'    => 'html',
-        'innertext'    => 'innerHtml',
-        'innerhtml'    => 'innerHtml',
     ];
 
     /**
@@ -33,7 +29,7 @@ abstract class AbstractSimpleHtmlDom
      *
      * @throws \BadMethodCallException
      *
-     * @return SimpleHtmlDomInterface|string|null
+     * @return SimpleXmlDomInterface|string|null
      */
     public function __call($name, $arguments)
     {
@@ -57,14 +53,8 @@ abstract class AbstractSimpleHtmlDom
         $name = \strtolower($name);
 
         switch ($name) {
-            case 'outerhtml':
-            case 'outertext':
-            case 'html':
-                return $this->html();
-            case 'innerhtml':
-            case 'innertext':
-                return $this->innerHtml();
-            case 'text':
+            case 'xml':
+                return $this->xml();
             case 'plaintext':
                 return $this->text();
             case 'tag':
@@ -84,7 +74,7 @@ abstract class AbstractSimpleHtmlDom
      * @param string $selector
      * @param int    $idx
      *
-     * @return SimpleHtmlDomInterface|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface
+     * @return SimpleXmlDomInterface|SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface
      */
     public function __invoke($selector, $idx = null)
     {
@@ -123,7 +113,7 @@ abstract class AbstractSimpleHtmlDom
      * @param string $name
      * @param mixed  $value
      *
-     * @return SimpleHtmlDomInterface|null
+     * @return SimpleXmlDomInterface|null
      */
     public function __set($name, $value)
     {
@@ -153,7 +143,7 @@ abstract class AbstractSimpleHtmlDom
      */
     public function __toString()
     {
-        return $this->html();
+        return $this->xml();
     }
 
     /**
@@ -175,19 +165,19 @@ abstract class AbstractSimpleHtmlDom
 
     abstract public function hasAttribute(string $name): bool;
 
-    abstract public function html(bool $multiDecodeNewHtmlEntity = false): string;
+    abstract public function innerXml(bool $multiDecodeNewHtmlEntity = false): string;
 
-    abstract public function innerHtml(bool $multiDecodeNewHtmlEntity = false): string;
+    abstract public function removeAttribute(string $name): SimpleXmlDomInterface;
 
-    abstract public function removeAttribute(string $name): SimpleHtmlDomInterface;
+    abstract protected function replaceChildWithString(string $string): SimpleXmlDomInterface;
 
-    abstract protected function replaceChildWithString(string $string): SimpleHtmlDomInterface;
+    abstract protected function replaceNodeWithString(string $string): SimpleXmlDomInterface;
 
-    abstract protected function replaceNodeWithString(string $string): SimpleHtmlDomInterface;
+    abstract protected function replaceTextWithString($string): SimpleXmlDomInterface;
 
-    abstract protected function replaceTextWithString($string): SimpleHtmlDomInterface;
-
-    abstract public function setAttribute(string $name, $value = null, bool $strict = false): SimpleHtmlDomInterface;
+    abstract public function setAttribute(string $name, $value = null, bool $strict = false): SimpleXmlDomInterface;
 
     abstract public function text(): string;
+
+    abstract public function xml(bool $multiDecodeNewHtmlEntity = false): string;
 }

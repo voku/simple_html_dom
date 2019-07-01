@@ -8,7 +8,7 @@ namespace voku\helper;
  * @property-read string[] $plaintext
  *                                    <p>Get dom node's plain text.</p>
  */
-interface SimpleHtmlDomNodeInterface extends \IteratorAggregate
+interface SimpleXmlDomNodeInterface extends \IteratorAggregate
 {
     /**
      * @param string $name
@@ -21,7 +21,7 @@ interface SimpleHtmlDomNodeInterface extends \IteratorAggregate
      * @param string $selector
      * @param int    $idx
      *
-     * @return SimpleHtmlDomNodeInterface|SimpleHtmlDomNodeInterface[]|null
+     * @return SimpleXmlDomNodeInterface|SimpleXmlDomNodeInterface[]|null
      */
     public function __invoke($selector, $idx = null);
 
@@ -36,7 +36,7 @@ interface SimpleHtmlDomNodeInterface extends \IteratorAggregate
      * @param string $selector
      * @param int    $idx
      *
-     * @return SimpleHtmlDomNode|SimpleHtmlDomNode[]|null
+     * @return SimpleXmlDomNode|SimpleXmlDomNode[]|null
      */
     public function find(string $selector, $idx = null);
 
@@ -45,7 +45,7 @@ interface SimpleHtmlDomNodeInterface extends \IteratorAggregate
      *
      * @param string $selector
      *
-     * @return SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface
+     * @return SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface
      */
     public function findMulti(string $selector): self;
 
@@ -54,7 +54,7 @@ interface SimpleHtmlDomNodeInterface extends \IteratorAggregate
      *
      * @param string $selector
      *
-     * @return SimpleHtmlDomNode|null
+     * @return SimpleXmlDomNode|null
      */
     public function findOne(string $selector);
 

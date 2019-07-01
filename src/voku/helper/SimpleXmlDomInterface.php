@@ -22,18 +22,17 @@ namespace voku\helper;
  * @property-read string $html
  *                            <p>Get dom node's outer html.</p>
  *
- * @method SimpleHtmlDomInterface|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface|null children() children($idx =
- *         -1)
+ * @method SimpleXmlDomInterface|SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface|null children() children($idx = -1)
  *                                           <p>Returns children of node.</p>
- * @method SimpleHtmlDomInterface|null first_child()
+ * @method SimpleXmlDomInterface|null first_child()
  *                                           <p>Returns the first child of node.</p>
- * @method SimpleHtmlDomInterface|null last_child()
+ * @method SimpleXmlDomInterface|null last_child()
  *                                           <p>Returns the last child of node.</p>
- * @method SimpleHtmlDomInterface|null next_sibling()
+ * @method SimpleXmlDomInterface|null next_sibling()
  *                                           <p>Returns the next sibling of node.</p>
- * @method SimpleHtmlDomInterface|null prev_sibling()
+ * @method SimpleXmlDomInterface|null prev_sibling()
  *                                           <p>Returns the previous sibling of node.</p>
- * @method SimpleHtmlDomInterface|null parent()
+ * @method SimpleXmlDomInterface|null parent()
  *                                           <p>Returns the parent of node.</p>
  * @method string outerText()
  *                                           <p>Get dom node's outer html (alias for "outerHtml()").</p>
@@ -42,7 +41,7 @@ namespace voku\helper;
  * @method string innerText()
  *                                           <p>Get dom node's inner html (alias for "innerHtml()").</p>
  */
-interface SimpleHtmlDomInterface extends \IteratorAggregate
+interface SimpleXmlDomInterface extends \IteratorAggregate
 {
     /**
      * @param string $name
@@ -50,7 +49,7 @@ interface SimpleHtmlDomInterface extends \IteratorAggregate
      *
      * @throws \BadMethodCallException
      *
-     * @return SimpleHtmlDomInterface|string|null
+     * @return SimpleXmlDomInterface|string|null
      */
     public function __call($name, $arguments);
 
@@ -65,7 +64,7 @@ interface SimpleHtmlDomInterface extends \IteratorAggregate
      * @param string $selector
      * @param int    $idx
      *
-     * @return SimpleHtmlDomInterface|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface
+     * @return SimpleXmlDomInterface|SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface
      */
     public function __invoke($selector, $idx = null);
 
@@ -86,7 +85,7 @@ interface SimpleHtmlDomInterface extends \IteratorAggregate
      *
      * @param int $idx
      *
-     * @return SimpleHtmlDomInterface|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface|null
+     * @return SimpleXmlDomInterface|SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface|null
      */
     public function childNodes(int $idx = -1);
 
@@ -96,7 +95,7 @@ interface SimpleHtmlDomInterface extends \IteratorAggregate
      * @param string   $selector
      * @param int|null $idx
      *
-     * @return SimpleHtmlDomInterface|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface
+     * @return SimpleXmlDomInterface|SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface
      */
     public function find(string $selector, $idx = null);
 
@@ -105,23 +104,23 @@ interface SimpleHtmlDomInterface extends \IteratorAggregate
      *
      * @param string $selector
      *
-     * @return SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface
+     * @return SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface
      */
-    public function findMulti(string $selector): SimpleHtmlDomNodeInterface;
+    public function findMulti(string $selector): SimpleXmlDomNodeInterface;
 
     /**
      * Find one node with a CSS selector.
      *
      * @param string $selector
      *
-     * @return SimpleHtmlDomInterface
+     * @return SimpleXmlDomInterface
      */
     public function findOne(string $selector): self;
 
     /**
      * Returns the first child of node.
      *
-     * @return SimpleHtmlDomInterface|null
+     * @return SimpleXmlDomInterface|null
      */
     public function firstChild();
 
@@ -146,7 +145,7 @@ interface SimpleHtmlDomInterface extends \IteratorAggregate
      *
      * @param string $class
      *
-     * @return SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface
+     * @return SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface
      */
     public function getElementByClass(string $class);
 
@@ -155,7 +154,7 @@ interface SimpleHtmlDomInterface extends \IteratorAggregate
      *
      * @param string $id
      *
-     * @return SimpleHtmlDomInterface
+     * @return SimpleXmlDomInterface
      */
     public function getElementById(string $id): self;
 
@@ -164,7 +163,7 @@ interface SimpleHtmlDomInterface extends \IteratorAggregate
      *
      * @param string $name
      *
-     * @return SimpleHtmlDomInterface
+     * @return SimpleXmlDomInterface
      */
     public function getElementByTagName(string $name): self;
 
@@ -174,7 +173,7 @@ interface SimpleHtmlDomInterface extends \IteratorAggregate
      * @param string   $id
      * @param int|null $idx
      *
-     * @return SimpleHtmlDomInterface|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface
+     * @return SimpleXmlDomInterface|SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface
      */
     public function getElementsById(string $id, $idx = null);
 
@@ -184,34 +183,34 @@ interface SimpleHtmlDomInterface extends \IteratorAggregate
      * @param string   $name
      * @param int|null $idx
      *
-     * @return SimpleHtmlDomInterface|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface
+     * @return SimpleXmlDomInterface|SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface
      */
     public function getElementsByTagName(string $name, $idx = null);
-
-    /**
-     * Create a new "HtmlDomParser"-object from the current context.
-     *
-     * @return HtmlDomParser
-     */
-    public function getHtmlDomParser(): HtmlDomParser;
 
     /**
      * Retrieve an external iterator.
      *
      * @see  http://php.net/manual/en/iteratoraggregate.getiterator.php
      *
-     * @return SimpleHtmlDomNodeInterface
+     * @return SimpleXmlDomNodeInterface
      *                           <p>
      *                              An instance of an object implementing <b>Iterator</b> or
      *                              <b>Traversable</b>
      *                           </p>
      */
-    public function getIterator(): SimpleHtmlDomNodeInterface;
+    public function getIterator(): SimpleXmlDomNodeInterface;
 
     /**
      * @return \DOMNode
      */
     public function getNode(): \DOMNode;
+
+    /**
+     * Create a new "XmlDomParser"-object from the current context.
+     *
+     * @return XmlDomParser
+     */
+    public function getXmlDomParser(): XmlDomParser;
 
     /**
      * Determine if an attribute exists on the element.
@@ -223,13 +222,13 @@ interface SimpleHtmlDomInterface extends \IteratorAggregate
     public function hasAttribute(string $name): bool;
 
     /**
-     * Get dom node's outer html.
+     * Get dom node's inner html.
      *
      * @param bool $multiDecodeNewHtmlEntity
      *
      * @return string
      */
-    public function html(bool $multiDecodeNewHtmlEntity = false): string;
+    public function innerHtml(bool $multiDecodeNewHtmlEntity = false): string;
 
     /**
      * Get dom node's inner html.
@@ -238,7 +237,7 @@ interface SimpleHtmlDomInterface extends \IteratorAggregate
      *
      * @return string
      */
-    public function innerHtml(bool $multiDecodeNewHtmlEntity = false): string;
+    public function innerXml(bool $multiDecodeNewHtmlEntity = false): string;
 
     /**
      * Nodes can get partially destroyed in which they're still an
@@ -252,28 +251,28 @@ interface SimpleHtmlDomInterface extends \IteratorAggregate
     /**
      * Returns the last child of node.
      *
-     * @return SimpleHtmlDomInterface|null
+     * @return SimpleXmlDomInterface|null
      */
     public function lastChild();
 
     /**
      * Returns the next sibling of node.
      *
-     * @return SimpleHtmlDomInterface|null
+     * @return SimpleXmlDomInterface|null
      */
     public function nextSibling();
 
     /**
      * Returns the parent of node.
      *
-     * @return SimpleHtmlDomInterface
+     * @return SimpleXmlDomInterface
      */
     public function parentNode(): self;
 
     /**
      * Returns the previous sibling of node.
      *
-     * @return SimpleHtmlDomInterface|null
+     * @return SimpleXmlDomInterface|null
      */
     public function previousSibling();
 
@@ -282,7 +281,7 @@ interface SimpleHtmlDomInterface extends \IteratorAggregate
      *
      * @param string $name <p>The name of the html-attribute.</p>
      *
-     * @return SimpleHtmlDomInterface
+     * @return SimpleXmlDomInterface
      */
     public function removeAttribute(string $name): self;
 
@@ -296,7 +295,7 @@ interface SimpleHtmlDomInterface extends \IteratorAggregate
      *                                so that you can set an empty string as attribute-value e.g. autofocus=""
      *                                </p>
      *
-     * @return SimpleHtmlDomInterface
+     * @return SimpleXmlDomInterface
      */
     public function setAttribute(string $name, $value = null, bool $strict = false): self;
 
@@ -316,4 +315,13 @@ interface SimpleHtmlDomInterface extends \IteratorAggregate
      * @return string|string[]|null
      */
     public function val($value = null);
+
+    /**
+     * Get dom node's outer html.
+     *
+     * @param bool $multiDecodeNewHtmlEntity
+     *
+     * @return string
+     */
+    public function xml(bool $multiDecodeNewHtmlEntity = false): string;
 }
