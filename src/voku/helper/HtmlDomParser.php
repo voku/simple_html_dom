@@ -249,6 +249,12 @@ class HtmlDomParser extends AbstractDomParser
                 \strpos($html, 'type=\'text/html\'') !== false
                 ||
                 \strpos($html, 'type=text/html') !== false
+                ||
+                \strpos($html, 'type="text/x-custom-template"') !== false
+                ||
+                \strpos($html, 'type=\'text/x-custom-template\'') !== false
+                ||
+                \strpos($html, 'type=text/x-custom-template') !== false
             ) {
                 $this->keepSpecialScriptTags($html);
             }
@@ -872,7 +878,7 @@ class HtmlDomParser extends AbstractDomParser
     {
         $specialScripts = [];
         // regEx for e.g.: [<script id="elements-image-1" type="text/html">...</script>]
-        $regExSpecialScript = '/<(script) [^>]*type=(["\']){0,1}text\/html\2{0,1}([^>]*)>.*<\/\1>/isU';
+        $regExSpecialScript = '/<(script) [^>]*type=(["\']){0,1}(text\/html|text\/x-custom-template)\2{0,1}([^>]*)>.*<\/\1>/isU';
         \preg_match_all($regExSpecialScript, $html, $specialScripts);
 
         if (isset($specialScripts[0])) {
