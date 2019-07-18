@@ -373,13 +373,21 @@ abstract class AbstractDomParser implements DomParserInterface
         // regEx for e.g.: [<script id="elements-image-2">...<script>]
         /** @noinspection HtmlDeprecatedTag */
         $regExSpecialScript = '/<(script)(?<attr>[^>]*)>(?<content>.*)<\/\1>/isU';
-        $html = \preg_replace_callback(
+        $htmlTmp = \preg_replace_callback(
             $regExSpecialScript,
             static function ($scripts) {
-                return '<script' . $scripts['attr'] . '>' . \str_replace('</', '<\/', $scripts['content']) . '</script>';
+                if (empty($scripts['content'])) {
+                    return $scripts[0];
+                }
+
+                return '<script' . $scripts['attr'] . '>' . str_replace('</', '<\/', $scripts['content']) . '</script>';
             },
             $html
         );
+
+        if ($htmlTmp !== null) {
+            $html = $htmlTmp;
+        }
     }
 
     /**
