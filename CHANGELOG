@@ -1,5 +1,7 @@
 [PHP Simple HTML Dom v4.6.x]
 1: add an XmlDomParser Class + simple tests
+2: add support for text/x-custom-template type
+3: fix -> check result of "html5FallbackForScriptTags()"
 
 [PHP Simple HTML Dom v4.5.x]
 1: fix -> return types
