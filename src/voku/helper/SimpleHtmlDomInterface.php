@@ -22,8 +22,7 @@ namespace voku\helper;
  * @property-read string $html
  *                            <p>Get dom node's outer html.</p>
  *
- * @method SimpleHtmlDomInterface|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface|null children() children($idx =
- *         -1)
+ * @method SimpleHtmlDomInterface|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface|null children() children($idx = -1)
  *                                           <p>Returns children of node.</p>
  * @method SimpleHtmlDomInterface|null first_child()
  *                                           <p>Returns the first child of node.</p>
