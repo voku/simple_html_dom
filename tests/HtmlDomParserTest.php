@@ -1069,6 +1069,32 @@ HTML;
         static::assertSame('<a href="google.com" id="78">click here</a>', $dom->getElementById('78')->outerHtml);
     }
 
+    public function testHtmlAndCssEdgeCase()
+    {
+        $dom = new HtmlDomParser();
+
+        $html = '<p>lall</p><style><!--
+h1 {
+    color: red;
+}
+--></style><span>foo</span>';
+
+
+        $dom->load($html);
+
+$elm = $dom->getElementsByTagName('style');
+        static::assertSame(
+            '<!--
+h1 {
+    color: red;
+}
+-->',
+            $elm[0]->innerhtml
+        );
+
+
+    }
+
     public function testGetElementsByTag()
     {
         $dom = new HtmlDomParser();
