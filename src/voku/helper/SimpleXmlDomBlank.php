@@ -175,6 +175,19 @@ class SimpleXmlDomBlank extends AbstractSimpleXmlDom implements \IteratorAggrega
         return new SimpleXmlDomNodeBlank();
     }
 
+
+    /**
+     * Find nodes with a CSS selector or false, if no element is found.
+     *
+     * @param string $selector
+     *
+     * @return false
+     */
+    public function findMultiOrFalse(string $selector)
+    {
+        return false;
+    }
+
     /**
      * Find one node with a CSS selector.
      *
@@ -185,6 +198,18 @@ class SimpleXmlDomBlank extends AbstractSimpleXmlDom implements \IteratorAggrega
     public function findOne(string $selector): SimpleXmlDomInterface
     {
         return new static();
+    }
+
+    /**
+     * Find one node with a CSS selector or false, if no element is found.
+     *
+     * @param string $selector
+     *
+     * @return false
+     */
+    public function findOneOrFalse(string $selector)
+    {
+        return false;
     }
 
     /**

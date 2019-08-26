@@ -176,6 +176,18 @@ class SimpleHtmlDomBlank extends AbstractSimpleHtmlDom implements \IteratorAggre
     }
 
     /**
+     * Find nodes with a CSS selector or false, if no element is found.
+     *
+     * @param string $selector
+     *
+     * @return false
+     */
+    public function findMultiOrFalse(string $selector)
+    {
+        return false;
+    }
+
+    /**
      * Find one node with a CSS selector.
      *
      * @param string $selector
@@ -185,6 +197,18 @@ class SimpleHtmlDomBlank extends AbstractSimpleHtmlDom implements \IteratorAggre
     public function findOne(string $selector): SimpleHtmlDomInterface
     {
         return new static();
+    }
+
+    /**
+     * Find one node with a CSS selector or false, if no element is found.
+     *
+     * @param string $selector
+     *
+     * @return false
+     */
+    public function findOneOrFalse(string $selector)
+    {
+        return false;
     }
 
     /**

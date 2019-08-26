@@ -30,6 +30,18 @@ class SimpleXmlDomNodeBlank extends AbstractSimpleXmlDomNode implements SimpleXm
     }
 
     /**
+     * Find nodes with a CSS selector.
+     *
+     * @param string $selector
+     *
+     * @return false
+     */
+    public function findMultiOrFalse(string $selector)
+    {
+        return false;
+    }
+
+    /**
      * Find one node with a CSS selector.
      *
      * @param string $selector
@@ -39,6 +51,16 @@ class SimpleXmlDomNodeBlank extends AbstractSimpleXmlDomNode implements SimpleXm
     public function findOne(string $selector)
     {
         return null;
+    }
+
+    /**
+     * @param string $selector
+     *
+     * @return false
+     */
+    public function findOneOrFalse(string $selector)
+    {
+        return false;
     }
 
     /**

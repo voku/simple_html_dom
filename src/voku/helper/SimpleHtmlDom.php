@@ -383,7 +383,19 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
      */
     public function findMulti(string $selector): SimpleHtmlDomNodeInterface
     {
-        return $this->find($selector, null);
+        return $this->getHtmlDomParser()->findMulti($selector);
+    }
+
+    /**
+     * Find nodes with a CSS selector or false, if no element is found.
+     *
+     * @param string $selector
+     *
+     * @return SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface|false
+     */
+    public function findMultiOrFalse(string $selector)
+    {
+        return $this->getHtmlDomParser()->findMultiOrFalse($selector);
     }
 
     /**
@@ -395,7 +407,20 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
      */
     public function findOne(string $selector): SimpleHtmlDomInterface
     {
-        return $this->find($selector, 0);
+        return $this->getHtmlDomParser()->findOne($selector);
+    }
+
+
+    /**
+     * Find one node with a CSS selector or false, if no element is found.
+     *
+     * @param string $selector
+     *
+     * @return SimpleHtmlDomInterface|false
+     */
+    public function findOneOrFalse(string $selector)
+    {
+        return $this->getHtmlDomParser()->findOneOrFalse($selector);
     }
 
     /**

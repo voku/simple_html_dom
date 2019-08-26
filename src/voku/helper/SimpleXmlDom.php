@@ -357,7 +357,19 @@ class SimpleXmlDom extends AbstractSimpleXmlDom implements \IteratorAggregate, S
      */
     public function findMulti(string $selector): SimpleXmlDomNodeInterface
     {
-        return $this->find($selector, null);
+        return $this->getXmlDomParser()->findMulti($selector);
+    }
+
+    /**
+     * Find nodes with a CSS selector.
+     *
+     * @param string $selector
+     *
+     * @return SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface|false
+     */
+    public function findMultiOrFalse(string $selector)
+    {
+        return $this->getXmlDomParser()->findMultiOrFalse($selector);
     }
 
     /**
@@ -369,7 +381,20 @@ class SimpleXmlDom extends AbstractSimpleXmlDom implements \IteratorAggregate, S
      */
     public function findOne(string $selector): SimpleXmlDomInterface
     {
-        return $this->find($selector, 0);
+        return $this->getXmlDomParser()->findOne($selector);
+    }
+
+
+    /**
+     * Find one node with a CSS selector or false, if no element is found.
+     *
+     * @param string $selector
+     *
+     * @return SimpleXmlDomInterface|false
+     */
+    public function findOneOrFalse(string $selector)
+    {
+        return $this->getXmlDomParser()->findOneOrFalse($selector);
     }
 
     /**

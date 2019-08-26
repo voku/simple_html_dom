@@ -19,12 +19,28 @@ interface DomParserInterface
      */
     public function findMulti(string $selector);
 
+
+    /**
+     * Find nodes with a CSS selector or false, if no element is found.
+     *
+     * @param string $selector
+     */
+    public function findMultiOrFalse(string $selector);
+
     /**
      * Find one node with a CSS selector.
      *
      * @param string $selector
      */
     public function findOne(string $selector);
+
+
+    /**
+     * Find one node with a CSS selector or false, if no element is found.
+     *
+     * @param string $selector
+     */
+    public function findOneOrFalse(string $selector);
 
     /**
      * @param string $content

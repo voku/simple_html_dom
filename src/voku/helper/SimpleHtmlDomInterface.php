@@ -109,6 +109,15 @@ interface SimpleHtmlDomInterface extends \IteratorAggregate
     public function findMulti(string $selector): SimpleHtmlDomNodeInterface;
 
     /**
+     * Find nodes with a CSS selector or false, if no element is found.
+     *
+     * @param string $selector
+     *
+     * @return SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface|false
+     */
+    public function findMultiOrFalse(string $selector);
+
+    /**
      * Find one node with a CSS selector.
      *
      * @param string $selector
@@ -116,6 +125,16 @@ interface SimpleHtmlDomInterface extends \IteratorAggregate
      * @return SimpleHtmlDomInterface
      */
     public function findOne(string $selector): self;
+
+
+    /**
+     * Find one node with a CSS selector or false, if no element is found.
+     *
+     * @param string $selector
+     *
+     * @return SimpleHtmlDomInterface|false
+     */
+    public function findOneOrFalse(string $selector);
 
     /**
      * Returns the first child of node.

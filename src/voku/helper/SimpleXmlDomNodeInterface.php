@@ -50,6 +50,15 @@ interface SimpleXmlDomNodeInterface extends \IteratorAggregate
     public function findMulti(string $selector): self;
 
     /**
+     * Find nodes with a CSS selector.
+     *
+     * @param string $selector
+     *
+     * @return SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface|false
+     */
+    public function findMultiOrFalse(string $selector);
+
+    /**
      * Find one node with a CSS selector.
      *
      * @param string $selector
@@ -57,6 +66,15 @@ interface SimpleXmlDomNodeInterface extends \IteratorAggregate
      * @return SimpleXmlDomNode|null
      */
     public function findOne(string $selector);
+
+    /**
+     * Find one node with a CSS selector or false, if no element is found.
+     *
+     * @param string $selector
+     *
+     * @return SimpleXmlDomNode|false
+     */
+    public function findOneOrFalse(string $selector);
 
     /**
      * Get html of elements.

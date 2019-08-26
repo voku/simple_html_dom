@@ -1,9 +1,13 @@
+[PHP Simple HTML Dom v4.7.x]
+1: add "findMultiOrFalse()" + "findOneOrFalse()"
+2: fix -> usage of e.g. "textContent"
+
+
 [PHP Simple HTML Dom v4.6.x]
 1: add an XmlDomParser Class + simple tests
 2: add support for text/x-custom-template type
 3: fix -> check result of "html5FallbackForScriptTags()"
-4: add "findMultiOrFalse()" + "findOneOrFalse()"
-5: fix -> usage of e.g. "textContent"
+
 
 [PHP Simple HTML Dom v4.5.x]
 1: fix -> return types
