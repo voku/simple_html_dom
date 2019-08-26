@@ -307,6 +307,7 @@ class HtmlDomParser extends AbstractDomParser
 
             // UTF-8 hack: http://php.net/manual/en/domdocument.loadhtml.php#95251
             $xmlHackUsed = false;
+            /** @noinspection StringFragmentMisplacedInspection */
             if (\stripos('<?xml', $html) !== 0) {
                 $xmlHackUsed = true;
                 $html = '<?xml encoding="' . $this->getEncoding() . '" ?>' . $html;

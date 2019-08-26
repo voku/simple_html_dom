@@ -148,6 +148,7 @@ class XmlDomParser extends AbstractDomParser
 
             // UTF-8 hack: http://php.net/manual/en/domdocument.loadhtml.php#95251
             $xmlHackUsed = false;
+            /** @noinspection StringFragmentMisplacedInspection */
             if (\stripos('<?xml', $xml) !== 0) {
                 $xmlHackUsed = true;
                 $xml = '<?xml encoding="' . $this->getEncoding() . '" ?>' . $xml;
@@ -230,6 +231,24 @@ class XmlDomParser extends AbstractDomParser
     }
 
     /**
+     * Find nodes with a CSS selector or false, if no element is found.
+     *
+     * @param string $selector
+     *
+     * @return SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface|false
+     */
+    public function findMultiOrFalse(string $selector)
+    {
+        $return = $this->find($selector, null);
+
+        if ($return instanceof SimpleXmlDomNodeBlank) {
+            return false;
+        }
+
+        return $return;
+    }
+
+    /**
      * Find one node with a CSS selector.
      *
      * @param string $selector
@@ -239,6 +258,24 @@ class XmlDomParser extends AbstractDomParser
     public function findOne(string $selector): SimpleXmlDomInterface
     {
         return $this->find($selector, 0);
+    }
+
+    /**
+     * Find one node with a CSS selector or false, if no element is found.
+     *
+     * @param string $selector
+     *
+     * @return SimpleXmlDomInterface|false
+     */
+    public function findOneOrFalse(string $selector)
+    {
+        $return = $this->find($selector, 0);
+
+        if ($return instanceof SimpleXmlDomBlank) {
+            return false;
+        }
+
+        return $return;
     }
 
     /**

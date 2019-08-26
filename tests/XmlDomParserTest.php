@@ -70,5 +70,11 @@ EOD;
         $xmlParser = XmlDomParser::str_get_xml($xml);
 
         static::assertSame('Chapter 1', $xmlParser->findOne('//chap:title')->getNode()->textContent);
+
+        static::assertSame(2, count($xmlParser->findMulti('chapter')));
+
+        static::assertSame(false, $xmlParser->findOneOrFalse('//chap:foo'));
+
+        static::assertSame(false, $xmlParser->findMultiOrFalse('foo'));
     }
 }
