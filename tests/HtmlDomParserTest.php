@@ -1095,6 +1095,16 @@ h1 {
         );
     }
 
+    public function testTextContent()
+    {
+        $dom = new HtmlDomParser();
+        $dom->load('<div><p>Proton Power & Light</p></div>');
+
+        $p = $dom->findOne('p');
+
+        self::assertSame('Proton Power & Light', $p->textContent);
+    }
+
     public function testTagExists()
     {
         $dom = new HtmlDomParser();

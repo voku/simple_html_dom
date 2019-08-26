@@ -73,7 +73,7 @@ abstract class AbstractSimpleHtmlDom
                 return $this->getAllAttributes();
             default:
                 if ($this->node && \property_exists($this->node, $nameOrig)) {
-                    return $this->node->{$nameOrig};
+                    return HtmlDomParser::putReplacedBackToPreserveHtmlEntities($this->node->{$nameOrig});
                 }
 
                 return $this->getAttribute($name);
