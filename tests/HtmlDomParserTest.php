@@ -2,7 +2,9 @@
 
 use voku\helper\HtmlDomParser;
 use voku\helper\SimpleHtmlDom;
+use voku\helper\SimpleHtmlDomInterface;
 use voku\helper\SimpleHtmlDomNode;
+use voku\helper\SimpleHtmlDomNodeInterface;
 
 /**
  * Class HtmlDomParserTest
@@ -1091,8 +1093,88 @@ h1 {
 -->',
             $elm[0]->innerhtml
         );
+    }
 
+    public function testTagExists()
+    {
+        $dom = new HtmlDomParser();
+        $dom->load('<div><p>lall</p></div>');
 
+        $p = $dom->find('p');
+        self::assertInstanceOf(SimpleHtmlDomNodeInterface::class, $p);
+        if (count($p)) {
+            $exists = true;
+        } else {
+            $exists = false;
+        }
+        self::assertTrue($exists);
+
+        $span = $dom->find('span');
+        self::assertInstanceOf(SimpleHtmlDomNodeInterface::class, $span);
+        if (count($span)) {
+            $exists = true;
+        } else {
+            $exists = false;
+        }
+        self::assertFalse($exists);
+
+        // --
+
+        $p = $dom->findMulti('p');
+        self::assertInstanceOf(SimpleHtmlDomNodeInterface::class, $p);
+        if (count($p)) {
+            $exists = true;
+        } else {
+            $exists = false;
+        }
+        self::assertTrue($exists);
+
+        $span = $dom->findMulti('span');
+        self::assertInstanceOf(SimpleHtmlDomNodeInterface::class, $span);
+        if (count($span)) {
+            $exists = true;
+        } else {
+            $exists = false;
+        }
+        self::assertFalse($exists);
+
+        // ---
+
+        $p = $dom->findMultiOrFalse('p');
+        self::assertInstanceOf(SimpleHtmlDomNodeInterface::class, $p);
+        if (count($p)) {
+            $exists = true;
+        } else {
+            $exists = false;
+        }
+        self::assertTrue($exists);
+
+        $span = $dom->findMultiOrFalse('span');
+        self::assertFalse($span);
+
+        // ---
+
+        $p = $dom->find('p', 0);
+        self::assertInstanceOf(SimpleHtmlDomInterface::class, $p);
+
+        $p = $dom->find('span', 0);
+        self::assertInstanceOf(SimpleHtmlDomInterface::class, $p);
+
+        // ---
+
+        $p = $dom->findOne('p');
+        self::assertInstanceOf(SimpleHtmlDomInterface::class, $p);
+
+        $p = $dom->findOne('span');
+        self::assertInstanceOf(SimpleHtmlDomInterface::class, $p);
+
+        // ---
+
+        $p = $dom->findOneOrFalse('p');
+        self::assertInstanceOf( SimpleHtmlDomInterface::class, $p);
+
+        $p = $dom->findOneOrFalse('span');
+        self::assertFalse($p);
     }
 
     public function testGetElementsByTag()
