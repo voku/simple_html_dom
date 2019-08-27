@@ -46,9 +46,9 @@ $element = $dom->findOne('#css-selector'); // "$element" === instance of "Simple
 
 $elements = $dom->findMulti('.css-selector'); // "$elements" === instance of SimpleHtmlDomNodeInterface<int, SimpleHtmlDomInterface>
 
-$elementOrFalse = $dom->findOneOrFalse('#css-selector'); // "$element" === instance of "SimpleHtmlDomInterface" or false
+$elementOrFalse = $dom->findOneOrFalse('#css-selector'); // "$elementOrFalse" === instance of "SimpleHtmlDomInterface" or false
 
-$elementsOrFalse = $dom->findMultiOrFalse('.css-selector'); // "$elements" === instance of SimpleHtmlDomNodeInterface<int, SimpleHtmlDomInterface> or false
+$elementsOrFalse = $dom->findMultiOrFalse('.css-selector'); // "$elementsOrFalse" === instance of SimpleHtmlDomNodeInterface<int, SimpleHtmlDomInterface> or false
 ...
 
 ```
