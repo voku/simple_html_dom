@@ -235,7 +235,7 @@ class XmlDomParser extends AbstractDomParser
      *
      * @param string $selector
      *
-     * @return SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface|false
+     * @return false|SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface
      */
     public function findMultiOrFalse(string $selector)
     {
@@ -265,7 +265,7 @@ class XmlDomParser extends AbstractDomParser
      *
      * @param string $selector
      *
-     * @return SimpleXmlDomInterface|false
+     * @return false|SimpleXmlDomInterface
      */
     public function findOneOrFalse(string $selector)
     {

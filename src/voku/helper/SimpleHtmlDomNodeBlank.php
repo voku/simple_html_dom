@@ -53,7 +53,6 @@ class SimpleHtmlDomNodeBlank extends AbstractSimpleHtmlDomNode implements Simple
         return null;
     }
 
-
     /**
      * Find one node with a CSS selector or false, if no element is found.
      *

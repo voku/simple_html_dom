@@ -175,7 +175,6 @@ class SimpleXmlDomBlank extends AbstractSimpleXmlDom implements \IteratorAggrega
         return new SimpleXmlDomNodeBlank();
     }
 
-
     /**
      * Find nodes with a CSS selector or false, if no element is found.
      *

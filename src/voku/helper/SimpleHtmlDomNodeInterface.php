@@ -49,13 +49,12 @@ interface SimpleHtmlDomNodeInterface extends \IteratorAggregate
      */
     public function findMulti(string $selector): self;
 
-
     /**
      * Find nodes with a CSS selector or false, if no element is found.
      *
      * @param string $selector
      *
-     * @return SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface|false
+     * @return false|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface
      */
     public function findMultiOrFalse(string $selector);
 
@@ -68,13 +67,12 @@ interface SimpleHtmlDomNodeInterface extends \IteratorAggregate
      */
     public function findOne(string $selector);
 
-
     /**
      * Find one node with a CSS selector or false, if no element is found.
      *
      * @param string $selector
      *
-     * @return SimpleHtmlDomNode|false
+     * @return false|SimpleHtmlDomNode
      */
     public function findOneOrFalse(string $selector);
 

@@ -1081,10 +1081,9 @@ h1 {
 }
 --></style><span>foo</span>';
 
-
         $dom->load($html);
 
-$elm = $dom->getElementsByTagName('style');
+        $elm = $dom->getElementsByTagName('style');
         static::assertSame(
             '<!--
 h1 {
@@ -1102,7 +1101,7 @@ h1 {
 
         $p = $dom->findOne('p');
 
-        self::assertSame('Proton Power & Light', $p->textContent);
+        static::assertSame('Proton Power & Light', $p->textContent);
     }
 
     public function testTagExists()
@@ -1111,80 +1110,80 @@ h1 {
         $dom->load('<div><p>lall</p></div>');
 
         $p = $dom->find('p');
-        self::assertInstanceOf(SimpleHtmlDomNodeInterface::class, $p);
-        if (count($p)) {
+        static::assertInstanceOf(SimpleHtmlDomNodeInterface::class, $p);
+        if (\count($p)) {
             $exists = true;
         } else {
             $exists = false;
         }
-        self::assertTrue($exists);
+        static::assertTrue($exists);
 
         $span = $dom->find('span');
-        self::assertInstanceOf(SimpleHtmlDomNodeInterface::class, $span);
-        if (count($span)) {
+        static::assertInstanceOf(SimpleHtmlDomNodeInterface::class, $span);
+        if (\count($span)) {
             $exists = true;
         } else {
             $exists = false;
         }
-        self::assertFalse($exists);
+        static::assertFalse($exists);
 
         // --
 
         $p = $dom->findMulti('p');
-        self::assertInstanceOf(SimpleHtmlDomNodeInterface::class, $p);
-        if (count($p)) {
+        static::assertInstanceOf(SimpleHtmlDomNodeInterface::class, $p);
+        if (\count($p)) {
             $exists = true;
         } else {
             $exists = false;
         }
-        self::assertTrue($exists);
+        static::assertTrue($exists);
 
         $span = $dom->findMulti('span');
-        self::assertInstanceOf(SimpleHtmlDomNodeInterface::class, $span);
-        if (count($span)) {
+        static::assertInstanceOf(SimpleHtmlDomNodeInterface::class, $span);
+        if (\count($span)) {
             $exists = true;
         } else {
             $exists = false;
         }
-        self::assertFalse($exists);
+        static::assertFalse($exists);
 
         // ---
 
         $p = $dom->findMultiOrFalse('p');
-        self::assertInstanceOf(SimpleHtmlDomNodeInterface::class, $p);
-        if (count($p)) {
+        static::assertInstanceOf(SimpleHtmlDomNodeInterface::class, $p);
+        if (\count($p)) {
             $exists = true;
         } else {
             $exists = false;
         }
-        self::assertTrue($exists);
+        static::assertTrue($exists);
 
         $span = $dom->findMultiOrFalse('span');
-        self::assertFalse($span);
+        static::assertFalse($span);
 
         // ---
 
         $p = $dom->find('p', 0);
-        self::assertInstanceOf(SimpleHtmlDomInterface::class, $p);
+        static::assertInstanceOf(SimpleHtmlDomInterface::class, $p);
 
         $p = $dom->find('span', 0);
-        self::assertInstanceOf(SimpleHtmlDomInterface::class, $p);
+        static::assertInstanceOf(SimpleHtmlDomInterface::class, $p);
 
         // ---
 
         $p = $dom->findOne('p');
-        self::assertInstanceOf(SimpleHtmlDomInterface::class, $p);
+        static::assertInstanceOf(SimpleHtmlDomInterface::class, $p);
 
         $p = $dom->findOne('span');
-        self::assertInstanceOf(SimpleHtmlDomInterface::class, $p);
+        static::assertInstanceOf(SimpleHtmlDomInterface::class, $p);
 
         // ---
 
         $p = $dom->findOneOrFalse('p');
-        self::assertInstanceOf( SimpleHtmlDomInterface::class, $p);
+        static::assertInstanceOf(SimpleHtmlDomInterface::class, $p);
 
         $p = $dom->findOneOrFalse('span');
-        self::assertFalse($p);
+        static::assertFalse($p);
     }
 
     public function testGetElementsByTag()

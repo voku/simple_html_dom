@@ -60,7 +60,7 @@ class SimpleHtmlDomNode extends AbstractSimpleHtmlDomNode implements SimpleHtmlD
      *
      * @param string $selector
      *
-     * @return SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface|false
+     * @return false|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface
      */
     public function findMultiOrFalse(string $selector)
     {
@@ -90,7 +90,7 @@ class SimpleHtmlDomNode extends AbstractSimpleHtmlDomNode implements SimpleHtmlD
      *
      * @param string $selector
      *
-     * @return SimpleHtmlDomNodeInterface|false
+     * @return false|SimpleHtmlDomNodeInterface
      */
     public function findOneOrFalse(string $selector)
     {

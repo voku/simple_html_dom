@@ -55,13 +55,12 @@ class SimpleXmlDomNode extends AbstractSimpleXmlDomNode implements SimpleXmlDomN
         return $this->find($selector, null);
     }
 
-
     /**
      * Find nodes with a CSS selector.
      *
      * @param string $selector
      *
-     * @return SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface|false
+     * @return false|SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface
      */
     public function findMultiOrFalse(string $selector)
     {
@@ -91,7 +90,7 @@ class SimpleXmlDomNode extends AbstractSimpleXmlDomNode implements SimpleXmlDomN
      *
      * @param string $selector
      *
-     * @return SimpleXmlDomNodeInterface|false
+     * @return false|SimpleXmlDomNodeInterface
      */
     public function findOneOrFalse(string $selector)
     {

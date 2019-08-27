@@ -71,10 +71,10 @@ EOD;
 
         static::assertSame('Chapter 1', $xmlParser->findOne('//chap:title')->getNode()->textContent);
 
-        static::assertSame(2, count($xmlParser->findMulti('chapter')));
+        static::assertCount(2, $xmlParser->findMulti('chapter'));
 
-        static::assertSame(false, $xmlParser->findOneOrFalse('//chap:foo'));
+        static::assertFalse($xmlParser->findOneOrFalse('//chap:foo'));
 
-        static::assertSame(false, $xmlParser->findMultiOrFalse('foo'));
+        static::assertFalse($xmlParser->findMultiOrFalse('foo'));
     }
 }

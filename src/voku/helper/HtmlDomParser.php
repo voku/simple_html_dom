@@ -394,7 +394,7 @@ class HtmlDomParser extends AbstractDomParser
      *
      * @param string $selector
      *
-     * @return SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface|false
+     * @return false|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface
      */
     public function findMultiOrFalse(string $selector)
     {
@@ -424,7 +424,7 @@ class HtmlDomParser extends AbstractDomParser
      *
      * @param string $selector
      *
-     * @return SimpleHtmlDomInterface|false
+     * @return false|SimpleHtmlDomInterface
      */
     public function findOneOrFalse(string $selector)
     {

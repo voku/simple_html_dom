@@ -391,7 +391,7 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
      *
      * @param string $selector
      *
-     * @return SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface|false
+     * @return false|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface
      */
     public function findMultiOrFalse(string $selector)
     {
@@ -410,13 +410,12 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
         return $this->getHtmlDomParser()->findOne($selector);
     }
 
-
     /**
      * Find one node with a CSS selector or false, if no element is found.
      *
      * @param string $selector
      *
-     * @return SimpleHtmlDomInterface|false
+     * @return false|SimpleHtmlDomInterface
      */
     public function findOneOrFalse(string $selector)
     {

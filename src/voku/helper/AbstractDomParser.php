@@ -394,7 +394,7 @@ abstract class AbstractDomParser implements DomParserInterface
                     return $scripts[0];
                 }
 
-                return '<script' . $scripts['attr'] . '>' . str_replace('</', '<\/', $scripts['content']) . '</script>';
+                return '<script' . $scripts['attr'] . '>' . \str_replace('</', '<\/', $scripts['content']) . '</script>';
             },
             $html
         );

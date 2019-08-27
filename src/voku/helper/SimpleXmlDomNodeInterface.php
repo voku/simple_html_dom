@@ -54,7 +54,7 @@ interface SimpleXmlDomNodeInterface extends \IteratorAggregate
      *
      * @param string $selector
      *
-     * @return SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface|false
+     * @return false|SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface
      */
     public function findMultiOrFalse(string $selector);
 
@@ -72,7 +72,7 @@ interface SimpleXmlDomNodeInterface extends \IteratorAggregate
      *
      * @param string $selector
      *
-     * @return SimpleXmlDomNode|false
+     * @return false|SimpleXmlDomNode
      */
     public function findOneOrFalse(string $selector);
 
