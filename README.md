@@ -42,9 +42,13 @@ $dom = HtmlDomParser::str_get_html($str);
 // or 
 $dom = HtmlDomParser::file_get_html($file);
 
-$element = $dom->findOne('#css-selector'); // "$element" === instance of "SimpleHtmlDom"
+$element = $dom->findOne('#css-selector'); // "$element" === instance of "SimpleHtmlDomInterface"
 
-$elements = $dom->findMulti('.css-selector'); // "$elements" === instance of SimpleHtmlDomNodeInterface<int, SimpleHtmlDom>
+$elements = $dom->findMulti('.css-selector'); // "$elements" === instance of SimpleHtmlDomNodeInterface<int, SimpleHtmlDomInterface>
+
+$elementOrFalse = $dom->findOneOrFalse('#css-selector'); // "$elementOrFalse" === instance of "SimpleHtmlDomInterface" or false
+
+$elementsOrFalse = $dom->findMultiOrFalse('.css-selector'); // "$elementsOrFalse" === instance of SimpleHtmlDomNodeInterface<int, SimpleHtmlDomInterface> or false
 ...
 
 ```
