@@ -1,6 +1,8 @@
+
 [PHP Simple HTML Dom v4.7.x]
 1: add "findMultiOrFalse()" + "findOneOrFalse()"
 2: fix -> usage of e.g. "textContent"
+3: fix -> usage of special js template tags in the dom
 
 
 [PHP Simple HTML Dom v4.6.x]
