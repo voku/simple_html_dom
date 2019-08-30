@@ -82,9 +82,6 @@ class HtmlDomParser extends AbstractDomParser
     {
         $this->document = new \DOMDocument('1.0', $this->getEncoding());
 
-        // reset
-        self::$domBrokenReplaceHelper = [];
-
         // DOMDocument settings
         $this->document->preserveWhiteSpace = true;
         $this->document->formatOutput = true;
@@ -654,6 +651,9 @@ class HtmlDomParser extends AbstractDomParser
      */
     public function loadHtml(string $html, $libXMLExtraOptions = null): DomParserInterface
     {
+        // reset
+        self::$domBrokenReplaceHelper = [];
+
         $this->document = $this->createDOMDocument($html, $libXMLExtraOptions);
 
         return $this;
@@ -671,6 +671,9 @@ class HtmlDomParser extends AbstractDomParser
      */
     public function loadHtmlFile(string $filePath, $libXMLExtraOptions = null): DomParserInterface
     {
+        // reset
+        self::$domBrokenReplaceHelper = [];
+
         if (
             !\preg_match("/^https?:\/\//i", $filePath)
             &&
@@ -695,90 +698,6 @@ class HtmlDomParser extends AbstractDomParser
         }
 
         return $this->loadHtml($html, $libXMLExtraOptions);
-    }
-
-    /**
-     * @param string $html
-     *
-     * @return string
-     */
-    public static function putReplacedBackToPreserveHtmlEntities(string $html): string
-    {
-        static $DOM_REPLACE__HELPER_CACHE = null;
-
-        if ($DOM_REPLACE__HELPER_CACHE === null) {
-            $DOM_REPLACE__HELPER_CACHE['tmp'] = \array_merge(
-                self::$domLinkReplaceHelper['tmp'],
-                self::$domReplaceHelper['tmp']
-            );
-            $DOM_REPLACE__HELPER_CACHE['orig'] = \array_merge(
-                self::$domLinkReplaceHelper['orig'],
-                self::$domReplaceHelper['orig']
-            );
-
-            $DOM_REPLACE__HELPER_CACHE['tmp']['html_wrapper__start'] = '<' . self::$domHtmlWrapperHelper . '>';
-            $DOM_REPLACE__HELPER_CACHE['tmp']['html_wrapper__end'] = '</' . self::$domHtmlWrapperHelper . '>';
-
-            $DOM_REPLACE__HELPER_CACHE['orig']['html_wrapper__start'] = '';
-            $DOM_REPLACE__HELPER_CACHE['orig']['html_wrapper__end'] = '';
-
-            $DOM_REPLACE__HELPER_CACHE['tmp']['html_special_script__start'] = '<' . self::$domHtmlSpecialScriptHelper;
-            $DOM_REPLACE__HELPER_CACHE['tmp']['html_special_script__end'] = '</' . self::$domHtmlSpecialScriptHelper . '>';
-
-            $DOM_REPLACE__HELPER_CACHE['orig']['html_special_script__start'] = '<script';
-            $DOM_REPLACE__HELPER_CACHE['orig']['html_special_script__end'] = '</script>';
-        }
-
-        if (
-            isset(self::$domBrokenReplaceHelper['tmp'])
-            &&
-            \count(self::$domBrokenReplaceHelper['tmp']) > 0
-        ) {
-            $html = \str_replace(self::$domBrokenReplaceHelper['tmp'], self::$domBrokenReplaceHelper['orig'], $html);
-        }
-
-        return \str_replace($DOM_REPLACE__HELPER_CACHE['tmp'], $DOM_REPLACE__HELPER_CACHE['orig'], $html);
-    }
-
-    /**
-     * @param string $html
-     *
-     * @return string
-     */
-    public static function replaceToPreserveHtmlEntities(string $html): string
-    {
-        // init
-        $linksNew = [];
-        $linksOld = [];
-
-        if (\strpos($html, 'http') !== false) {
-
-            // regEx for e.g.: [https://www.domain.de/foo.php?foobar=1&email=lars%40moelleken.org&guid=test1233312&{{foo}}#foo]
-            $regExUrl = '/(\[?\bhttps?:\/\/[^\s<>]+(?:\([\w]+\)|[^[:punct:]\s]|\/|\}|\]))/i';
-            \preg_match_all($regExUrl, $html, $linksOld);
-
-            if (!empty($linksOld[1])) {
-                $linksOld = $linksOld[1];
-                foreach ((array) $linksOld as $linkKey => $linkOld) {
-                    $linksNew[$linkKey] = \str_replace(
-                        self::$domLinkReplaceHelper['orig'],
-                        self::$domLinkReplaceHelper['tmp'],
-                        $linkOld
-                    );
-                }
-            }
-        }
-
-        $linksNewCount = \count($linksNew);
-        if ($linksNewCount > 0 && \count($linksOld) === $linksNewCount) {
-            $search = \array_merge($linksOld, self::$domReplaceHelper['orig']);
-            $replace = \array_merge($linksNew, self::$domReplaceHelper['tmp']);
-        } else {
-            $search = self::$domReplaceHelper['orig'];
-            $replace = self::$domReplaceHelper['tmp'];
-        }
-
-        return \str_replace($search, $replace, $html);
     }
 
     /**
@@ -893,7 +812,7 @@ class HtmlDomParser extends AbstractDomParser
                     );
 
                     self::$domBrokenReplaceHelper['orig'][] = $matches['broken'];
-                    self::$domBrokenReplaceHelper['tmp'][] = $matchesHash = '____simple_html_dom__voku__broken_html____' . \crc32($matches['broken']);
+                    self::$domBrokenReplaceHelper['tmp'][] = $matchesHash = self::$domHtmlBrokenHtmlHelper . \crc32($matches['broken']);
 
                     return $matches['start'] . $matchesHash . $matches['end'];
                 },
@@ -913,21 +832,39 @@ class HtmlDomParser extends AbstractDomParser
      */
     protected function keepSpecialScriptTags(string &$html)
     {
-        $specialScripts = [];
         // regEx for e.g.: [<script id="elements-image-1" type="text/html">...</script>]
-        $regExSpecialScript = '/<(script) [^>]*type=(["\']){0,1}(text\/html|text\/x-custom-template)\2{0,1}([^>]*)>.*<\/\1>/isU';
-        \preg_match_all($regExSpecialScript, $html, $specialScripts);
+        $html = (string) \preg_replace_callback(
+            '/(?<start>((?:<script) [^>]*type=(?:["\'])?(?:text\/html|text\/x-custom-template)+(?:[^>]*)>))(?<innerContent>.*)(?<end><\/script>)/isU',
+            static function ($matches) {
 
-        if (isset($specialScripts[0])) {
-            foreach ($specialScripts[0] as $specialScript) {
-                $specialNonScript = '<' . self::$domHtmlSpecialScriptHelper . \substr($specialScript, \strlen('<script'));
-                $specialNonScript = \substr($specialNonScript, 0, -\strlen('</script>')) . '</' . self::$domHtmlSpecialScriptHelper . '>';
+                if (
+                    strpos($matches['innerContent'], '+') === false
+                    &&
+                    strpos($matches['innerContent'], '<%') === false
+                    &&
+                    strpos($matches['innerContent'], '{%') === false
+                    &&
+                    strpos($matches['innerContent'], '{{') === false
+                ) {
+                    // remove the html5 fallback
+                    $matches[0] = \str_replace('<\/', '</', $matches[0]);
+
+                    $specialNonScript = '<' . self::$domHtmlSpecialScriptHelper . \substr($matches[0], \strlen('<script'));
+                    $specialNonScript = \substr($specialNonScript, 0, -\strlen('</script>')) . '</' . self::$domHtmlSpecialScriptHelper . '>';
+
+                    return $specialNonScript;
+                }
+
                 // remove the html5 fallback
-                $specialNonScript = \str_replace('<\/', '</', $specialNonScript);
+                $matches['innerContent'] = \str_replace('<\/', '</', $matches['innerContent']);
 
-                $html = \str_replace($specialScript, $specialNonScript, $html);
-            }
-        }
+                self::$domBrokenReplaceHelper['orig'][] = $matches['innerContent'];
+                self::$domBrokenReplaceHelper['tmp'][] = $matchesHash = '' . self::$domHtmlBrokenHtmlHelper . '' . \crc32($matches['innerContent']);
+
+                return $matches['start'] . $matchesHash . $matches['end'];
+            },
+            $html
+        );
     }
 
     /**

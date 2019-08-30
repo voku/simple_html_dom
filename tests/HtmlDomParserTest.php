@@ -1420,6 +1420,84 @@ h1 {
         static::assertSame(\trim($expected), \trim($html));
     }
 
+    public function testJavaScriptTemplateTag()
+    {
+        $html = "
+            <!doctype html>
+            <html lang=\"nl\">
+                <head>
+                </head>
+              <body>
+              
+              <div class=\"price-box price-tier_price\" data-role=\"priceBox\" data-product-id=\"1563\" data-price-box=\"product-id-1563\">
+              </div>
+              
+              <script type=\"text/x-custom-template\" id=\"tier-prices-template\">
+                <ul class=\"prices-tier items\">
+                    <% _.each(tierPrices, function(item, key) { %>
+                    <%  var priceStr = '<span class=\"price-container price-tier_price\">'
+                            + '<span data-price-amount=\"' + priceUtils.formatPrice(item.price, currencyFormat) + '\"'
+                            + ' data-price-type=\"\"' + ' class=\"price-wrapper \">'
+                            + '<span class=\"price\">' + priceUtils.formatPrice(item.price, currencyFormat) + '</span>'
+                            + '</span>'
+                        + '</span>'; %>
+                    <li class=\"item\">
+                        <%= 'some text %1 %2'.replace('%1', item.qty).replace('%2', priceStr) %>
+                        <strong class=\"benefit\">
+                           save <span class=\"percent tier-<%= key %>\">&nbsp;<%= item.percentage %></span>%
+                        </strong>
+                    </li>
+                    <% }); %>
+                </ul>
+              </script>
+              
+              <div data-role=\"tier-price-block\"></div>
+              
+              </body>
+            </html>
+            ";
+
+        $expected = '<!DOCTYPE html>
+<html lang="nl">
+                <head>
+                </head>
+              <body>
+              
+              <div class="price-box price-tier_price" data-role="priceBox" data-product-id="1563" data-price-box="product-id-1563">
+              </div>
+              
+              <script type="text/x-custom-template" id="tier-prices-template">
+                <ul class="prices-tier items">
+                    <% _.each(tierPrices, function(item, key) { %>
+                    <%  var priceStr = \'<span class="price-container price-tier_price">\'
+                            + \'<span data-price-amount="\' + priceUtils.formatPrice(item.price, currencyFormat) + \'"\'
+                            + \' data-price-type=""\' + \' class="price-wrapper ">\'
+                            + \'<span class="price">\' + priceUtils.formatPrice(item.price, currencyFormat) + \'</span>\'
+                            + \'</span>\'
+                        + \'</span>\'; %>
+                    <li class="item">
+                        <%= \'some text %1 %2\'.replace(\'%1\', item.qty).replace(\'%2\', priceStr) %>
+                        <strong class="benefit">
+                           save <span class="percent tier-<%= key %>">&nbsp;<%= item.percentage %></span>%
+                        </strong>
+                    </li>
+                    <% }); %>
+                </ul>
+              </script>
+              
+              <div data-role="tier-price-block"></div>
+              
+              </body>
+            </html>';
+
+        $dom = new HtmlDomParser();
+
+        $html = \str_replace(["\r\n", "\r", "\n"], "\n", (string) $dom->load($html));
+        $expected = \str_replace(["\r\n", "\r", "\n"], "\n", $expected);
+
+        static::assertSame(\trim($expected), \trim($html));
+    }
+
     public function testHtmlEmbeddedInJavaScript()
     {
         $html = '
