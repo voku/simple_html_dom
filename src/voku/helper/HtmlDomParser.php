@@ -80,7 +80,7 @@ class HtmlDomParser extends AbstractDomParser
      */
     public function __construct($element = null)
     {
-        $this->document = new \DOMDocument('1.0', $this->getEncoding());
+        $this->document = new \IvoPetkov\HTML5DOMDocument(null, $this->getEncoding());
 
         // DOMDocument settings
         $this->document->preserveWhiteSpace = true;
@@ -96,6 +96,9 @@ class HtmlDomParser extends AbstractDomParser
             if ($domNode instanceof \DOMNode) {
                 /** @noinspection UnusedFunctionResultInspection */
                 $this->document->appendChild($domNode);
+
+                // TODO?
+                // $this->document->loaded = true; // ?
             }
 
             return;
@@ -206,7 +209,7 @@ class HtmlDomParser extends AbstractDomParser
      * @param string   $html
      * @param int|null $libXMLExtraOptions
      *
-     * @return \DOMDocument
+     * @return \IvoPetkov\HTML5DOMDocument
      */
     protected function createDOMDocument(string $html, $libXMLExtraOptions = null): \DOMDocument
     {
@@ -262,22 +265,24 @@ class HtmlDomParser extends AbstractDomParser
         $disableEntityLoader = \libxml_disable_entity_loader(true);
         \libxml_clear_errors();
 
-        $optionsXml = \LIBXML_DTDLOAD | \LIBXML_DTDATTR | \LIBXML_NONET;
+        $optionsHtml = \LIBXML_DTDLOAD | \LIBXML_DTDATTR | \LIBXML_NONET;
 
         if (\defined('LIBXML_BIGLINES')) {
-            $optionsXml |= \LIBXML_BIGLINES;
+            $optionsHtml |= \LIBXML_BIGLINES;
         }
 
         if (\defined('LIBXML_COMPACT')) {
-            $optionsXml |= \LIBXML_COMPACT;
+            $optionsHtml |= \LIBXML_COMPACT;
         }
 
         if (\defined('LIBXML_HTML_NODEFDTD')) {
-            $optionsXml |= \LIBXML_HTML_NODEFDTD;
+            $optionsHtml |= \LIBXML_HTML_NODEFDTD;
         }
 
+        $optionsHtml |= \IvoPetkov\HTML5DOMDocument::ALLOW_DUPLICATE_IDS;
+
         if ($libXMLExtraOptions !== null) {
-            $optionsXml |= $libXMLExtraOptions;
+            $optionsHtml |= $libXMLExtraOptions;
         }
 
         if (
@@ -290,40 +295,7 @@ class HtmlDomParser extends AbstractDomParser
 
         $html = self::replaceToPreserveHtmlEntities($html);
 
-        $documentFound = false;
-        $sxe = \simplexml_load_string($html, \SimpleXMLElement::class, $optionsXml);
-        if ($sxe !== false && \count(\libxml_get_errors()) === 0) {
-            $domElementTmp = \dom_import_simplexml($sxe);
-            if ($domElementTmp) {
-                $documentFound = true;
-                $this->document = $domElementTmp->ownerDocument;
-            }
-        }
-
-        if ($documentFound === false) {
-
-            // UTF-8 hack: http://php.net/manual/en/domdocument.loadhtml.php#95251
-            $xmlHackUsed = false;
-            /** @noinspection StringFragmentMisplacedInspection */
-            if (\stripos('<?xml', $html) !== 0) {
-                $xmlHackUsed = true;
-                $html = '<?xml encoding="' . $this->getEncoding() . '" ?>' . $html;
-            }
-
-            $this->document->loadHTML($html, $optionsXml);
-
-            // remove the "xml-encoding" hack
-            if ($xmlHackUsed) {
-                foreach ($this->document->childNodes as $child) {
-                    if ($child->nodeType === \XML_PI_NODE) {
-                        /** @noinspection UnusedFunctionResultInspection */
-                        $this->document->removeChild($child);
-
-                        break;
-                    }
-                }
-            }
-        }
+        $this->document->loadHTML($html, $optionsHtml);
 
         // set encoding
         $this->document->encoding = $this->getEncoding();

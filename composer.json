@@ -24,10 +24,11 @@
   ],
   "require": {
     "php": ">=7.0.0",
-    "symfony/css-selector": "~3.0|~4.0",
     "ext-dom": "*",
     "ext-libxml": "*",
-    "ext-simplexml": "*"
+    "ext-simplexml": "*",
+    "symfony/css-selector": "~3.0|~4.0",
+    "ivopetkov/html5-dom-document-php": "~2.1"
   },
   "suggest": {
     "voku/portable-utf8": "~4.0"

@@ -65,7 +65,7 @@ abstract class AbstractDomParser implements DomParserInterface
     protected static $functionAliases = [];
 
     /**
-     * @var \DOMDocument
+     * @var \IvoPetkov\HTML5DOMDocument
      */
     protected $document;
 
