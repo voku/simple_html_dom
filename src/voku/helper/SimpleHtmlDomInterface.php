@@ -13,6 +13,12 @@ namespace voku\helper;
  *                            <p>Get dom node's inner html.</p>
  * @property string      $plaintext
  *                            <p>Get dom node's plain text.</p>
+ * @property string      $class
+ *                            <p>Get dom node's class attribute.</p>
+ * @property string      $id
+ *                            <p>Get dom node's id attribute.</p>
+ * @property SimpleHtmlAttributes $classList
+ *                            <p>Get dom node attributes.</p>
  * @property-read string $tag
  *                            <p>Get dom node name.</p>
  * @property-read string $attr
@@ -159,7 +165,7 @@ interface SimpleHtmlDomInterface extends \IteratorAggregate
     public function getAttribute(string $name): string;
 
     /**
-     * Return elements by .class.
+     * Return elements by ".class".
      *
      * @param string $class
      *
@@ -168,7 +174,7 @@ interface SimpleHtmlDomInterface extends \IteratorAggregate
     public function getElementByClass(string $class);
 
     /**
-     * Return element by #idtext.
+     * Return element by "#id".
      *
      * @param string $id
      *
@@ -186,7 +192,7 @@ interface SimpleHtmlDomInterface extends \IteratorAggregate
     public function getElementByTagName(string $name): self;
 
     /**
-     * Returns elements by #id.
+     * Returns elements by "#id".
      *
      * @param string   $id
      * @param int|null $idx
@@ -256,6 +262,15 @@ interface SimpleHtmlDomInterface extends \IteratorAggregate
      * @return string
      */
     public function innerHtml(bool $multiDecodeNewHtmlEntity = false): string;
+
+    /**
+     * Get dom node's inner html.
+     *
+     * @param bool $multiDecodeNewHtmlEntity
+     *
+     * @return string
+     */
+    public function innerXml(bool $multiDecodeNewHtmlEntity = false): string;
 
     /**
      * Nodes can get partially destroyed in which they're still an

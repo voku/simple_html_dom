@@ -4,7 +4,11 @@ declare(strict_types=1);
 
 namespace voku\helper;
 
-/** @noinspection PhpHierarchyChecksInspection */
+/**
+ * @noinspection PhpHierarchyChecksInspection
+ *
+ * {@inheritDoc}
+ */
 class SimpleHtmlDomBlank extends AbstractSimpleHtmlDom implements \IteratorAggregate, SimpleHtmlDomInterface
 {
     /**
@@ -47,6 +51,13 @@ class SimpleHtmlDomBlank extends AbstractSimpleHtmlDom implements \IteratorAggre
     public function getAllAttributes()
     {
         return null;
+    }
+
+    /**
+     * @return bool
+     */
+    public function hasAttributes(): bool {
+        return false;
     }
 
     /**
@@ -222,7 +233,7 @@ class SimpleHtmlDomBlank extends AbstractSimpleHtmlDom implements \IteratorAggre
     }
 
     /**
-     * Return elements by .class.
+     * Return elements by ".class".
      *
      * @param string $class
      *
@@ -258,7 +269,7 @@ class SimpleHtmlDomBlank extends AbstractSimpleHtmlDom implements \IteratorAggre
     }
 
     /**
-     * Returns elements by #id.
+     * Returns elements by "#id".
      *
      * @param string   $id
      * @param int|null $idx

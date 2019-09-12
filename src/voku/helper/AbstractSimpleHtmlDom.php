@@ -28,6 +28,11 @@ abstract class AbstractSimpleHtmlDom
     protected $node;
 
     /**
+     * @var SimpleHtmlAttributes|null
+     */
+    private $classListCache;
+
+    /**
      * @param string $name
      * @param array  $arguments
      *
@@ -71,9 +76,19 @@ abstract class AbstractSimpleHtmlDom
                 return $this->node ? $this->node->nodeName : '';
             case 'attr':
                 return $this->getAllAttributes();
+            case 'classlist':
+                if ($this->classListCache === null) {
+                    $this->classListCache = new SimpleHtmlAttributes($this->node ?? null, 'class');
+                }
+
+                return $this->classListCache;
             default:
                 if ($this->node && \property_exists($this->node, $nameOrig)) {
-                    return HtmlDomParser::putReplacedBackToPreserveHtmlEntities($this->node->{$nameOrig});
+                    if (is_string($this->node->{$nameOrig})) {
+                        return HtmlDomParser::putReplacedBackToPreserveHtmlEntities($this->node->{$nameOrig});
+                    }
+
+                    return $this->node->{$nameOrig};
                 }
 
                 return $this->getAttribute($name);
@@ -139,6 +154,9 @@ abstract class AbstractSimpleHtmlDom
                 return $this->replaceChildWithString($value);
             case 'plaintext':
                 return $this->replaceTextWithString($value);
+            case 'classlist':
+                $name = 'class';
+                $nameOrig = 'class';
             default:
                 if ($this->node && \property_exists($this->node, $nameOrig)) {
                     return $this->node->{$nameOrig} = $value;

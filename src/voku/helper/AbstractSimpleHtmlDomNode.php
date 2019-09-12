@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace voku\helper;
 
+/**
+ * {@inheritDoc}
+ */
 abstract class AbstractSimpleHtmlDomNode extends \ArrayObject
 {
     /** @noinspection MagicMethodsValidityInspection */
@@ -11,12 +14,16 @@ abstract class AbstractSimpleHtmlDomNode extends \ArrayObject
     /**
      * @param string $name
      *
-     * @return array|null
+     * @return array|int|null
      */
     public function __get($name)
     {
         // init
         $name = \strtolower($name);
+
+        if ($name === 'length') {
+            return $this->count();
+        }
 
         if ($this->count() > 0) {
             $return = [];

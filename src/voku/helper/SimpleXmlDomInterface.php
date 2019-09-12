@@ -150,6 +150,11 @@ interface SimpleXmlDomInterface extends \IteratorAggregate
     public function getAllAttributes();
 
     /**
+     * @return bool
+     */
+    public function hasAttributes(): bool;
+
+    /**
      * Return attribute value.
      *
      * @param string $name
@@ -159,7 +164,7 @@ interface SimpleXmlDomInterface extends \IteratorAggregate
     public function getAttribute(string $name): string;
 
     /**
-     * Return elements by .class.
+     * Return elements by ".class".
      *
      * @param string $class
      *
@@ -168,7 +173,7 @@ interface SimpleXmlDomInterface extends \IteratorAggregate
     public function getElementByClass(string $class);
 
     /**
-     * Return element by #idtext.
+     * Return element by "#id".
      *
      * @param string $id
      *
@@ -186,7 +191,7 @@ interface SimpleXmlDomInterface extends \IteratorAggregate
     public function getElementByTagName(string $name): self;
 
     /**
-     * Returns elements by #id.
+     * Returns elements by "#id".
      *
      * @param string   $id
      * @param int|null $idx

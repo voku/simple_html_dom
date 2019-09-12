@@ -11,7 +11,7 @@ use voku\helper\SimpleHtmlDomNodeInterface;
  *
  * @internal
  */
-final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
+final class HTML5DOMDocument extends \PHPUnit\Framework\TestCase
 {
     /**
      * @param $filename
@@ -1100,8 +1100,66 @@ h1 {
         $dom->load('<div><p>Proton Power & Light</p></div>');
 
         $p = $dom->findOne('p');
+        $p->class .= 'lall';
 
+        static::assertSame('<p class="lall">Proton Power & Light</p>', $p->outerHtml());
         static::assertSame('Proton Power & Light', $p->textContent);
+
+        // ---
+
+        $dom = new HtmlDomParser();
+        $dom->load('<div><p>Proton Power & Light</p></div>');
+
+        $p = $dom->findOne('p');
+        $p->class = 'lall';
+
+        static::assertSame('<p class="lall">Proton Power & Light</p>', $p->outerHtml());
+        static::assertSame('Proton Power & Light', $p->textContent);
+
+        // ---
+
+        $dom = new HtmlDomParser();
+        $dom->load('<div><p class="">Proton Power & Light</p></div>');
+
+        $p = $dom->findOne('p');
+        $p->class .= 'lall';
+
+        static::assertSame('<p class="lall">Proton Power & Light</p>', $p->outerHtml());
+        static::assertSame('Proton Power & Light', $p->textContent);
+
+        // ---
+
+        $dom = new HtmlDomParser();
+        $dom->load('<div><p class="">Proton Power & Light</p></div>');
+
+        $p = $dom->findOne('p');
+        $p->class = 'lall';
+
+        static::assertSame('<p class="lall">Proton Power & Light</p>', $p->outerHtml());
+        static::assertSame('Proton Power & Light', $p->textContent);
+
+        // ---
+
+        $dom = new HtmlDomParser();
+        $dom->load('<div><p class="foo">Proton Power & Light</p></div>');
+
+        $p = $dom->findOne('p');
+        $p->class .= ' lall';
+
+        static::assertSame('<p class="foo lall">Proton Power & Light</p>', $p->outerHtml());
+        static::assertSame('Proton Power & Light', $p->textContent);
+
+        // ---
+
+        $dom = new HtmlDomParser();
+        $dom->load('<div><p class="foo">Proton Power & Light</p></div>');
+
+        $p = $dom->findOne('p');
+        $p->class = 'lall';
+
+        static::assertSame('<p class="lall">Proton Power & Light</p>', $p->outerHtml());
+        static::assertSame('Proton Power & Light', $p->textContent);
+
     }
 
     public function testTagExists()

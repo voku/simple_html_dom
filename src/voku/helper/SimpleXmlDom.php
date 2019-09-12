@@ -4,7 +4,11 @@ declare(strict_types=1);
 
 namespace voku\helper;
 
-/** @noinspection PhpHierarchyChecksInspection */
+/**
+ * @noinspection PhpHierarchyChecksInspection
+ *
+ * {@inheritDoc}
+ */
 class SimpleXmlDom extends AbstractSimpleXmlDom implements \IteratorAggregate, SimpleXmlDomInterface
 {
     /**
@@ -64,6 +68,13 @@ class SimpleXmlDom extends AbstractSimpleXmlDom implements \IteratorAggregate, S
         }
 
         return null;
+    }
+
+    /**
+     * @return bool
+     */
+    public function hasAttributes(): bool {
+        return $this->node->hasAttributes();
     }
 
     /**
@@ -414,7 +425,7 @@ class SimpleXmlDom extends AbstractSimpleXmlDom implements \IteratorAggregate, S
     }
 
     /**
-     * Return elements by .class.
+     * Return elements by ".class".
      *
      * @param string $class
      *
@@ -460,7 +471,7 @@ class SimpleXmlDom extends AbstractSimpleXmlDom implements \IteratorAggregate, S
     }
 
     /**
-     * Returns elements by #id.
+     * Returns elements by "#id".
      *
      * @param string   $id
      * @param int|null $idx
