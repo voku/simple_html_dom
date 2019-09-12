@@ -645,10 +645,9 @@ final class HTML5DOMDocumentTest extends PHPUnit\Framework\TestCase
         $dom->loadHtml('<div>text1</div>');
         $element = $dom->findOne('div');
         $element->innerHTML = '<div>text1<div>text2</div></div>';
-        static::assertSame(
+        static::assertTrue(
             '<div><div>text1<div>text2</div>
-</div></div>',
-            $dom->html()
+</div></div>' === $dom->html() || '<div><div>text1<div>text2</div></div></div>' === $dom->html()
         );
     }
 
@@ -744,8 +743,8 @@ final class HTML5DOMDocumentTest extends PHPUnit\Framework\TestCase
         $dom->loadHtml('<div>text1</div>');
         $element = $dom->findOne('div');
         $element->outerHTML = '<div>text2<div>text3</div></div>';
-        static::assertSame('<div>text2<div>text3</div>
-</div>', $dom->html());
+        static::assertTrue('<div>text2<div>text3</div>
+</div>' === $dom->html() || '<div>text2<div>text3</div></div>' === $dom->html());
     }
 
     public function testSpecialCharsInScriptTags()
