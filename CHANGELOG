@@ -3,6 +3,8 @@
 1: add "findMultiOrFalse()" + "findOneOrFalse()"
 2: fix -> usage of e.g. "textContent"
 3: fix -> usage of special js template tags in the dom
+4: merge improvements from "ivopetkov/html5-dom-document-php -> length attribute
+5: merge improvements from "ivopetkov/html5-dom-document-php -> classList support
 
 
 [PHP Simple HTML Dom v4.6.x]
