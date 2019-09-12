@@ -63,6 +63,11 @@ class HtmlDomParser extends AbstractDomParser
     /**
      * @var bool
      */
+    protected $isDOMDocumentCreatedWithoutPTagWrapper = false;
+
+    /**
+     * @var bool
+     */
     protected $isDOMDocumentCreatedWithoutHtmlWrapper = false;
 
     /**
@@ -236,6 +241,11 @@ class HtmlDomParser extends AbstractDomParser
         /** @noinspection HtmlRequiredTitleElement */
         if (\strpos($html, '<head>') === false) {
             $this->isDOMDocumentCreatedWithoutHeadWrapper = true;
+        }
+
+        /** @noinspection HtmlRequiredTitleElement */
+        if (\strpos($html, '<p>') === false) {
+            $this->isDOMDocumentCreatedWithoutPTagWrapper = true;
         }
 
         if (
@@ -449,12 +459,15 @@ class HtmlDomParser extends AbstractDomParser
      *
      * @return string
      */
-    public function fixHtmlOutput(string $content, bool $multiDecodeNewHtmlEntity = false): string
+    public function fixHtmlOutput(
+        string $content,
+        bool $multiDecodeNewHtmlEntity = false
+    ): string
     {
         // INFO: DOMDocument will encapsulate plaintext into a e.g. paragraph tag (<p>),
         //          so we try to remove it here again ...
 
-        if ($this->isDOMDocumentCreatedWithoutHtmlWrapper) {
+        if ($this->getIsDOMDocumentCreatedWithoutHtmlWrapper()) {
             /** @noinspection HtmlRequiredLangAttribute */
             $content = \str_replace(
                 [
@@ -466,7 +479,7 @@ class HtmlDomParser extends AbstractDomParser
             );
         }
 
-        if ($this->isDOMDocumentCreatedWithoutHeadWrapper) {
+        if ($this->getIsDOMDocumentCreatedWithoutHeadWrapper()) {
             /** @noinspection HtmlRequiredTitleElement */
             $content = \str_replace(
                 [
@@ -478,7 +491,7 @@ class HtmlDomParser extends AbstractDomParser
             );
         }
 
-        if ($this->isDOMDocumentCreatedWithoutBodyWrapper) {
+        if ($this->getIsDOMDocumentCreatedWithoutBodyWrapper()) {
             /** @noinspection HtmlRequiredLangAttribute */
             $content = \str_replace(
                 [
@@ -490,7 +503,7 @@ class HtmlDomParser extends AbstractDomParser
             );
         }
 
-        if ($this->isDOMDocumentCreatedWithFakeEndScript) {
+        if ($this->getIsDOMDocumentCreatedWithFakeEndScript()) {
             $content = \str_replace(
                 '</script>',
                 '',
@@ -498,18 +511,25 @@ class HtmlDomParser extends AbstractDomParser
             );
         }
 
-        if ($this->isDOMDocumentCreatedWithoutWrapper) {
+        if ($this->getIsDOMDocumentCreatedWithoutWrapper()) {
             $content = (string) \preg_replace('/^<p>/', '', $content);
             $content = (string) \preg_replace('/<\/p>/', '', $content);
         }
 
-        if ($this->isDOMDocumentCreatedWithoutHtml) {
+        if ($this->getIsDOMDocumentCreatedWithoutPTagWrapper()) {
             $content = \str_replace(
                 [
                     '<p>',
                     '</p>',
-                    '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">',
                 ],
+                '',
+                $content
+            );
+        }
+
+        if ($this->getIsDOMDocumentCreatedWithoutHtml()) {
+            $content = \str_replace(
+                '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">',
                 '',
                 $content
             );
@@ -774,6 +794,14 @@ class HtmlDomParser extends AbstractDomParser
     /**
      * @return bool
      */
+    public function getIsDOMDocumentCreatedWithoutPTagWrapper(): bool
+    {
+        return $this->isDOMDocumentCreatedWithoutPTagWrapper;
+    }
+
+    /**
+     * @return bool
+     */
     public function getIsDOMDocumentCreatedWithoutHtml(): bool
     {
         return $this->isDOMDocumentCreatedWithoutHtml;
@@ -801,6 +829,14 @@ class HtmlDomParser extends AbstractDomParser
     public function getIsDOMDocumentCreatedWithoutWrapper(): bool
     {
         return $this->isDOMDocumentCreatedWithoutWrapper;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getIsDOMDocumentCreatedWithFakeEndScript(): bool
+    {
+        return $this->isDOMDocumentCreatedWithFakeEndScript;
     }
 
     /**

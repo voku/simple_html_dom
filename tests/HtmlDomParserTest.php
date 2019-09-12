@@ -658,6 +658,17 @@ HTML;
         static::assertContains('© 2015 Test', $htmlTmp);
     }
 
+    public function testContentBeforeHtmlStart()
+    {
+        $html = '<html> a';
+        $dom = HtmlDomParser::str_get_html($html);
+
+        static::assertSame(
+            '<html> a</html>',
+            $dom->html()
+        );
+    }
+
     public function testSetAttr()
     {
         $html = '<html><script type="application/ld+json"></script><p></p><div id="p1" class="post">foo</div><div class="post" id="p2">bar</div></html>';
