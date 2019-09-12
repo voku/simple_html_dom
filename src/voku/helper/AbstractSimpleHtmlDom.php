@@ -54,7 +54,7 @@ abstract class AbstractSimpleHtmlDom
     /**
      * @param string $name
      *
-     * @return array|string|null
+     * @return string|SimpleHtmlAttributes|null
      */
     public function __get($name)
     {
@@ -84,7 +84,7 @@ abstract class AbstractSimpleHtmlDom
                 return $this->classListCache;
             default:
                 if ($this->node && \property_exists($this->node, $nameOrig)) {
-                    if (is_string($this->node->{$nameOrig})) {
+                    if (\is_string($this->node->{$nameOrig})) {
                         return HtmlDomParser::putReplacedBackToPreserveHtmlEntities($this->node->{$nameOrig});
                     }
 
@@ -157,6 +157,7 @@ abstract class AbstractSimpleHtmlDom
             case 'classlist':
                 $name = 'class';
                 $nameOrig = 'class';
+                // no break
             default:
                 if ($this->node && \property_exists($this->node, $nameOrig)) {
                     return $this->node->{$nameOrig} = $value;

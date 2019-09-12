@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace voku\helper;
 
 /**
- * {@inheritDoc}
+ * {@inheritdoc}
  */
 class SimpleHtmlDomNode extends AbstractSimpleHtmlDomNode implements SimpleHtmlDomNodeInterface
 {

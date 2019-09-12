@@ -863,23 +863,21 @@ class HtmlDomParser extends AbstractDomParser
         $html = (string) \preg_replace_callback(
             '/(?<start>((?:<script) [^>]*type=(?:["\'])?(?:text\/html|text\/x-custom-template)+(?:[^>]*)>))(?<innerContent>.*)(?<end><\/script>)/isU',
             static function ($matches) {
-
                 if (
-                    strpos($matches['innerContent'], '+') === false
+                    \strpos($matches['innerContent'], '+') === false
                     &&
-                    strpos($matches['innerContent'], '<%') === false
+                    \strpos($matches['innerContent'], '<%') === false
                     &&
-                    strpos($matches['innerContent'], '{%') === false
+                    \strpos($matches['innerContent'], '{%') === false
                     &&
-                    strpos($matches['innerContent'], '{{') === false
+                    \strpos($matches['innerContent'], '{{') === false
                 ) {
                     // remove the html5 fallback
                     $matches[0] = \str_replace('<\/', '</', $matches[0]);
 
                     $specialNonScript = '<' . self::$domHtmlSpecialScriptHelper . \substr($matches[0], \strlen('<script'));
-                    $specialNonScript = \substr($specialNonScript, 0, -\strlen('</script>')) . '</' . self::$domHtmlSpecialScriptHelper . '>';
 
-                    return $specialNonScript;
+                    return \substr($specialNonScript, 0, -\strlen('</script>')) . '</' . self::$domHtmlSpecialScriptHelper . '>';
                 }
 
                 // remove the html5 fallback

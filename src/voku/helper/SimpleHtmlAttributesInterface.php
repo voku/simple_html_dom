@@ -2,7 +2,6 @@
 
 namespace voku\helper;
 
-
 /**
  * Represents a set of space-separated attributes of an element attribute.
  *
@@ -24,9 +23,9 @@ interface SimpleHtmlAttributesInterface
     /**
      * Returns true if the list contains the given token, otherwise false.
      *
-     * @param string $token The token you want to check for the existence of in the list.
+     * @param string $token the token you want to check for the existence of in the list
      *
-     * @return bool true if the list contains the given token, otherwise false.
+     * @return bool true if the list contains the given token, otherwise false
      */
     public function contains(string $token): bool;
 
@@ -41,9 +40,9 @@ interface SimpleHtmlAttributesInterface
      * Returns an item in the list by its index (returns null if the number is greater than or equal to the length of
      * the list).
      *
-     * @param int $index The zero-based index of the item you want to return.
+     * @param int $index the zero-based index of the item you want to return
      *
-     * @return null|string
+     * @return string|null
      */
     public function item(int $index);
 
@@ -60,8 +59,8 @@ interface SimpleHtmlAttributesInterface
     /**
      * Replaces an existing token with a new token.
      *
-     * @param string $old The token you want to replace.
-     * @param string $new The token you want to replace $old with.
+     * @param string $old the token you want to replace
+     * @param string $new the token you want to replace $old with
      *
      * @return \DOMAttr|false|null
      */
@@ -71,13 +70,13 @@ interface SimpleHtmlAttributesInterface
      * Removes a given token from the list and returns false. If token doesn't exist it's added and the function
      * returns true.
      *
-     * @param string $token The token you want to toggle.
+     * @param string $token the token you want to toggle
      * @param bool   $force A Boolean that, if included, turns the toggle into a one way-only operation. If set to
      *                      false, the token will only be removed but not added again. If set to true, the token will
      *                      only be added but not removed again.
      *
      * @return bool false if the token is not in the list after the call, or true if the token is in the list after the
-     *              call.
+     *              call
      */
     public function toggle(string $token, bool $force = null): bool;
 }

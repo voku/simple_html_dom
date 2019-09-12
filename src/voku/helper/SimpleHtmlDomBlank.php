@@ -7,7 +7,7 @@ namespace voku\helper;
 /**
  * @noinspection PhpHierarchyChecksInspection
  *
- * {@inheritDoc}
+ * {@inheritdoc}
  */
 class SimpleHtmlDomBlank extends AbstractSimpleHtmlDom implements \IteratorAggregate, SimpleHtmlDomInterface
 {
@@ -56,7 +56,8 @@ class SimpleHtmlDomBlank extends AbstractSimpleHtmlDom implements \IteratorAggre
     /**
      * @return bool
      */
-    public function hasAttributes(): bool {
+    public function hasAttributes(): bool
+    {
         return false;
     }
 

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace voku\helper;
 
 /**
- * {@inheritDoc}
+ * {@inheritdoc}
  */
 abstract class AbstractSimpleXmlDomNode extends \ArrayObject
 {

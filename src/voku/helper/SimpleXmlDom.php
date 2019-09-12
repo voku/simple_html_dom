@@ -7,7 +7,7 @@ namespace voku\helper;
 /**
  * @noinspection PhpHierarchyChecksInspection
  *
- * {@inheritDoc}
+ * {@inheritdoc}
  */
 class SimpleXmlDom extends AbstractSimpleXmlDom implements \IteratorAggregate, SimpleXmlDomInterface
 {
@@ -73,7 +73,8 @@ class SimpleXmlDom extends AbstractSimpleXmlDom implements \IteratorAggregate, S
     /**
      * @return bool
      */
-    public function hasAttributes(): bool {
+    public function hasAttributes(): bool
+    {
         return $this->node->hasAttributes();
     }
 

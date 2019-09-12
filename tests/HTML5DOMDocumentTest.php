@@ -11,11 +11,11 @@ use voku\helper\HtmlDomParser;
 
 /**
  * @runTestsInSeparateProcesses
+ *
  * @internal
  */
-class HTML5DOMDocumentTest extends PHPUnit\Framework\TestCase
+final class HTML5DOMDocumentTest extends PHPUnit\Framework\TestCase
 {
-
     /**
      * @group classList
      */
@@ -64,14 +64,14 @@ class HTML5DOMDocumentTest extends PHPUnit\Framework\TestCase
         $text = '';
         $html = $dom->findOne('html');
         foreach ($html->classList->entries() as $class) {
-            $text .= "[$class]";
+            $text .= "[${class}]";
         }
         static::assertSame('', $text);
 
         $text = '';
         $body = $dom->findOne('body');
         foreach ($body->classList->entries() as $class) {
-            $text .= "[$class]";
+            $text .= "[${class}]";
         }
         static::assertSame('[a][b][c]', $text);
     }
@@ -89,7 +89,7 @@ class HTML5DOMDocumentTest extends PHPUnit\Framework\TestCase
         static::assertNull($html->classList->item(1));
 
         $body = $dom->findOne('body');
-        static::assertSame('a b c', (string)$body->classList);
+        static::assertSame('a b c', (string) $body->classList);
         static::assertSame('b', $body->classList->item(1));
         static::assertSame('c', $body->classList->item(2));
         static::assertNull($body->classList->item(3));
@@ -242,10 +242,11 @@ class HTML5DOMDocumentTest extends PHPUnit\Framework\TestCase
 
     /**
      * @group classList
-     * @expectedException \Exception
      */
     public function testClassListUndefinedProperty()
     {
+        $this->expectException(\Exception::class);
+
         $dom = new HtmlDomParser();
         $dom->loadHtml('<html><body class="  a   b c b a c"></body></html>');
 
@@ -271,41 +272,41 @@ class HTML5DOMDocumentTest extends PHPUnit\Framework\TestCase
     public function testCompatibilityWithDOMDocument()
     {
         $compareDOMs = static function (HtmlDomParser $dom1, DOMDocument $dom2) {
-            static::assertEquals($dom1->getElementsByTagName('p')->length, $dom2->getElementsByTagName('head')->length);
-            static::assertEquals($dom1->getElementsByTagName('span')->length, $dom2->getElementsByTagName('body')->length);
+            static::assertSame($dom1->getElementsByTagName('p')->length, $dom2->getElementsByTagName('head')->length);
+            static::assertSame($dom1->getElementsByTagName('span')->length, $dom2->getElementsByTagName('body')->length);
 
             $updateNewLines = static function (&$content) {
-                $content = str_replace("<!DOCTYPE html>\n", '', $content);
-                $content = str_replace("\n<head>", '<head>', $content);
-                $content = str_replace("\n<body>", '<body>', $content);
-                $content = str_replace("\n</html>", '</html>', $content);
-                $content = rtrim($content, "\n");
+                $content = \str_replace("<!DOCTYPE html>\n", '', $content);
+                $content = \str_replace("\n<head>", '<head>', $content);
+                $content = \str_replace("\n<body>", '<body>', $content);
+                $content = \str_replace("\n</html>", '</html>', $content);
+                $content = \rtrim($content, "\n");
             };
 
             $result1 = $dom1->html();
             $result2 = $dom2->saveHTML();
-            $result2 = preg_replace('/\<\!DOCTYPE(.*?)\>/', '<!DOCTYPE html>', $result2);
+            $result2 = \preg_replace('/\<\!DOCTYPE(.*?)\>/', '<!DOCTYPE html>', $result2);
             $updateNewLines($result1);
             $updateNewLines($result2);
-            static::assertEquals($result1, $result2);
+            static::assertSame($result1, $result2);
 
             if ($dom1->getElementsByTagName('html')->length > 0 && $dom2->getElementsByTagName('html')->length > 0) {
                 $html1 = $dom1->html($dom1->getElementsByTagName('html')[0]);
                 $html2 = $dom2->saveHTML($dom2->getElementsByTagName('html')[0]);
                 $updateNewLines($html1);
                 $updateNewLines($html2);
-                static::assertEquals($html1, $html2);
+                static::assertSame($html1, $html2);
             }
 
             if ($dom1->getElementsByTagName('body')->length > 0 && $dom2->getElementsByTagName('body')->length > 0) {
                 $body1 = $dom1->html($dom1->getElementsByTagName('body')[0]);
                 $body2 = $dom2->saveHTML($dom2->getElementsByTagName('body')[0]);
-                static::assertEquals($body1, $body2);
+                static::assertSame($body1, $body2);
 
                 if ($dom1->getElementsByTagName('body')[0]->firstChild !== null) {
                     $firstChild1 = $dom1->html($dom1->getElementsByTagName('body')[0]->firstChild);
                     $firstChild2 = $dom2->saveHTML($dom2->getElementsByTagName('body')[0]->firstChild);
-                    static::assertEquals($firstChild1, $firstChild2);
+                    static::assertSame($firstChild1, $firstChild2);
                 }
             }
         };
@@ -320,15 +321,14 @@ class HTML5DOMDocumentTest extends PHPUnit\Framework\TestCase
 
         $content = '<div>hello</div>';
         $dom = new HtmlDomParser();
-        $dom->loadHtml($content, LIBXML_HTML_NOIMPLIED);
+        $dom->loadHtml($content, \LIBXML_HTML_NOIMPLIED);
         $dom2 = new DOMDocument();
-        $dom2->loadHtml($content, LIBXML_HTML_NOIMPLIED);
+        $dom2->loadHtml($content, \LIBXML_HTML_NOIMPLIED);
         $compareDOMs($dom, $dom2);
     }
 
     public function testComplexfinds()
     {
-
         $dom = new HtmlDomParser();
         $dom->loadHtml(
             '<html><body>'
@@ -375,7 +375,7 @@ class HTML5DOMDocumentTest extends PHPUnit\Framework\TestCase
             . '</body>'
         );
         $elements = $dom->findMulti('.a1,.a2,.a3');
-        static::assertEquals($elements->length, 3);
+        static::assertSame($elements->length, 3);
     }
 
     public function testDuplicateElementIDsException()
@@ -392,17 +392,16 @@ class HTML5DOMDocumentTest extends PHPUnit\Framework\TestCase
         $content = '<div id="key1">1</div><div id="key1">2</div><div id="key1">3</div><div id="keyA">A</div>';
         $dom = new HtmlDomParser();
         $dom->loadHtml($content);
-        static::assertEquals($dom->getElementById('key1')->innerHTML, '1');
-        static::assertEquals($dom->findOne('[id="key1"]')->innerHTML, '1');
-        static::assertEquals($dom->findMulti('[id="key1"]')->length, 3);
-        static::assertEquals($dom->findMulti('[id="key1"]')[0]->innerHTML, '1');
-        static::assertEquals($dom->findMulti('[id="key1"]')[1]->innerHTML, '2');
-        static::assertEquals($dom->findMulti('[id="key1"]')[2]->innerHTML, '3');
+        static::assertSame($dom->getElementById('key1')->innerHTML, '1');
+        static::assertSame($dom->findOne('[id="key1"]')->innerHTML, '1');
+        static::assertSame($dom->findMulti('[id="key1"]')->length, 3);
+        static::assertSame($dom->findMulti('[id="key1"]')[0]->innerHTML, '1');
+        static::assertSame($dom->findMulti('[id="key1"]')[1]->innerHTML, '2');
+        static::assertSame($dom->findMulti('[id="key1"]')[2]->innerHTML, '3');
     }
 
     public function testElementfind()
     {
-
         $dom = new HtmlDomParser();
         $dom->loadHtml(
             '<html><head>'
@@ -438,63 +437,74 @@ class HTML5DOMDocumentTest extends PHPUnit\Framework\TestCase
         static::assertSame(
             $dom->findOne('#container')
                 ->findOne('#text1')
-                ->innerHTML, 'text1'
+                ->innerHTML,
+            'text1'
         );
         static::assertSame($dom->findOne('#container')->findMulti('.class3')->length, 1);
         static::assertSame(
             $dom->findOne('#container')
                 ->findOne('.class3')
-                ->innerHTML, 'text3'
+                ->innerHTML,
+            'text3'
         );
         static::assertSame($dom->findOne('#container')->findMulti('[class~="class3"]')->length, 1);
         static::assertSame(
             $dom->findOne('#container')
                 ->findOne('[class~="class3"]')
-                ->innerHTML, 'text3'
+                ->innerHTML,
+            'text3'
         );
         static::assertSame($dom->findOne('#container')->findMulti('[class|="class1"]')->length, 1);
         static::assertSame(
             $dom->findOne('#container')
                 ->findOne('[class|="class1"]')
-                ->innerHTML, 'text1'
+                ->innerHTML,
+            'text1'
         );
         static::assertSame($dom->findOne('#container')->findMulti('[class^="class3"]')->length, 1);
         static::assertSame(
             $dom->findOne('#container')
                 ->findOne('[class^="class3"]')
-                ->innerHTML, 'text3'
+                ->innerHTML,
+            'text3'
         );
         static::assertSame($dom->findOne('#container')->findMulti('[class$="class2"]')->length, 1);
         static::assertSame(
             $dom->findOne('#container')
                 ->findMulti('[class$="class2"]')
-                ->innerHTML, ['text4']
+                ->innerHTML,
+            ['text4']
         );
         static::assertSame($dom->findOne('#container')->findMulti('[class*="ss3"]')->length, 1);
         static::assertSame(
             $dom->findOne('#container')
                 ->findMulti('[class*="ss3"]')
-                ->innerHTML, ['text3']
+                ->innerHTML,
+            ['text3']
         );
         static::assertSame(
             $dom->findOne('#container')
                 ->findMulti('div#text1')
-                ->innerHTML, ['text1']
+                ->innerHTML,
+            ['text1']
         );
         static::assertSame(
             $dom->findOne('#container')
                 ->findMulti('span#text4')
-                ->innerHTML, ['text4']
+                ->innerHTML,
+            ['text4']
         );
         static::assertSame(
             $dom->findOne('#container')
                 ->findMulti('[id="text4"]')
-                ->innerHTML, ['text4']
+                ->innerHTML,
+            ['text4']
         );
         static::assertSame(
             $dom->findOne('#container')
                 ->findMulti('span[id="text4"]')
-                ->innerHTML, ['text4']
+                ->innerHTML,
+            ['text4']
         );
         static::assertSame($dom->findOne('#container')->findMulti('div#text4')->length, 0);
         static::assertSame($dom->findOne('#container')->findMulti('div.class1')->length, 2);
@@ -504,12 +514,14 @@ class HTML5DOMDocumentTest extends PHPUnit\Framework\TestCase
         static::assertSame($dom->findOne('#container')->findMulti('my-custom-element')->length, 1);
         static::assertSame(
             $dom->findOne('#container')
-                ->findMulti('my-custom-element.class5')->length, 1
+                ->findMulti('my-custom-element.class5')->length,
+            1
         );
         static::assertSame(
             $dom->findOne('#container')
                 ->findOne('my-custom-element.class5')
-                ->innerHTML, 'text5'
+                ->innerHTML,
+            'text5'
         );
 
         static::assertSame($dom->findOne('#container')->findMulti('unknown')->length, 0);
@@ -519,16 +531,19 @@ class HTML5DOMDocumentTest extends PHPUnit\Framework\TestCase
         static::assertSame($dom->findOne('#container')->findMulti('.unknown')->length, 0);
         static::assertFalse($dom->findOne('#container')->findOneOrFalse('.unknown'));
 
-        static::assertEquals(
-            '/favicon-16x16.png', $dom->findOne('link[rel="icon"]')
+        static::assertSame(
+            '/favicon-16x16.png',
+            $dom->findOne('link[rel="icon"]')
                                       ->getAttribute('href')
         );
-        static::assertEquals(
-            '/favicon-32x32.png', $dom->find('link[rel="icon"]', 1)
+        static::assertSame(
+            '/favicon-32x32.png',
+            $dom->find('link[rel="icon"]', 1)
                                       ->getAttribute('href')
         );
-        static::assertEquals(
-            '/favicon-16x16.png', $dom->findOne('link[rel="icon"][sizes="16x16"]')
+        static::assertSame(
+            '/favicon-16x16.png',
+            $dom->findOne('link[rel="icon"][sizes="16x16"]')
                                       ->getAttribute('href')
         );
         static::assertFalse($dom->findMultiOrFalse('link[rel="icon"][sizes="999"]'));
@@ -565,15 +580,14 @@ class HTML5DOMDocumentTest extends PHPUnit\Framework\TestCase
         ];
         foreach ($fragments as $fragment) {
             $dom = new HtmlDomParser();
-            $dom->loadHtml($fragment, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
-            static::assertEquals($dom->findMulti('*')->length, 1);
-            static::assertEquals($fragment, $dom->html());
+            $dom->loadHtml($fragment, \LIBXML_HTML_NOIMPLIED | \LIBXML_HTML_NODEFDTD);
+            static::assertSame($dom->findMulti('*')->length, 1);
+            static::assertSame($fragment, $dom->html());
         }
     }
 
     public function testGetAttributes()
     {
-
         $dataAttributeValue = '&quot;<>&*;';
         $expectedDataAttributeValue = '&quot;<>&*;';
         $dom = new HtmlDomParser();
@@ -587,7 +601,7 @@ class HTML5DOMDocumentTest extends PHPUnit\Framework\TestCase
         static::assertSame($dom->findOne('div')->getAttribute('unknown'), '');
         static::assertSame($dom->findOne('div')->getAttribute('data-value'), $expectedDataAttributeValue);
         $attributes = $dom->findOne('div')->getAllAttributes();
-        static::assertSame(count($attributes), 2);
+        static::assertSame(\count($attributes), 2);
         static::assertSame($attributes['class'], 'text1');
     }
 
@@ -638,23 +652,23 @@ class HTML5DOMDocumentTest extends PHPUnit\Framework\TestCase
         );
     }
 
-    public function testLIBXML_HTML_NODEFDTD()
+    public function testLIBXMLHTMLNODEFDTD()
     {
         $content = '<div>hello</div>';
         $dom = new HtmlDomParser();
-        $dom->loadHtml($content, LIBXML_HTML_NODEFDTD);
-        static::assertEquals($content, $dom->html());
+        $dom->loadHtml($content, \LIBXML_HTML_NODEFDTD);
+        static::assertSame($content, $dom->html());
     }
 
-    public function testLIBXML_HTML_NOIMPLIED()
+    public function testLIBXMLHTMLNOIMPLIED()
     {
         $content = '<div>hello</div>';
         $dom = new HtmlDomParser();
-        $dom->loadHtml($content, LIBXML_HTML_NOIMPLIED);
-        static::assertEquals($dom->getElementsByTagName('html')->length, 0);
-        static::assertEquals($dom->getElementsByTagName('head')->length, 0);
-        static::assertEquals($dom->getElementsByTagName('body')->length, 0);
-        static::assertEquals($content, $dom->html());
+        $dom->loadHtml($content, \LIBXML_HTML_NOIMPLIED);
+        static::assertSame($dom->getElementsByTagName('html')->length, 0);
+        static::assertSame($dom->getElementsByTagName('head')->length, 0);
+        static::assertSame($dom->getElementsByTagName('body')->length, 0);
+        static::assertSame($content, $dom->html());
     }
 
     public function testNbspAndWhiteSpace()
@@ -678,7 +692,7 @@ class HTML5DOMDocumentTest extends PHPUnit\Framework\TestCase
         $testSource = static function ($source, $expectedSource) {
             $dom = new HtmlDomParser();
             $dom->loadHtml($source);
-            static::assertEquals($expectedSource, $dom->html());
+            static::assertSame($expectedSource, $dom->html());
         };
 
         $bodyContent = '<div>hello</div>';
@@ -704,7 +718,6 @@ class HTML5DOMDocumentTest extends PHPUnit\Framework\TestCase
 
     public function testOuterHTML()
     {
-
         $dom = new HtmlDomParser();
         $dom->loadHtml(
             '<html><body>'
@@ -748,15 +761,15 @@ class HTML5DOMDocumentTest extends PHPUnit\Framework\TestCase
         $dom->useKeepBrokenHtml(true);
         $dom->loadHtml($content);
         $scripts = $dom->findMulti('script');
-        static::assertEquals($scripts[0]->innerHTML, '');
-        static::assertEquals($scripts[1]->innerHTML, $js1);
-        static::assertEquals($scripts[2]->innerHTML, $js2);
+        static::assertSame($scripts[0]->innerHTML, '');
+        static::assertSame($scripts[1]->innerHTML, $js1);
+        static::assertSame($scripts[2]->innerHTML, $js2);
         $expected = '<html><head><script src="url"></script><script type="text/javascript">var f1=function(t){
             return t.replace(/</g,"&lt;").replace(/>/g,"&gt;");
         };</script><script>var f2=function(t){
             return t.replace(/</g,"&lt;").replace(/>/g,"&gt;");
         };</script></head></html>';
-        static::assertEquals($expected, $dom->html());
+        static::assertSame($expected, $dom->html());
     }
 
     public function testUTF()
@@ -769,7 +782,6 @@ class HTML5DOMDocumentTest extends PHPUnit\Framework\TestCase
 
     public function testfind()
     {
-
         $dom = new HtmlDomParser();
         $dom->loadHtml(
             '<html><body>'
@@ -822,7 +834,6 @@ class HTML5DOMDocumentTest extends PHPUnit\Framework\TestCase
 
     public function testhtml()
     {
-
         $testSource = static function ($source, $expectedSource) {
             $dom = new HtmlDomParser();
             $dom->loadHtml($source);

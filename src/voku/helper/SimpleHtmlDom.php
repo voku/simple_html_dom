@@ -7,7 +7,7 @@ namespace voku\helper;
 /**
  * @noinspection PhpHierarchyChecksInspection
  *
- * {@inheritDoc}
+ * {@inheritdoc}
  */
 class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate, SimpleHtmlDomInterface
 {
@@ -73,7 +73,8 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
     /**
      * @return bool
      */
-    public function hasAttributes(): bool {
+    public function hasAttributes(): bool
+    {
         return $this->node->hasAttributes();
     }
 
@@ -734,8 +735,7 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
     protected function cleanHtmlWrapper(
         HtmlDomParser $newDocument,
         $removeExtraHeadTag = false
-    ): HtmlDomParser
-    {
+    ): HtmlDomParser {
         if (
             $newDocument->getIsDOMDocumentCreatedWithoutHtml()
             ||

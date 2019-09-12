@@ -1159,7 +1159,6 @@ h1 {
 
         static::assertSame('<p class="lall">Proton Power & Light</p>', $p->outerHtml());
         static::assertSame('Proton Power & Light', $p->textContent);
-
     }
 
     public function testTagExists()
