@@ -175,10 +175,21 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
             }
         }
 
-        if (\count($this->node->childNodes) > 0) {
+        /** @var \DOMNode[] $remove_nodes */
+        $remove_nodes = [];
+        if (
+            $this->node->childNodes
+            &&
+            $this->node->childNodes->length > 0
+        ) {
+            // INFO: We need to fetch the nodes first, before we can delete them, because of missing references in the dom,
+            // if we delete the elements on the fly.
             foreach ($this->node->childNodes as $node) {
-                $this->node->removeChild($node);
+                $remove_nodes[] = $node;
             }
+        }
+        foreach ($remove_nodes as $remove_node) {
+            $this->node->removeChild($remove_node);
         }
 
         if (!empty($newDocument)) {
