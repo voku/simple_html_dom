@@ -230,21 +230,38 @@ class HtmlDomParser extends AbstractDomParser
             $this->isDOMDocumentCreatedWithoutWrapper = true;
         }
 
-        if (\strpos($html, '<html') === false) {
+        /** @noinspection HtmlRequiredLangAttribute */
+        if (
+            \strpos($html, '<html ') === false
+            &&
+            \strpos($html, '<html>') === false
+        ) {
             $this->isDOMDocumentCreatedWithoutHtmlWrapper = true;
         }
 
-        if (\strpos($html, '<body') === false) {
+        if (
+            \strpos($html, '<body ') === false
+            &&
+            \strpos($html, '<body>') === false
+        ) {
             $this->isDOMDocumentCreatedWithoutBodyWrapper = true;
         }
 
         /** @noinspection HtmlRequiredTitleElement */
-        if (\strpos($html, '<head>') === false) {
+        if (
+            \strpos($html, '<head ') === false
+            &&
+            \strpos($html, '<head>') === false
+        ) {
             $this->isDOMDocumentCreatedWithoutHeadWrapper = true;
         }
 
         /** @noinspection HtmlRequiredTitleElement */
-        if (\strpos($html, '<p>') === false) {
+        if (
+            \strpos($html, '<p ') === false
+            &&
+            \strpos($html, '<p>') === false
+        ) {
             $this->isDOMDocumentCreatedWithoutPTagWrapper = true;
         }
 

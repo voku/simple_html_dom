@@ -715,6 +715,32 @@ final class HTML5DOMDocumentTest extends PHPUnit\Framework\TestCase
         $testSource('<head>' . $headContent . '</head>', $expectedSource);
     }
 
+    public function testWithoutPTag()
+    {
+        $dom = new HtmlDomParser();
+        $dom->loadHtml(
+            '<html><body>'
+            . '<p>text1</p>'
+            . '</body></html>'
+        );
+
+        static::assertSame('<p>text1</p>', $dom->findOne('p')->outerHTML);
+        static::assertSame('<html><body><p>text1</p></body></html>', $dom->html());
+
+        // ---
+
+        $dom = new HtmlDomParser();
+        $dom->loadHtml(
+            '<html><body>'
+            . '<p class="foo">text1</p>'
+            . '</body></html>'
+        );
+
+        static::assertSame('<p class="foo">text1</p>', $dom->findOne('p')->outerHTML);
+        static::assertSame('<html><body><p class="foo">text1</p></body></html>', $dom->html());
+
+    }
+
     public function testOuterHTML()
     {
         $dom = new HtmlDomParser();
