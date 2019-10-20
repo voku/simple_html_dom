@@ -391,8 +391,8 @@ class XmlDomParser extends AbstractDomParser
      */
     public function html(bool $multiDecodeNewHtmlEntity = false): string
     {
-        if ($this::$callback !== null) {
-            \call_user_func($this::$callback, [$this]);
+        if (static::$callback !== null) {
+            \call_user_func(static::$callback, [$this]);
         }
 
         $content = $this->document->saveHTML();

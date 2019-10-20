@@ -55,7 +55,7 @@ abstract class AbstractDomParser implements DomParserInterface
     ];
 
     /**
-     * @var callable
+     * @var callable|null
      */
     protected static $callback;
 

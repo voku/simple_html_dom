@@ -646,8 +646,8 @@ final class HTML5DOMDocumentTest extends PHPUnit\Framework\TestCase
         $element = $dom->findOne('div');
         $element->innerHTML = '<div>text1<div>text2</div></div>';
         static::assertTrue(
-            '<div><div>text1<div>text2</div>
-</div></div>' === $dom->html() || '<div><div>text1<div>text2</div></div></div>' === $dom->html()
+            $dom->html() === '<div><div>text1<div>text2</div>
+</div></div>' || $dom->html() === '<div><div>text1<div>text2</div></div></div>'
         );
     }
 
@@ -738,7 +738,6 @@ final class HTML5DOMDocumentTest extends PHPUnit\Framework\TestCase
 
         static::assertSame('<p class="foo">text1</p>', $dom->findOne('p')->outerHTML);
         static::assertSame('<html><body><p class="foo">text1</p></body></html>', $dom->html());
-
     }
 
     public function testOuterHTML()
@@ -769,8 +768,8 @@ final class HTML5DOMDocumentTest extends PHPUnit\Framework\TestCase
         $dom->loadHtml('<div>text1</div>');
         $element = $dom->findOne('div');
         $element->outerHTML = '<div>text2<div>text3</div></div>';
-        static::assertTrue('<div>text2<div>text3</div>
-</div>' === $dom->html() || '<div>text2<div>text3</div></div>' === $dom->html());
+        static::assertTrue($dom->html() === '<div>text2<div>text3</div>
+</div>' || $dom->html() === '<div>text2<div>text3</div></div>');
     }
 
     public function testSpecialCharsInScriptTags()

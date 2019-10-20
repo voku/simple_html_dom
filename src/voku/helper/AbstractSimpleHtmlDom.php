@@ -54,7 +54,7 @@ abstract class AbstractSimpleHtmlDom
     /**
      * @param string $name
      *
-     * @return string|SimpleHtmlAttributes|null
+     * @return SimpleHtmlAttributes|string|null
      */
     public function __get($name)
     {

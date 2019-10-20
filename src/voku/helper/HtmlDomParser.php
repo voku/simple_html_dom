@@ -26,7 +26,7 @@ namespace voku\helper;
  *                                 <p>Load HTML from string.</p>
  * @method HtmlDomParser load_file(string $html)
  *                                 <p>Load HTML from file.</p>
- * @method static HtmlDomParser file_get_html($html, $libXMLExtraOptions = null)
+ * @method static HtmlDomParser file_get_html($filePath, $libXMLExtraOptions = null)
  *                                 <p>Load HTML from file.</p>
  * @method static HtmlDomParser str_get_html($html, $libXMLExtraOptions = null)
  *                                 <p>Load HTML from string.</p>
@@ -479,8 +479,7 @@ class HtmlDomParser extends AbstractDomParser
     public function fixHtmlOutput(
         string $content,
         bool $multiDecodeNewHtmlEntity = false
-    ): string
-    {
+    ): string {
         // INFO: DOMDocument will encapsulate plaintext into a e.g. paragraph tag (<p>),
         //          so we try to remove it here again ...
 
@@ -680,8 +679,8 @@ class HtmlDomParser extends AbstractDomParser
      */
     public function html(bool $multiDecodeNewHtmlEntity = false): string
     {
-        if ($this::$callback !== null) {
-            \call_user_func($this::$callback, [$this]);
+        if (static::$callback !== null) {
+            \call_user_func(static::$callback, [$this]);
         }
 
         if ($this->getIsDOMDocumentCreatedWithoutHtmlWrapper()) {
