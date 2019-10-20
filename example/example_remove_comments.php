@@ -1,6 +1,5 @@
 <?php
 
-use voku\helper\HtmlDomParser;
 
 require_once '../vendor/autoload.php';
 
