@@ -1276,6 +1276,60 @@ h1 {
         );
     }
 
+    public function testInnerTextIssue()
+    {
+        $txt = <<<'___'
+<div class="detail J_tab" id="tab_show_1">
+    <h3 class="new-tit">
+        <span class="name">product detail</span>
+    </h3>
+    <div class="detail-tit"></div>
+    <table width="100%" cellpadding="0" cellspacing="0" class="detail-table">
+        <tbody>
+            <tr>
+                <td>aaaaa</td>
+                <td class="tc">bbbb</td>
+                <td class="tc">ccccc</td>
+            </tr>
+        </tbody>
+    </table>
+    <div>
+        <p>
+            <b>[aaaaa]</b>
+        </p>
+        <p></p>
+        <div>bbbbbb</div>
+        <div>ccccccccccccccc</div>
+        <div>
+            <br>
+        </div>
+        <p></p>
+        <p>
+            <b>[ddddd]</b>
+        </p>
+    </div>
+</div>
+___;
+        $expected = '<p>
+            <b>[aaaaa]</b>
+        </p>
+        <p></p>
+        <div>bbbbbb</div>
+        <div>ccccccccccccccc</div>
+        <div>
+            <br>
+        </div>
+        <p></p>
+        <p>
+            <b>[ddddd]</b>
+        </p>';
+
+        $html_meal = HtmlDomParser::str_get_html($txt);
+        $result = $html_meal->findOne('#tab_show_1 table')->nextNonWhitespaceSibling()->innertext;
+
+        static::assertSame($expected, $result);
+    }
+
     public function testUtf8AndBrokenHtmlEncoding()
     {
         $dom = new HtmlDomParser();

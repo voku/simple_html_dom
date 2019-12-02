@@ -608,6 +608,28 @@ class SimpleXmlDom extends AbstractSimpleXmlDom implements \IteratorAggregate, S
     }
 
     /**
+     * Returns the next sibling of node.
+     *
+     * @return SimpleXmlDomInterface|null
+     */
+    public function nextNonWhitespaceSibling()
+    {
+        /** @var \DOMNode|null $node */
+        $node = $this->node->nextSibling;
+
+        if ($node === null) {
+            return null;
+        }
+
+        while ($node && !\trim($node->textContent)) {
+            /** @var \DOMNode|null $node */
+            $node = $node->nextSibling;
+        }
+
+        return new static($node);
+    }
+
+    /**
      * Returns the parent of node.
      *
      * @return SimpleXmlDomInterface

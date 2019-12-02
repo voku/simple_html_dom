@@ -296,6 +296,13 @@ interface SimpleHtmlDomInterface extends \IteratorAggregate
     public function nextSibling();
 
     /**
+     * Returns the next sibling of node and it will ignore whitespace elements.
+     *
+     * @return SimpleHtmlDomInterface|null
+     */
+    public function nextNonWhitespaceSibling();
+
+    /**
      * Returns the parent of node.
      *
      * @return SimpleHtmlDomInterface

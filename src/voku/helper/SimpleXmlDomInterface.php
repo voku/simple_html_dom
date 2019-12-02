@@ -286,6 +286,13 @@ interface SimpleXmlDomInterface extends \IteratorAggregate
     public function nextSibling();
 
     /**
+     * Returns the next sibling of node.
+     *
+     * @return SimpleXmlDomInterface|null
+     */
+    public function nextNonWhitespaceSibling();
+
+    /**
      * Returns the parent of node.
      *
      * @return SimpleXmlDomInterface

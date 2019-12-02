@@ -358,6 +358,16 @@ class SimpleXmlDomBlank extends AbstractSimpleXmlDom implements \IteratorAggrega
     }
 
     /**
+     * Returns the next sibling of node.
+     *
+     * @return null
+     */
+    public function nextNonWhitespaceSibling()
+    {
+        return null;
+    }
+
+    /**
      * Returns the parent of node.
      *
      * @return SimpleXmlDomInterface

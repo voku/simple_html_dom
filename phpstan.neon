@@ -1,5 +1,8 @@
 parameters:
     reportUnmatchedIgnoredErrors: false
+    level: max
+    paths:
+        - %currentWorkingDirectory%/src/
     excludes_analyse:
         - %currentWorkingDirectory%/vendor/*
         - %currentWorkingDirectory%/tests/*
