@@ -1330,6 +1330,31 @@ ___;
         static::assertSame($expected, $result);
     }
 
+    public function testGetHtmlInner()
+    {
+        $dom = new HtmlDomParser();
+        $dom->load('
+        <span class="main">
+          <span class="old">
+            Price&nbsp;<em>$</em>2188
+          </span>
+        </span>
+        ');
+
+        $innerHtml = $dom->findOneOrFalse('.main .old');
+        static::assertNotFalse($innerHtml);
+
+        static::assertSame(
+            'Price&nbsp;<em>$</em>2188',
+            $innerHtml->innerHtml()
+        );
+
+        static::assertSame(
+            '2188',
+            \preg_replace('/.*<\/em>/ius', '', $innerHtml->innerHtml())
+        );
+    }
+
     public function testUtf8AndBrokenHtmlEncoding()
     {
         $dom = new HtmlDomParser();
