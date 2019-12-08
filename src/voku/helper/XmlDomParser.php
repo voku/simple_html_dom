@@ -545,6 +545,10 @@ class XmlDomParser extends AbstractDomParser
 
             foreach ($children as $child) {
                 if ($child->nodeType === \XML_TEXT_NODE) {
+                    /** @noinspection PhpSillyAssignmentInspection */
+                    /** @var \DOMText $child */
+                    $child = $child;
+
                     $oldText = self::putReplacedBackToPreserveHtmlEntities($child->wholeText);
                     $newText = $callback($oldText);
                     if ($domNode->ownerDocument) {

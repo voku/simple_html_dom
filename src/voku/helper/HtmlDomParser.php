@@ -914,6 +914,8 @@ class HtmlDomParser extends AbstractDomParser
 
     /**
      * @param string $html
+     *
+     * @return void
      */
     protected function keepSpecialScriptTags(string &$html)
     {

@@ -165,6 +165,9 @@ abstract class AbstractSimpleXmlDom
      */
     abstract public function find(string $selector, $idx = null);
 
+    /**
+     * @return string[]|null
+     */
     abstract public function getAllAttributes();
 
     /**

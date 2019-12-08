@@ -54,7 +54,7 @@ abstract class AbstractSimpleHtmlDom
     /**
      * @param string $name
      *
-     * @return SimpleHtmlAttributes|string|null
+     * @return SimpleHtmlAttributes|string|string[]|null
      */
     public function __get($name)
     {
@@ -194,6 +194,9 @@ abstract class AbstractSimpleHtmlDom
      */
     abstract public function find(string $selector, $idx = null);
 
+    /**
+     * @return string[]|null
+     */
     abstract public function getAllAttributes();
 
     abstract public function getAttribute(string $name): string;
