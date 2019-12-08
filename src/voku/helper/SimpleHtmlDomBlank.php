@@ -8,6 +8,8 @@ namespace voku\helper;
  * @noinspection PhpHierarchyChecksInspection
  *
  * {@inheritdoc}
+ *
+ * @implements \IteratorAggregate<int, \DOMNode>
  */
 class SimpleHtmlDomBlank extends AbstractSimpleHtmlDom implements \IteratorAggregate, SimpleHtmlDomInterface
 {
@@ -36,7 +38,7 @@ class SimpleHtmlDomBlank extends AbstractSimpleHtmlDom implements \IteratorAggre
      * @param string   $selector
      * @param int|null $idx
      *
-     * @return SimpleHtmlDomNodeInterface
+     * @return SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>
      */
     public function find(string $selector, $idx = null)
     {
@@ -121,16 +123,31 @@ class SimpleHtmlDomBlank extends AbstractSimpleHtmlDom implements \IteratorAggre
         return $this;
     }
 
+    /**
+     * @param string $string
+     *
+     * @return SimpleHtmlDomInterface
+     */
     protected function replaceChildWithString(string $string): SimpleHtmlDomInterface
     {
         return new static();
     }
 
+    /**
+     * @param string $string
+     *
+     * @return SimpleHtmlDomInterface
+     */
     protected function replaceNodeWithString(string $string): SimpleHtmlDomInterface
     {
         return new static();
     }
 
+    /**
+     * @param string $string
+     *
+     * @return SimpleHtmlDomInterface
+     */
     protected function replaceTextWithString($string): SimpleHtmlDomInterface
     {
         return new static();
@@ -180,7 +197,7 @@ class SimpleHtmlDomBlank extends AbstractSimpleHtmlDom implements \IteratorAggre
      *
      * @param string $selector
      *
-     * @return SimpleHtmlDomNodeInterface
+     * @return SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>
      */
     public function findMulti(string $selector): SimpleHtmlDomNodeInterface
     {
@@ -238,7 +255,7 @@ class SimpleHtmlDomBlank extends AbstractSimpleHtmlDom implements \IteratorAggre
      *
      * @param string $class
      *
-     * @return SimpleHtmlDomNodeInterface
+     * @return SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>
      */
     public function getElementByClass(string $class): SimpleHtmlDomNodeInterface
     {
@@ -275,7 +292,7 @@ class SimpleHtmlDomBlank extends AbstractSimpleHtmlDom implements \IteratorAggre
      * @param string   $id
      * @param int|null $idx
      *
-     * @return SimpleHtmlDomNodeInterface
+     * @return SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>
      */
     public function getElementsById(string $id, $idx = null)
     {
@@ -288,7 +305,7 @@ class SimpleHtmlDomBlank extends AbstractSimpleHtmlDom implements \IteratorAggre
      * @param string   $name
      * @param int|null $idx
      *
-     * @return SimpleHtmlDomNodeInterface
+     * @return SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>
      */
     public function getElementsByTagName(string $name, $idx = null)
     {
@@ -393,7 +410,7 @@ class SimpleHtmlDomBlank extends AbstractSimpleHtmlDom implements \IteratorAggre
      *
      * @see  http://php.net/manual/en/iteratoraggregate.getiterator.php
      *
-     * @return SimpleHtmlDomNodeInterface
+     * @return SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>
      *                           <p>
      *                              An instance of an object implementing <b>Iterator</b> or
      *                              <b>Traversable</b>

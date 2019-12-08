@@ -8,6 +8,8 @@ namespace voku\helper;
  * @noinspection PhpHierarchyChecksInspection
  *
  * {@inheritdoc}
+ *
+ * @implements \IteratorAggregate<int, \DOMNode>
  */
 class SimpleXmlDom extends AbstractSimpleXmlDom implements \IteratorAggregate, SimpleXmlDomInterface
 {
@@ -44,7 +46,7 @@ class SimpleXmlDom extends AbstractSimpleXmlDom implements \IteratorAggregate, S
      * @param string   $selector
      * @param int|null $idx
      *
-     * @return SimpleXmlDomInterface|SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface
+     * @return SimpleXmlDomInterface|SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface<SimpleXmlDomInterface>
      */
     public function find(string $selector, $idx = null)
     {
@@ -354,7 +356,7 @@ class SimpleXmlDom extends AbstractSimpleXmlDom implements \IteratorAggregate, S
      *
      * @param int $idx
      *
-     * @return SimpleXmlDomInterface|SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface|null
+     * @return SimpleXmlDomInterface|SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface<SimpleXmlDomInterface>|null
      */
     public function childNodes(int $idx = -1)
     {
@@ -372,7 +374,7 @@ class SimpleXmlDom extends AbstractSimpleXmlDom implements \IteratorAggregate, S
      *
      * @param string $selector
      *
-     * @return SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface
+     * @return SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface<SimpleXmlDomInterface>
      */
     public function findMulti(string $selector): SimpleXmlDomNodeInterface
     {
@@ -384,7 +386,7 @@ class SimpleXmlDom extends AbstractSimpleXmlDom implements \IteratorAggregate, S
      *
      * @param string $selector
      *
-     * @return false|SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface
+     * @return false|SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface<SimpleXmlDomInterface>
      */
     public function findMultiOrFalse(string $selector)
     {
@@ -437,7 +439,7 @@ class SimpleXmlDom extends AbstractSimpleXmlDom implements \IteratorAggregate, S
      *
      * @param string $class
      *
-     * @return SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface
+     * @return SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface<SimpleXmlDomInterface>
      */
     public function getElementByClass(string $class): SimpleXmlDomNodeInterface
     {
@@ -484,7 +486,7 @@ class SimpleXmlDom extends AbstractSimpleXmlDom implements \IteratorAggregate, S
      * @param string   $id
      * @param int|null $idx
      *
-     * @return SimpleXmlDomInterface|SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface
+     * @return SimpleXmlDomInterface|SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface<SimpleXmlDomInterface>
      */
     public function getElementsById(string $id, $idx = null)
     {
@@ -497,7 +499,7 @@ class SimpleXmlDom extends AbstractSimpleXmlDom implements \IteratorAggregate, S
      * @param string   $name
      * @param int|null $idx
      *
-     * @return SimpleXmlDomInterface|SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface
+     * @return SimpleXmlDomInterface|SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface<SimpleXmlDomInterface>
      */
     public function getElementsByTagName(string $name, $idx = null)
     {

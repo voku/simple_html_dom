@@ -15,7 +15,7 @@ class SimpleXmlDomNode extends AbstractSimpleXmlDomNode implements SimpleXmlDomN
      * @param string   $selector
      * @param int|null $idx
      *
-     * @return SimpleXmlDomNodeInterface|SimpleXmlDomNodeInterface[]|null
+     * @return SimpleXmlDomNodeInterface<SimpleXmlDomInterface>|SimpleXmlDomNodeInterface[]|null
      */
     public function find(string $selector, $idx = null)
     {
@@ -51,7 +51,7 @@ class SimpleXmlDomNode extends AbstractSimpleXmlDomNode implements SimpleXmlDomN
      *
      * @param string $selector
      *
-     * @return SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface
+     * @return SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface<SimpleXmlDomInterface>
      */
     public function findMulti(string $selector): SimpleXmlDomNodeInterface
     {
@@ -63,7 +63,7 @@ class SimpleXmlDomNode extends AbstractSimpleXmlDomNode implements SimpleXmlDomN
      *
      * @param string $selector
      *
-     * @return false|SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface
+     * @return false|SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface<SimpleXmlDomInterface>
      */
     public function findMultiOrFalse(string $selector)
     {
@@ -81,7 +81,7 @@ class SimpleXmlDomNode extends AbstractSimpleXmlDomNode implements SimpleXmlDomN
      *
      * @param string $selector
      *
-     * @return SimpleXmlDomNodeInterface|null
+     * @return SimpleXmlDomNodeInterface<SimpleXmlDomInterface>|null
      */
     public function findOne(string $selector)
     {
@@ -93,7 +93,7 @@ class SimpleXmlDomNode extends AbstractSimpleXmlDomNode implements SimpleXmlDomN
      *
      * @param string $selector
      *
-     * @return false|SimpleXmlDomNodeInterface
+     * @return false|SimpleXmlDomNodeInterface<SimpleXmlDomInterface>
      */
     public function findOneOrFalse(string $selector)
     {
@@ -126,6 +126,8 @@ class SimpleXmlDomNode extends AbstractSimpleXmlDomNode implements SimpleXmlDomN
 
     /**
      * alias for "$this->innerHtml()" (added for compatibly-reasons with v1.x)
+     *
+     * @return string[]
      */
     public function innertext()
     {
@@ -134,6 +136,8 @@ class SimpleXmlDomNode extends AbstractSimpleXmlDomNode implements SimpleXmlDomN
 
     /**
      * alias for "$this->innerHtml()" (added for compatibly-reasons with v1.x)
+     *
+     * @return string[]
      */
     public function outertext()
     {

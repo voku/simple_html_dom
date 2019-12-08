@@ -25,7 +25,7 @@ class SimpleHtmlDomNodeBlank extends AbstractSimpleHtmlDomNode implements Simple
      *
      * @param string $selector
      *
-     * @return SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface
+     * @return SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>
      */
     public function findMulti(string $selector): SimpleHtmlDomNodeInterface
     {
@@ -78,6 +78,8 @@ class SimpleHtmlDomNodeBlank extends AbstractSimpleHtmlDomNode implements Simple
 
     /**
      * alias for "$this->innerHtml()" (added for compatibly-reasons with v1.x)
+     *
+     * @return string[]
      */
     public function innertext()
     {
@@ -86,6 +88,8 @@ class SimpleHtmlDomNodeBlank extends AbstractSimpleHtmlDomNode implements Simple
 
     /**
      * alias for "$this->innerHtml()" (added for compatibly-reasons with v1.x)
+     *
+     * @return string[]
      */
     public function outertext()
     {

@@ -378,7 +378,7 @@ class HtmlDomParser extends AbstractDomParser
      * @param string   $selector
      * @param int|null $idx
      *
-     * @return SimpleHtmlDomInterface|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface
+     * @return SimpleHtmlDomInterface|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>
      */
     public function find(string $selector, $idx = null)
     {
@@ -388,8 +388,10 @@ class HtmlDomParser extends AbstractDomParser
         $nodesList = $xPath->query($xPathQuery);
         $elements = new SimpleHtmlDomNode();
 
-        foreach ($nodesList as $node) {
-            $elements[] = new SimpleHtmlDom($node);
+        if ($nodesList) {
+            foreach ($nodesList as $node) {
+                $elements[] = new SimpleHtmlDom($node);
+            }
         }
 
         // return all elements
@@ -415,7 +417,7 @@ class HtmlDomParser extends AbstractDomParser
      *
      * @param string $selector
      *
-     * @return SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface
+     * @return SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>
      */
     public function findMulti(string $selector): SimpleHtmlDomNodeInterface
     {
@@ -427,7 +429,7 @@ class HtmlDomParser extends AbstractDomParser
      *
      * @param string $selector
      *
-     * @return false|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface
+     * @return false|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>
      */
     public function findMultiOrFalse(string $selector)
     {
@@ -557,6 +559,8 @@ class HtmlDomParser extends AbstractDomParser
         $content = \trim(
             \str_replace(
                 [
+                    '<simpleHtmlDomHtml>',
+                    '</simpleHtmlDomHtml>',
                     '<simpleHtmlDomP>',
                     '</simpleHtmlDomP>',
                     '<head><head>',
@@ -564,6 +568,8 @@ class HtmlDomParser extends AbstractDomParser
                     '<br></br>',
                 ],
                 [
+                    '',
+                    '',
                     '',
                     '',
                     '<head>',
@@ -584,7 +590,7 @@ class HtmlDomParser extends AbstractDomParser
      *
      * @param string $class
      *
-     * @return SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface
+     * @return SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>
      */
     public function getElementByClass(string $class): SimpleHtmlDomNodeInterface
     {
@@ -627,7 +633,7 @@ class HtmlDomParser extends AbstractDomParser
      * @param string   $id
      * @param int|null $idx
      *
-     * @return SimpleHtmlDomInterface|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface
+     * @return SimpleHtmlDomInterface|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>
      */
     public function getElementsById(string $id, $idx = null)
     {
@@ -640,7 +646,7 @@ class HtmlDomParser extends AbstractDomParser
      * @param string   $name
      * @param int|null $idx
      *
-     * @return SimpleHtmlDomInterface|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface
+     * @return SimpleHtmlDomInterface|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>
      */
     public function getElementsByTagName(string $name, $idx = null)
     {
@@ -792,7 +798,7 @@ class HtmlDomParser extends AbstractDomParser
      * @param string $selector
      * @param int    $idx
      *
-     * @return SimpleHtmlDomInterface|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface
+     * @return SimpleHtmlDomInterface|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>
      */
     public function __invoke($selector, $idx = null)
     {

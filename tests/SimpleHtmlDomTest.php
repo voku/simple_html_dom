@@ -87,6 +87,18 @@ final class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
         static::assertInstanceOf(\DOMNode::class, $element->getNode());
     }
 
+    public function testAppendPrependIssue()
+    {
+        $d = new voku\helper\HtmlDomParser();
+        $d->loadHtml('<p>p1</p><p>p2</p>');
+        $p = $d->find('p', 0);
+        $p->outerhtml .= '<div>outer</div>';
+
+        static::assertSame('<p>p1</p>
+<div>outer</div><p>p2</p>', $d->html());
+        static::assertSame('p1outerp2', $d->plaintext);
+    }
+
     public function testReplaceText()
     {
         $html = '<div>foo</div>';

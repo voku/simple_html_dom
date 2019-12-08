@@ -99,7 +99,7 @@ abstract class AbstractSimpleHtmlDom
      * @param string $selector
      * @param int    $idx
      *
-     * @return SimpleHtmlDomInterface|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface
+     * @return SimpleHtmlDomInterface|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>
      */
     public function __invoke($selector, $idx = null)
     {
@@ -186,6 +186,12 @@ abstract class AbstractSimpleHtmlDom
         $this->removeAttribute($name);
     }
 
+    /**
+     * @param string $selector
+     * @param int|null   $idx
+     *
+     * @return mixed
+     */
     abstract public function find(string $selector, $idx = null);
 
     abstract public function getAllAttributes();
@@ -204,8 +210,20 @@ abstract class AbstractSimpleHtmlDom
 
     abstract protected function replaceNodeWithString(string $string): SimpleHtmlDomInterface;
 
+    /**
+     * @param string $string
+     *
+     * @return SimpleHtmlDomInterface
+     */
     abstract protected function replaceTextWithString($string): SimpleHtmlDomInterface;
 
+    /**
+     * @param string $name
+     * @param string|null   $value
+     * @param bool   $strict
+     *
+     * @return SimpleHtmlDomInterface
+     */
     abstract public function setAttribute(string $name, $value = null, bool $strict = false): SimpleHtmlDomInterface;
 
     abstract public function text(): string;

@@ -11,7 +11,7 @@ require_once '../vendor/autoload.php';
  * @param string                     $selector
  * @param string                     $keyword
  *
- * @return SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface
+ * @return SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>
  */
 function find_contains(
     \voku\helper\HtmlDomParser $dom,

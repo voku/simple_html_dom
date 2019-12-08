@@ -22,7 +22,7 @@ namespace voku\helper;
  * @property-read string $html
  *                            <p>Get dom node's outer html.</p>
  *
- * @method SimpleXmlDomInterface|SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface|null children() children($idx = -1)
+ * @method SimpleXmlDomInterface|SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface<SimpleXmlDomInterface>|null children() children($idx = -1)
  *                                           <p>Returns children of node.</p>
  * @method SimpleXmlDomInterface|null first_child()
  *                                           <p>Returns the first child of node.</p>
@@ -40,6 +40,8 @@ namespace voku\helper;
  *                                           <p>Get dom node's outer html.</p>
  * @method string innerText()
  *                                           <p>Get dom node's inner html (alias for "innerHtml()").</p>
+ *
+ * @extends \IteratorAggregate<int, \DOMNode>
  */
 interface SimpleXmlDomInterface extends \IteratorAggregate
 {
@@ -64,7 +66,7 @@ interface SimpleXmlDomInterface extends \IteratorAggregate
      * @param string $selector
      * @param int    $idx
      *
-     * @return SimpleXmlDomInterface|SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface
+     * @return SimpleXmlDomInterface|SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface<SimpleXmlDomInterface>
      */
     public function __invoke($selector, $idx = null);
 
@@ -85,7 +87,7 @@ interface SimpleXmlDomInterface extends \IteratorAggregate
      *
      * @param int $idx
      *
-     * @return SimpleXmlDomInterface|SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface|null
+     * @return SimpleXmlDomInterface|SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface<SimpleXmlDomInterface>|null
      */
     public function childNodes(int $idx = -1);
 
@@ -95,7 +97,7 @@ interface SimpleXmlDomInterface extends \IteratorAggregate
      * @param string   $selector
      * @param int|null $idx
      *
-     * @return SimpleXmlDomInterface|SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface
+     * @return SimpleXmlDomInterface|SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface<SimpleXmlDomInterface>
      */
     public function find(string $selector, $idx = null);
 
@@ -104,7 +106,7 @@ interface SimpleXmlDomInterface extends \IteratorAggregate
      *
      * @param string $selector
      *
-     * @return SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface
+     * @return SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface<SimpleXmlDomInterface>
      */
     public function findMulti(string $selector): SimpleXmlDomNodeInterface;
 
@@ -113,7 +115,7 @@ interface SimpleXmlDomInterface extends \IteratorAggregate
      *
      * @param string $selector
      *
-     * @return false|SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface
+     * @return false|SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface<SimpleXmlDomInterface>
      */
     public function findMultiOrFalse(string $selector);
 
@@ -168,7 +170,7 @@ interface SimpleXmlDomInterface extends \IteratorAggregate
      *
      * @param string $class
      *
-     * @return SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface
+     * @return SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface<SimpleXmlDomInterface>
      */
     public function getElementByClass(string $class);
 
@@ -196,7 +198,7 @@ interface SimpleXmlDomInterface extends \IteratorAggregate
      * @param string   $id
      * @param int|null $idx
      *
-     * @return SimpleXmlDomInterface|SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface
+     * @return SimpleXmlDomInterface|SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface<SimpleXmlDomInterface>
      */
     public function getElementsById(string $id, $idx = null);
 
@@ -206,7 +208,7 @@ interface SimpleXmlDomInterface extends \IteratorAggregate
      * @param string   $name
      * @param int|null $idx
      *
-     * @return SimpleXmlDomInterface|SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface
+     * @return SimpleXmlDomInterface|SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface<SimpleXmlDomInterface>
      */
     public function getElementsByTagName(string $name, $idx = null);
 
@@ -215,7 +217,7 @@ interface SimpleXmlDomInterface extends \IteratorAggregate
      *
      * @see  http://php.net/manual/en/iteratoraggregate.getiterator.php
      *
-     * @return SimpleXmlDomNodeInterface
+     * @return SimpleXmlDomNodeInterface<int, \DOMNode>
      *                           <p>
      *                              An instance of an object implementing <b>Iterator</b> or
      *                              <b>Traversable</b>

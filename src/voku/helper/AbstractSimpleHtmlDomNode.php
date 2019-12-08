@@ -48,7 +48,7 @@ abstract class AbstractSimpleHtmlDomNode extends \ArrayObject
      * @param string   $selector
      * @param int|null $idx
      *
-     * @return SimpleHtmlDomNodeInterface|SimpleHtmlDomNodeInterface[]|null
+     * @return SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>|SimpleHtmlDomNodeInterface[]|null
      */
     public function __invoke($selector, $idx = null)
     {
@@ -70,5 +70,11 @@ abstract class AbstractSimpleHtmlDomNode extends \ArrayObject
         return $html;
     }
 
+    /**
+     * @param string $selector
+     * @param int|null   $idx
+     *
+     * @return SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>|SimpleHtmlDomNodeInterface[]|null
+     */
     abstract public function find(string $selector, $idx = null);
 }
