@@ -1919,4 +1919,14 @@ ___;
         static::assertNotNull($result);
         static::assertInstanceOf(\stdClass::class, $result, \print_r($result, true));
     }
+
+    public function testIssue42() {
+        $d = new voku\helper\HtmlDomParser;
+
+        $d->loadHtml("<p>p1</p><p>p2</p>");
+        static::assertSame('<p>p1</p>' . "\n" . '<p>p2</p>', (string)$d);
+
+        $d->loadHtml("<div><p>p1</p></div>");
+        static::assertSame('<div><p>p1</p></div>', (string)$d);
+    }
 }
