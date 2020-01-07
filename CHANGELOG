@@ -7,6 +7,7 @@
 5: merge improvements from "ivopetkov/html5-dom-document-php -> classList support
 6: add "nextNonWhitespaceSibling()"
 7: fix -> usage of "outerhtml"
+8: add support for "symfony/css-selector": ~5.0
 
 
 [PHP Simple HTML Dom v4.6.x]
