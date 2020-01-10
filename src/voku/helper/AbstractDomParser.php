@@ -311,7 +311,7 @@ abstract class AbstractDomParser implements DomParserInterface
      */
     public function save(string $filepath = ''): string
     {
-        $string = $this->innerHtml();
+        $string = $this->html();
         if ($filepath !== '') {
             \file_put_contents($filepath, $string, \LOCK_EX);
         }

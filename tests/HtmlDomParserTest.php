@@ -281,6 +281,54 @@ final class HTML5DOMDocument extends \PHPUnit\Framework\TestCase
         static::assertInternalType('string', $document->save());
     }
 
+    public function testSaveIssue42()
+    {
+        $html = '<div><p>p1</p></div>';
+        $document = new HtmlDomParser($html);
+
+        static::assertSame('<div><p>p1</p></div>', $document->save());
+    }
+
+
+    public function testSaveAsFile()
+    {
+        $html = '<div><p>p1</p></div>';
+        $document = new HtmlDomParser($html);
+
+        $filePathTmp = self::tmpdir() . '/' . uniqid(static::class, true);
+        static::assertSame('<div><p>p1</p></div>', $document->save($filePathTmp));
+
+        $htmlTmp = file_get_contents($filePathTmp);
+        static::assertSame('<div><p>p1</p></div>', $htmlTmp);
+    }
+
+    /**
+     * @return string
+     */
+    static function tmpdir()
+    {
+        if (strpos(PHP_OS, 'WIN') !== false) {
+            $var = getenv('TMP') ? getenv('TMP') : getenv('TEMP');
+            if ($var) {
+                return $var;
+            }
+
+            if (is_dir('/temp') || mkdir('/temp')) {
+                return realpath('/temp');
+            }
+
+            return false;
+        }
+
+        $var = getenv('TMPDIR');
+        if ($var) {
+            return $var;
+        }
+
+        return realpath('/tmp');
+    }
+
+
     public function testClear()
     {
         $document = new HtmlDomParser();
