@@ -8,6 +8,7 @@
 6: add "nextNonWhitespaceSibling()"
 7: fix -> usage of "outerhtml"
 8: add support for "symfony/css-selector": ~5.0
+9: fix -> "save()" -> will use html() insteadof of innerHtml() now
 
 
 [PHP Simple HTML Dom v4.6.x]
