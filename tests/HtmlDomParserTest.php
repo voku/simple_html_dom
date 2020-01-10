@@ -305,7 +305,7 @@ final class HTML5DOMDocument extends \PHPUnit\Framework\TestCase
     /**
      * @return string
      */
-    static function tmpdir()
+    public static function tmpdir()
     {
         if (strpos(PHP_OS, 'WIN') !== false) {
             $var = getenv('TMP') ? getenv('TMP') : getenv('TEMP');
