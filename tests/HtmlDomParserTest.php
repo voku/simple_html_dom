@@ -289,16 +289,15 @@ final class HTML5DOMDocument extends \PHPUnit\Framework\TestCase
         static::assertSame('<div><p>p1</p></div>', $document->save());
     }
 
-
     public function testSaveAsFile()
     {
         $html = '<div><p>p1</p></div>';
         $document = new HtmlDomParser($html);
 
-        $filePathTmp = self::tmpdir() . '/' . uniqid(static::class, true);
+        $filePathTmp = self::tmpdir() . '/' . \uniqid(static::class, true);
         static::assertSame('<div><p>p1</p></div>', $document->save($filePathTmp));
 
-        $htmlTmp = file_get_contents($filePathTmp);
+        $htmlTmp = \file_get_contents($filePathTmp);
         static::assertSame('<div><p>p1</p></div>', $htmlTmp);
     }
 
@@ -307,27 +306,26 @@ final class HTML5DOMDocument extends \PHPUnit\Framework\TestCase
      */
     public static function tmpdir()
     {
-        if (strpos(PHP_OS, 'WIN') !== false) {
-            $var = getenv('TMP') ? getenv('TMP') : getenv('TEMP');
+        if (\strpos(\PHP_OS, 'WIN') !== false) {
+            $var = \getenv('TMP') ? \getenv('TMP') : \getenv('TEMP');
             if ($var) {
                 return $var;
             }
 
-            if (is_dir('/temp') || mkdir('/temp')) {
-                return realpath('/temp');
+            if (\is_dir('/temp') || \mkdir('/temp')) {
+                return \realpath('/temp');
             }
 
             return false;
         }
 
-        $var = getenv('TMPDIR');
+        $var = \getenv('TMPDIR');
         if ($var) {
             return $var;
         }
 
-        return realpath('/tmp');
+        return \realpath('/tmp');
     }
-
 
     public function testClear()
     {
@@ -1968,13 +1966,14 @@ ___;
         static::assertInstanceOf(\stdClass::class, $result, \print_r($result, true));
     }
 
-    public function testIssue42() {
-        $d = new voku\helper\HtmlDomParser;
+    public function testIssue42()
+    {
+        $d = new voku\helper\HtmlDomParser();
 
         $d->loadHtml('<p>p1</p><p>p2</p>');
-        static::assertSame('<p>p1</p>' . "\n" . '<p>p2</p>', (string)$d);
+        static::assertSame('<p>p1</p>' . "\n" . '<p>p2</p>', (string) $d);
 
         $d->loadHtml('<div><p>p1</p></div>');
-        static::assertSame('<div><p>p1</p></div>', (string)$d);
+        static::assertSame('<div><p>p1</p></div>', (string) $d);
     }
 }
