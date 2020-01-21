@@ -87,6 +87,19 @@ final class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
         static::assertInstanceOf(\DOMNode::class, $element->getNode());
     }
 
+    public function testDecodeShouldDecodeAttributes()
+    {
+        $expected = 'H&auml;agen-Dazs';
+
+        $html = new HtmlDomParser();
+        $html->load('<meta name="description" content="H&auml;agen-Dazs">');
+
+        $description = $html->findOneOrFalse('meta[name="description"]');
+
+        static::assertSame($expected, $description->getAttribute('content'));
+        static::assertSame($description->getAttribute('content'), $description->content);
+    }
+
     public function testAppendPrependIssue()
     {
         $d = new voku\helper\HtmlDomParser();
