@@ -356,6 +356,9 @@ abstract class AbstractDomParser implements DomParserInterface
         int $options = \LIBXML_NOEMPTYTAG
     ): string {
         $xml = $this->document->saveXML(null, $options);
+        if ($xml === false) {
+            return '';
+        }
 
         if ($removeXmlHeader) {
             $xml = \ltrim((string) \preg_replace('/<\?xml.*\?>/', '', $xml));
