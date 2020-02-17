@@ -673,6 +673,8 @@ class SimpleXmlDom extends AbstractSimpleXmlDom implements \IteratorAggregate, S
                 $this->tag === 'input'
                 &&
                 (
+                    $this->getAttribute('type') === 'hidden'
+                    ||
                     $this->getAttribute('type') === 'text'
                     ||
                     !$this->hasAttribute('type')
