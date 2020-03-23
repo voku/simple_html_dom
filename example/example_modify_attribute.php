@@ -9,17 +9,17 @@ $html = '<html><div id="p1" class="post">foo</div><div class="post" id="p2">bar<
 $document = new HtmlDomParser($html);
 
 foreach ($document->find('div') as $e) {
-  $attrs = array();
-  foreach ($e->getAllAttributes() as $attrKey => $attrValue) {
-    $attrs[$attrKey] = $attrValue;
-    $e->$attrKey = null;
-  }
+    $attrs = array();
+    foreach ($e->getAllAttributes() as $attrKey => $attrValue) {
+        $attrs[$attrKey] = $attrValue;
+        $e->$attrKey = null;
+    }
 
-  ksort($attrs);
+    ksort($attrs);
 
-  foreach ($attrs as $attrKey => $attrValue) {
-    $e->$attrKey = $attrValue;
-  }
+    foreach ($attrs as $attrKey => $attrValue) {
+        $e->$attrKey = $attrValue;
+    }
 }
 
 echo $document->html();
