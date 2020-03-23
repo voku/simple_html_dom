@@ -1976,4 +1976,41 @@ ___;
         $d->loadHtml('<div><p>p1</p></div>');
         static::assertSame('<div><p>p1</p></div>', (string) $d);
     }
+
+    public function testFindClassTest()
+    {
+        $html = "
+        <div class='services'></div> or
+        <div class='services last-item'></div> or
+        <div class='services active'></div>
+        ";
+
+        $d = new voku\helper\HtmlDomParser();
+        $d->load($html);
+
+        $htmlResult = '';
+        foreach ($d->find('.services') as $e) {
+            $e->setAttribute('data-foo', 'bar');
+            $htmlResult .= $e->html();
+        };
+
+        $htmlExpected = '<div class="services" data-foo="bar"></div><div class="services last-item" data-foo="bar"></div><div class="services active" data-foo="bar"></div>';
+
+        static::assertSame($htmlExpected, $htmlResult);
+
+        // ---
+
+        $d = new voku\helper\HtmlDomParser();
+        $d->load($html);
+
+        $htmlResult = '';
+        foreach ($d->find('div[class~=services]') as $e) {
+            $e->setAttribute('data-foo', 'bar');
+            $htmlResult .= $e->html();
+        };
+
+        $htmlExpected = '<div class="services" data-foo="bar"></div><div class="services last-item" data-foo="bar"></div><div class="services active" data-foo="bar"></div>';
+
+        static::assertSame($htmlExpected, $htmlResult);
+    }
 }
