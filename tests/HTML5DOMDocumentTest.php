@@ -913,6 +913,10 @@ final class HTML5DOMDocumentTest extends PHPUnit\Framework\TestCase
 </html>';
         static::assertSame($expectedOutput, $dom->findOne('div')->parentNode()->parentNode()->html());
 
+        $div = $dom->findOne('div');
+        $a = $div->findOne('a');
+        static::assertSame('Link 1', $a->innertext);
+
         $expectedOutput = '<script src="url1"></script>';
         static::assertSame($expectedOutput, $dom->findOne('script')->html);
 

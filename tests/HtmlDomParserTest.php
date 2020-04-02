@@ -11,7 +11,7 @@ use voku\helper\SimpleHtmlDomNodeInterface;
  *
  * @internal
  */
-final class HTML5DOMDocument extends \PHPUnit\Framework\TestCase
+final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
 {
     /**
      * @param $filename

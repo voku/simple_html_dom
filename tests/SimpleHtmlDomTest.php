@@ -100,6 +100,46 @@ final class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
         static::assertSame($description->getAttribute('content'), $description->content);
     }
 
+    public function testFindInChildNode()
+    {
+        $html = '
+        <div class="foo">
+            <div class="class">
+                <strong>1</strong>
+                <div>
+                    <strong>2</strong>
+                </div>
+            </div> 
+            <div class="class">
+                <strong>3</strong>
+                <div>
+                    <strong>4</strong>
+                </div>
+            </div> 
+        </div>
+        ';
+
+        $d = HtmlDomParser::str_get_html($html);
+        $div = $d->find('.class', 0);
+        $v = $div->find('div strong', 0)->text();
+
+        static::assertSame('1', $v);
+    }
+
+    public function testCommentWp()
+    {
+        $html = '
+        <!-- wp:heading -->
+        <h2 id="my-title">Level 2 title</h2>
+        <!-- /wp:heading -->
+        ';
+
+        $d = new voku\helper\HtmlDomParser();
+        $d->loadHtml($html);
+
+        static::assertSame($html, $d->html());
+    }
+
     public function testAppendPrependIssue()
     {
         $d = new voku\helper\HtmlDomParser();

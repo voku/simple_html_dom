@@ -58,6 +58,11 @@ class HtmlDomParser extends AbstractDomParser
     /**
      * @var bool
      */
+    protected $isDOMDocumentCreatedWithCommentWrapper = false;
+
+    /**
+     * @var bool
+     */
     protected $isDOMDocumentCreatedWithoutHeadWrapper = false;
 
     /**
@@ -230,6 +235,10 @@ class HtmlDomParser extends AbstractDomParser
             $this->isDOMDocumentCreatedWithoutWrapper = true;
         }
 
+        if (\strpos(\ltrim($html), '<!--') === 0) {
+            $this->isDOMDocumentCreatedWithCommentWrapper = true;
+        }
+
         /** @noinspection HtmlRequiredLangAttribute */
         if (
             \strpos($html, '<html ') === false
@@ -318,6 +327,8 @@ class HtmlDomParser extends AbstractDomParser
 
         if (
             $this->isDOMDocumentCreatedWithoutWrapper
+            ||
+            $this->isDOMDocumentCreatedWithCommentWrapper
             ||
             $this->keepBrokenHtml
         ) {

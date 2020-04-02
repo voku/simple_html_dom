@@ -23,8 +23,9 @@ class SimpleHtmlDomNode extends AbstractSimpleHtmlDomNode implements SimpleHtmlD
         $elements = new static();
 
         foreach ($this as $node) {
+            assert($node instanceof SimpleHtmlDomInterface);
             foreach ($node->find($selector) as $res) {
-                $elements->append($res);
+                $elements[] = $res;
             }
         }
 

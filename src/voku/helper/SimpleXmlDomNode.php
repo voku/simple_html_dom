@@ -23,6 +23,7 @@ class SimpleXmlDomNode extends AbstractSimpleXmlDomNode implements SimpleXmlDomN
         $elements = new static();
 
         foreach ($this as $node) {
+            assert($node instanceof SimpleXmlDomInterface);
             foreach ($node->find($selector) as $res) {
                 $elements->append($res);
             }
