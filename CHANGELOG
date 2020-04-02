@@ -10,6 +10,7 @@
 8: add support for "symfony/css-selector": ~5.0
 9: fix -> "save()" -> will use html() insteadof of innerHtml() now
 13: fix -> "val()" -> will now support hidden fields
+14: fix -> keep html comments, also at the beginning of the html input
 
 
 [PHP Simple HTML Dom v4.6.x]
