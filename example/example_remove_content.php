@@ -12,7 +12,7 @@ $templateHtml = '
 // remove: "<br>" from "<ul>"
 $htmlTmp = HtmlDomParser::str_get_html($templateHtml);
 foreach ($htmlTmp->find('ul br') as $br) {
-  $br->outertext = '';
+    $br->outertext = '';
 }
 
 $templateHtml = $htmlTmp->save();
