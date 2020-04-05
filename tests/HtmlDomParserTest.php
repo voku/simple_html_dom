@@ -1953,6 +1953,104 @@ ___;
         return $data ?: null;
     }
 
+    public function testHtmlInsideJavaScriptTemplates()
+    {
+        $html = '
+        <script type=text/html>
+            <p>Foo</p>
+        
+            <div class="alert alert-success">
+                Bar
+            </div>
+            
+            {{foo}}
+            
+            {% if foo == true %}
+              priceStr = \'<span class="price-container price-tier_price">\'
+              <div>
+            {% else %}
+              priceStr = \'<span>\'
+            {% endif %}
+            
+            {{priceStr}}</span>
+            
+            {% if foo == true %}
+              </div>
+            {% endif %}
+        </script>
+        ';
+
+        // ---
+
+        $d = new voku\helper\HtmlDomParser();
+        $d->overwriteTemplateLogicSyntaxInSpecialScriptTags(['{#']);
+        $d->loadHtml($html);
+
+        $expectedDomError = '<script type="text/html">
+            <p>Foo</p>
+        
+            <div class="alert alert-success">
+                Bar
+            </div>
+            
+            {{foo}}
+            
+            {% if foo == true %}
+              priceStr = \'<span class="price-container price-tier_price">\'
+              <div>
+            {% else %}
+              priceStr = \'<span>\'
+            {% endif %}
+            
+            {{priceStr}}</span>
+            
+            {% if foo == true %}
+              </div>
+            {% endif %}
+        </span></script>';
+
+        static::assertSame($expectedDomError, $d->html());
+
+        // ---
+
+        $d = new voku\helper\HtmlDomParser();
+        $d->overwriteTemplateLogicSyntaxInSpecialScriptTags(['{%']);
+        $d->loadHtml($html);
+
+        $expectedNonDomError = '<script type="text/html">
+            <p>Foo</p>
+        
+            <div class="alert alert-success">
+                Bar
+            </div>
+            
+            {{foo}}
+            
+            {% if foo == true %}
+              priceStr = \'<span class="price-container price-tier_price">\'
+              <div>
+            {% else %}
+              priceStr = \'<span>\'
+            {% endif %}
+            
+            {{priceStr}}</span>
+            
+            {% if foo == true %}
+              </div>
+            {% endif %}
+        </script>';
+
+        static::assertSame($expectedNonDomError, $d->html());
+    }
+
+    public function testOverwriteTemplateLogicSyntaxInSpecialScriptTagsError()
+    {
+        static::expectException(InvalidArgumentException::class);
+
+        $d = new voku\helper\HtmlDomParser();
+        $d->overwriteTemplateLogicSyntaxInSpecialScriptTags([['{{']]);
+    }
+
     public function testExtractJson()
     {
         $data = '<script type="text/javascript">
@@ -1992,7 +2090,7 @@ ___;
         foreach ($d->find('.services') as $e) {
             $e->setAttribute('data-foo', 'bar');
             $htmlResult .= $e->html();
-        };
+        }
 
         $htmlExpected = '<div class="services" data-foo="bar"></div><div class="services last-item" data-foo="bar"></div><div class="services active" data-foo="bar"></div>';
 
@@ -2007,7 +2105,7 @@ ___;
         foreach ($d->find('div[class~=services]') as $e) {
             $e->setAttribute('data-foo', 'bar');
             $htmlResult .= $e->html();
-        };
+        }
 
         $htmlExpected = '<div class="services" data-foo="bar"></div><div class="services last-item" data-foo="bar"></div><div class="services active" data-foo="bar"></div>';
 

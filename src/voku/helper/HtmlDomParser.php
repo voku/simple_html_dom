@@ -46,6 +46,16 @@ class HtmlDomParser extends AbstractDomParser
     ];
 
     /**
+     * @var string[]
+     */
+    protected $templateLogicSyntaxInSpecialScriptTags = [
+        '+',
+        '<%',
+        '{%',
+        '{{',
+    ];
+
+    /**
      * @var bool
      */
     protected $isDOMDocumentCreatedWithoutHtml = false;
@@ -936,31 +946,28 @@ class HtmlDomParser extends AbstractDomParser
         // regEx for e.g.: [<script id="elements-image-1" type="text/html">...</script>]
         $html = (string) \preg_replace_callback(
             '/(?<start>((?:<script) [^>]*type=(?:["\'])?(?:text\/html|text\/x-custom-template)+(?:[^>]*)>))(?<innerContent>.*)(?<end><\/script>)/isU',
-            static function ($matches) {
-                if (
-                    \strpos($matches['innerContent'], '+') === false
-                    &&
-                    \strpos($matches['innerContent'], '<%') === false
-                    &&
-                    \strpos($matches['innerContent'], '{%') === false
-                    &&
-                    \strpos($matches['innerContent'], '{{') === false
-                ) {
-                    // remove the html5 fallback
-                    $matches[0] = \str_replace('<\/', '</', $matches[0]);
+            function ($matches) {
 
-                    $specialNonScript = '<' . self::$domHtmlSpecialScriptHelper . \substr($matches[0], \strlen('<script'));
+                // Check for logic in special script tags, like [<% _.each(tierPrices, function(item, key) { %>],
+                // because often this looks like non valid html in the template itself.
+                foreach ($this->templateLogicSyntaxInSpecialScriptTags as $logicSyntaxInSpecialScriptTag) {
+                    if (\strpos($matches['innerContent'], $logicSyntaxInSpecialScriptTag) !== false) {
+                        // remove the html5 fallback
+                        $matches['innerContent'] = \str_replace('<\/', '</', $matches['innerContent']);
 
-                    return \substr($specialNonScript, 0, -\strlen('</script>')) . '</' . self::$domHtmlSpecialScriptHelper . '>';
+                        self::$domBrokenReplaceHelper['orig'][] = $matches['innerContent'];
+                        self::$domBrokenReplaceHelper['tmp'][] = $matchesHash = '' . self::$domHtmlBrokenHtmlHelper . '' . \crc32($matches['innerContent']);
+
+                        return $matches['start'] . $matchesHash . $matches['end'];
+                    }
                 }
 
                 // remove the html5 fallback
-                $matches['innerContent'] = \str_replace('<\/', '</', $matches['innerContent']);
+                $matches[0] = \str_replace('<\/', '</', $matches[0]);
 
-                self::$domBrokenReplaceHelper['orig'][] = $matches['innerContent'];
-                self::$domBrokenReplaceHelper['tmp'][] = $matchesHash = '' . self::$domHtmlBrokenHtmlHelper . '' . \crc32($matches['innerContent']);
+                $specialNonScript = '<' . self::$domHtmlSpecialScriptHelper . \substr($matches[0], \strlen('<script'));
 
-                return $matches['start'] . $matchesHash . $matches['end'];
+                return \substr($specialNonScript, 0, -\strlen('</script>')) . '</' . self::$domHtmlSpecialScriptHelper . '>';
             },
             $html
         );
@@ -974,6 +981,24 @@ class HtmlDomParser extends AbstractDomParser
     public function useKeepBrokenHtml(bool $keepBrokenHtml): DomParserInterface
     {
         $this->keepBrokenHtml = $keepBrokenHtml;
+
+        return $this;
+    }
+
+    /**
+     * @param string[] $templateLogicSyntaxInSpecialScriptTags
+     *
+     * @return HtmlDomParser
+     */
+    public function overwriteTemplateLogicSyntaxInSpecialScriptTags(array $templateLogicSyntaxInSpecialScriptTags): DomParserInterface
+    {
+        foreach ($templateLogicSyntaxInSpecialScriptTags as $tmp) {
+            if (!\is_string($tmp)) {
+                throw new \InvalidArgumentException('setTemplateLogicSyntaxInSpecialScriptTags only allows string[]');
+            }
+        }
+
+        $this->templateLogicSyntaxInSpecialScriptTags = $templateLogicSyntaxInSpecialScriptTags;
 
         return $this;
     }
