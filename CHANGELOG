@@ -12,6 +12,7 @@
 13: fix -> "val()" -> will now support hidden fields
 14: fix -> keep html comments, also at the beginning of the html input
 15: add "HtmlDomParser->overwriteTemplateLogicSyntaxInSpecialScriptTags()"
+16: add support for "text/x-handlebars-template"
 
 
 [PHP Simple HTML Dom v4.6.x]

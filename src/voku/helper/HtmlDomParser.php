@@ -296,17 +296,11 @@ class HtmlDomParser extends AbstractDomParser
             $this->html5FallbackForScriptTags($html);
 
             if (
-                \strpos($html, 'type="text/html"') !== false
+                \strpos($html, 'text/html') !== false
                 ||
-                \strpos($html, 'type=\'text/html\'') !== false
+                \strpos($html, 'text/x-custom-template') !== false
                 ||
-                \strpos($html, 'type=text/html') !== false
-                ||
-                \strpos($html, 'type="text/x-custom-template"') !== false
-                ||
-                \strpos($html, 'type=\'text/x-custom-template\'') !== false
-                ||
-                \strpos($html, 'type=text/x-custom-template') !== false
+                \strpos($html, 'text/x-handlebars-template') !== false
             ) {
                 $this->keepSpecialScriptTags($html);
             }
@@ -945,7 +939,7 @@ class HtmlDomParser extends AbstractDomParser
     {
         // regEx for e.g.: [<script id="elements-image-1" type="text/html">...</script>]
         $html = (string) \preg_replace_callback(
-            '/(?<start>((?:<script) [^>]*type=(?:["\'])?(?:text\/html|text\/x-custom-template)+(?:[^>]*)>))(?<innerContent>.*)(?<end><\/script>)/isU',
+            '/(?<start>((?:<script) [^>]*type=(?:["\'])?(?:text\/html|text\/x-custom-template|text\/x-handlebars-template)+(?:[^>]*)>))(?<innerContent>.*)(?<end><\/script>)/isU',
             function ($matches) {
 
                 // Check for logic in special script tags, like [<% _.each(tierPrices, function(item, key) { %>],
