@@ -35,6 +35,13 @@ interface SimpleXmlDomNodeInterface extends \IteratorAggregate
     public function __toString();
 
     /**
+     * Get the number of items in this dom node.
+     *
+     * @return int
+     */
+    public function count();
+
+    /**
      * Find list of nodes with a CSS selector.
      *
      * @param string $selector

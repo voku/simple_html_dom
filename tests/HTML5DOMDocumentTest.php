@@ -531,6 +531,10 @@ final class HTML5DOMDocumentTest extends PHPUnit\Framework\TestCase
         static::assertSame($dom->findOne('#container')->findMulti('.unknown')->length, 0);
         static::assertFalse($dom->findOne('#container')->findOneOrFalse('.unknown'));
 
+        $multi = $dom->findMulti('link[rel="icon"]');
+        static::assertSame(2, $multi->count());
+        static::assertCount(2, $multi);
+
         static::assertSame(
             '/favicon-16x16.png',
             $dom->findOne('link[rel="icon"]')
@@ -546,6 +550,11 @@ final class HTML5DOMDocumentTest extends PHPUnit\Framework\TestCase
             $dom->findOne('link[rel="icon"][sizes="16x16"]')
                                       ->getAttribute('href')
         );
+
+        $multi = $dom->findMulti('link[rel="icon"][sizes="999"]');
+        static::assertSame(0, $multi->count());
+        static::assertCount(0, $multi);
+
         static::assertFalse($dom->findMultiOrFalse('link[rel="icon"][sizes="999"]'));
     }
 
