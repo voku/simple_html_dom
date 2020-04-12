@@ -1,9 +1,5 @@
 <?php
 
-use voku\helper\SimpleHtmlDomInterface;
-use voku\helper\SimpleHtmlDomNode;
-use voku\helper\SimpleHtmlDomNodeInterface;
-
 require_once '../vendor/autoload.php';
 
 // -----------------------------------------------------------------------------
