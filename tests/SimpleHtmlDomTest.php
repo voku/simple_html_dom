@@ -4,8 +4,6 @@ use voku\helper\HtmlDomParser;
 use voku\helper\SimpleHtmlDom;
 
 /**
- * Class SimpleHtmlDomTest
- *
  * @internal
  */
 final class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase

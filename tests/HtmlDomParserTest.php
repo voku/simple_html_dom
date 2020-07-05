@@ -7,8 +7,6 @@ use voku\helper\SimpleHtmlDomNode;
 use voku\helper\SimpleHtmlDomNodeInterface;
 
 /**
- * Class HtmlDomParserTest
- *
  * @internal
  */
 final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
@@ -81,6 +79,20 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
 
         $document = new HtmlDomParser();
         $document->loadHtmlFile('http://fobar');
+    }
+
+    public function testLoadHtmlUrl()
+    {
+        $dom = HtmlDomParser::file_get_html(__DIR__ . '/fixtures/test_template_js.html');
+        $headerSearchTemplateDom = $dom->findOneOrFalse('#headerSearchTemplate');
+        $headerSearchTemplateHtml = $headerSearchTemplateDom->innerHtml();
+
+        $domInner = HtmlDomParser::str_get_html($headerSearchTemplateHtml);
+        $h1 = $domInner->findOneOrFalse('h1');
+        self::assertSame(
+            '<h1 class="hd"><a href="http://www.11st.co.kr" data-ga-event-category="PC_GNB" data-ga-event-action="»ó´Ü¿µ¿ª_·Î°í" data-ga-event-label="">11¹ø°¡</a></h1>',
+            $h1->html()
+        );
     }
 
     public function testMethodNotExist()

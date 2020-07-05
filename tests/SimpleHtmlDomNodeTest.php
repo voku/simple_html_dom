@@ -3,8 +3,6 @@
 use voku\helper\HtmlDomParser;
 
 /**
- * Class SimpleHtmlDomNodeTest
- *
  * @internal
  */
 final class SimpleHtmlDomNodeTest extends \PHPUnit\Framework\TestCase
