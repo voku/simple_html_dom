@@ -1,7 +1,6 @@
 <?php
 
 use voku\helper\HtmlDomParser;
-use voku\helper\SimpleHtmlDom;
 
 /**
  * @internal
