@@ -56,6 +56,26 @@ class HtmlDomParser extends AbstractDomParser
     ];
 
     /**
+     * The properties specified for each special script tag is an array of the following format:
+     * string script tag => regex script tag
+     *
+     * ```php
+     * protected $specialScriptTags = [
+     *     'text/html' => 'text\/html',
+     *     'text/x-custom-template' => 'text\/x-custom-template',
+     *     'text/x-handlebars-template' => 'text\/x-handlebars-template'
+     * ]
+     * ```
+     *
+     * @var string[]
+     */
+    protected $specialScriptTags = [
+        'text/html' => 'text\/html',
+        'text/x-custom-template' => 'text\/x-custom-template',
+        'text/x-handlebars-template' => 'text\/x-handlebars-template'
+    ];
+
+    /**
      * @var bool
      */
     protected $isDOMDocumentCreatedWithoutHtml = false;
@@ -295,14 +315,10 @@ class HtmlDomParser extends AbstractDomParser
         if (\strpos($html, '<script') !== false) {
             $this->html5FallbackForScriptTags($html);
 
-            if (
-                \strpos($html, 'text/html') !== false
-                ||
-                \strpos($html, 'text/x-custom-template') !== false
-                ||
-                \strpos($html, 'text/x-handlebars-template') !== false
-            ) {
-                $this->keepSpecialScriptTags($html);
+            foreach (array_keys($this->specialScriptTags) as $tag) {
+                if (\strpos($html, $tag) !== false) {
+                    $this->keepSpecialScriptTags($html);
+                }
             }
         }
 
@@ -893,10 +909,10 @@ class HtmlDomParser extends AbstractDomParser
                 '/(?<start>.*)<(?<element_start>[a-z]+)(?<element_start_addon> [^>]*)?>(?<value>.*?)<\/(?<element_end>\2)>(?<end>.*)/sui',
                 static function ($matches) {
                     return $matches['start'] .
-                           '°lt_simple_html_dom__voku_°' . $matches['element_start'] . $matches['element_start_addon'] . '°gt_simple_html_dom__voku_°' .
-                           $matches['value'] .
-                           '°lt/_simple_html_dom__voku_°' . $matches['element_end'] . '°gt_simple_html_dom__voku_°' .
-                           $matches['end'];
+                        '°lt_simple_html_dom__voku_°' . $matches['element_start'] . $matches['element_start_addon'] . '°gt_simple_html_dom__voku_°' .
+                        $matches['value'] .
+                        '°lt/_simple_html_dom__voku_°' . $matches['element_end'] . '°gt_simple_html_dom__voku_°' .
+                        $matches['end'];
                 },
                 $html
             );
@@ -939,7 +955,7 @@ class HtmlDomParser extends AbstractDomParser
     {
         // regEx for e.g.: [<script id="elements-image-1" type="text/html">...</script>]
         $html = (string) \preg_replace_callback(
-            '/(?<start>((?:<script) [^>]*type=(?:["\'])?(?:text\/html|text\/x-custom-template|text\/x-handlebars-template)+(?:[^>]*)>))(?<innerContent>.*)(?<end><\/script>)/isU',
+            '/(?<start>((?:<script) [^>]*type=(?:["\'])?(?:' . implode('|', $this->specialScriptTags) . ')+(?:[^>]*)>))(?<innerContent>.*)(?<end><\/script>)/isU',
             function ($matches) {
 
                 // Check for logic in special script tags, like [<% _.each(tierPrices, function(item, key) { %>],
@@ -993,6 +1009,24 @@ class HtmlDomParser extends AbstractDomParser
         }
 
         $this->templateLogicSyntaxInSpecialScriptTags = $templateLogicSyntaxInSpecialScriptTags;
+
+        return $this;
+    }
+
+    /**
+     * @param string[] $specialScriptTags
+     *
+     * @return HtmlDomParser
+     */
+    public function overwriteSpecialScriptTags(array $specialScriptTags): DomParserInterface
+    {
+        foreach ($specialScriptTags as $k => $tag) {
+            if (!\is_string($tag) || !\is_string($k)) {
+                throw new \InvalidArgumentException('SpecialScriptTags only allows array[string => string]');
+            }
+        }
+
+        $this->specialScriptTags = $specialScriptTags;
 
         return $this;
     }
