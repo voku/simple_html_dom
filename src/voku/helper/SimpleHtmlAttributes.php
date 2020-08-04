@@ -21,6 +21,8 @@ class SimpleHtmlAttributes implements SimpleHtmlAttributesInterface
 
     /**
      * @var string[]
+     *
+     * @psalm-var list<string>
      */
     private $tokens = [];
 

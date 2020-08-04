@@ -3,11 +3,6 @@ parameters:
     level: max
     paths:
         - %currentWorkingDirectory%/src/
-    excludes_analyse:
-        - %currentWorkingDirectory%/vendor/*
-        - %currentWorkingDirectory%/tests/*
-    autoload_files:
-        - %currentWorkingDirectory%/vendor/autoload.php
     ignoreErrors:
         ## todo?
         - '#type specified in iterable type#'
