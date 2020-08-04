@@ -57,6 +57,10 @@ $elementsOrFalse = $dom->findMultiOrFalse('.css-selector'); // "$elementsOrFalse
 
 [github.com/voku/simple_html_dom/tree/master/example](https://github.com/voku/simple_html_dom/tree/master/example)
 
+### API
+
+[github.com/voku/simple_html_dom/tree/master/README_API.md](https://github.com/voku/simple_html_dom/tree/master/README_API.md)
+
 ### Support
 
 For support and donations please visit [Github](https://github.com/voku/simple_html_dom/) | [Issues](https://github.com/voku/simple_html_dom/issues) | [PayPal](https://paypal.me/moelleken) | [Patreon](https://www.patreon.com/voku).
