@@ -56,23 +56,22 @@ class HtmlDomParser extends AbstractDomParser
     ];
 
     /**
-     * The properties specified for each special script tag is an array of the following format:
-     * string script tag => regex script tag
+     * The properties specified for each special script tag is an array.
      *
      * ```php
      * protected $specialScriptTags = [
-     *     'text/html' => 'text\/html',
-     *     'text/x-custom-template' => 'text\/x-custom-template',
-     *     'text/x-handlebars-template' => 'text\/x-handlebars-template'
+     *     'text/html',
+     *     'text/x-custom-template',
+     *     'text/x-handlebars-template'
      * ]
      * ```
      *
      * @var string[]
      */
     protected $specialScriptTags = [
-        'text/html' => 'text\/html',
-        'text/x-custom-template' => 'text\/x-custom-template',
-        'text/x-handlebars-template' => 'text\/x-handlebars-template'
+        'text/html',
+        'text/x-custom-template',
+        'text/x-handlebars-template'
     ];
 
     /**
@@ -315,7 +314,7 @@ class HtmlDomParser extends AbstractDomParser
         if (\strpos($html, '<script') !== false) {
             $this->html5FallbackForScriptTags($html);
 
-            foreach (array_keys($this->specialScriptTags) as $tag) {
+            foreach ($this->specialScriptTags as $tag) {
                 if (\strpos($html, $tag) !== false) {
                     $this->keepSpecialScriptTags($html);
                 }
@@ -954,8 +953,13 @@ class HtmlDomParser extends AbstractDomParser
     protected function keepSpecialScriptTags(string &$html)
     {
         // regEx for e.g.: [<script id="elements-image-1" type="text/html">...</script>]
+        $tags = implode('|', array_map(
+            function ($value) {
+                return preg_quote($value, '/');
+            }, $this->specialScriptTags
+        ));
         $html = (string) \preg_replace_callback(
-            '/(?<start>((?:<script) [^>]*type=(?:["\'])?(?:' . implode('|', $this->specialScriptTags) . ')+(?:[^>]*)>))(?<innerContent>.*)(?<end><\/script>)/isU',
+            '/(?<start>((?:<script) [^>]*type=(?:["\'])?(?:' . $tags . ')+(?:[^>]*)>))(?<innerContent>.*)(?<end><\/script>)/isU',
             function ($matches) {
 
                 // Check for logic in special script tags, like [<% _.each(tierPrices, function(item, key) { %>],
@@ -1013,6 +1017,7 @@ class HtmlDomParser extends AbstractDomParser
         return $this;
     }
 
+
     /**
      * @param string[] $specialScriptTags
      *
@@ -1020,9 +1025,9 @@ class HtmlDomParser extends AbstractDomParser
      */
     public function overwriteSpecialScriptTags(array $specialScriptTags): DomParserInterface
     {
-        foreach ($specialScriptTags as $k => $tag) {
-            if (!\is_string($tag) || !\is_string($k)) {
-                throw new \InvalidArgumentException('SpecialScriptTags only allows array[string => string]');
+        foreach ($specialScriptTags as $tag) {
+            if (!\is_string($tag)) {
+                throw new \InvalidArgumentException('SpecialScriptTags only allows string[]');
             }
         }
 
