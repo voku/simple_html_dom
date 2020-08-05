@@ -261,11 +261,7 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
         ) {
             $html = $this->node->parentNode->getElementsByTagName('head')[0];
 
-            if (
-                $this->node->parentNode
-                &&
-                $this->node->parentNode->ownerDocument
-            ) {
+            if ($this->node->parentNode->ownerDocument) {
                 $fragment = $this->node->parentNode->ownerDocument->createDocumentFragment();
                 if ($html !== null) {
                     /** @var \DOMNode $html */
@@ -831,8 +827,6 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
 
             if (
                 $html !== null
-                &&
-                $this->node->parentNode
                 &&
                 $this->node->parentNode->ownerDocument
             ) {
