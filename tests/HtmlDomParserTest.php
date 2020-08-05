@@ -2087,6 +2087,40 @@ ___;
         static::assertSame('<div><p>p1</p></div>', (string) $d);
     }
 
+    public function testIssue53()
+    {
+        $d = new voku\helper\HtmlDomParser();
+
+        $html = '
+        <blockquote class="bg-gray primary">
+            <p class="text-monospace">
+                Malwarebytes<br>
+                www.malwarebytes.com<br>
+                User: User-\<wbr>u00d0\<wbr>u009f\<wbr>u00d0\<wbr>u009a\<wbr>User<br>
+                <br>
+                Windows (WMI): 0<br>
+                (end)<br>
+            </p>
+        </blockquote>
+        ';
+
+        $expected = '
+        <blockquote class="bg-gray primary">
+            <p class="text-monospace">
+                Malwarebytes<br>
+                www.malwarebytes.com<br>
+                User: User-\<wbr>u00d0\<wbr>u009f\<wbr>u00d0\<wbr>u009a\<wbr>User<br>
+                <br>
+                Windows (WMI): 0<br>
+                (end)<br>
+            </p>
+        </blockquote>
+        ';
+
+        $d->loadHtml($html);
+        static::assertSame(trim($expected), (string) $d);
+    }
+
     public function testFindClassTest()
     {
         $html = "

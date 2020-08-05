@@ -585,28 +585,57 @@ class HtmlDomParser extends AbstractDomParser
             );
         }
 
-        /** @noinspection CheckTagEmptyBody */
-        /** @noinspection HtmlExtraClosingTag */
+        // https://bugs.php.net/bug.php?id=73175
         /** @noinspection HtmlRequiredTitleElement */
         $content = \trim(
             \str_replace(
                 [
+                    '</area>',
+                    '</base>',
+                    '</br>',
+                    '</col>',
+                    '</command>',
+                    '</embed>',
+                    '</hr>',
+                    '</img>',
+                    '</input>',
+                    '</keygen>',
+                    '</link>',
+                    '</meta>',
+                    '</param>',
+                    '</source>',
+                    '</track>',
+                    '</wbr>',
                     '<simpleHtmlDomHtml>',
                     '</simpleHtmlDomHtml>',
                     '<simpleHtmlDomP>',
                     '</simpleHtmlDomP>',
                     '<head><head>',
                     '</head></head>',
-                    '<br></br>',
                 ],
                 [
                     '',
                     '',
                     '',
                     '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
                     '<head>',
                     '</head>',
-                    '<br>',
                 ],
                 $content
             )
