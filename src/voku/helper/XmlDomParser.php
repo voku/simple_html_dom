@@ -42,7 +42,6 @@ class XmlDomParser extends AbstractDomParser
         }
 
         if ($element !== null) {
-            /** @noinspection UnusedFunctionResultInspection */
             $this->loadXml($element);
         }
     }
@@ -141,7 +140,7 @@ class XmlDomParser extends AbstractDomParser
             if (
                 $domElementTmp
                 &&
-                $domElementTmp->ownerDocument !== null
+                $domElementTmp->ownerDocument
             ) {
                 $documentFound = true;
                 $this->document = $domElementTmp->ownerDocument;

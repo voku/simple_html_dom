@@ -185,9 +185,9 @@ class SimpleXmlDom extends AbstractSimpleXmlDom implements \IteratorAggregate, S
         if (!empty($newDocument)) {
             $ownerDocument = $this->node->ownerDocument;
             if (
-                $ownerDocument !== null
+                $ownerDocument
                 &&
-                $newDocument->getDocument()->documentElement !== null
+                $newDocument->getDocument()->documentElement
             ) {
                 $newNode = $ownerDocument->importNode($newDocument->getDocument()->documentElement, true);
                 /** @noinspection UnusedFunctionResultInspection */
@@ -258,7 +258,7 @@ class SimpleXmlDom extends AbstractSimpleXmlDom implements \IteratorAggregate, S
         }
 
         $ownerDocument = $this->node->ownerDocument;
-        if ($ownerDocument !== null) {
+        if ($ownerDocument) {
             $newElement = $ownerDocument->createTextNode($string);
             $newNode = $ownerDocument->importNode($newElement, true);
             $this->node->parentNode->replaceChild($newNode, $this->node);
@@ -332,15 +332,14 @@ class SimpleXmlDom extends AbstractSimpleXmlDom implements \IteratorAggregate, S
     protected function changeElementName(\DOMNode $node, string $name)
     {
         $ownerDocument = $node->ownerDocument;
-        if ($ownerDocument) {
-            $newNode = $ownerDocument->createElement($name);
-        } else {
+        if (!$ownerDocument) {
             return false;
         }
 
+        $newNode = $ownerDocument->createElement($name);
+
         foreach ($node->childNodes as $child) {
             $child = $ownerDocument->importNode($child, true);
-            /** @noinspection UnusedFunctionResultInspection */
             $newNode->appendChild($child);
         }
 
@@ -349,7 +348,7 @@ class SimpleXmlDom extends AbstractSimpleXmlDom implements \IteratorAggregate, S
             $newNode->setAttribute($attrName, $attrNode);
         }
 
-        if ($newNode->ownerDocument !== null) {
+        if ($newNode->ownerDocument) {
             /** @noinspection UnusedFunctionResultInspection */
             $newNode->ownerDocument->replaceChild($newNode, $node);
         }

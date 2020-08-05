@@ -198,9 +198,9 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
             $newDocument = $this->cleanHtmlWrapper($newDocument);
             $ownerDocument = $this->node->ownerDocument;
             if (
-                $ownerDocument !== null
+                $ownerDocument
                 &&
-                $newDocument->getDocument()->documentElement !== null
+                $newDocument->getDocument()->documentElement
             ) {
                 $newNode = $ownerDocument->importNode($newDocument->getDocument()->documentElement, true);
                 /** @noinspection UnusedFunctionResultInspection */
@@ -261,7 +261,11 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
         ) {
             $html = $this->node->parentNode->getElementsByTagName('head')[0];
 
-            if ($this->node->parentNode->ownerDocument !== null) {
+            if (
+                $this->node->parentNode
+                &&
+                $this->node->parentNode->ownerDocument
+            ) {
                 $fragment = $this->node->parentNode->ownerDocument->createDocumentFragment();
                 if ($html !== null) {
                     /** @var \DOMNode $html */
@@ -297,7 +301,7 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
         }
 
         $ownerDocument = $this->node->ownerDocument;
-        if ($ownerDocument !== null) {
+        if ($ownerDocument) {
             $newElement = $ownerDocument->createTextNode($string);
             $newNode = $ownerDocument->importNode($newElement, true);
             $this->node->parentNode->replaceChild($newNode, $this->node);
@@ -359,15 +363,14 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
     protected function changeElementName(\DOMNode $node, string $name)
     {
         $ownerDocument = $node->ownerDocument;
-        if ($ownerDocument) {
-            $newNode = $ownerDocument->createElement($name);
-        } else {
+        if (!$ownerDocument) {
             return false;
         }
 
+        $newNode = $ownerDocument->createElement($name);
+
         foreach ($node->childNodes as $child) {
             $child = $ownerDocument->importNode($child, true);
-            /** @noinspection UnusedFunctionResultInspection */
             $newNode->appendChild($child);
         }
 
@@ -376,7 +379,7 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
             $newNode->setAttribute($attrName, $attrNode);
         }
 
-        if ($newNode->ownerDocument !== null) {
+        if ($newNode->ownerDocument) {
             /** @noinspection UnusedFunctionResultInspection */
             $newNode->ownerDocument->replaceChild($newNode, $node);
         }
@@ -826,7 +829,13 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
         ) {
             $html = $this->node->parentNode->getElementsByTagName('head')[0] ?? null;
 
-            if ($html !== null && $this->node->parentNode->ownerDocument !== null) {
+            if (
+                $html !== null
+                &&
+                $this->node->parentNode
+                &&
+                $this->node->parentNode->ownerDocument
+            ) {
                 $fragment = $this->node->parentNode->ownerDocument->createDocumentFragment();
 
                 /** @var \DOMNode $html */

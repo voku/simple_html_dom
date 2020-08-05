@@ -71,7 +71,7 @@ class HtmlDomParser extends AbstractDomParser
     protected $specialScriptTags = [
         'text/html',
         'text/x-custom-template',
-        'text/x-handlebars-template'
+        'text/x-handlebars-template',
     ];
 
     /**
@@ -294,7 +294,6 @@ class HtmlDomParser extends AbstractDomParser
             $this->isDOMDocumentCreatedWithoutHeadWrapper = true;
         }
 
-        /** @noinspection HtmlRequiredTitleElement */
         if (
             \strpos($html, '<p ') === false
             &&
@@ -363,7 +362,7 @@ class HtmlDomParser extends AbstractDomParser
             if (
                 $domElementTmp
                 &&
-                $domElementTmp->ownerDocument !== null
+                $domElementTmp->ownerDocument
             ) {
                 $documentFound = true;
                 $this->document = $domElementTmp->ownerDocument;
@@ -544,7 +543,6 @@ class HtmlDomParser extends AbstractDomParser
         }
 
         if ($this->getIsDOMDocumentCreatedWithoutBodyWrapper()) {
-            /** @noinspection HtmlRequiredLangAttribute */
             $content = \str_replace(
                 [
                     '<body>',
@@ -957,10 +955,11 @@ class HtmlDomParser extends AbstractDomParser
     protected function keepSpecialScriptTags(string &$html)
     {
         // regEx for e.g.: [<script id="elements-image-1" type="text/html">...</script>]
-        $tags = implode('|', array_map(
-            function ($value) {
-                return preg_quote($value, '/');
-            }, $this->specialScriptTags
+        $tags = \implode('|', \array_map(
+            static function ($value) {
+                return \preg_quote($value, '/');
+            },
+            $this->specialScriptTags
         ));
         $html = (string) \preg_replace_callback(
             '/(?<start>((?:<script) [^>]*type=(?:["\'])?(?:' . $tags . ')+(?:[^>]*)>))(?<innerContent>.*)(?<end><\/script>)/isU',
@@ -1020,7 +1019,6 @@ class HtmlDomParser extends AbstractDomParser
 
         return $this;
     }
-
 
     /**
      * @param string[] $specialScriptTags
