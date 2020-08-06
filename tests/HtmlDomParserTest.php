@@ -2118,7 +2118,54 @@ ___;
         ';
 
         $d->loadHtml($html);
-        static::assertSame(trim($expected), (string) $d);
+        static::assertSame(\trim($expected), (string) $d);
+    }
+
+    public function testInvalidHtml()
+    {
+        $html = '<!DOCTYPE HTML>
+        <html>
+        <head>
+            <title>title</title>
+        </head>
+        
+        <body>
+        <div id="a">
+            an apple
+        </div>
+        </body>
+        
+        </html>
+        <div id="åäö">
+            body
+        </div>
+        ';
+
+        $expected = '<!DOCTYPE HTML>
+<html>
+        <head>
+            <title>title</title>
+        </head>
+        
+        <body>
+        <div id="a">
+            an apple
+        </div>
+        </body>
+        
+        
+        <div id="åäö">
+            body
+        </div>
+        </html>';
+
+        $domTree = \voku\helper\HtmlDomParser::str_get_html($html);
+
+        static::assertSame($expected, $domTree->html());
+
+        static::assertSame(['an apple'], $domTree->find('#a')->text());
+
+        static::assertSame(['body'], $domTree->find('#åäö')->text());
     }
 
     public function testFindClassTest()

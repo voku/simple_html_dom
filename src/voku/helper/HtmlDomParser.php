@@ -310,6 +310,13 @@ class HtmlDomParser extends AbstractDomParser
             $this->isDOMDocumentCreatedWithFakeEndScript = true;
         }
 
+        if (\stripos($html, '</html>') !== false) {
+            /** @noinspection NestedPositiveIfStatementsInspection */
+            if (\preg_match('/<\/html>(.*?)/suiU', $html, $matches_after_html)) {
+                $html = \str_replace($matches_after_html[0], $matches_after_html[1] . '</html>', $html);
+            }
+        }
+
         if (\strpos($html, '<script') !== false) {
             $this->html5FallbackForScriptTags($html);
 
