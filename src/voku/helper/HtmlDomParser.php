@@ -312,7 +312,11 @@ class HtmlDomParser extends AbstractDomParser
 
         if (\stripos($html, '</html>') !== false) {
             /** @noinspection NestedPositiveIfStatementsInspection */
-            if (\preg_match('/<\/html>(.*?)/suiU', $html, $matches_after_html)) {
+            if (
+                \preg_match('/<\/html>(.*?)/suiU', $html, $matches_after_html)
+                &&
+                \trim($matches_after_html[1])
+            ) {
                 $html = \str_replace($matches_after_html[0], $matches_after_html[1] . '</html>', $html);
             }
         }
