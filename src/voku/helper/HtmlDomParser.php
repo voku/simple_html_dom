@@ -75,6 +75,28 @@ class HtmlDomParser extends AbstractDomParser
     ];
 
     /**
+     * @var string[]
+     */
+    protected $selfClosingTags = [
+        'area',
+        'base',
+        'br',
+        'col',
+        'command',
+        'embed',
+        'hr',
+        'img',
+        'input',
+        'keygen',
+        'link',
+        'meta',
+        'param',
+        'source',
+        'track',
+        'wbr',
+    ];
+
+    /**
      * @var bool
      */
     protected $isDOMDocumentCreatedWithoutHtml = false;
@@ -330,6 +352,16 @@ class HtmlDomParser extends AbstractDomParser
                 }
             }
         }
+
+        $html = \str_replace(
+            \array_map(static function ($e) {
+                return '<' . $e . '>';
+            }, $this->selfClosingTags),
+            \array_map(static function ($e) {
+                return '<' . $e . '/>';
+            }, $this->selfClosingTags),
+            $html
+        );
 
         // set error level
         $internalErrors = \libxml_use_internal_errors(true);
@@ -597,26 +629,18 @@ class HtmlDomParser extends AbstractDomParser
         }
 
         // https://bugs.php.net/bug.php?id=73175
+        $content = \str_replace(
+            \array_map(static function ($e) {
+                return '</' . $e . '>';
+            }, $this->selfClosingTags),
+            '',
+            $content
+        );
+
         /** @noinspection HtmlRequiredTitleElement */
         $content = \trim(
             \str_replace(
                 [
-                    '</area>',
-                    '</base>',
-                    '</br>',
-                    '</col>',
-                    '</command>',
-                    '</embed>',
-                    '</hr>',
-                    '</img>',
-                    '</input>',
-                    '</keygen>',
-                    '</link>',
-                    '</meta>',
-                    '</param>',
-                    '</source>',
-                    '</track>',
-                    '</wbr>',
                     '<simpleHtmlDomHtml>',
                     '</simpleHtmlDomHtml>',
                     '<simpleHtmlDomP>',
@@ -625,22 +649,6 @@ class HtmlDomParser extends AbstractDomParser
                     '</head></head>',
                 ],
                 [
-                    '',
-                    '',
-                    '',
-                    '',
-                    '',
-                    '',
-                    '',
-                    '',
-                    '',
-                    '',
-                    '',
-                    '',
-                    '',
-                    '',
-                    '',
-                    '',
                     '',
                     '',
                     '',

@@ -16,8 +16,8 @@
 17: fix -> problem with auto-completion in e.g. PhpStorm
 18: small optimizations + fix phpstan reported errors
 19: add support for different special script-tags
-20: fix -> fix invalid html (move html that is after "</html>" before "</html>")
-
+20: fix -> invalid html (move html that is after "</html>" before "</html>")
+21: fix -> internal invalid self-closing tags (e.g. <wbr>)
 
 [PHP Simple HTML Dom v4.6.x]
 1: add an XmlDomParser Class + simple tests
