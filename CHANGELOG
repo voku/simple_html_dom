@@ -18,6 +18,8 @@
 19: add support for different special script-tags
 20: fix -> invalid html (move html that is after "</html>" before "</html>")
 21: fix -> internal invalid self-closing tags (e.g. <wbr>)
+22: fix -> invalid html (remove content before "<!doctype.*>")
+
 
 [PHP Simple HTML Dom v4.6.x]
 1: add an XmlDomParser Class + simple tests
