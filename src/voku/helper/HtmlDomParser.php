@@ -139,7 +139,7 @@ class HtmlDomParser extends AbstractDomParser
     /**
      * @var bool
      */
-    protected $keepBrokenHtml;
+    protected $keepBrokenHtml = false;
 
     /**
      * @param \DOMNode|SimpleHtmlDomInterface|string $element HTML code or SimpleHtmlDomInterface, \DOMNode
@@ -276,6 +276,18 @@ class HtmlDomParser extends AbstractDomParser
      */
     protected function createDOMDocument(string $html, $libXMLExtraOptions = null): \DOMDocument
     {
+        // Remove content before <!DOCTYPE.*> because otherwise the DOMDocument can not handle the input.
+        if (\stripos($html, '<!DOCTYPE') !== false) {
+            /** @noinspection NestedPositiveIfStatementsInspection */
+            if (
+                \preg_match('/(^.*?)<!(?:DOCTYPE)(?: [^>]*)?>/sui', $html, $matches_before_doctype)
+                &&
+                \trim($matches_before_doctype[1])
+            ) {
+                $html = \str_replace($matches_before_doctype[1], '', $html);
+            }
+        }
+
         if ($this->keepBrokenHtml) {
             $html = $this->keepBrokenHtml(\trim($html));
         }
