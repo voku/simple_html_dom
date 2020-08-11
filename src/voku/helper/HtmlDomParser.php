@@ -277,8 +277,9 @@ class HtmlDomParser extends AbstractDomParser
     protected function createDOMDocument(string $html, $libXMLExtraOptions = null): \DOMDocument
     {
         // Remove content before <!DOCTYPE.*> because otherwise the DOMDocument can not handle the input.
+        $isDOMDocumentCreatedWithDoctype = false;
         if (\stripos($html, '<!DOCTYPE') !== false) {
-            /** @noinspection NestedPositiveIfStatementsInspection */
+            $isDOMDocumentCreatedWithDoctype = true;
             if (
                 \preg_match('/(^.*?)<!(?:DOCTYPE)(?: [^>]*)?>/sui', $html, $matches_before_doctype)
                 &&
@@ -403,7 +404,11 @@ class HtmlDomParser extends AbstractDomParser
             ||
             $this->isDOMDocumentCreatedWithCommentWrapper
             ||
-            $this->keepBrokenHtml
+            (
+                !$isDOMDocumentCreatedWithDoctype
+                &&
+                $this->keepBrokenHtml
+            )
         ) {
             $html = '<' . self::$domHtmlWrapperHelper . '>' . $html . '</' . self::$domHtmlWrapperHelper . '>';
         }

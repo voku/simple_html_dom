@@ -2221,6 +2221,116 @@ ___;
         static::assertSame(['body'], $domTree->find('#åäö')->text());
     }
 
+    public function testHtmlWithSpecialCommentsAndKeepBrokenHtml()
+    {
+        $html = '<!-- === BEGIN TOP === -->
+        <!DOCTYPE html>
+        <!--[if IE 8]> <html lang="en" class="ie8"> <![endif]-->
+        <!--[if IE 9]> <html lang="en" class="ie9"> <![endif]-->
+        <!--[if !IE]><!-->
+        <html prefix="og: http://ogp.me/ns#" lang="ru">
+        <!--<![endif]-->
+        <head>
+            <title>title</title>
+        </head>
+        
+        <body>
+        <div id="a">
+            an apple
+        </div>
+        </body>
+        
+        </html>
+        <div id="åäö">
+            body
+        </div>
+        ';
+
+        $expected = '<!DOCTYPE html>
+<!--[if IE 8]> <html lang="en" class="ie8"> <![endif]--><!--[if IE 9]> <html lang="en" class="ie9"> <![endif]--><!--[if !IE]><!--><html prefix="og: http://ogp.me/ns#" lang="ru">
+        <!--<![endif]-->
+        <head>
+            <title>title</title>
+        </head>
+        
+        <body>
+        <div id="a">
+            an apple
+        </div>
+        </body>
+        
+        
+        <div id="åäö">
+            body
+        </div></html>';
+
+        $dom = new HtmlDomParser();
+        $dom = $dom->useKeepBrokenHtml(true);
+        $domTree = $dom->load($html);
+
+        static::assertSame($expected, $domTree->html());
+
+        static::assertSame(['an apple'], $domTree->find('#a')->text());
+
+        static::assertSame(['body'], $domTree->find('#åäö')->text());
+    }
+
+    public function testHtmlWithSpecialCommentsAndKeepBrokenHtml2()
+    {
+        $html = '<!-- === BEGIN TOP === -->
+        <!--[if IE 8]> <html lang="en" class="ie8"> <![endif]-->
+        <!--[if IE 9]> <html lang="en" class="ie9"> <![endif]-->
+        <!--[if !IE]><!-->
+        <html prefix="og: http://ogp.me/ns#" lang="ru">
+        <!--<![endif]-->
+        <head>
+            <title>title</title>
+        </head>
+        
+        <body>
+        <div id="a">
+            an apple
+        </div>
+        </body>
+        
+        </html>
+        <div id="åäö">
+            body
+        </div>
+        ';
+
+        $expected = '<!-- === BEGIN TOP === -->
+        <!--[if IE 8]> <html lang="en" class="ie8"> <![endif]-->
+        <!--[if IE 9]> <html lang="en" class="ie9"> <![endif]-->
+        <!--[if !IE]><!-->
+        <html prefix="og: http://ogp.me/ns#" lang="ru">
+        <!--<![endif]-->
+        <head>
+            <title>title</title>
+        </head>
+        
+        <body>
+        <div id="a">
+            an apple
+        </div>
+        </body>
+        
+        
+        <div id="åäö">
+            body
+        </div></html>';
+
+        $dom = new HtmlDomParser();
+        $dom = $dom->useKeepBrokenHtml(true);
+        $domTree = $dom->load($html);
+
+        static::assertSame($expected, $domTree->html());
+
+        static::assertSame(['an apple'], $domTree->find('#a')->text());
+
+        static::assertSame(['body'], $domTree->find('#åäö')->text());
+    }
+
     public function testFindClassTest()
     {
         $html = "
