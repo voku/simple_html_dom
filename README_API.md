@@ -3,76 +3,76 @@
 
 ### DomParser API
 
-<p id="voku-php-readme-class-methods"></p><table><tr><td><a href="#vokuhelperdomparserinterface-findstring-selector-intnull-idx">find</a>
-</td><td><a href="#vokuhelperdomparserinterface-findmultistring-selector">findMulti</a>
-</td><td><a href="#vokuhelperdomparserinterface-findmultiorfalsestring-selector">findMultiOrFalse</a>
-</td><td><a href="#vokuhelperdomparserinterface-findonestring-selector">findOne</a>
-</td></tr><tr><td><a href="#vokuhelperdomparserinterface-findoneorfalsestring-selector">findOneOrFalse</a>
-</td><td><a href="#vokuhelperdomparserinterface-fixhtmloutputstring-content-bool-multidecodenewhtmlentity-string">fixHtmlOutput</a>
-</td><td><a href="#vokuhelperdomparserinterface-getdocument-domdocument">getDocument</a>
-</td><td><a href="#vokuhelperdomparserinterface-getelementbyclassstring-class">getElementByClass</a>
-</td></tr><tr><td><a href="#vokuhelperdomparserinterface-getelementbyidstring-id">getElementById</a>
-</td><td><a href="#vokuhelperdomparserinterface-getelementbytagnamestring-name">getElementByTagName</a>
-</td><td><a href="#vokuhelperdomparserinterface-getelementsbyidstring-id-intnull-idx">getElementsById</a>
-</td><td><a href="#vokuhelperdomparserinterface-getelementsbytagnamestring-name-intnull-idx">getElementsByTagName</a>
-</td></tr><tr><td><a href="#vokuhelperdomparserinterface-htmlbool-multidecodenewhtmlentity-string">html</a>
-</td><td><a href="#vokuhelperdomparserinterface-innerhtmlbool-multidecodenewhtmlentity-string">innerHtml</a>
-</td><td><a href="#vokuhelperdomparserinterface-innerxmlbool-multidecodenewhtmlentity-string">innerXml</a>
-</td><td><a href="#vokuhelperdomparserinterface-loadhtmlstring-html-intnull-libxmlextraoptions-domparserinterface">loadHtml</a>
-</td></tr><tr><td><a href="#vokuhelperdomparserinterface-loadhtmlfilestring-filepath-intnull-libxmlextraoptions-domparserinterface">loadHtmlFile</a>
-</td><td><a href="#vokuhelperdomparserinterface-savestring-filepath-string">save</a>
-</td><td><a href="#vokuhelperdomparserinterface-set_callbackcallable-functionname">set_callback</a>
-</td><td><a href="#vokuhelperdomparserinterface-textbool-multidecodenewhtmlentity-string">text</a>
-</td></tr><tr><td><a href="#vokuhelperdomparserinterface-xmlbool-multidecodenewhtmlentity-bool-htmltoxml-bool-removexmlheader-int-options-string">xml</a>
+<p id="voku-php-readme-class-methods"></p><table><tr><td><a href="#findstring-selector-intnull-idx">find</a>
+</td><td><a href="#findmultistring-selector">findMulti</a>
+</td><td><a href="#findmultiorfalsestring-selector">findMultiOrFalse</a>
+</td><td><a href="#findonestring-selector">findOne</a>
+</td></tr><tr><td><a href="#findoneorfalsestring-selector">findOneOrFalse</a>
+</td><td><a href="#fixhtmloutputstring-content-bool-multidecodenewhtmlentity-string">fixHtmlOutput</a>
+</td><td><a href="#getdocument-domdocument">getDocument</a>
+</td><td><a href="#getelementbyclassstring-class">getElementByClass</a>
+</td></tr><tr><td><a href="#getelementbyidstring-id">getElementById</a>
+</td><td><a href="#getelementbytagnamestring-name">getElementByTagName</a>
+</td><td><a href="#getelementsbyidstring-id-intnull-idx">getElementsById</a>
+</td><td><a href="#getelementsbytagnamestring-name-intnull-idx">getElementsByTagName</a>
+</td></tr><tr><td><a href="#htmlbool-multidecodenewhtmlentity-string">html</a>
+</td><td><a href="#innerhtmlbool-multidecodenewhtmlentity-string">innerHtml</a>
+</td><td><a href="#innerxmlbool-multidecodenewhtmlentity-string">innerXml</a>
+</td><td><a href="#loadhtmlstring-html-intnull-libxmlextraoptions-domparserinterface">loadHtml</a>
+</td></tr><tr><td><a href="#loadhtmlfilestring-filepath-intnull-libxmlextraoptions-domparserinterface">loadHtmlFile</a>
+</td><td><a href="#savestring-filepath-string">save</a>
+</td><td><a href="#set_callbackcallable-functionname">set_callback</a>
+</td><td><a href="#textbool-multidecodenewhtmlentity-string">text</a>
+</td></tr><tr><td><a href="#xmlbool-multidecodenewhtmlentity-bool-htmltoxml-bool-removexmlheader-int-options-string">xml</a>
 </td></tr></table>
 
 ### SimpleHtmlDomNode (group of dom elements) API
 
-<p id="voku-php-readme-class-methods"></p><table><tr><td><a href="#vokuhelpersimplehtmldomnodeinterface-count-int">count</a>
-</td><td><a href="#vokuhelpersimplehtmldomnodeinterface-findstring-selector-int-idx-simplehtmldomnodesimplehtmldomnodenull">find</a>
-</td><td><a href="#vokuhelpersimplehtmldomnodeinterface-findmultistring-selector-simplehtmldominterfacesimplehtmldomnodeinterfacesimplehtmldominterface">findMulti</a>
-</td><td><a href="#vokuhelpersimplehtmldomnodeinterface-findmultiorfalsestring-selector-falsesimplehtmldominterfacesimplehtmldomnodeinterfacesimplehtmldominterface">findMultiOrFalse</a>
-</td></tr><tr><td><a href="#vokuhelpersimplehtmldomnodeinterface-findonestring-selector-simplehtmldomnodenull">findOne</a>
-</td><td><a href="#vokuhelpersimplehtmldomnodeinterface-findoneorfalsestring-selector-falsesimplehtmldomnode">findOneOrFalse</a>
-</td><td><a href="#vokuhelpersimplehtmldomnodeinterface-innerhtml-string">innerHtml</a>
-</td><td><a href="#vokuhelpersimplehtmldomnodeinterface-innertext-string">innertext</a>
-</td></tr><tr><td><a href="#vokuhelpersimplehtmldomnodeinterface-outertext-string">outertext</a>
-</td><td><a href="#vokuhelpersimplehtmldomnodeinterface-text-string">text</a>
+<p id="voku-php-readme-class-methods"></p><table><tr><td><a href="#count-int">count</a>
+</td><td><a href="#findstring-selector-int-idx-simplehtmldomnodesimplehtmldomnodenull">find</a>
+</td><td><a href="#findmultistring-selector-simplehtmldominterfacesimplehtmldomnodeinterfacesimplehtmldominterface">findMulti</a>
+</td><td><a href="#findmultiorfalsestring-selector-falsesimplehtmldominterfacesimplehtmldomnodeinterfacesimplehtmldominterface">findMultiOrFalse</a>
+</td></tr><tr><td><a href="#findonestring-selector-simplehtmldomnodenull">findOne</a>
+</td><td><a href="#findoneorfalsestring-selector-falsesimplehtmldomnode">findOneOrFalse</a>
+</td><td><a href="#innerhtml-string">innerHtml</a>
+</td><td><a href="#innertext-string">innertext</a>
+</td></tr><tr><td><a href="#outertext-string">outertext</a>
+</td><td><a href="#text-string">text</a>
 </td></tr></table>
 
 ### SimpleHtmlDom (single dom element) API
 
-<p id="voku-php-readme-class-methods"></p><table><tr><td><a href="#vokuhelpersimplehtmldominterface-childnodesint-idx-simplehtmldominterfacesimplehtmldominterfacesimplehtmldomnodeinterfacenull">childNodes</a>
-</td><td><a href="#vokuhelpersimplehtmldominterface-findstring-selector-intnull-idx-simplehtmldominterfacesimplehtmldominterfacesimplehtmldomnodeinterfacesimplehtmldominterface">find</a>
-</td><td><a href="#vokuhelpersimplehtmldominterface-findmultistring-selector-simplehtmldominterfacesimplehtmldomnodeinterfacesimplehtmldominterface">findMulti</a>
-</td><td><a href="#vokuhelpersimplehtmldominterface-findmultiorfalsestring-selector-falsesimplehtmldominterfacesimplehtmldomnodeinterfacesimplehtmldominterface">findMultiOrFalse</a>
-</td></tr><tr><td><a href="#vokuhelpersimplehtmldominterface-findonestring-selector-simplehtmldominterface">findOne</a>
-</td><td><a href="#vokuhelpersimplehtmldominterface-findoneorfalsestring-selector-falsesimplehtmldominterface">findOneOrFalse</a>
-</td><td><a href="#vokuhelpersimplehtmldominterface-firstchild-simplehtmldominterfacenull">firstChild</a>
-</td><td><a href="#vokuhelpersimplehtmldominterface-getallattributes-stringnull">getAllAttributes</a>
-</td></tr><tr><td><a href="#vokuhelpersimplehtmldominterface-getattributestring-name-string">getAttribute</a>
-</td><td><a href="#vokuhelpersimplehtmldominterface-getelementbyclassstring-class-simplehtmldominterfacesimplehtmldomnodeinterfacesimplehtmldominterface">getElementByClass</a>
-</td><td><a href="#vokuhelpersimplehtmldominterface-getelementbyidstring-id-simplehtmldominterface">getElementById</a>
-</td><td><a href="#vokuhelpersimplehtmldominterface-getelementbytagnamestring-name-simplehtmldominterface">getElementByTagName</a>
-</td></tr><tr><td><a href="#vokuhelpersimplehtmldominterface-getelementsbyidstring-id-intnull-idx-simplehtmldominterfacesimplehtmldominterfacesimplehtmldomnodeinterfacesimplehtmldominterface">getElementsById</a>
-</td><td><a href="#vokuhelpersimplehtmldominterface-getelementsbytagnamestring-name-intnull-idx-simplehtmldominterfacesimplehtmldominterfacesimplehtmldomnodeinterfacesimplehtmldominterface">getElementsByTagName</a>
-</td><td><a href="#vokuhelpersimplehtmldominterface-gethtmldomparser-htmldomparser">getHtmlDomParser</a>
-</td><td><a href="#vokuhelpersimplehtmldominterface-getiterator-simplehtmldomnodeinterfacesimplehtmldominterface">getIterator</a>
-</td></tr><tr><td><a href="#vokuhelpersimplehtmldominterface-getnode-domnode">getNode</a>
-</td><td><a href="#vokuhelpersimplehtmldominterface-hasattributestring-name-bool">hasAttribute</a>
-</td><td><a href="#vokuhelpersimplehtmldominterface-htmlbool-multidecodenewhtmlentity-string">html</a>
-</td><td><a href="#vokuhelpersimplehtmldominterface-innerhtmlbool-multidecodenewhtmlentity-string">innerHtml</a>
-</td></tr><tr><td><a href="#vokuhelpersimplehtmldominterface-innerxmlbool-multidecodenewhtmlentity-string">innerXml</a>
-</td><td><a href="#vokuhelpersimplehtmldominterface-isremoved-bool">isRemoved</a>
-</td><td><a href="#vokuhelpersimplehtmldominterface-lastchild-simplehtmldominterfacenull">lastChild</a>
-</td><td><a href="#vokuhelpersimplehtmldominterface-nextnonwhitespacesibling-simplehtmldominterfacenull">nextNonWhitespaceSibling</a>
-</td></tr><tr><td><a href="#vokuhelpersimplehtmldominterface-nextsibling-simplehtmldominterfacenull">nextSibling</a>
-</td><td><a href="#vokuhelpersimplehtmldominterface-parentnode-simplehtmldominterface">parentNode</a>
-</td><td><a href="#vokuhelpersimplehtmldominterface-previoussibling-simplehtmldominterfacenull">previousSibling</a>
-</td><td><a href="#vokuhelpersimplehtmldominterface-removeattributestring-name-simplehtmldominterface">removeAttribute</a>
-</td></tr><tr><td><a href="#vokuhelpersimplehtmldominterface-setattributestring-name-stringnull-value-bool-strict-simplehtmldominterface">setAttribute</a>
-</td><td><a href="#vokuhelpersimplehtmldominterface-text-string">text</a>
-</td><td><a href="#vokuhelpersimplehtmldominterface-valstringstringnull-value-stringstringnull">val</a>
+<p id="voku-php-readme-class-methods"></p><table><tr><td><a href="#childnodesint-idx-simplehtmldominterfacesimplehtmldominterfacesimplehtmldomnodeinterfacenull">childNodes</a>
+</td><td><a href="#findstring-selector-intnull-idx-simplehtmldominterfacesimplehtmldominterfacesimplehtmldomnodeinterfacesimplehtmldominterface">find</a>
+</td><td><a href="#findmultistring-selector-simplehtmldominterfacesimplehtmldomnodeinterfacesimplehtmldominterface">findMulti</a>
+</td><td><a href="#findmultiorfalsestring-selector-falsesimplehtmldominterfacesimplehtmldomnodeinterfacesimplehtmldominterface">findMultiOrFalse</a>
+</td></tr><tr><td><a href="#findonestring-selector-simplehtmldominterface">findOne</a>
+</td><td><a href="#findoneorfalsestring-selector-falsesimplehtmldominterface">findOneOrFalse</a>
+</td><td><a href="#firstchild-simplehtmldominterfacenull">firstChild</a>
+</td><td><a href="#getallattributes-stringnull">getAllAttributes</a>
+</td></tr><tr><td><a href="#getattributestring-name-string">getAttribute</a>
+</td><td><a href="#getelementbyclassstring-class-simplehtmldominterfacesimplehtmldomnodeinterfacesimplehtmldominterface">getElementByClass</a>
+</td><td><a href="#getelementbyidstring-id-simplehtmldominterface">getElementById</a>
+</td><td><a href="#getelementbytagnamestring-name-simplehtmldominterface">getElementByTagName</a>
+</td></tr><tr><td><a href="#getelementsbyidstring-id-intnull-idx-simplehtmldominterfacesimplehtmldominterfacesimplehtmldomnodeinterfacesimplehtmldominterface">getElementsById</a>
+</td><td><a href="#getelementsbytagnamestring-name-intnull-idx-simplehtmldominterfacesimplehtmldominterfacesimplehtmldomnodeinterfacesimplehtmldominterface">getElementsByTagName</a>
+</td><td><a href="#gethtmldomparser-htmldomparser">getHtmlDomParser</a>
+</td><td><a href="#getiterator-simplehtmldomnodeinterfacesimplehtmldominterface">getIterator</a>
+</td></tr><tr><td><a href="#getnode-domnode">getNode</a>
+</td><td><a href="#hasattributestring-name-bool">hasAttribute</a>
+</td><td><a href="#htmlbool-multidecodenewhtmlentity-string">html</a>
+</td><td><a href="#innerhtmlbool-multidecodenewhtmlentity-string">innerHtml</a>
+</td></tr><tr><td><a href="#innerxmlbool-multidecodenewhtmlentity-string">innerXml</a>
+</td><td><a href="#isremoved-bool">isRemoved</a>
+</td><td><a href="#lastchild-simplehtmldominterfacenull">lastChild</a>
+</td><td><a href="#nextnonwhitespacesibling-simplehtmldominterfacenull">nextNonWhitespaceSibling</a>
+</td></tr><tr><td><a href="#nextsibling-simplehtmldominterfacenull">nextSibling</a>
+</td><td><a href="#parentnode-simplehtmldominterface">parentNode</a>
+</td><td><a href="#previoussibling-simplehtmldominterfacenull">previousSibling</a>
+</td><td><a href="#removeattributestring-name-simplehtmldominterface">removeAttribute</a>
+</td></tr><tr><td><a href="#setattributestring-name-stringnull-value-bool-strict-simplehtmldominterface">setAttribute</a>
+</td><td><a href="#text-string">text</a>
+</td><td><a href="#valstringstringnull-value-stringstringnull">val</a>
 </td></tr></table>
 
 ---
