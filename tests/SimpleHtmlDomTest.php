@@ -167,10 +167,29 @@ final class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
         static::assertSame('', $document->plaintext);
     }
 
-    public function testReplaceNode()
+    public function replaceNodeDataProvider()
+    {
+        return [
+            [
+                '<h1>bar</h1>',
+            ],
+            [
+                '',
+            ],
+            [
+                'foo',
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider replaceNodeDataProvider
+     *
+     * @param string $replace
+     */
+    public function testReplaceNode($replace)
     {
         $html = '<div>foo</div>';
-        $replace = '<h1>bar</h1>';
 
         $document = new HtmlDomParser($html);
         $node = $document->getDocument()->documentElement;
@@ -182,7 +201,9 @@ final class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
 
         $element->outertext = '';
 
-        static::assertNotSame($replace, $document->outertext);
+        if ($replace !== '') {
+            static::assertNotSame($replace, $document->outertext);
+        }
     }
 
     public function testReplaceChild()

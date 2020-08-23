@@ -162,7 +162,7 @@ class SimpleXmlDom extends AbstractSimpleXmlDom implements \IteratorAggregate, S
             $tmpStr = $this->normalizeStringForComparision($string);
             if ($tmpDomString !== $tmpStr) {
                 throw new \RuntimeException(
-                    'Not valid HTML fragment!' . "\n" .
+                    'Not valid XML fragment!' . "\n" .
                     $tmpDomString . "\n" .
                     $tmpStr
                 );
@@ -208,7 +208,9 @@ class SimpleXmlDom extends AbstractSimpleXmlDom implements \IteratorAggregate, S
     protected function replaceNodeWithString(string $string): SimpleXmlDomInterface
     {
         if (empty($string)) {
-            $this->node->parentNode->removeChild($this->node);
+            if ($this->node->parentNode) {
+                $this->node->parentNode->removeChild($this->node);
+            }
 
             return $this;
         }
@@ -219,7 +221,7 @@ class SimpleXmlDom extends AbstractSimpleXmlDom implements \IteratorAggregate, S
         $tmpStr = $this->normalizeStringForComparision($string);
         if ($tmpDomOuterTextString !== $tmpStr) {
             throw new \RuntimeException(
-                'Not valid HTML fragment!' . "\n"
+                'Not valid XML fragment!' . "\n"
                 . $tmpDomOuterTextString . "\n" .
                 $tmpStr
             );
@@ -252,7 +254,9 @@ class SimpleXmlDom extends AbstractSimpleXmlDom implements \IteratorAggregate, S
     protected function replaceTextWithString($string): SimpleXmlDomInterface
     {
         if (empty($string)) {
-            $this->node->parentNode->removeChild($this->node);
+            if ($this->node->parentNode) {
+                $this->node->parentNode->removeChild($this->node);
+            }
 
             return $this;
         }

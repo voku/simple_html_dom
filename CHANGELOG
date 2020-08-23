@@ -20,6 +20,7 @@
 21: fix -> internal invalid self-closing tags (e.g. <wbr>)
 22: fix -> invalid html (remove content before "<!doctype.*>")
 23: fix -> invalid html (remove content before "<!doctype.*>") + try to repair broken html
+24: fix -> normalize the html after replacing the node
 
 
 [PHP Simple HTML Dom v4.6.x]
