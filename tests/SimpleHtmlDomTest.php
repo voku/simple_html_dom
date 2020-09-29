@@ -425,6 +425,16 @@ final class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
         static::assertNull($node->last_child());
     }
 
+    public function testDataAttribute()
+    {
+        $html = '<div class="B(8px) Pos(a) C(white) Py(2px) Px(0) Ta(c) Bdrs(3px) Trstf(eio) Trsde(0.5) Arrow South Bdtc(i)::a Fw(b) Bgc($buy) Bdtc($buy)" data-test="rec-rating-txt" tabindex="0" aria-label="2.9 on a scale of 1 to 5, where 1 is Strong Buy and 5 is Sell" style="width: 30px; left: calc(47.5% - 15px);">2.9</div>';
+        $document = new HtmlDomParser($html);
+
+        $lall = $document->findOne('*[data-test="rec-rating-txt"]');
+
+        static::assertSame('2.9', $lall->innerText());
+    }
+
     public function testNextSibling()
     {
         $html = '<div><p>foo</p><p>bar</p></div>';
