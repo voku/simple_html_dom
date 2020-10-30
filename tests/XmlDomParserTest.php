@@ -1,11 +1,16 @@
 <?php
 
+namespace Tests;
+
+use PHPUnit\Framework\TestCase;
 use voku\helper\XmlDomParser;
+use function str_replace;
+use function trim;
 
 /**
  * @internal
  */
-final class XmlDomParserTest extends \PHPUnit\Framework\TestCase
+final class XmlDomParserTest extends TestCase
 {
     public function testXml()
     {
@@ -13,12 +18,12 @@ final class XmlDomParserTest extends \PHPUnit\Framework\TestCase
         $filenameExpected = __DIR__ . '/fixtures/test_xml_expected.xml';
 
         $xml = XmlDomParser::file_get_xml($filename);
-        $xmlExpected = \str_replace(["\r\n", "\r", "\n"], "\n", \file_get_contents($filenameExpected));
+        $xmlExpected = str_replace(["\r\n", "\r", "\n"], "\n", \file_get_contents($filenameExpected));
 
         // object to sting
         static::assertSame(
             $xmlExpected,
-            \str_replace(["\r\n", "\r", "\n"], "\n", (string) $xml)
+            str_replace(["\r\n", "\r", "\n"], "\n", (string) $xml)
         );
     }
 
@@ -28,10 +33,10 @@ final class XmlDomParserTest extends \PHPUnit\Framework\TestCase
         $filenameExpected = __DIR__ . '/fixtures/test_xml_replace_expected.xml';
 
         $xml = XmlDomParser::file_get_xml($filename);
-        $xmlExpected = \str_replace(["\r\n", "\r", "\n"], "\n", \file_get_contents($filenameExpected));
+        $xmlExpected = str_replace(["\r\n", "\r", "\n"], "\n", \file_get_contents($filenameExpected));
 
         $xml->replaceTextWithCallback(static function ($oldValue) {
-            if (!\trim($oldValue)) {
+            if (!trim($oldValue)) {
                 return $oldValue;
             }
 
@@ -41,7 +46,7 @@ final class XmlDomParserTest extends \PHPUnit\Framework\TestCase
         // object to sting
         static::assertSame(
             $xmlExpected,
-            \str_replace(["\r\n", "\r", "\n"], "\n", (string) $xml)
+            str_replace(["\r\n", "\r", "\n"], "\n", (string) $xml)
         );
     }
 

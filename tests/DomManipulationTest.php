@@ -1,5 +1,7 @@
 <?php
 
+namespace Tests;
+
 use PHPUnit\Framework\TestCase;
 
 use voku\helper\HtmlDomParser;
@@ -18,14 +20,13 @@ final class DomManipulationTest extends TestCase
      */
     private $dom;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->dom = new HtmlDomParser();
     }
 
-    protected function tearDown()
+    protected function tearDown(): void
     {
-        $this->dom->clear();
         $this->dom = null;
     }
 

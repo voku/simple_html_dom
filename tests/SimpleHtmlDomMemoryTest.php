@@ -1,11 +1,14 @@
 <?php
 
+namespace Tests;
+
+use PHPUnit\Framework\TestCase;
 use voku\helper\HtmlDomParser;
 
 /**
  * @internal
  */
-final class SimpleHtmlDomMemoryTest extends \PHPUnit\Framework\TestCase
+final class SimpleHtmlDomMemoryTest extends TestCase
 {
     public function testMemoryLeak()
     {

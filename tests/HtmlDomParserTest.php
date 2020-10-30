@@ -1,15 +1,30 @@
 <?php
 
+namespace Tests;
+
+use BadMethodCallException;
+use DOMDocument;
+use InvalidArgumentException;
+use PHPUnit\Framework\TestCase;
+use RuntimeException;
+use stdClass;
+use TypeError;
 use voku\helper\HtmlDomParser;
 use voku\helper\SimpleHtmlDom;
 use voku\helper\SimpleHtmlDomInterface;
 use voku\helper\SimpleHtmlDomNode;
 use voku\helper\SimpleHtmlDomNodeInterface;
+use function explode;
+use function json_decode;
+use function mb_strpos;
+use function mb_strrpos;
+use function mb_substr;
+
 
 /**
  * @internal
  */
-final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
+final class HtmlDomParserTest extends TestCase
 {
     /**
      * @param $filename
@@ -19,8 +34,8 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
     protected function loadFixture($filename)
     {
         $path = __DIR__ . '/fixtures/' . $filename;
-        if (\file_exists($path)) {
-            return \file_get_contents($path);
+        if (file_exists($path)) {
+            return file_get_contents($path);
         }
 
         return null;
@@ -28,14 +43,14 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
 
     public function testConstructWithInvalidArgument()
     {
-        $this->expectException(\TypeError::class);
+        $this->expectException(TypeError::class);
 
         new HtmlDomParser(['foo']);
     }
 
     public function testLoadHtmlWithInvalidArgument()
     {
-        $this->expectException(\TypeError::class);
+        $this->expectException(TypeError::class);
 
         $document = new HtmlDomParser();
         $document->loadHtml(['foo']);
@@ -43,7 +58,7 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
 
     public function testLoadWithInvalidArgument()
     {
-        $this->expectException(\TypeError::class);
+        $this->expectException(TypeError::class);
 
         $document = new HtmlDomParser();
         $document->load(['foo']);
@@ -51,7 +66,7 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
 
     public function testLoadHtmlFileWithInvalidArgument()
     {
-        $this->expectException(\TypeError::class);
+        $this->expectException(TypeError::class);
 
         $document = new HtmlDomParser();
         $document->loadHtmlFile(['foo']);
@@ -59,7 +74,7 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
 
     public function testLoadFileWithInvalidArgument()
     {
-        $this->expectException(\TypeError::class);
+        $this->expectException(TypeError::class);
 
         $document = new HtmlDomParser();
         $document->load_file(['foo']);
@@ -67,7 +82,7 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
 
     public function testLoadHtmlFileWithNotExistingFile()
     {
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(RuntimeException::class);
 
         $document = new HtmlDomParser();
         $document->loadHtmlFile('/path/to/file');
@@ -75,7 +90,7 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
 
     public function testLoadHtmlFileWithNotLoadFile()
     {
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(RuntimeException::class);
 
         $document = new HtmlDomParser();
         $document->loadHtmlFile('http://fobar');
@@ -97,7 +112,7 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
 
     public function testMethodNotExist()
     {
-        $this->expectException(\BadMethodCallException::class);
+        $this->expectException(BadMethodCallException::class);
 
         $document = new HtmlDomParser();
         /** @noinspection PhpUndefinedMethodInspection */
@@ -106,7 +121,7 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
 
     public function testStaticMethodNotExist()
     {
-        $this->expectException(\BadMethodCallException::class);
+        $this->expectException(BadMethodCallException::class);
 
         /** @noinspection PhpUndefinedMethodInspection */
         HtmlDomParser::bar();
@@ -144,13 +159,13 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
         $document = new HtmlDomParser();
 
         $document->loadHtmlFile($file);
-        static::assertNotNull(\count($document('li')));
+        static::assertNotNull(count($document('li')));
 
         $document->load_file($file);
-        static::assertNotNull(\count($document('li')));
+        static::assertNotNull(count($document('li')));
 
         $document = HtmlDomParser::file_get_html($file);
-        static::assertNotNull(\count($document('li')));
+        static::assertNotNull(count($document('li')));
 
         // ---
 
@@ -166,13 +181,13 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
         $document = new HtmlDomParser();
 
         $document->loadHtmlFile($file);
-        static::assertNotNull(\count($document('div')));
+        static::assertNotNull(count($document('div')));
 
         $document->load_file($file);
-        static::assertNotNull(\count($document('div')));
+        static::assertNotNull(count($document('div')));
 
         $document = HtmlDomParser::file_get_html($file);
-        static::assertNotNull(\count($document('div')));
+        static::assertNotNull(count($document('div')));
     }
 
     public function testLoadHtml()
@@ -181,19 +196,19 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
         $document = new HtmlDomParser();
 
         $document->loadHtml($html);
-        static::assertNotNull(\count($document('div')));
+        static::assertNotNull(count($document('div')));
 
         $document->load($html);
-        static::assertNotNull(\count($document('div')));
+        static::assertNotNull(count($document('div')));
 
         $document = HtmlDomParser::str_get_html($html);
-        static::assertNotNull(\count($document('div')));
+        static::assertNotNull(count($document('div')));
     }
 
     public function testGetDocument()
     {
         $document = new HtmlDomParser();
-        static::assertInstanceOf(\DOMDocument::class, $document->getDocument());
+        static::assertInstanceOf(DOMDocument::class, $document->getDocument());
     }
 
     /**
@@ -208,16 +223,16 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
         $document = new HtmlDomParser($html);
         $elements = $document->find($selector);
 
-        static::assertInstanceOf(voku\helper\SimpleHtmlDomNodeInterface::class, $elements);
+        static::assertInstanceOf(SimpleHtmlDomNodeInterface::class, $elements);
         static::assertCount($count, $elements);
 
         foreach ($elements as $element) {
-            static::assertInstanceOf(voku\helper\SimpleHtmlDomInterface::class, $element);
+            static::assertInstanceOf(SimpleHtmlDomInterface::class, $element);
         }
 
         if ($count !== 0) {
             $element = $document->find($selector, -1);
-            static::assertInstanceOf(voku\helper\SimpleHtmlDomInterface::class, $element);
+            static::assertInstanceOf(SimpleHtmlDomInterface::class, $element);
         }
     }
 
@@ -250,13 +265,13 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
         $document = new HtmlDomParser($html);
 
         $htmlTmp = $document->html();
-        static::assertInternalType('string', $htmlTmp);
+        static::assertIsString($htmlTmp);
 
         $xmlTmp = $document->xml();
-        static::assertInternalType('string', $xmlTmp);
+        static::assertIsString($xmlTmp);
 
-        static::assertInternalType('string', $document->outertext);
-        static::assertTrue(\strlen($document) > 0);
+        static::assertIsString($document->outertext);
+        static::assertTrue(strlen($document) > 0);
 
         $html = '<div>foo</div>';
         $document = new HtmlDomParser($html);
@@ -290,7 +305,7 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
         $html = $this->loadFixture('test_page.html');
         $document = new HtmlDomParser($html);
 
-        static::assertInternalType('string', $document->save());
+        static::assertIsString($document->save());
     }
 
     public function testSaveIssue42()
@@ -306,10 +321,10 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
         $html = '<div><p>p1</p></div>';
         $document = new HtmlDomParser($html);
 
-        $filePathTmp = self::tmpdir() . '/' . \uniqid(static::class, true);
+        $filePathTmp = self::tmpdir() . '/' . uniqid(static::class, true);
         static::assertSame('<div><p>p1</p></div>', $document->save($filePathTmp));
 
-        $htmlTmp = \file_get_contents($filePathTmp);
+        $htmlTmp = file_get_contents($filePathTmp);
         static::assertSame('<div><p>p1</p></div>', $htmlTmp);
     }
 
@@ -318,32 +333,25 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
      */
     public static function tmpdir()
     {
-        if (\strpos(\PHP_OS, 'WIN') !== false) {
-            $var = \getenv('TMP') ? \getenv('TMP') : \getenv('TEMP');
+        if (strpos(PHP_OS, 'WIN') !== false) {
+            $var = getenv('TMP') ? getenv('TMP') : getenv('TEMP');
             if ($var) {
                 return $var;
             }
 
-            if (\is_dir('/temp') || \mkdir('/temp')) {
-                return \realpath('/temp');
+            if (is_dir('/temp') || mkdir('/temp')) {
+                return realpath('/temp');
             }
 
             return false;
         }
 
-        $var = \getenv('TMPDIR');
+        $var = getenv('TMPDIR');
         if ($var) {
             return $var;
         }
 
-        return \realpath('/tmp');
-    }
-
-    public function testClear()
-    {
-        $document = new HtmlDomParser();
-
-        static::assertTrue($document->clear());
+        return realpath('/tmp');
     }
 
     public function testStrGetHtml()
@@ -401,7 +409,7 @@ HTML;
 
         static::assertSame(
             '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd"><html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-7"></head><body><div id="hello">Hello</div><div id="world">World</div></body></html>',
-            \str_replace(
+            str_replace(
                 [
                     "\r\n",
                     "\r",
@@ -426,7 +434,7 @@ HTML;
 
         static::assertSame(
             '<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head><body><div id="hello"><foo>bar</foo></div><div id="world" class="bar">World</div></body></html>',
-            \str_replace(
+            str_replace(
                 [
                     "\r\n",
                     "\r",
@@ -458,12 +466,12 @@ HTML;
         $filenameExpected = __DIR__ . '/fixtures/test_mail_expected.html';
 
         $html = HtmlDomParser::file_get_html($filename);
-        $htmlExpected = \str_replace(["\r\n", "\r", "\n"], "\n", \file_get_contents($filenameExpected));
+        $htmlExpected = str_replace(["\r\n", "\r", "\n"], "\n", file_get_contents($filenameExpected));
 
         // object to sting
         static::assertSame(
             $htmlExpected,
-            \str_replace(["\r\n", "\r", "\n"], "\n", (string) $html)
+            str_replace(["\r\n", "\r", "\n"], "\n", (string) $html)
         );
 
         $preHeaderContentArray = $html->findMulti('.preheaderContent');
@@ -647,7 +655,7 @@ test3Html.html                      <foo id="foo">bar</foo>
 HTML;
 
         $htmlTmp = HtmlDomParser::str_get_html($str);
-        static::assertInstanceOf(voku\helper\HtmlDomParser::class, $htmlTmp);
+        static::assertInstanceOf(HtmlDomParser::class, $htmlTmp);
 
         // replace all images with "foobar"
         $tmpArray = [];
@@ -712,8 +720,8 @@ HTML;
         // test toString
         $htmlTmp = (string) $htmlTmp;
         static::assertCount(16, $tmpArray);
-        static::assertContains('<img src="foobar" alt="" width="5" height="3" border="0">', $htmlTmp);
-        static::assertContains('© 2015 Test', $htmlTmp);
+        static::assertStringContainsString('<img src="foobar" alt="" width="5" height="3" border="0">', $htmlTmp);
+        static::assertStringContainsString('© 2015 Test', $htmlTmp);
     }
 
     public function testContentBeforeHtmlStart()
@@ -1237,7 +1245,7 @@ h1 {
 
         $p = $dom->find('p');
         static::assertInstanceOf(SimpleHtmlDomNodeInterface::class, $p);
-        if (\count($p)) {
+        if (count($p)) {
             $exists = true;
         } else {
             $exists = false;
@@ -1246,7 +1254,7 @@ h1 {
 
         $span = $dom->find('span');
         static::assertInstanceOf(SimpleHtmlDomNodeInterface::class, $span);
-        if (\count($span)) {
+        if (count($span)) {
             $exists = true;
         } else {
             $exists = false;
@@ -1257,7 +1265,7 @@ h1 {
 
         $p = $dom->findMulti('p');
         static::assertInstanceOf(SimpleHtmlDomNodeInterface::class, $p);
-        if (\count($p)) {
+        if (count($p)) {
             $exists = true;
         } else {
             $exists = false;
@@ -1266,7 +1274,7 @@ h1 {
 
         $span = $dom->findMulti('span');
         static::assertInstanceOf(SimpleHtmlDomNodeInterface::class, $span);
-        if (\count($span)) {
+        if (count($span)) {
             $exists = true;
         } else {
             $exists = false;
@@ -1277,7 +1285,7 @@ h1 {
 
         $p = $dom->findMultiOrFalse('p');
         static::assertInstanceOf(SimpleHtmlDomNodeInterface::class, $p);
-        if (\count($p)) {
+        if (count($p)) {
             $exists = true;
         } else {
             $exists = false;
@@ -1493,9 +1501,9 @@ ___;
               <body>
                 <p>.....</p>
                 <script>
-                Some code ... 
-                document.write("<script src=\'some script\'><\/script>") 
-                Some code ... 
+                Some code ...
+                document.write("<script src=\'some script\'><\/script>")
+                Some code ...
                 </script>
                 <p>....</p>
               </body>
@@ -1515,9 +1523,9 @@ ___;
             '
             <p>.....</p>
             <script>
-            Some code ... 
-            document.write("<script src=\'some script\'><\/script>") 
-            Some code ... 
+            Some code ...
+            document.write("<script src=\'some script\'><\/script>")
+            Some code ...
             </script>
             <p>....</p>'
         );
@@ -1544,19 +1552,19 @@ ___;
         </head>
         <body>
             A Body
-        
+
             <script id="elements-image-1" type="text/html">
                 <div class="place badge-carte">Place du Village<br>250m - 2mn à pied</div>
                 <div class="telecabine badge-carte">Télécabine du Chamois<br>250m - 2mn à pied</div>
                 <div class="situation badge-carte"><img src="https://domain.tld/assets/frontOffice/kneiss/template-assets/assets/dist/img/08ecd8a.png" alt=""></div>
             </script>
-            
+
             <script id="elements-image-2" type="text/html">
                 <div class="place badge-carte">Place du Village<br>250m - 2mn à pied</div>
                 <div class="telecabine badge-carte">Télécabine du Chamois<br>250m - 2mn à pied</div>
                 <div class="situation badge-carte"><img src="https://domain.tld/assets/frontOffice/kneiss/template-assets/assets/dist/img/08ecd8a.png" alt=""></div>
             </script>
-            
+
             <script class="foobar" type="text/html">
                 <div class="place badge-carte">Place du Village<br>250m - 2mn à pied</div>
                 <div class="telecabine badge-carte">Télécabine du Chamois<br>250m - 2mn à pied</div>
@@ -1567,7 +1575,7 @@ ___;
                 <div class="telecabine badge-carte">Télécabine du Chamois<br>250m - 2mn à pied</div>
                 <div class="situation badge-carte"><img src="https://domain.tld/assets/frontOffice/kneiss/template-assets/assets/dist/img/08ecd8a.png" alt=""></div>
             </script>
-            
+
             <script class="foobar" type=text/html>
                 <div class="place badge-carte">Place du Village<br>250m - 2mn à pied</div>
                 <div class="telecabine badge-carte">Télécabine du Chamois<br>250m - 2mn à pied</div>
@@ -1584,19 +1592,19 @@ ___;
         </head>
         <body>
             A Body
-        
+
             <script id="elements-image-1" type="text/html">
                 <div class="place badge-carte">Place du Village<br>250m - 2mn à pied</div>
                 <div class="telecabine badge-carte">Télécabine du Chamois<br>250m - 2mn à pied</div>
                 <div class="situation badge-carte"><img src="https://domain.tld/assets/frontOffice/kneiss/template-assets/assets/dist/img/08ecd8a.png" alt=""></div>
             </script>
-            
+
             <script id="elements-image-2" type="text/html">
                 <div class="place badge-carte">Place du Village<br>250m - 2mn à pied</div>
                 <div class="telecabine badge-carte">Télécabine du Chamois<br>250m - 2mn à pied</div>
                 <div class="situation badge-carte"><img src="https://domain.tld/assets/frontOffice/kneiss/template-assets/assets/dist/img/08ecd8a.png" alt=""></div>
             </script>
-            
+
             <script class="foobar" type="text/html">
                 <div class="place badge-carte">Place du Village<br>250m - 2mn à pied</div>
                 <div class="telecabine badge-carte">Télécabine du Chamois<br>250m - 2mn à pied</div>
@@ -1607,7 +1615,7 @@ ___;
                 <div class="telecabine badge-carte">Télécabine du Chamois<br>250m - 2mn à pied</div>
                 <div class="situation badge-carte"><img src="https://domain.tld/assets/frontOffice/kneiss/template-assets/assets/dist/img/08ecd8a.png" alt=""></div>
             </script>
-            
+
             <script class="foobar" type="text/html">
                 <div class="place badge-carte">Place du Village<br>250m - 2mn à pied</div>
                 <div class="telecabine badge-carte">Télécabine du Chamois<br>250m - 2mn à pied</div>
@@ -1619,10 +1627,10 @@ ___;
 
         $dom = new HtmlDomParser();
 
-        $html = \str_replace(["\r\n", "\r", "\n"], "\n", (string) $dom->load($html));
-        $expected = \str_replace(["\r\n", "\r", "\n"], "\n", $expected);
+        $html = str_replace(["\r\n", "\r", "\n"], "\n", (string) $dom->load($html));
+        $expected = str_replace(["\r\n", "\r", "\n"], "\n", $expected);
 
-        static::assertSame(\trim($expected), \trim($html));
+        static::assertSame(trim($expected), trim($html));
     }
 
     public function testJavaScriptTemplateTag()
@@ -1633,10 +1641,10 @@ ___;
                 <head>
                 </head>
               <body>
-              
+
               <div class=\"price-box price-tier_price\" data-role=\"priceBox\" data-product-id=\"1563\" data-price-box=\"product-id-1563\">
               </div>
-              
+
               <script type=\"text/x-custom-template\" id=\"tier-prices-template\">
                 <ul class=\"prices-tier items\">
                     <% _.each(tierPrices, function(item, key) { %>
@@ -1655,9 +1663,9 @@ ___;
                     <% }); %>
                 </ul>
               </script>
-              
+
               <div data-role=\"tier-price-block\"></div>
-              
+
               </body>
             </html>
             ";
@@ -1667,10 +1675,10 @@ ___;
                 <head>
                 </head>
               <body>
-              
+
               <div class="price-box price-tier_price" data-role="priceBox" data-product-id="1563" data-price-box="product-id-1563">
               </div>
-              
+
               <script type="text/x-custom-template" id="tier-prices-template">
                 <ul class="prices-tier items">
                     <% _.each(tierPrices, function(item, key) { %>
@@ -1689,18 +1697,18 @@ ___;
                     <% }); %>
                 </ul>
               </script>
-              
+
               <div data-role="tier-price-block"></div>
-              
+
               </body>
             </html>';
 
         $dom = new HtmlDomParser();
 
-        $html = \str_replace(["\r\n", "\r", "\n"], "\n", (string) $dom->load($html));
-        $expected = \str_replace(["\r\n", "\r", "\n"], "\n", $expected);
+        $html = str_replace(["\r\n", "\r", "\n"], "\n", (string) $dom->load($html));
+        $expected = str_replace(["\r\n", "\r", "\n"], "\n", $expected);
 
-        static::assertSame(\trim($expected), \trim($html));
+        static::assertSame(trim($expected), trim($html));
     }
 
     public function testHtmlEmbeddedInJavaScript()
@@ -1713,7 +1721,7 @@ ___;
         </head>
         <body>
             A Body
-        
+
             <script id="elements-image-1">
               var strJS = "<strong>foobar<\/strong>";
             </script>
@@ -1728,7 +1736,7 @@ ___;
         </head>
         <body>
             A Body
-        
+
             <script id="elements-image-1">
               var strJS = "<strong>foobar<\/strong>";
             </script>
@@ -1737,10 +1745,10 @@ ___;
 
         $dom = new HtmlDomParser();
 
-        $html = \str_replace(["\r\n", "\r", "\n"], "\n", (string) $dom->load($html));
-        $expected = \str_replace(["\r\n", "\r", "\n"], "\n", $expected);
+        $html = str_replace(["\r\n", "\r", "\n"], "\n", (string) $dom->load($html));
+        $expected = str_replace(["\r\n", "\r", "\n"], "\n", $expected);
 
-        static::assertSame(\trim($expected), \trim($html));
+        static::assertSame(trim($expected), trim($html));
     }
 
     public function testBeforeClosingTag()
@@ -1911,9 +1919,9 @@ ___;
         foreach ($review_content as $review) {
             $allReviews .= $review->plaintext . "\n";
         }
-        static::assertTrue(\strlen($allReviews) > 0);
-        static::assertContains('It&#39;s obvious having', $allReviews);
-        static::assertContains('2006 Volvo into Dave&#39;s due', $allReviews);
+        static::assertTrue(strlen($allReviews) > 0);
+        static::assertStringContainsString('It&#39;s obvious having', $allReviews);
+        static::assertStringContainsString('2006 Volvo into Dave&#39;s due', $allReviews);
     }
 
     /**
@@ -1939,12 +1947,12 @@ ___;
         foreach ($dom->find('script') as $script) {
             $content = $script->innerHtml();
 
-            if (\strpos($content, $json_variable) !== false) {
-                $content_exploded = \explode("\n", $content);
+            if (strpos($content, $json_variable) !== false) {
+                $content_exploded = explode("\n", $content);
 
                 foreach ($content_exploded as $content_tmp) {
-                    if (\strpos($content_tmp, $json_variable) !== false) {
-                        $content_line = \trim($content_tmp);
+                    if (strpos($content_tmp, $json_variable) !== false) {
+                        $content_line = trim($content_tmp);
 
                         break 2;
                     }
@@ -1956,11 +1964,11 @@ ___;
             return null;
         }
 
-        $json_helper_position = \mb_strpos($content_line, '{');
-        $json = \mb_substr($content_line, $json_helper_position, \mb_strrpos($content_line, '}') - $json_helper_position + 1);
+        $json_helper_position = mb_strpos($content_line, '{');
+        $json = mb_substr($content_line, $json_helper_position, mb_strrpos($content_line, '}') - $json_helper_position + 1);
 
         /** @noinspection PhpComposerExtensionStubsInspection */
-        $data = \json_decode($json, false);
+        $data = json_decode($json, false);
 
         return $data ?: null;
     }
@@ -1970,22 +1978,22 @@ ___;
         $html = '
         <script type=text/html>
             <p>Foo</p>
-        
+
             <div class="alert alert-success">
                 Bar
             </div>
-            
+
             {{foo}}
-            
+
             {% if foo == true %}
               priceStr = \'<span class="price-container price-tier_price">\'
               <div>
             {% else %}
               priceStr = \'<span>\'
             {% endif %}
-            
+
             {{priceStr}}</span>
-            
+
             {% if foo == true %}
               </div>
             {% endif %}
@@ -1994,28 +2002,28 @@ ___;
 
         // ---
 
-        $d = new voku\helper\HtmlDomParser();
+        $d = new HtmlDomParser();
         $d->overwriteTemplateLogicSyntaxInSpecialScriptTags(['{#']);
         $d->loadHtml($html);
 
         $expectedDomError = '<script type="text/html">
             <p>Foo</p>
-        
+
             <div class="alert alert-success">
                 Bar
             </div>
-            
+
             {{foo}}
-            
+
             {% if foo == true %}
               priceStr = \'<span class="price-container price-tier_price">\'
               <div>
             {% else %}
               priceStr = \'<span>\'
             {% endif %}
-            
+
             {{priceStr}}</span>
-            
+
             {% if foo == true %}
               </div>
             {% endif %}
@@ -2025,28 +2033,28 @@ ___;
 
         // ---
 
-        $d = new voku\helper\HtmlDomParser();
+        $d = new HtmlDomParser();
         $d->overwriteTemplateLogicSyntaxInSpecialScriptTags(['{%']);
         $d->loadHtml($html);
 
         $expectedNonDomError = '<script type="text/html">
             <p>Foo</p>
-        
+
             <div class="alert alert-success">
                 Bar
             </div>
-            
+
             {{foo}}
-            
+
             {% if foo == true %}
               priceStr = \'<span class="price-container price-tier_price">\'
               <div>
             {% else %}
               priceStr = \'<span>\'
             {% endif %}
-            
+
             {{priceStr}}</span>
-            
+
             {% if foo == true %}
               </div>
             {% endif %}
@@ -2059,7 +2067,7 @@ ___;
     {
         static::expectException(InvalidArgumentException::class);
 
-        $d = new voku\helper\HtmlDomParser();
+        $d = new HtmlDomParser();
         $d->overwriteTemplateLogicSyntaxInSpecialScriptTags([['{{']]);
     }
 
@@ -2073,12 +2081,12 @@ ___;
         $result = $this->extractJson($data);
 
         static::assertNotNull($result);
-        static::assertInstanceOf(\stdClass::class, $result, \print_r($result, true));
+        static::assertInstanceOf(stdClass::class, $result, \print_r($result, true));
     }
 
     public function testIssue42()
     {
-        $d = new voku\helper\HtmlDomParser();
+        $d = new HtmlDomParser();
 
         $d->loadHtml('<p>p1</p><p>p2</p>');
         static::assertSame('<p>p1</p>' . "\n" . '<p>p2</p>', (string) $d);
@@ -2089,7 +2097,7 @@ ___;
 
     public function testIssue53()
     {
-        $d = new voku\helper\HtmlDomParser();
+        $d = new HtmlDomParser();
 
         $html = '
         <blockquote class="bg-gray primary">
@@ -2118,48 +2126,50 @@ ___;
         ';
 
         $d->loadHtml($html);
-        static::assertSame(\trim($expected), (string) $d);
+        static::assertSame(trim($expected), (string) $d);
     }
 
     public function testInvalidHtml()
     {
-        $html = '<!DOCTYPE HTML>
+        $html = <<<EOF
+        <!DOCTYPE HTML>
         <html>
         <head>
             <title>title</title>
         </head>
-        
+
         <body>
         <div id="a">
             an apple
         </div>
         </body>
-        
+
         </html>
         <div id="åäö">
             body
         </div>
-        ';
+        EOF;
 
-        $expected = '<!DOCTYPE HTML>
-<html>
+        $expected = <<<EOF
+        <!DOCTYPE HTML>
+        <html>
         <head>
             <title>title</title>
         </head>
-        
+
         <body>
         <div id="a">
             an apple
         </div>
         </body>
-        
-        
+
+
         <div id="åäö">
             body
-        </div>
-        </html>';
+        </div></html>
+        EOF;
 
-        $domTree = \voku\helper\HtmlDomParser::str_get_html($html);
+        $domTree = HtmlDomParser::str_get_html($html);
 
         static::assertSame($expected, $domTree->html());
 
@@ -2170,7 +2180,8 @@ ___;
 
     public function testHtmlWithSpecialComments()
     {
-        $html = '<!-- === BEGIN TOP === -->
+        $html = <<<EOF
+        <!-- === BEGIN TOP === -->
         <!DOCTYPE html>
         <!--[if IE 8]> <html lang="en" class="ie8"> <![endif]-->
         <!--[if IE 9]> <html lang="en" class="ie9"> <![endif]-->
@@ -2180,39 +2191,40 @@ ___;
         <head>
             <title>title</title>
         </head>
-        
+
         <body>
         <div id="a">
             an apple
         </div>
         </body>
-        
+
         </html>
         <div id="åäö">
             body
         </div>
-        ';
+        EOF;
 
-        $expected = '<!DOCTYPE html>
-<!--[if IE 8]> <html lang="en" class="ie8"> <![endif]--><!--[if IE 9]> <html lang="en" class="ie9"> <![endif]--><!--[if !IE]><!--><html prefix="og: http://ogp.me/ns#" lang="ru">
+        $expected = <<<EOF
+        <!DOCTYPE html>
+        <!--[if IE 8]> <html lang="en" class="ie8"> <![endif]--><!--[if IE 9]> <html lang="en" class="ie9"> <![endif]--><!--[if !IE]><!--><html prefix="og: http://ogp.me/ns#" lang="ru">
         <!--<![endif]-->
         <head>
             <title>title</title>
         </head>
-        
+
         <body>
         <div id="a">
             an apple
         </div>
         </body>
-        
-        
+
+
         <div id="åäö">
             body
-        </div>
-        </html>';
+        </div></html>
+        EOF;
 
-        $domTree = \voku\helper\HtmlDomParser::str_get_html($html);
+        $domTree = HtmlDomParser::str_get_html($html);
 
         static::assertSame($expected, $domTree->html());
 
@@ -2223,7 +2235,8 @@ ___;
 
     public function testHtmlWithSpecialCommentsAndKeepBrokenHtml()
     {
-        $html = '<!-- === BEGIN TOP === -->
+        $html = <<<EOF
+        <!-- === BEGIN TOP === -->
         <!DOCTYPE html>
         <!--[if IE 8]> <html lang="en" class="ie8"> <![endif]-->
         <!--[if IE 9]> <html lang="en" class="ie9"> <![endif]-->
@@ -2233,36 +2246,38 @@ ___;
         <head>
             <title>title</title>
         </head>
-        
+
         <body>
         <div id="a">
             an apple
         </div>
         </body>
-        
+
         </html>
         <div id="åäö">
             body
         </div>
-        ';
+        EOF;
 
-        $expected = '<!DOCTYPE html>
-<!--[if IE 8]> <html lang="en" class="ie8"> <![endif]--><!--[if IE 9]> <html lang="en" class="ie9"> <![endif]--><!--[if !IE]><!--><html prefix="og: http://ogp.me/ns#" lang="ru">
+        $expected = <<<EOF
+        <!DOCTYPE html>
+        <!--[if IE 8]> <html lang="en" class="ie8"> <![endif]--><!--[if IE 9]> <html lang="en" class="ie9"> <![endif]--><!--[if !IE]><!--><html prefix="og: http://ogp.me/ns#" lang="ru">
         <!--<![endif]-->
         <head>
             <title>title</title>
         </head>
-        
+
         <body>
         <div id="a">
             an apple
         </div>
         </body>
-        
-        
+
+
         <div id="åäö">
             body
-        </div></html>';
+        </div></html>
+        EOF;
 
         $dom = new HtmlDomParser();
         $dom = $dom->useKeepBrokenHtml(true);
@@ -2277,7 +2292,8 @@ ___;
 
     public function testHtmlWithSpecialCommentsAndKeepBrokenHtml2()
     {
-        $html = '<!-- === BEGIN TOP === -->
+        $html = <<<EOF
+        <!-- === BEGIN TOP === -->
         <!--[if IE 8]> <html lang="en" class="ie8"> <![endif]-->
         <!--[if IE 9]> <html lang="en" class="ie9"> <![endif]-->
         <!--[if !IE]><!-->
@@ -2286,20 +2302,21 @@ ___;
         <head>
             <title>title</title>
         </head>
-        
+
         <body>
         <div id="a">
             an apple
         </div>
         </body>
-        
+
         </html>
         <div id="åäö">
             body
         </div>
-        ';
+        EOF;
 
-        $expected = '<!-- === BEGIN TOP === -->
+        $expected = <<<EOF
+        <!-- === BEGIN TOP === -->
         <!--[if IE 8]> <html lang="en" class="ie8"> <![endif]-->
         <!--[if IE 9]> <html lang="en" class="ie9"> <![endif]-->
         <!--[if !IE]><!-->
@@ -2308,17 +2325,18 @@ ___;
         <head>
             <title>title</title>
         </head>
-        
+
         <body>
         <div id="a">
             an apple
         </div>
         </body>
-        
-        
+
+
         <div id="åäö">
             body
-        </div></html>';
+        </div></html>
+        EOF;
 
         $dom = new HtmlDomParser();
         $dom = $dom->useKeepBrokenHtml(true);
@@ -2339,7 +2357,7 @@ ___;
         <div class='services active'></div>
         ";
 
-        $d = new voku\helper\HtmlDomParser();
+        $d = new HtmlDomParser();
         $d->load($html);
 
         $htmlResult = '';
@@ -2354,7 +2372,7 @@ ___;
 
         // ---
 
-        $d = new voku\helper\HtmlDomParser();
+        $d = new HtmlDomParser();
         $d->load($html);
 
         $htmlResult = '';

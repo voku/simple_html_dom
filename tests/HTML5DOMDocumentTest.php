@@ -7,6 +7,10 @@
  * Free to use under the MIT license.
  */
 
+namespace Tests;
+
+use DOMDocument;
+use PHPUnit\Framework\TestCase;
 use voku\helper\HtmlDomParser;
 
 /**
@@ -14,7 +18,7 @@ use voku\helper\HtmlDomParser;
  *
  * @internal
  */
-final class HTML5DOMDocumentTest extends PHPUnit\Framework\TestCase
+final class HTML5DOMDocumentTest extends TestCase
 {
     /**
      * @group classList
@@ -558,9 +562,10 @@ final class HTML5DOMDocumentTest extends PHPUnit\Framework\TestCase
         static::assertFalse($dom->findMultiOrFalse('link[rel="icon"][sizes="999"]'));
     }
 
+
     public function testEmpty()
     {
-        $testSource = static function ($source, $expectedSource) {
+        $testSource = function ($source, $expectedSource) {
             $dom = new HtmlDomParser();
             $dom->loadHtml($source);
             static::assertSame($expectedSource, $dom->html());

@@ -1,5 +1,7 @@
 <?php
 
+namespace Tests;
+
 use PHPUnit\Framework\TestCase;
 use voku\helper\HtmlDomParser;
 
@@ -17,7 +19,7 @@ final class CommentTest extends TestCase
      */
     private $html;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->html = new HtmlDomParser();
     }

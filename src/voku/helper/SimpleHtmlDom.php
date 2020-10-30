@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace voku\helper;
 
+use BadMethodCallException;
+use DOMElement;
+use DOMNode;
+
 /**
  * @noinspection PhpHierarchyChecksInspection
  *
@@ -14,9 +18,9 @@ namespace voku\helper;
 class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate, SimpleHtmlDomInterface
 {
     /**
-     * @param \DOMElement|\DOMNode $node
+     * @param DOMElement|DOMNode $node
      */
-    public function __construct(\DOMNode $node)
+    public function __construct(DOMNode $node)
     {
         $this->node = $node;
     }
@@ -25,19 +29,19 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
      * @param string $name
      * @param array  $arguments
      *
-     * @throws \BadMethodCallException
+     * @throws BadMethodCallException
      *
      * @return SimpleHtmlDomInterface|string|null
      */
     public function __call($name, $arguments)
     {
-        $name = \strtolower($name);
+        $name = strtolower($name);
 
         if (isset(self::$functionAliases[$name])) {
             return \call_user_func_array([$this, self::$functionAliases[$name]], $arguments);
         }
 
-        throw new \BadMethodCallException('Method does not exist');
+        throw new BadMethodCallException('Method does not exist');
     }
 
     /**
@@ -93,7 +97,7 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
      */
     public function getAttribute(string $name): string
     {
-        if ($this->node instanceof \DOMElement) {
+        if ($this->node instanceof DOMElement) {
             return HtmlDomParser::putReplacedBackToPreserveHtmlEntities(
                 $this->node->getAttribute($name)
             );
@@ -111,7 +115,7 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
      */
     public function hasAttribute(string $name): bool
     {
-        if (!$this->node instanceof \DOMElement) {
+        if (!$this->node instanceof DOMElement) {
             return false;
         }
 
@@ -181,7 +185,7 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
             }
         }
 
-        /** @var \DOMNode[] $remove_nodes */
+        /** @var DOMNode[] $remove_nodes */
         $remove_nodes = [];
         if ($this->node->childNodes->length > 0) {
             // INFO: We need to fetch the nodes first, before we can delete them, because of missing references in the dom,
@@ -258,7 +262,7 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
 
         // Remove head element, preserving child nodes. (again)
         if (
-            $this->node->parentNode instanceof \DOMElement
+            $this->node->parentNode instanceof DOMElement
             &&
             $newDocument->getIsDOMDocumentCreatedWithoutHeadWrapper()
         ) {
@@ -270,7 +274,7 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
                 $this->node->parentNode->ownerDocument
             ) {
                 $fragment = $this->node->parentNode->ownerDocument->createDocumentFragment();
-                /** @var \DOMNode $html */
+                /** @var DOMNode $html */
                 while ($html->childNodes->length > 0) {
                     $tmpNode = $html->childNodes->item(0);
                     if ($tmpNode !== null) {
@@ -357,14 +361,14 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
     /**
      * Change the name of a tag in a "DOMNode".
      *
-     * @param \DOMNode $node
+     * @param DOMNode $node
      * @param string   $name
      *
-     * @return \DOMElement|false
+     * @return DOMElement|false
      *                          <p>DOMElement a new instance of class DOMElement or false
      *                          if an error occured.</p>
      */
-    protected function changeElementName(\DOMNode $node, string $name)
+    protected function changeElementName(DOMNode $node, string $name)
     {
         $ownerDocument = $node->ownerDocument;
         if (!$ownerDocument) {
@@ -464,7 +468,7 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
      */
     public function firstChild()
     {
-        /** @var \DOMNode|null $node */
+        /** @var DOMNode|null $node */
         $node = $this->node->firstChild;
 
         if ($node === null) {
@@ -507,7 +511,7 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
      */
     public function getElementByTagName(string $name): SimpleHtmlDomInterface
     {
-        if ($this->node instanceof \DOMElement) {
+        if ($this->node instanceof DOMElement) {
             $node = $this->node->getElementsByTagName($name)->item(0);
         } else {
             $node = null;
@@ -543,7 +547,7 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
      */
     public function getElementsByTagName(string $name, $idx = null)
     {
-        if ($this->node instanceof \DOMElement) {
+        if ($this->node instanceof DOMElement) {
             $nodesList = $this->node->getElementsByTagName($name);
         } else {
             $nodesList = [];
@@ -584,9 +588,9 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
     }
 
     /**
-     * @return \DOMNode
+     * @return DOMNode
      */
-    public function getNode(): \DOMNode
+    public function getNode(): DOMNode
     {
         return $this->node;
     }
@@ -610,7 +614,7 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
      */
     public function lastChild()
     {
-        /** @var \DOMNode|null $node */
+        /** @var DOMNode|null $node */
         $node = $this->node->lastChild;
 
         if ($node === null) {
@@ -627,7 +631,7 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
      */
     public function nextSibling()
     {
-        /** @var \DOMNode|null $node */
+        /** @var DOMNode|null $node */
         $node = $this->node->nextSibling;
 
         if ($node === null) {
@@ -644,11 +648,11 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
      */
     public function nextNonWhitespaceSibling()
     {
-        /** @var \DOMNode|null $node */
+        /** @var DOMNode|null $node */
         $node = $this->node->nextSibling;
 
         while ($node && !\trim($node->textContent)) {
-            /** @var \DOMNode|null $node */
+            /** @var DOMNode|null $node */
             $node = $node->nextSibling;
         }
 
@@ -676,7 +680,7 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
      */
     public function previousSibling()
     {
-        /** @var \DOMNode|null $node */
+        /** @var DOMNode|null $node */
         $node = $this->node->previousSibling;
 
         if ($node === null) {
@@ -751,9 +755,9 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
                     /** @noinspection UnusedFunctionResultInspection */
                     $this->removeAttribute('checked');
                 }
-            } elseif ($this->node instanceof \DOMElement && $this->node->nodeName === 'select') {
+            } elseif ($this->node instanceof DOMElement && $this->node->nodeName === 'select') {
                 foreach ($this->node->getElementsByTagName('option') as $option) {
-                    /** @var \DOMElement $option */
+                    /** @var DOMElement $option */
                     if ($value === $option->getAttribute('value')) {
                         /** @noinspection UnusedFunctionResultInspection */
                         $option->setAttribute('selected', 'selected');
@@ -806,7 +810,7 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
             if ($newDocument->getIsDOMDocumentCreatedWithoutPTagWrapper()) {
                 // Remove <p>-element, preserving child nodes.
                 $pElement = $newDocument->getDocument()->getElementsByTagName('p')->item(0);
-                if ($pElement instanceof \DOMElement) {
+                if ($pElement instanceof DOMElement) {
                     $fragment = $newDocument->getDocument()->createDocumentFragment();
 
                     while ($pElement->childNodes->length > 0) {
@@ -826,7 +830,7 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
 
             // Remove <body>-element, preserving child nodes.
             $body = $newDocument->getDocument()->getElementsByTagName('body')->item(0);
-            if ($body instanceof \DOMElement) {
+            if ($body instanceof DOMElement) {
                 $fragment = $newDocument->getDocument()->createDocumentFragment();
 
                 while ($body->childNodes->length > 0) {
@@ -848,7 +852,7 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
         if (
             $removeExtraHeadTag
             &&
-            $this->node->parentNode instanceof \DOMElement
+            $this->node->parentNode instanceof DOMElement
             &&
             $newDocument->getIsDOMDocumentCreatedWithoutHeadWrapper()
         ) {
@@ -861,7 +865,7 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
             ) {
                 $fragment = $this->node->parentNode->ownerDocument->createDocumentFragment();
 
-                /** @var \DOMNode $html */
+                /** @var DOMNode $html */
                 while ($html->childNodes->length > 0) {
                     $tmpNode = $html->childNodes->item(0);
                     if ($tmpNode !== null) {
@@ -950,7 +954,7 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
                                 '',
                                 '>',
                             ],
-                            \strtolower($string)
+                            strtolower($string)
                         )
                     )
                 )
