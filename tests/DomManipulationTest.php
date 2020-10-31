@@ -14,23 +14,14 @@ use voku\helper\HtmlDomParser;
 final class DomManipulationTest extends TestCase
 {
     /**
-     * @var HtmlDomParser
+     * @var HtmlDomParser|null
      */
     private $dom;
 
-    protected function setUp()
-    {
-        $this->dom = new HtmlDomParser();
-    }
-
-    protected function tearDown()
-    {
-        $this->dom->clear();
-        $this->dom = null;
-    }
-
     public function testDomShouldAcceptNestedElements()
     {
+        $this->dom = new HtmlDomParser();
+
         $expected = "<html>\n<head></head>\n<body></body>\n</html>";
 
         $html = $this->dom->getDocument()->createElement('html');
@@ -47,6 +38,8 @@ final class DomManipulationTest extends TestCase
 
     public function testDomShouldFindAddedElements()
     {
+        $this->dom = new HtmlDomParser();
+
         $html = $this->dom->getDocument()->createElement('html');
         $head = $this->dom->getDocument()->createElement('head');
         $body = $this->dom->getDocument()->createElement('body');
@@ -64,6 +57,8 @@ final class DomManipulationTest extends TestCase
 
     public function testDomShouldFindElementsAddedToExistingDom()
     {
+        $this->dom = new HtmlDomParser();
+
         $this->dom->load('<html></html>');
 
         $head = $this->dom->getDocument()->createElement('head');
@@ -79,6 +74,8 @@ final class DomManipulationTest extends TestCase
 
     public function testDomShouldFindElementsAddedToExistingNestedDom()
     {
+        $this->dom = new HtmlDomParser();
+
         $this->dom->load('<html><body></body></html>');
 
         $table = $this->dom->getDocument()->createElement('table');
@@ -93,6 +90,8 @@ final class DomManipulationTest extends TestCase
 
     public function testDomShouldFindElementsAddInReverse()
     {
+        $this->dom = new HtmlDomParser();
+
         $html = $this->dom->getDocument()->createElement('html');
         $head = $this->dom->getDocument()->createElement('head');
         $body = $this->dom->getDocument()->createElement('body');

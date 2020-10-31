@@ -33,11 +33,16 @@
     "voku/portable-utf8": "If you need e.g. UTF-8 fixed output."
   },
   "require-dev": {
-    "phpunit/phpunit": "~6.0 || ~7.0"
+    "phpunit/phpunit": "~6.0 || ~7.0 || ~9.0"
   },
   "autoload": {
     "psr-4": {
       "voku\\helper\\": "src/voku/helper/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Tests\\": "tests"
     }
   }
 }

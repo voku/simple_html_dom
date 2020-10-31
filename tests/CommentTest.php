@@ -13,14 +13,9 @@ use voku\helper\HtmlDomParser;
 final class CommentTest extends TestCase
 {
     /**
-     * @var HtmlDomParser
+     * @var HtmlDomParser|null
      */
     private $html;
-
-    protected function setUp()
-    {
-        $this->html = new HtmlDomParser();
-    }
 
     /**
      * @dataProvider dataProvider_for_comment_should_parse
@@ -32,6 +27,8 @@ final class CommentTest extends TestCase
      */
     public function testCommentShouldParse($expected, $doc)
     {
+        $this->html = new HtmlDomParser();
+
         $this->html->load($doc);
         static::assertSame($expected, $this->html->find('//comment()', 0)->text());
         static::assertSame($doc, $this->html->save());
@@ -81,6 +78,8 @@ final class CommentTest extends TestCase
 
     public function testHtmlInsideCommentShouldNotAppearInTheDom()
     {
+        $this->html = new HtmlDomParser();
+
         $this->html->load('<!-- <div>Hello, World!</div> -->');
         static::assertFalse($this->html->findOneOrFalse('div'));
 

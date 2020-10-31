@@ -250,12 +250,28 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
         $document = new HtmlDomParser($html);
 
         $htmlTmp = $document->html();
-        static::assertInternalType('string', $htmlTmp);
+
+        if (\method_exists(__CLASS__, 'assertIsString')) {
+            static::assertIsString($htmlTmp);
+        } else {
+            /** @noinspection PhpUndefinedMethodInspection */
+            static::assertInternalType('string', $htmlTmp);
+        }
 
         $xmlTmp = $document->xml();
-        static::assertInternalType('string', $xmlTmp);
+        if (\method_exists(__CLASS__, 'assertIsString')) {
+            static::assertIsString($xmlTmp);
+        } else {
+            /** @noinspection PhpUndefinedMethodInspection */
+            static::assertInternalType('string', $xmlTmp);
+        }
 
-        static::assertInternalType('string', $document->outertext);
+        if (\method_exists(__CLASS__, 'assertIsString')) {
+            static::assertIsString($document->outertext);
+        } else {
+            /** @noinspection PhpUndefinedMethodInspection */
+            static::assertInternalType('string', $document->outertext);
+        }
         static::assertTrue(\strlen($document) > 0);
 
         $html = '<div>foo</div>';
@@ -290,7 +306,12 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
         $html = $this->loadFixture('test_page.html');
         $document = new HtmlDomParser($html);
 
-        static::assertInternalType('string', $document->save());
+        if (\method_exists(__CLASS__, 'assertIsString')) {
+            static::assertIsString($document->save());
+        } else {
+            /** @noinspection PhpUndefinedMethodInspection */
+            static::assertInternalType('string', $document->save());
+        }
     }
 
     public function testSaveIssue42()
@@ -712,8 +733,13 @@ HTML;
         // test toString
         $htmlTmp = (string) $htmlTmp;
         static::assertCount(16, $tmpArray);
-        static::assertContains('<img src="foobar" alt="" width="5" height="3" border="0">', $htmlTmp);
-        static::assertContains('© 2015 Test', $htmlTmp);
+        if (\method_exists(__CLASS__, 'assertStringContainsString')) {
+            static::assertStringContainsString('<img src="foobar" alt="" width="5" height="3" border="0">', $htmlTmp);
+            static::assertStringContainsString('© 2015 Test', $htmlTmp);
+        } else {
+            static::assertContains('<img src="foobar" alt="" width="5" height="3" border="0">', $htmlTmp);
+            static::assertContains('© 2015 Test', $htmlTmp);
+        }
     }
 
     public function testContentBeforeHtmlStart()
@@ -1912,8 +1938,13 @@ ___;
             $allReviews .= $review->plaintext . "\n";
         }
         static::assertTrue(\strlen($allReviews) > 0);
-        static::assertContains('It&#39;s obvious having', $allReviews);
-        static::assertContains('2006 Volvo into Dave&#39;s due', $allReviews);
+        if (\method_exists(__CLASS__, 'assertStringContainsString')) {
+            static::assertStringContainsString('It&#39;s obvious having', $allReviews);
+            static::assertStringContainsString('2006 Volvo into Dave&#39;s due', $allReviews);
+        } else {
+            static::assertContains('It&#39;s obvious having', $allReviews);
+            static::assertContains('2006 Volvo into Dave&#39;s due', $allReviews);
+        }
     }
 
     /**
