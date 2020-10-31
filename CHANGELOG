@@ -21,6 +21,7 @@
 22: fix -> invalid html (remove content before "<!doctype.*>")
 23: fix -> invalid html (remove content before "<!doctype.*>") + try to repair broken html
 24: fix -> normalize the html after replacing the node
+25: add support for PHP 8
 
 
 [PHP Simple HTML Dom v4.6.x]
