@@ -24,21 +24,26 @@
   ],
   "require": {
     "php": ">=7.0.0",
+    "symfony/css-selector": "~3.0 || ~4.0 || ~5.0",
+    "ivopetkov/html5-dom-document-php": "~2.1",
     "ext-dom": "*",
     "ext-libxml": "*",
-    "ext-simplexml": "*",
-    "symfony/css-selector": "~3.0|~4.0",
-    "ivopetkov/html5-dom-document-php": "~2.1"
+    "ext-simplexml": "*"
   },
   "suggest": {
-    "voku/portable-utf8": "~4.0"
+    "voku/portable-utf8": "If you need e.g. UTF-8 fixed output."
   },
   "require-dev": {
-    "phpunit/phpunit": "~6.0 || ~7.0"
+    "phpunit/phpunit": "~6.0 || ~7.0 || ~9.0"
   },
   "autoload": {
     "psr-4": {
       "voku\\helper\\": "src/voku/helper/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Tests\\": "tests"
     }
   }
 }

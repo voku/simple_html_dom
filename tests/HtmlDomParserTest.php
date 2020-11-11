@@ -7,8 +7,6 @@ use voku\helper\SimpleHtmlDomNode;
 use voku\helper\SimpleHtmlDomNodeInterface;
 
 /**
- * Class HtmlDomParserTest
- *
  * @internal
  */
 final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
@@ -81,6 +79,20 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
 
         $document = new HtmlDomParser();
         $document->loadHtmlFile('http://fobar');
+    }
+
+    public function testLoadHtmlUrl()
+    {
+        $dom = HtmlDomParser::file_get_html(__DIR__ . '/fixtures/test_template_js.html');
+        $headerSearchTemplateDom = $dom->findOneOrFalse('#headerSearchTemplate');
+        $headerSearchTemplateHtml = $headerSearchTemplateDom->innerHtml();
+
+        $domInner = HtmlDomParser::str_get_html($headerSearchTemplateHtml);
+        $h1 = $domInner->findOneOrFalse('h1');
+        static::assertSame(
+            '<h1 class="hd"><a href="http://www.11st.co.kr" data-ga-event-category="PC_GNB" data-ga-event-action="»ó´Ü¿µ¿ª_·Î°í" data-ga-event-label="">11¹ø°¡</a></h1>',
+            $h1->html()
+        );
     }
 
     public function testMethodNotExist()
@@ -238,12 +250,28 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
         $document = new HtmlDomParser($html);
 
         $htmlTmp = $document->html();
-        static::assertInternalType('string', $htmlTmp);
+
+        if (\method_exists(__CLASS__, 'assertIsString')) {
+            static::assertIsString($htmlTmp);
+        } else {
+            /** @noinspection PhpUndefinedMethodInspection */
+            static::assertInternalType('string', $htmlTmp);
+        }
 
         $xmlTmp = $document->xml();
-        static::assertInternalType('string', $xmlTmp);
+        if (\method_exists(__CLASS__, 'assertIsString')) {
+            static::assertIsString($xmlTmp);
+        } else {
+            /** @noinspection PhpUndefinedMethodInspection */
+            static::assertInternalType('string', $xmlTmp);
+        }
 
-        static::assertInternalType('string', $document->outertext);
+        if (\method_exists(__CLASS__, 'assertIsString')) {
+            static::assertIsString($document->outertext);
+        } else {
+            /** @noinspection PhpUndefinedMethodInspection */
+            static::assertInternalType('string', $document->outertext);
+        }
         static::assertTrue(\strlen($document) > 0);
 
         $html = '<div>foo</div>';
@@ -278,7 +306,58 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
         $html = $this->loadFixture('test_page.html');
         $document = new HtmlDomParser($html);
 
-        static::assertInternalType('string', $document->save());
+        if (\method_exists(__CLASS__, 'assertIsString')) {
+            static::assertIsString($document->save());
+        } else {
+            /** @noinspection PhpUndefinedMethodInspection */
+            static::assertInternalType('string', $document->save());
+        }
+    }
+
+    public function testSaveIssue42()
+    {
+        $html = '<div><p>p1</p></div>';
+        $document = new HtmlDomParser($html);
+
+        static::assertSame('<div><p>p1</p></div>', $document->save());
+    }
+
+    public function testSaveAsFile()
+    {
+        $html = '<div><p>p1</p></div>';
+        $document = new HtmlDomParser($html);
+
+        $filePathTmp = self::tmpdir() . '/' . \uniqid(static::class, true);
+        static::assertSame('<div><p>p1</p></div>', $document->save($filePathTmp));
+
+        $htmlTmp = \file_get_contents($filePathTmp);
+        static::assertSame('<div><p>p1</p></div>', $htmlTmp);
+    }
+
+    /**
+     * @return string
+     */
+    public static function tmpdir()
+    {
+        if (\strpos(\PHP_OS, 'WIN') !== false) {
+            $var = \getenv('TMP') ? \getenv('TMP') : \getenv('TEMP');
+            if ($var) {
+                return $var;
+            }
+
+            if (\is_dir('/temp') || \mkdir('/temp')) {
+                return \realpath('/temp');
+            }
+
+            return false;
+        }
+
+        $var = \getenv('TMPDIR');
+        if ($var) {
+            return $var;
+        }
+
+        return \realpath('/tmp');
     }
 
     public function testClear()
@@ -654,8 +733,24 @@ HTML;
         // test toString
         $htmlTmp = (string) $htmlTmp;
         static::assertCount(16, $tmpArray);
-        static::assertContains('<img src="foobar" alt="" width="5" height="3" border="0">', $htmlTmp);
-        static::assertContains('© 2015 Test', $htmlTmp);
+        if (\method_exists(__CLASS__, 'assertStringContainsString')) {
+            static::assertStringContainsString('<img src="foobar" alt="" width="5" height="3" border="0">', $htmlTmp);
+            static::assertStringContainsString('© 2015 Test', $htmlTmp);
+        } else {
+            static::assertContains('<img src="foobar" alt="" width="5" height="3" border="0">', $htmlTmp);
+            static::assertContains('© 2015 Test', $htmlTmp);
+        }
+    }
+
+    public function testContentBeforeHtmlStart()
+    {
+        $html = '<html> a';
+        $dom = HtmlDomParser::str_get_html($html);
+
+        static::assertSame(
+            '<html> a</html>',
+            $dom->html()
+        );
     }
 
     public function testSetAttr()
@@ -1100,7 +1195,64 @@ h1 {
         $dom->load('<div><p>Proton Power & Light</p></div>');
 
         $p = $dom->findOne('p');
+        $p->class .= 'lall';
 
+        static::assertSame('<p class="lall">Proton Power & Light</p>', $p->outerHtml());
+        static::assertSame('Proton Power & Light', $p->textContent);
+
+        // ---
+
+        $dom = new HtmlDomParser();
+        $dom->load('<div><p>Proton Power & Light</p></div>');
+
+        $p = $dom->findOne('p');
+        $p->class = 'lall';
+
+        static::assertSame('<p class="lall">Proton Power & Light</p>', $p->outerHtml());
+        static::assertSame('Proton Power & Light', $p->textContent);
+
+        // ---
+
+        $dom = new HtmlDomParser();
+        $dom->load('<div><p class="">Proton Power & Light</p></div>');
+
+        $p = $dom->findOne('p');
+        $p->class .= 'lall';
+
+        static::assertSame('<p class="lall">Proton Power & Light</p>', $p->outerHtml());
+        static::assertSame('Proton Power & Light', $p->textContent);
+
+        // ---
+
+        $dom = new HtmlDomParser();
+        $dom->load('<div><p class="">Proton Power & Light</p></div>');
+
+        $p = $dom->findOne('p');
+        $p->class = 'lall';
+
+        static::assertSame('<p class="lall">Proton Power & Light</p>', $p->outerHtml());
+        static::assertSame('Proton Power & Light', $p->textContent);
+
+        // ---
+
+        $dom = new HtmlDomParser();
+        $dom->load('<div><p class="foo">Proton Power & Light</p></div>');
+
+        $p = $dom->findOne('p');
+        $p->class .= ' lall';
+
+        static::assertSame('<p class="foo lall">Proton Power & Light</p>', $p->outerHtml());
+        static::assertSame('Proton Power & Light', $p->textContent);
+
+        // ---
+
+        $dom = new HtmlDomParser();
+        $dom->load('<div><p class="foo">Proton Power & Light</p></div>');
+
+        $p = $dom->findOne('p');
+        $p->class = 'lall';
+
+        static::assertSame('<p class="lall">Proton Power & Light</p>', $p->outerHtml());
         static::assertSame('Proton Power & Light', $p->textContent);
     }
 
@@ -1205,6 +1357,85 @@ h1 {
         static::assertSame(
             '<p>Hey bro, <a href="google.com" id="78">click here</a></p>',
             $elm[0]->innerHtml
+        );
+    }
+
+    public function testInnerTextIssue()
+    {
+        $txt = <<<'___'
+<div class="detail J_tab" id="tab_show_1">
+    <h3 class="new-tit">
+        <span class="name">product detail</span>
+    </h3>
+    <div class="detail-tit"></div>
+    <table width="100%" cellpadding="0" cellspacing="0" class="detail-table">
+        <tbody>
+            <tr>
+                <td>aaaaa</td>
+                <td class="tc">bbbb</td>
+                <td class="tc">ccccc</td>
+            </tr>
+        </tbody>
+    </table>
+    <div>
+        <p>
+            <b>[aaaaa]</b>
+        </p>
+        <p></p>
+        <div>bbbbbb</div>
+        <div>ccccccccccccccc</div>
+        <div>
+            <br>
+        </div>
+        <p></p>
+        <p>
+            <b>[ddddd]</b>
+        </p>
+    </div>
+</div>
+___;
+        $expected = '<p>
+            <b>[aaaaa]</b>
+        </p>
+        <p></p>
+        <div>bbbbbb</div>
+        <div>ccccccccccccccc</div>
+        <div>
+            <br>
+        </div>
+        <p></p>
+        <p>
+            <b>[ddddd]</b>
+        </p>';
+
+        $html_meal = HtmlDomParser::str_get_html($txt);
+        $result = $html_meal->findOne('#tab_show_1 table')->nextNonWhitespaceSibling()->innertext;
+
+        static::assertSame($expected, $result);
+    }
+
+    public function testGetHtmlInner()
+    {
+        $dom = new HtmlDomParser();
+        $dom->load('
+        <span class="main">
+          <span class="old">
+            Price&nbsp;<em>$</em>2188
+          </span>
+        </span>
+        ');
+
+        $innerHtml = $dom->findOneOrFalse('.main .old');
+        static::assertNotFalse($innerHtml);
+
+        static::assertSame(
+            'Price&nbsp;<em>$</em>2188',
+            $innerHtml->innerHtml()
+        );
+
+        static::assertSame(
+            '2188',
+            \preg_replace('/.*<\/em>/ius', '', $innerHtml->innerHtml())
         );
     }
 
@@ -1707,8 +1938,13 @@ h1 {
             $allReviews .= $review->plaintext . "\n";
         }
         static::assertTrue(\strlen($allReviews) > 0);
-        static::assertContains('It&#39;s obvious having', $allReviews);
-        static::assertContains('2006 Volvo into Dave&#39;s due', $allReviews);
+        if (\method_exists(__CLASS__, 'assertStringContainsString')) {
+            static::assertStringContainsString('It&#39;s obvious having', $allReviews);
+            static::assertStringContainsString('2006 Volvo into Dave&#39;s due', $allReviews);
+        } else {
+            static::assertContains('It&#39;s obvious having', $allReviews);
+            static::assertContains('2006 Volvo into Dave&#39;s due', $allReviews);
+        }
     }
 
     /**
@@ -1760,6 +1996,104 @@ h1 {
         return $data ?: null;
     }
 
+    public function testHtmlInsideJavaScriptTemplates()
+    {
+        $html = '
+        <script type=text/html>
+            <p>Foo</p>
+        
+            <div class="alert alert-success">
+                Bar
+            </div>
+            
+            {{foo}}
+            
+            {% if foo == true %}
+              priceStr = \'<span class="price-container price-tier_price">\'
+              <div>
+            {% else %}
+              priceStr = \'<span>\'
+            {% endif %}
+            
+            {{priceStr}}</span>
+            
+            {% if foo == true %}
+              </div>
+            {% endif %}
+        </script>
+        ';
+
+        // ---
+
+        $d = new voku\helper\HtmlDomParser();
+        $d->overwriteTemplateLogicSyntaxInSpecialScriptTags(['{#']);
+        $d->loadHtml($html);
+
+        $expectedDomError = '<script type="text/html">
+            <p>Foo</p>
+        
+            <div class="alert alert-success">
+                Bar
+            </div>
+            
+            {{foo}}
+            
+            {% if foo == true %}
+              priceStr = \'<span class="price-container price-tier_price">\'
+              <div>
+            {% else %}
+              priceStr = \'<span>\'
+            {% endif %}
+            
+            {{priceStr}}</span>
+            
+            {% if foo == true %}
+              </div>
+            {% endif %}
+        </span></script>';
+
+        static::assertSame($expectedDomError, $d->html());
+
+        // ---
+
+        $d = new voku\helper\HtmlDomParser();
+        $d->overwriteTemplateLogicSyntaxInSpecialScriptTags(['{%']);
+        $d->loadHtml($html);
+
+        $expectedNonDomError = '<script type="text/html">
+            <p>Foo</p>
+        
+            <div class="alert alert-success">
+                Bar
+            </div>
+            
+            {{foo}}
+            
+            {% if foo == true %}
+              priceStr = \'<span class="price-container price-tier_price">\'
+              <div>
+            {% else %}
+              priceStr = \'<span>\'
+            {% endif %}
+            
+            {{priceStr}}</span>
+            
+            {% if foo == true %}
+              </div>
+            {% endif %}
+        </script>';
+
+        static::assertSame($expectedNonDomError, $d->html());
+    }
+
+    public function testOverwriteTemplateLogicSyntaxInSpecialScriptTagsError()
+    {
+        static::expectException(InvalidArgumentException::class);
+
+        $d = new voku\helper\HtmlDomParser();
+        $d->overwriteTemplateLogicSyntaxInSpecialScriptTags([['{{']]);
+    }
+
     public function testExtractJson()
     {
         $data = '<script type="text/javascript">
@@ -1771,5 +2105,297 @@ h1 {
 
         static::assertNotNull($result);
         static::assertInstanceOf(\stdClass::class, $result, \print_r($result, true));
+    }
+
+    public function testIssue42()
+    {
+        $d = new voku\helper\HtmlDomParser();
+
+        $d->loadHtml('<p>p1</p><p>p2</p>');
+        static::assertSame('<p>p1</p>' . "\n" . '<p>p2</p>', (string) $d);
+
+        $d->loadHtml('<div><p>p1</p></div>');
+        static::assertSame('<div><p>p1</p></div>', (string) $d);
+    }
+
+    public function testIssue53()
+    {
+        $d = new voku\helper\HtmlDomParser();
+
+        $html = '
+        <blockquote class="bg-gray primary">
+            <p class="text-monospace">
+                Malwarebytes<br>
+                www.malwarebytes.com<br>
+                User: User-\<wbr>u00d0\<wbr>u009f\<wbr>u00d0\<wbr>u009a\<wbr>User<br>
+                <br>
+                Windows (WMI): 0<br>
+                (end)<br>
+            </p>
+        </blockquote>
+        ';
+
+        $expected = '
+        <blockquote class="bg-gray primary">
+            <p class="text-monospace">
+                Malwarebytes<br>
+                www.malwarebytes.com<br>
+                User: User-\<wbr>u00d0\<wbr>u009f\<wbr>u00d0\<wbr>u009a\<wbr>User<br>
+                <br>
+                Windows (WMI): 0<br>
+                (end)<br>
+            </p>
+        </blockquote>
+        ';
+
+        $d->loadHtml($html);
+        static::assertSame(\trim($expected), (string) $d);
+    }
+
+    public function testInvalidHtml()
+    {
+        $html = '<!DOCTYPE HTML>
+        <html>
+        <head>
+            <title>title</title>
+        </head>
+        
+        <body>
+        <div id="a">
+            an apple
+        </div>
+        </body>
+        
+        </html>
+        <div id="åäö">
+            body
+        </div>
+        ';
+
+        $expected = '<!DOCTYPE HTML>
+<html>
+        <head>
+            <title>title</title>
+        </head>
+        
+        <body>
+        <div id="a">
+            an apple
+        </div>
+        </body>
+        
+        
+        <div id="åäö">
+            body
+        </div>
+        </html>';
+
+        $domTree = \voku\helper\HtmlDomParser::str_get_html($html);
+
+        static::assertSame($expected, $domTree->html());
+
+        static::assertSame(['an apple'], $domTree->find('#a')->text());
+
+        static::assertSame(['body'], $domTree->find('#åäö')->text());
+    }
+
+    public function testHtmlWithSpecialComments()
+    {
+        $html = '<!-- === BEGIN TOP === -->
+        <!DOCTYPE html>
+        <!--[if IE 8]> <html lang="en" class="ie8"> <![endif]-->
+        <!--[if IE 9]> <html lang="en" class="ie9"> <![endif]-->
+        <!--[if !IE]><!-->
+        <html prefix="og: http://ogp.me/ns#" lang="ru">
+        <!--<![endif]-->
+        <head>
+            <title>title</title>
+        </head>
+        
+        <body>
+        <div id="a">
+            an apple
+        </div>
+        </body>
+        
+        </html>
+        <div id="åäö">
+            body
+        </div>
+        ';
+
+        $expected = '<!DOCTYPE html>
+<!--[if IE 8]> <html lang="en" class="ie8"> <![endif]--><!--[if IE 9]> <html lang="en" class="ie9"> <![endif]--><!--[if !IE]><!--><html prefix="og: http://ogp.me/ns#" lang="ru">
+        <!--<![endif]-->
+        <head>
+            <title>title</title>
+        </head>
+        
+        <body>
+        <div id="a">
+            an apple
+        </div>
+        </body>
+        
+        
+        <div id="åäö">
+            body
+        </div>
+        </html>';
+
+        $domTree = \voku\helper\HtmlDomParser::str_get_html($html);
+
+        static::assertSame($expected, $domTree->html());
+
+        static::assertSame(['an apple'], $domTree->find('#a')->text());
+
+        static::assertSame(['body'], $domTree->find('#åäö')->text());
+    }
+
+    public function testHtmlWithSpecialCommentsAndKeepBrokenHtml()
+    {
+        $html = '<!-- === BEGIN TOP === -->
+        <!DOCTYPE html>
+        <!--[if IE 8]> <html lang="en" class="ie8"> <![endif]-->
+        <!--[if IE 9]> <html lang="en" class="ie9"> <![endif]-->
+        <!--[if !IE]><!-->
+        <html prefix="og: http://ogp.me/ns#" lang="ru">
+        <!--<![endif]-->
+        <head>
+            <title>title</title>
+        </head>
+        
+        <body>
+        <div id="a">
+            an apple
+        </div>
+        </body>
+        
+        </html>
+        <div id="åäö">
+            body
+        </div>
+        ';
+
+        $expected = '<!DOCTYPE html>
+<!--[if IE 8]> <html lang="en" class="ie8"> <![endif]--><!--[if IE 9]> <html lang="en" class="ie9"> <![endif]--><!--[if !IE]><!--><html prefix="og: http://ogp.me/ns#" lang="ru">
+        <!--<![endif]-->
+        <head>
+            <title>title</title>
+        </head>
+        
+        <body>
+        <div id="a">
+            an apple
+        </div>
+        </body>
+        
+        
+        <div id="åäö">
+            body
+        </div></html>';
+
+        $dom = new HtmlDomParser();
+        $dom = $dom->useKeepBrokenHtml(true);
+        $domTree = $dom->load($html);
+
+        static::assertSame($expected, $domTree->html());
+
+        static::assertSame(['an apple'], $domTree->find('#a')->text());
+
+        static::assertSame(['body'], $domTree->find('#åäö')->text());
+    }
+
+    public function testHtmlWithSpecialCommentsAndKeepBrokenHtml2()
+    {
+        $html = '<!-- === BEGIN TOP === -->
+        <!--[if IE 8]> <html lang="en" class="ie8"> <![endif]-->
+        <!--[if IE 9]> <html lang="en" class="ie9"> <![endif]-->
+        <!--[if !IE]><!-->
+        <html prefix="og: http://ogp.me/ns#" lang="ru">
+        <!--<![endif]-->
+        <head>
+            <title>title</title>
+        </head>
+        
+        <body>
+        <div id="a">
+            an apple
+        </div>
+        </body>
+        
+        </html>
+        <div id="åäö">
+            body
+        </div>
+        ';
+
+        $expected = '<!-- === BEGIN TOP === -->
+        <!--[if IE 8]> <html lang="en" class="ie8"> <![endif]-->
+        <!--[if IE 9]> <html lang="en" class="ie9"> <![endif]-->
+        <!--[if !IE]><!-->
+        <html prefix="og: http://ogp.me/ns#" lang="ru">
+        <!--<![endif]-->
+        <head>
+            <title>title</title>
+        </head>
+        
+        <body>
+        <div id="a">
+            an apple
+        </div>
+        </body>
+        
+        
+        <div id="åäö">
+            body
+        </div></html>';
+
+        $dom = new HtmlDomParser();
+        $dom = $dom->useKeepBrokenHtml(true);
+        $domTree = $dom->load($html);
+
+        static::assertSame($expected, $domTree->html());
+
+        static::assertSame(['an apple'], $domTree->find('#a')->text());
+
+        static::assertSame(['body'], $domTree->find('#åäö')->text());
+    }
+
+    public function testFindClassTest()
+    {
+        $html = "
+        <div class='services'></div> or
+        <div class='services last-item'></div> or
+        <div class='services active'></div>
+        ";
+
+        $d = new voku\helper\HtmlDomParser();
+        $d->load($html);
+
+        $htmlResult = '';
+        foreach ($d->find('.services') as $e) {
+            $e->setAttribute('data-foo', 'bar');
+            $htmlResult .= $e->html();
+        }
+
+        $htmlExpected = '<div class="services" data-foo="bar"></div><div class="services last-item" data-foo="bar"></div><div class="services active" data-foo="bar"></div>';
+
+        static::assertSame($htmlExpected, $htmlResult);
+
+        // ---
+
+        $d = new voku\helper\HtmlDomParser();
+        $d->load($html);
+
+        $htmlResult = '';
+        foreach ($d->find('div[class~=services]') as $e) {
+            $e->setAttribute('data-foo', 'bar');
+            $htmlResult .= $e->html();
+        }
+
+        $htmlExpected = '<div class="services" data-foo="bar"></div><div class="services last-item" data-foo="bar"></div><div class="services active" data-foo="bar"></div>';
+
+        static::assertSame($htmlExpected, $htmlResult);
     }
 }

@@ -54,7 +54,7 @@ interface DomParserInterface
     public function getDocument(): \DOMDocument;
 
     /**
-     * Return elements by .class.
+     * Return elements by ".class".
      *
      * @param string $class
      */
@@ -75,7 +75,7 @@ interface DomParserInterface
     public function getElementByTagName(string $name);
 
     /**
-     * Returns elements by #id.
+     * Returns elements by "#id".
      *
      * @param string   $id
      * @param int|null $idx

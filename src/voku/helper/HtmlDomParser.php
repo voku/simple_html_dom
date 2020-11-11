@@ -26,7 +26,7 @@ namespace voku\helper;
  *                                 <p>Load HTML from string.</p>
  * @method HtmlDomParser load_file(string $html)
  *                                 <p>Load HTML from file.</p>
- * @method static HtmlDomParser file_get_html($html, $libXMLExtraOptions = null)
+ * @method static HtmlDomParser file_get_html($filePath, $libXMLExtraOptions = null)
  *                                 <p>Load HTML from file.</p>
  * @method static HtmlDomParser str_get_html($html, $libXMLExtraOptions = null)
  *                                 <p>Load HTML from string.</p>
@@ -46,6 +46,57 @@ class HtmlDomParser extends AbstractDomParser
     ];
 
     /**
+     * @var string[]
+     */
+    protected $templateLogicSyntaxInSpecialScriptTags = [
+        '+',
+        '<%',
+        '{%',
+        '{{',
+    ];
+
+    /**
+     * The properties specified for each special script tag is an array.
+     *
+     * ```php
+     * protected $specialScriptTags = [
+     *     'text/html',
+     *     'text/x-custom-template',
+     *     'text/x-handlebars-template'
+     * ]
+     * ```
+     *
+     * @var string[]
+     */
+    protected $specialScriptTags = [
+        'text/html',
+        'text/x-custom-template',
+        'text/x-handlebars-template',
+    ];
+
+    /**
+     * @var string[]
+     */
+    protected $selfClosingTags = [
+        'area',
+        'base',
+        'br',
+        'col',
+        'command',
+        'embed',
+        'hr',
+        'img',
+        'input',
+        'keygen',
+        'link',
+        'meta',
+        'param',
+        'source',
+        'track',
+        'wbr',
+    ];
+
+    /**
      * @var bool
      */
     protected $isDOMDocumentCreatedWithoutHtml = false;
@@ -58,7 +109,17 @@ class HtmlDomParser extends AbstractDomParser
     /**
      * @var bool
      */
+    protected $isDOMDocumentCreatedWithCommentWrapper = false;
+
+    /**
+     * @var bool
+     */
     protected $isDOMDocumentCreatedWithoutHeadWrapper = false;
+
+    /**
+     * @var bool
+     */
+    protected $isDOMDocumentCreatedWithoutPTagWrapper = false;
 
     /**
      * @var bool
@@ -68,12 +129,17 @@ class HtmlDomParser extends AbstractDomParser
     /**
      * @var bool
      */
+    protected $isDOMDocumentCreatedWithoutBodyWrapper = false;
+
+    /**
+     * @var bool
+     */
     protected $isDOMDocumentCreatedWithFakeEndScript = false;
 
     /**
      * @var bool
      */
-    protected $keepBrokenHtml;
+    protected $keepBrokenHtml = false;
 
     /**
      * @param \DOMNode|SimpleHtmlDomInterface|string $element HTML code or SimpleHtmlDomInterface, \DOMNode
@@ -213,6 +279,19 @@ class HtmlDomParser extends AbstractDomParser
      */
     protected function createDOMDocument(string $html, $libXMLExtraOptions = null): \DOMDocument
     {
+        // Remove content before <!DOCTYPE.*> because otherwise the DOMDocument can not handle the input.
+        $isDOMDocumentCreatedWithDoctype = false;
+        if (\stripos($html, '<!DOCTYPE') !== false) {
+            $isDOMDocumentCreatedWithDoctype = true;
+            if (
+                \preg_match('/(^.*?)<!(?:DOCTYPE)(?: [^>]*)?>/sui', $html, $matches_before_doctype)
+                &&
+                \trim($matches_before_doctype[1])
+            ) {
+                $html = \str_replace($matches_before_doctype[1], '', $html);
+            }
+        }
+
         if ($this->keepBrokenHtml) {
             $html = $this->keepBrokenHtml(\trim($html));
         }
@@ -223,13 +302,42 @@ class HtmlDomParser extends AbstractDomParser
             $this->isDOMDocumentCreatedWithoutWrapper = true;
         }
 
-        if (\strpos($html, '<html') === false) {
+        if (\strpos(\ltrim($html), '<!--') === 0) {
+            $this->isDOMDocumentCreatedWithCommentWrapper = true;
+        }
+
+        /** @noinspection HtmlRequiredLangAttribute */
+        if (
+            \strpos($html, '<html ') === false
+            &&
+            \strpos($html, '<html>') === false
+        ) {
             $this->isDOMDocumentCreatedWithoutHtmlWrapper = true;
         }
 
+        if (
+            \strpos($html, '<body ') === false
+            &&
+            \strpos($html, '<body>') === false
+        ) {
+            $this->isDOMDocumentCreatedWithoutBodyWrapper = true;
+        }
+
         /** @noinspection HtmlRequiredTitleElement */
-        if (\strpos($html, '<head>') === false) {
+        if (
+            \strpos($html, '<head ') === false
+            &&
+            \strpos($html, '<head>') === false
+        ) {
             $this->isDOMDocumentCreatedWithoutHeadWrapper = true;
+        }
+
+        if (
+            \strpos($html, '<p ') === false
+            &&
+            \strpos($html, '<p>') === false
+        ) {
+            $this->isDOMDocumentCreatedWithoutPTagWrapper = true;
         }
 
         if (
@@ -240,29 +348,42 @@ class HtmlDomParser extends AbstractDomParser
             $this->isDOMDocumentCreatedWithFakeEndScript = true;
         }
 
-        if (\strpos($html, '<script') !== false) {
-            $this->html5FallbackForScriptTags($html);
-
+        if (\stripos($html, '</html>') !== false) {
+            /** @noinspection NestedPositiveIfStatementsInspection */
             if (
-                \strpos($html, 'type="text/html"') !== false
-                ||
-                \strpos($html, 'type=\'text/html\'') !== false
-                ||
-                \strpos($html, 'type=text/html') !== false
-                ||
-                \strpos($html, 'type="text/x-custom-template"') !== false
-                ||
-                \strpos($html, 'type=\'text/x-custom-template\'') !== false
-                ||
-                \strpos($html, 'type=text/x-custom-template') !== false
+                \preg_match('/<\/html>(.*?)/suiU', $html, $matches_after_html)
+                &&
+                \trim($matches_after_html[1])
             ) {
-                $this->keepSpecialScriptTags($html);
+                $html = \str_replace($matches_after_html[0], $matches_after_html[1] . '</html>', $html);
             }
         }
 
+        if (\strpos($html, '<script') !== false) {
+            $this->html5FallbackForScriptTags($html);
+
+            foreach ($this->specialScriptTags as $tag) {
+                if (\strpos($html, $tag) !== false) {
+                    $this->keepSpecialScriptTags($html);
+                }
+            }
+        }
+
+        $html = \str_replace(
+            \array_map(static function ($e) {
+                return '<' . $e . '>';
+            }, $this->selfClosingTags),
+            \array_map(static function ($e) {
+                return '<' . $e . '/>';
+            }, $this->selfClosingTags),
+            $html
+        );
+
         // set error level
         $internalErrors = \libxml_use_internal_errors(true);
-        $disableEntityLoader = \libxml_disable_entity_loader(true);
+        if (\PHP_VERSION_ID < 80000) {
+            $disableEntityLoader = \libxml_disable_entity_loader(true);
+        }
         \libxml_clear_errors();
 
         $optionsHtml = \LIBXML_DTDLOAD | \LIBXML_DTDATTR | \LIBXML_NONET;
@@ -288,7 +409,13 @@ class HtmlDomParser extends AbstractDomParser
         if (
             $this->isDOMDocumentCreatedWithoutWrapper
             ||
-            $this->keepBrokenHtml
+            $this->isDOMDocumentCreatedWithCommentWrapper
+            ||
+            (
+                !$isDOMDocumentCreatedWithDoctype
+                &&
+                $this->keepBrokenHtml
+            )
         ) {
             $html = '<' . self::$domHtmlWrapperHelper . '>' . $html . '</' . self::$domHtmlWrapperHelper . '>';
         }
@@ -303,7 +430,9 @@ class HtmlDomParser extends AbstractDomParser
         // restore lib-xml settings
         \libxml_clear_errors();
         \libxml_use_internal_errors($internalErrors);
-        \libxml_disable_entity_loader($disableEntityLoader);
+        if (\PHP_VERSION_ID < 80000 && isset($disableEntityLoader)) {
+            \libxml_disable_entity_loader($disableEntityLoader);
+        }
 
         return $this->document;
     }
@@ -314,7 +443,7 @@ class HtmlDomParser extends AbstractDomParser
      * @param string   $selector
      * @param int|null $idx
      *
-     * @return SimpleHtmlDomInterface|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface
+     * @return SimpleHtmlDomInterface|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>
      */
     public function find(string $selector, $idx = null)
     {
@@ -324,8 +453,10 @@ class HtmlDomParser extends AbstractDomParser
         $nodesList = $xPath->query($xPathQuery);
         $elements = new SimpleHtmlDomNode();
 
-        foreach ($nodesList as $node) {
-            $elements[] = new SimpleHtmlDom($node);
+        if ($nodesList) {
+            foreach ($nodesList as $node) {
+                $elements[] = new SimpleHtmlDom($node);
+            }
         }
 
         // return all elements
@@ -351,7 +482,7 @@ class HtmlDomParser extends AbstractDomParser
      *
      * @param string $selector
      *
-     * @return SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface
+     * @return SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>
      */
     public function findMulti(string $selector): SimpleHtmlDomNodeInterface
     {
@@ -363,7 +494,7 @@ class HtmlDomParser extends AbstractDomParser
      *
      * @param string $selector
      *
-     * @return false|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface
+     * @return false|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>
      */
     public function findMultiOrFalse(string $selector)
     {
@@ -412,17 +543,17 @@ class HtmlDomParser extends AbstractDomParser
      *
      * @return string
      */
-    public function fixHtmlOutput(string $content, bool $multiDecodeNewHtmlEntity = false): string
-    {
+    public function fixHtmlOutput(
+        string $content,
+        bool $multiDecodeNewHtmlEntity = false
+    ): string {
         // INFO: DOMDocument will encapsulate plaintext into a e.g. paragraph tag (<p>),
         //          so we try to remove it here again ...
 
-        if ($this->isDOMDocumentCreatedWithoutHtmlWrapper) {
+        if ($this->getIsDOMDocumentCreatedWithoutHtmlWrapper()) {
             /** @noinspection HtmlRequiredLangAttribute */
             $content = \str_replace(
                 [
-                    '<body>',
-                    '</body>',
                     '<html>',
                     '</html>',
                 ],
@@ -431,7 +562,7 @@ class HtmlDomParser extends AbstractDomParser
             );
         }
 
-        if ($this->isDOMDocumentCreatedWithoutHeadWrapper) {
+        if ($this->getIsDOMDocumentCreatedWithoutHeadWrapper()) {
             /** @noinspection HtmlRequiredTitleElement */
             $content = \str_replace(
                 [
@@ -443,7 +574,18 @@ class HtmlDomParser extends AbstractDomParser
             );
         }
 
-        if ($this->isDOMDocumentCreatedWithFakeEndScript) {
+        if ($this->getIsDOMDocumentCreatedWithoutBodyWrapper()) {
+            $content = \str_replace(
+                [
+                    '<body>',
+                    '</body>',
+                ],
+                '',
+                $content
+            );
+        }
+
+        if ($this->getIsDOMDocumentCreatedWithFakeEndScript()) {
             $content = \str_replace(
                 '</script>',
                 '',
@@ -451,41 +593,57 @@ class HtmlDomParser extends AbstractDomParser
             );
         }
 
-        if ($this->isDOMDocumentCreatedWithoutWrapper) {
+        if ($this->getIsDOMDocumentCreatedWithoutWrapper()) {
             $content = (string) \preg_replace('/^<p>/', '', $content);
             $content = (string) \preg_replace('/<\/p>/', '', $content);
         }
 
-        if ($this->isDOMDocumentCreatedWithoutHtml) {
+        if ($this->getIsDOMDocumentCreatedWithoutPTagWrapper()) {
             $content = \str_replace(
                 [
                     '<p>',
                     '</p>',
-                    '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">',
                 ],
                 '',
                 $content
             );
         }
 
-        /** @noinspection CheckTagEmptyBody */
-        /** @noinspection HtmlExtraClosingTag */
+        if ($this->getIsDOMDocumentCreatedWithoutHtml()) {
+            $content = \str_replace(
+                '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">',
+                '',
+                $content
+            );
+        }
+
+        // https://bugs.php.net/bug.php?id=73175
+        $content = \str_replace(
+            \array_map(static function ($e) {
+                return '</' . $e . '>';
+            }, $this->selfClosingTags),
+            '',
+            $content
+        );
+
         /** @noinspection HtmlRequiredTitleElement */
         $content = \trim(
             \str_replace(
                 [
+                    '<simpleHtmlDomHtml>',
+                    '</simpleHtmlDomHtml>',
                     '<simpleHtmlDomP>',
                     '</simpleHtmlDomP>',
                     '<head><head>',
                     '</head></head>',
-                    '<br></br>',
                 ],
                 [
                     '',
                     '',
+                    '',
+                    '',
                     '<head>',
                     '</head>',
-                    '<br>',
                 ],
                 $content
             )
@@ -497,11 +655,11 @@ class HtmlDomParser extends AbstractDomParser
     }
 
     /**
-     * Return elements by .class.
+     * Return elements by ".class".
      *
      * @param string $class
      *
-     * @return SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface
+     * @return SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>
      */
     public function getElementByClass(string $class): SimpleHtmlDomNodeInterface
     {
@@ -539,12 +697,12 @@ class HtmlDomParser extends AbstractDomParser
     }
 
     /**
-     * Returns elements by #id.
+     * Returns elements by "#id".
      *
      * @param string   $id
      * @param int|null $idx
      *
-     * @return SimpleHtmlDomInterface|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface
+     * @return SimpleHtmlDomInterface|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>
      */
     public function getElementsById(string $id, $idx = null)
     {
@@ -557,7 +715,7 @@ class HtmlDomParser extends AbstractDomParser
      * @param string   $name
      * @param int|null $idx
      *
-     * @return SimpleHtmlDomInterface|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface
+     * @return SimpleHtmlDomInterface|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>
      */
     public function getElementsByTagName(string $name, $idx = null)
     {
@@ -596,8 +754,8 @@ class HtmlDomParser extends AbstractDomParser
      */
     public function html(bool $multiDecodeNewHtmlEntity = false): string
     {
-        if ($this::$callback !== null) {
-            \call_user_func($this::$callback, [$this]);
+        if (static::$callback !== null) {
+            \call_user_func(static::$callback, [$this]);
         }
 
         if ($this->getIsDOMDocumentCreatedWithoutHtmlWrapper()) {
@@ -689,6 +847,9 @@ class HtmlDomParser extends AbstractDomParser
         int $options = \LIBXML_NOEMPTYTAG
     ): string {
         $xml = $this->document->saveXML(null, $options);
+        if ($xml === false) {
+            return '';
+        }
 
         if ($removeXmlHeader) {
             $xml = \ltrim((string) \preg_replace('/<\?xml.*\?>/', '', $xml));
@@ -709,7 +870,7 @@ class HtmlDomParser extends AbstractDomParser
      * @param string $selector
      * @param int    $idx
      *
-     * @return SimpleHtmlDomInterface|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface
+     * @return SimpleHtmlDomInterface|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>
      */
     public function __invoke($selector, $idx = null)
     {
@@ -727,9 +888,25 @@ class HtmlDomParser extends AbstractDomParser
     /**
      * @return bool
      */
+    public function getIsDOMDocumentCreatedWithoutPTagWrapper(): bool
+    {
+        return $this->isDOMDocumentCreatedWithoutPTagWrapper;
+    }
+
+    /**
+     * @return bool
+     */
     public function getIsDOMDocumentCreatedWithoutHtml(): bool
     {
         return $this->isDOMDocumentCreatedWithoutHtml;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getIsDOMDocumentCreatedWithoutBodyWrapper(): bool
+    {
+        return $this->isDOMDocumentCreatedWithoutBodyWrapper;
     }
 
     /**
@@ -749,6 +926,14 @@ class HtmlDomParser extends AbstractDomParser
     }
 
     /**
+     * @return bool
+     */
+    public function getIsDOMDocumentCreatedWithFakeEndScript(): bool
+    {
+        return $this->isDOMDocumentCreatedWithFakeEndScript;
+    }
+
+    /**
      * @param string $html
      *
      * @return string
@@ -762,10 +947,10 @@ class HtmlDomParser extends AbstractDomParser
                 '/(?<start>.*)<(?<element_start>[a-z]+)(?<element_start_addon> [^>]*)?>(?<value>.*?)<\/(?<element_end>\2)>(?<end>.*)/sui',
                 static function ($matches) {
                     return $matches['start'] .
-                           '°lt_simple_html_dom__voku_°' . $matches['element_start'] . $matches['element_start_addon'] . '°gt_simple_html_dom__voku_°' .
-                           $matches['value'] .
-                           '°lt/_simple_html_dom__voku_°' . $matches['element_end'] . '°gt_simple_html_dom__voku_°' .
-                           $matches['end'];
+                        '°lt_simple_html_dom__voku_°' . $matches['element_start'] . $matches['element_start_addon'] . '°gt_simple_html_dom__voku_°' .
+                        $matches['value'] .
+                        '°lt/_simple_html_dom__voku_°' . $matches['element_end'] . '°gt_simple_html_dom__voku_°' .
+                        $matches['end'];
                 },
                 $html
             );
@@ -801,39 +986,42 @@ class HtmlDomParser extends AbstractDomParser
 
     /**
      * @param string $html
+     *
+     * @return void
      */
     protected function keepSpecialScriptTags(string &$html)
     {
         // regEx for e.g.: [<script id="elements-image-1" type="text/html">...</script>]
+        $tags = \implode('|', \array_map(
+            static function ($value) {
+                return \preg_quote($value, '/');
+            },
+            $this->specialScriptTags
+        ));
         $html = (string) \preg_replace_callback(
-            '/(?<start>((?:<script) [^>]*type=(?:["\'])?(?:text\/html|text\/x-custom-template)+(?:[^>]*)>))(?<innerContent>.*)(?<end><\/script>)/isU',
-            static function ($matches) {
+            '/(?<start>((?:<script) [^>]*type=(?:["\'])?(?:' . $tags . ')+(?:[^>]*)>))(?<innerContent>.*)(?<end><\/script>)/isU',
+            function ($matches) {
 
-                if (
-                    strpos($matches['innerContent'], '+') === false
-                    &&
-                    strpos($matches['innerContent'], '<%') === false
-                    &&
-                    strpos($matches['innerContent'], '{%') === false
-                    &&
-                    strpos($matches['innerContent'], '{{') === false
-                ) {
-                    // remove the html5 fallback
-                    $matches[0] = \str_replace('<\/', '</', $matches[0]);
+                // Check for logic in special script tags, like [<% _.each(tierPrices, function(item, key) { %>],
+                // because often this looks like non valid html in the template itself.
+                foreach ($this->templateLogicSyntaxInSpecialScriptTags as $logicSyntaxInSpecialScriptTag) {
+                    if (\strpos($matches['innerContent'], $logicSyntaxInSpecialScriptTag) !== false) {
+                        // remove the html5 fallback
+                        $matches['innerContent'] = \str_replace('<\/', '</', $matches['innerContent']);
 
-                    $specialNonScript = '<' . self::$domHtmlSpecialScriptHelper . \substr($matches[0], \strlen('<script'));
-                    $specialNonScript = \substr($specialNonScript, 0, -\strlen('</script>')) . '</' . self::$domHtmlSpecialScriptHelper . '>';
+                        self::$domBrokenReplaceHelper['orig'][] = $matches['innerContent'];
+                        self::$domBrokenReplaceHelper['tmp'][] = $matchesHash = '' . self::$domHtmlBrokenHtmlHelper . '' . \crc32($matches['innerContent']);
 
-                    return $specialNonScript;
+                        return $matches['start'] . $matchesHash . $matches['end'];
+                    }
                 }
 
                 // remove the html5 fallback
-                $matches['innerContent'] = \str_replace('<\/', '</', $matches['innerContent']);
+                $matches[0] = \str_replace('<\/', '</', $matches[0]);
 
-                self::$domBrokenReplaceHelper['orig'][] = $matches['innerContent'];
-                self::$domBrokenReplaceHelper['tmp'][] = $matchesHash = '' . self::$domHtmlBrokenHtmlHelper . '' . \crc32($matches['innerContent']);
+                $specialNonScript = '<' . self::$domHtmlSpecialScriptHelper . \substr($matches[0], \strlen('<script'));
 
-                return $matches['start'] . $matchesHash . $matches['end'];
+                return \substr($specialNonScript, 0, -\strlen('</script>')) . '</' . self::$domHtmlSpecialScriptHelper . '>';
             },
             $html
         );
@@ -847,6 +1035,42 @@ class HtmlDomParser extends AbstractDomParser
     public function useKeepBrokenHtml(bool $keepBrokenHtml): DomParserInterface
     {
         $this->keepBrokenHtml = $keepBrokenHtml;
+
+        return $this;
+    }
+
+    /**
+     * @param string[] $templateLogicSyntaxInSpecialScriptTags
+     *
+     * @return HtmlDomParser
+     */
+    public function overwriteTemplateLogicSyntaxInSpecialScriptTags(array $templateLogicSyntaxInSpecialScriptTags): DomParserInterface
+    {
+        foreach ($templateLogicSyntaxInSpecialScriptTags as $tmp) {
+            if (!\is_string($tmp)) {
+                throw new \InvalidArgumentException('setTemplateLogicSyntaxInSpecialScriptTags only allows string[]');
+            }
+        }
+
+        $this->templateLogicSyntaxInSpecialScriptTags = $templateLogicSyntaxInSpecialScriptTags;
+
+        return $this;
+    }
+
+    /**
+     * @param string[] $specialScriptTags
+     *
+     * @return HtmlDomParser
+     */
+    public function overwriteSpecialScriptTags(array $specialScriptTags): DomParserInterface
+    {
+        foreach ($specialScriptTags as $tag) {
+            if (!\is_string($tag)) {
+                throw new \InvalidArgumentException('SpecialScriptTags only allows string[]');
+            }
+        }
+
+        $this->specialScriptTags = $specialScriptTags;
 
         return $this;
     }

@@ -72,9 +72,9 @@ abstract class AbstractSimpleXmlDom
 
     /**
      * @param string $selector
-     * @param int    $idx
+     * @param int|null    $idx
      *
-     * @return SimpleXmlDomInterface|SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface
+     * @return SimpleXmlDomInterface|SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface<SimpleXmlDomInterface>
      */
     public function __invoke($selector, $idx = null)
     {
@@ -157,12 +157,31 @@ abstract class AbstractSimpleXmlDom
         $this->removeAttribute($name);
     }
 
+    /**
+     * @param string $selector
+     * @param int|null   $idx
+     *
+     * @return SimpleXmlDomInterface|SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface<SimpleXmlDomInterface>
+     */
     abstract public function find(string $selector, $idx = null);
 
+    /**
+     * @return string[]|null
+     */
     abstract public function getAllAttributes();
 
+    /**
+     * @param string $name
+     *
+     * @return string
+     */
     abstract public function getAttribute(string $name): string;
 
+    /**
+     * @param string $name
+     *
+     * @return bool
+     */
     abstract public function hasAttribute(string $name): bool;
 
     abstract public function innerXml(bool $multiDecodeNewHtmlEntity = false): string;
@@ -173,8 +192,20 @@ abstract class AbstractSimpleXmlDom
 
     abstract protected function replaceNodeWithString(string $string): SimpleXmlDomInterface;
 
+    /**
+     * @param string $string
+     *
+     * @return SimpleXmlDomInterface
+     */
     abstract protected function replaceTextWithString($string): SimpleXmlDomInterface;
 
+    /**
+     * @param string $name
+     * @param string|null   $value
+     * @param bool   $strict
+     *
+     * @return SimpleXmlDomInterface
+     */
     abstract public function setAttribute(string $name, $value = null, bool $strict = false): SimpleXmlDomInterface;
 
     abstract public function text(): string;

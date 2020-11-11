@@ -55,7 +55,7 @@ abstract class AbstractDomParser implements DomParserInterface
     ];
 
     /**
-     * @var callable
+     * @var callable|null
      */
     protected static $callback;
 
@@ -311,7 +311,7 @@ abstract class AbstractDomParser implements DomParserInterface
      */
     public function save(string $filepath = ''): string
     {
-        $string = $this->innerHtml();
+        $string = $this->html();
         if ($filepath !== '') {
             \file_put_contents($filepath, $string, \LOCK_EX);
         }
@@ -356,6 +356,9 @@ abstract class AbstractDomParser implements DomParserInterface
         int $options = \LIBXML_NOEMPTYTAG
     ): string {
         $xml = $this->document->saveXML(null, $options);
+        if ($xml === false) {
+            return '';
+        }
 
         if ($removeXmlHeader) {
             $xml = \ltrim((string) \preg_replace('/<\?xml.*\?>/', '', $xml));
@@ -446,10 +449,10 @@ abstract class AbstractDomParser implements DomParserInterface
             &&
             \count(self::$domBrokenReplaceHelper['tmp']) > 0
         ) {
-            $html = \str_replace(self::$domBrokenReplaceHelper['tmp'], self::$domBrokenReplaceHelper['orig'], $html);
+            $html = \str_ireplace(self::$domBrokenReplaceHelper['tmp'], self::$domBrokenReplaceHelper['orig'], $html);
         }
 
-        return \str_replace($DOM_REPLACE__HELPER_CACHE['tmp'], $DOM_REPLACE__HELPER_CACHE['orig'], $html);
+        return \str_ireplace($DOM_REPLACE__HELPER_CACHE['tmp'], $DOM_REPLACE__HELPER_CACHE['orig'], $html);
     }
 
     /**

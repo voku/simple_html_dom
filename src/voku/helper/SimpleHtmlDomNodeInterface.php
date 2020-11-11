@@ -3,10 +3,14 @@
 namespace voku\helper;
 
 /**
+ * @property-read int      $length
+ *                                    <p>The list items count.</p>
  * @property-read string[] $outertext
  *                                    <p>Get dom node's outer html.</p>
  * @property-read string[] $plaintext
  *                                    <p>Get dom node's plain text.</p>
+ *
+ * @extends \IteratorAggregate<int, SimpleHtmlDomInterface>
  */
 interface SimpleHtmlDomNodeInterface extends \IteratorAggregate
 {
@@ -21,7 +25,7 @@ interface SimpleHtmlDomNodeInterface extends \IteratorAggregate
      * @param string $selector
      * @param int    $idx
      *
-     * @return SimpleHtmlDomNodeInterface|SimpleHtmlDomNodeInterface[]|null
+     * @return SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>|SimpleHtmlDomNodeInterface[]|null
      */
     public function __invoke($selector, $idx = null);
 
@@ -29,6 +33,13 @@ interface SimpleHtmlDomNodeInterface extends \IteratorAggregate
      * @return string
      */
     public function __toString();
+
+    /**
+     * Get the number of items in this dom node.
+     *
+     * @return int
+     */
+    public function count();
 
     /**
      * Find list of nodes with a CSS selector.
@@ -45,7 +56,7 @@ interface SimpleHtmlDomNodeInterface extends \IteratorAggregate
      *
      * @param string $selector
      *
-     * @return SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface
+     * @return SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>
      */
     public function findMulti(string $selector): self;
 
@@ -54,7 +65,7 @@ interface SimpleHtmlDomNodeInterface extends \IteratorAggregate
      *
      * @param string $selector
      *
-     * @return false|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface
+     * @return false|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>
      */
     public function findMultiOrFalse(string $selector);
 
@@ -85,11 +96,15 @@ interface SimpleHtmlDomNodeInterface extends \IteratorAggregate
 
     /**
      * alias for "$this->innerHtml()" (added for compatibly-reasons with v1.x)
+     *
+     * @return string[]
      */
     public function innertext();
 
     /**
      * alias for "$this->innerHtml()" (added for compatibly-reasons with v1.x)
+     *
+     * @return string[]
      */
     public function outertext();
 

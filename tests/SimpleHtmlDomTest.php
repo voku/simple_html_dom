@@ -4,8 +4,6 @@ use voku\helper\HtmlDomParser;
 use voku\helper\SimpleHtmlDom;
 
 /**
- * Class SimpleHtmlDomTest
- *
  * @internal
  */
 final class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
@@ -87,6 +85,71 @@ final class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
         static::assertInstanceOf(\DOMNode::class, $element->getNode());
     }
 
+    public function testDecodeShouldDecodeAttributes()
+    {
+        $expected = 'H&auml;agen-Dazs';
+
+        $html = new HtmlDomParser();
+        $html->load('<meta name="description" content="H&auml;agen-Dazs">');
+
+        $description = $html->findOneOrFalse('meta[name="description"]');
+
+        static::assertSame($expected, $description->getAttribute('content'));
+        static::assertSame($description->getAttribute('content'), $description->content);
+    }
+
+    public function testFindInChildNode()
+    {
+        $html = '
+        <div class="foo">
+            <div class="class">
+                <strong>1</strong>
+                <div>
+                    <strong>2</strong>
+                </div>
+            </div> 
+            <div class="class">
+                <strong>3</strong>
+                <div>
+                    <strong>4</strong>
+                </div>
+            </div> 
+        </div>
+        ';
+
+        $d = HtmlDomParser::str_get_html($html);
+        $div = $d->find('.class', 0);
+        $v = $div->find('div strong', 0)->text();
+
+        static::assertSame('1', $v);
+    }
+
+    public function testCommentWp()
+    {
+        $html = '
+        <!-- wp:heading -->
+        <h2 id="my-title">Level 2 title</h2>
+        <!-- /wp:heading -->
+        ';
+
+        $d = new voku\helper\HtmlDomParser();
+        $d->loadHtml($html);
+
+        static::assertSame($html, $d->html());
+    }
+
+    public function testAppendPrependIssue()
+    {
+        $d = new voku\helper\HtmlDomParser();
+        $d->loadHtml('<p>p1</p><p>p2</p>');
+        $p = $d->find('p', 0);
+        $p->outerhtml .= '<div>outer</div>';
+
+        static::assertSame('<p>p1</p>
+<div>outer</div><p>p2</p>', $d->html());
+        static::assertSame('p1outerp2', $d->plaintext);
+    }
+
     public function testReplaceText()
     {
         $html = '<div>foo</div>';
@@ -104,10 +167,29 @@ final class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
         static::assertSame('', $document->plaintext);
     }
 
-    public function testReplaceNode()
+    public function replaceNodeDataProvider()
+    {
+        return [
+            [
+                '<h1>bar</h1>',
+            ],
+            [
+                '',
+            ],
+            [
+                'foo',
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider replaceNodeDataProvider
+     *
+     * @param string $replace
+     */
+    public function testReplaceNode($replace)
     {
         $html = '<div>foo</div>';
-        $replace = '<h1>bar</h1>';
 
         $document = new HtmlDomParser($html);
         $node = $document->getDocument()->documentElement;
@@ -119,7 +201,9 @@ final class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
 
         $element->outertext = '';
 
-        static::assertNotSame($replace, $document->outertext);
+        if ($replace !== '') {
+            static::assertNotSame($replace, $document->outertext);
+        }
     }
 
     public function testReplaceChild()
@@ -339,6 +423,16 @@ final class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
 
         static::assertNull($node->lastChild());
         static::assertNull($node->last_child());
+    }
+
+    public function testDataAttribute()
+    {
+        $html = '<div class="B(8px) Pos(a) C(white) Py(2px) Px(0) Ta(c) Bdrs(3px) Trstf(eio) Trsde(0.5) Arrow South Bdtc(i)::a Fw(b) Bgc($buy) Bdtc($buy)" data-test="rec-rating-txt" tabindex="0" aria-label="2.9 on a scale of 1 to 5, where 1 is Strong Buy and 5 is Sell" style="width: 30px; left: calc(47.5% - 15px);">2.9</div>';
+        $document = new HtmlDomParser($html);
+
+        $lall = $document->findOne('*[data-test="rec-rating-txt"]');
+
+        static::assertSame('2.9', $lall->innerText());
     }
 
     public function testNextSibling()

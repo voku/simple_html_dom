@@ -32,9 +32,9 @@ HTML;
 
 $html = HtmlDomParser::str_get_html($str);
 foreach ($html->find('ul') as $ul) {
-  foreach ($ul->find('li') as $li) {
-    echo $li->innertext . '<br>';
-  }
+    foreach ($ul->find('li') as $li) {
+        echo $li->innertext . '<br>';
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -49,9 +49,9 @@ HTML;
 
 $html = HtmlDomParser::str_get_html($str);
 foreach ($html->find('input[type=checkbox]') as $checkbox) {
-  if ($checkbox->checked) {
-    echo $checkbox->name . ' is checked<br>';
-  } else {
-    echo $checkbox->name . ' is not checked<br>';
-  }
+    if ($checkbox->checked) {
+        echo $checkbox->name . ' is checked<br>';
+    } else {
+        echo $checkbox->name . ' is not checked<br>';
+    }
 }

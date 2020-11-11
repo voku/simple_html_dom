@@ -3,8 +3,6 @@
 use voku\helper\HtmlDomParser;
 
 /**
- * Class TwigTest
- *
  * @internal
  */
 final class TwigTest extends \PHPUnit\Framework\TestCase

@@ -4,7 +4,13 @@ declare(strict_types=1);
 
 namespace voku\helper;
 
-/** @noinspection PhpHierarchyChecksInspection */
+/**
+ * @noinspection PhpHierarchyChecksInspection
+ *
+ * {@inheritdoc}
+ *
+ * @implements \IteratorAggregate<int, \DOMNode>
+ */
 class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate, SimpleHtmlDomInterface
 {
     /**
@@ -40,7 +46,7 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
      * @param string   $selector
      * @param int|null $idx
      *
-     * @return SimpleHtmlDomInterface|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface
+     * @return SimpleHtmlDomInterface|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>
      */
     public function find(string $selector, $idx = null)
     {
@@ -50,13 +56,17 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
     /**
      * Returns an array of attributes.
      *
-     * @return array|null
+     * @return string[]|null
      */
     public function getAllAttributes()
     {
-        if ($this->node->hasAttributes()) {
+        if (
+            $this->node
+            &&
+            $this->node->hasAttributes()
+        ) {
             $attributes = [];
-            foreach ($this->node->attributes as $attr) {
+            foreach ($this->node->attributes ?? [] as $attr) {
                 $attributes[$attr->name] = HtmlDomParser::putReplacedBackToPreserveHtmlEntities($attr->value);
             }
 
@@ -64,6 +74,14 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
         }
 
         return null;
+    }
+
+    /**
+     * @return bool
+     */
+    public function hasAttributes(): bool
+    {
+        return $this->node && $this->node->hasAttributes();
     }
 
     /**
@@ -163,19 +181,26 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
             }
         }
 
-        if (\count($this->node->childNodes) > 0) {
+        /** @var \DOMNode[] $remove_nodes */
+        $remove_nodes = [];
+        if ($this->node->childNodes->length > 0) {
+            // INFO: We need to fetch the nodes first, before we can delete them, because of missing references in the dom,
+            // if we delete the elements on the fly.
             foreach ($this->node->childNodes as $node) {
-                $this->node->removeChild($node);
+                $remove_nodes[] = $node;
             }
+        }
+        foreach ($remove_nodes as $remove_node) {
+            $this->node->removeChild($remove_node);
         }
 
         if (!empty($newDocument)) {
             $newDocument = $this->cleanHtmlWrapper($newDocument);
             $ownerDocument = $this->node->ownerDocument;
             if (
-                $ownerDocument !== null
+                $ownerDocument
                 &&
-                $newDocument->getDocument()->documentElement !== null
+                $newDocument->getDocument()->documentElement
             ) {
                 $newNode = $ownerDocument->importNode($newDocument->getDocument()->documentElement, true);
                 /** @noinspection UnusedFunctionResultInspection */
@@ -196,7 +221,10 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
     protected function replaceNodeWithString(string $string): SimpleHtmlDomInterface
     {
         if (empty($string)) {
-            $this->node->parentNode->removeChild($this->node);
+            if ($this->node->parentNode) {
+                $this->node->parentNode->removeChild($this->node);
+            }
+            $this->node = new \DOMText();
 
             return $this;
         }
@@ -235,20 +263,23 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
             $newDocument->getIsDOMDocumentCreatedWithoutHeadWrapper()
         ) {
             $html = $this->node->parentNode->getElementsByTagName('head')[0];
-            if ($this->node->parentNode->ownerDocument !== null) {
+
+            if (
+                $html !== null
+                &&
+                $this->node->parentNode->ownerDocument
+            ) {
                 $fragment = $this->node->parentNode->ownerDocument->createDocumentFragment();
-                if ($html !== null) {
-                    /** @var \DOMNode $html */
-                    while ($html->childNodes->length > 0) {
-                        $tmpNode = $html->childNodes->item(0);
-                        if ($tmpNode !== null) {
-                            /** @noinspection UnusedFunctionResultInspection */
-                            $fragment->appendChild($tmpNode);
-                        }
+                /** @var \DOMNode $html */
+                while ($html->childNodes->length > 0) {
+                    $tmpNode = $html->childNodes->item(0);
+                    if ($tmpNode !== null) {
+                        /** @noinspection UnusedFunctionResultInspection */
+                        $fragment->appendChild($tmpNode);
                     }
-                    /** @noinspection UnusedFunctionResultInspection */
-                    $html->parentNode->replaceChild($fragment, $html);
                 }
+                /** @noinspection UnusedFunctionResultInspection */
+                $html->parentNode->replaceChild($fragment, $html);
             }
         }
 
@@ -265,13 +296,16 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
     protected function replaceTextWithString($string): SimpleHtmlDomInterface
     {
         if (empty($string)) {
-            $this->node->parentNode->removeChild($this->node);
+            if ($this->node->parentNode) {
+                $this->node->parentNode->removeChild($this->node);
+            }
+            $this->node = new \DOMText();
 
             return $this;
         }
 
         $ownerDocument = $this->node->ownerDocument;
-        if ($ownerDocument !== null) {
+        if ($ownerDocument) {
             $newElement = $ownerDocument->createTextNode($string);
             $newNode = $ownerDocument->importNode($newElement, true);
             $this->node->parentNode->replaceChild($newNode, $this->node);
@@ -333,25 +367,26 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
     protected function changeElementName(\DOMNode $node, string $name)
     {
         $ownerDocument = $node->ownerDocument;
-        if ($ownerDocument) {
-            $newNode = $ownerDocument->createElement($name);
-        } else {
+        if (!$ownerDocument) {
             return false;
         }
 
+        $newNode = $ownerDocument->createElement($name);
+
         foreach ($node->childNodes as $child) {
             $child = $ownerDocument->importNode($child, true);
-            /** @noinspection UnusedFunctionResultInspection */
             $newNode->appendChild($child);
         }
 
-        foreach ($node->attributes as $attrName => $attrNode) {
+        foreach ($node->attributes ?? [] as $attrName => $attrNode) {
             /** @noinspection UnusedFunctionResultInspection */
             $newNode->setAttribute($attrName, $attrNode);
         }
 
-        /** @noinspection UnusedFunctionResultInspection */
-        $newNode->ownerDocument->replaceChild($newNode, $node);
+        if ($newNode->ownerDocument) {
+            /** @noinspection UnusedFunctionResultInspection */
+            $newNode->ownerDocument->replaceChild($newNode, $node);
+        }
 
         return $newNode;
     }
@@ -379,7 +414,7 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
      *
      * @param string $selector
      *
-     * @return SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface
+     * @return SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>
      */
     public function findMulti(string $selector): SimpleHtmlDomNodeInterface
     {
@@ -391,7 +426,7 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
      *
      * @param string $selector
      *
-     * @return false|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface
+     * @return false|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>
      */
     public function findMultiOrFalse(string $selector)
     {
@@ -440,11 +475,11 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
     }
 
     /**
-     * Return elements by .class.
+     * Return elements by ".class".
      *
      * @param string $class
      *
-     * @return SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface
+     * @return SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>
      */
     public function getElementByClass(string $class): SimpleHtmlDomNodeInterface
     {
@@ -486,12 +521,12 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
     }
 
     /**
-     * Returns elements by #id.
+     * Returns elements by "#id".
      *
      * @param string   $id
      * @param int|null $idx
      *
-     * @return SimpleHtmlDomInterface|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface
+     * @return SimpleHtmlDomInterface|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>
      */
     public function getElementsById(string $id, $idx = null)
     {
@@ -504,7 +539,7 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
      * @param string   $name
      * @param int|null $idx
      *
-     * @return SimpleHtmlDomInterface|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface
+     * @return SimpleHtmlDomInterface|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>
      */
     public function getElementsByTagName(string $name, $idx = null)
     {
@@ -603,6 +638,28 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
     }
 
     /**
+     * Returns the next sibling of node.
+     *
+     * @return SimpleHtmlDomInterface|null
+     */
+    public function nextNonWhitespaceSibling()
+    {
+        /** @var \DOMNode|null $node */
+        $node = $this->node->nextSibling;
+
+        while ($node && !\trim($node->textContent)) {
+            /** @var \DOMNode|null $node */
+            $node = $node->nextSibling;
+        }
+
+        if ($node === null) {
+            return null;
+        }
+
+        return new static($node);
+    }
+
+    /**
      * Returns the parent of node.
      *
      * @return SimpleHtmlDomInterface
@@ -644,6 +701,8 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
                 $this->tag === 'input'
                 &&
                 (
+                    $this->getAttribute('type') === 'hidden'
+                    ||
                     $this->getAttribute('type') === 'text'
                     ||
                     !$this->hasAttribute('type')
@@ -720,8 +779,10 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
      *
      * @return HtmlDomParser
      */
-    protected function cleanHtmlWrapper(HtmlDomParser $newDocument, $removeExtraHeadTag = false): HtmlDomParser
-    {
+    protected function cleanHtmlWrapper(
+        HtmlDomParser $newDocument,
+        $removeExtraHeadTag = false
+    ): HtmlDomParser {
         if (
             $newDocument->getIsDOMDocumentCreatedWithoutHtml()
             ||
@@ -734,25 +795,40 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
                 $newDocument->getDocument()->doctype->parentNode->removeChild($newDocument->getDocument()->doctype);
             }
 
-            // Remove html element, preserving child nodes.
-            $html = $newDocument->getDocument()->getElementsByTagName('html')->item(0);
-            $fragment = $newDocument->getDocument()->createDocumentFragment();
-            if ($html !== null) {
-                while ($html->childNodes->length > 0) {
-                    $tmpNode = $html->childNodes->item(0);
-                    if ($tmpNode !== null) {
-                        /** @noinspection UnusedFunctionResultInspection */
-                        $fragment->appendChild($tmpNode);
-                    }
-                }
+            // Replace html element, preserving child nodes -> but keep the html wrapper, otherwise we got other problems ...
+            // so we replace it with "<simpleHtmlDomHtml>" and delete this at the ending.
+            $item = $newDocument->getDocument()->getElementsByTagName('html')->item(0);
+            if ($item !== null) {
                 /** @noinspection UnusedFunctionResultInspection */
-                $html->parentNode->replaceChild($fragment, $html);
+                $this->changeElementName($item, 'simpleHtmlDomHtml');
             }
 
-            // Remove body element, preserving child nodes.
+            if ($newDocument->getIsDOMDocumentCreatedWithoutPTagWrapper()) {
+                // Remove <p>-element, preserving child nodes.
+                $pElement = $newDocument->getDocument()->getElementsByTagName('p')->item(0);
+                if ($pElement instanceof \DOMElement) {
+                    $fragment = $newDocument->getDocument()->createDocumentFragment();
+
+                    while ($pElement->childNodes->length > 0) {
+                        $tmpNode = $pElement->childNodes->item(0);
+                        if ($tmpNode !== null) {
+                            /** @noinspection UnusedFunctionResultInspection */
+                            $fragment->appendChild($tmpNode);
+                        }
+                    }
+
+                    if ($pElement->parentNode !== null) {
+                        /** @noinspection UnusedFunctionResultInspection */
+                        $pElement->parentNode->replaceChild($fragment, $pElement);
+                    }
+                }
+            }
+
+            // Remove <body>-element, preserving child nodes.
             $body = $newDocument->getDocument()->getElementsByTagName('body')->item(0);
-            $fragment = $newDocument->getDocument()->createDocumentFragment();
             if ($body instanceof \DOMElement) {
+                $fragment = $newDocument->getDocument()->createDocumentFragment();
+
                 while ($body->childNodes->length > 0) {
                     $tmpNode = $body->childNodes->item(0);
                     if ($tmpNode !== null) {
@@ -760,15 +836,10 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
                         $fragment->appendChild($tmpNode);
                     }
                 }
-                /** @noinspection UnusedFunctionResultInspection */
-                $body->parentNode->replaceChild($fragment, $body);
 
-                // At this point DOMDocument still added a "<p>"-wrapper around our string,
-                // so we replace it with "<simpleHtmlDomP>" and delete this at the ending ...
-                $item = $newDocument->getDocument()->getElementsByTagName('p')->item(0);
-                if ($item !== null) {
+                if ($body->parentNode !== null) {
                     /** @noinspection UnusedFunctionResultInspection */
-                    $this->changeElementName($item, 'simpleHtmlDomP');
+                    $body->parentNode->replaceChild($fragment, $body);
                 }
             }
         }
@@ -781,21 +852,26 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
             &&
             $newDocument->getIsDOMDocumentCreatedWithoutHeadWrapper()
         ) {
-            $html = $this->node->parentNode->getElementsByTagName('head')[0];
-            if ($this->node->parentNode->ownerDocument !== null) {
+            $html = $this->node->parentNode->getElementsByTagName('head')[0] ?? null;
+
+            if (
+                $html !== null
+                &&
+                $this->node->parentNode->ownerDocument
+            ) {
                 $fragment = $this->node->parentNode->ownerDocument->createDocumentFragment();
-                if ($html !== null) {
-                    /** @var \DOMNode $html */
-                    while ($html->childNodes->length > 0) {
-                        $tmpNode = $html->childNodes->item(0);
-                        if ($tmpNode !== null) {
-                            /** @noinspection UnusedFunctionResultInspection */
-                            $fragment->appendChild($tmpNode);
-                        }
+
+                /** @var \DOMNode $html */
+                while ($html->childNodes->length > 0) {
+                    $tmpNode = $html->childNodes->item(0);
+                    if ($tmpNode !== null) {
+                        /** @noinspection UnusedFunctionResultInspection */
+                        $fragment->appendChild($tmpNode);
                     }
-                    /** @noinspection UnusedFunctionResultInspection */
-                    $html->parentNode->replaceChild($fragment, $html);
                 }
+
+                /** @noinspection UnusedFunctionResultInspection */
+                $html->parentNode->replaceChild($fragment, $html);
             }
         }
 

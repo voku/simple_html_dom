@@ -1,11 +1,17 @@
 parameters:
     reportUnmatchedIgnoredErrors: false
-    excludes_analyse:
-        - %currentWorkingDirectory%/vendor/*
-        - %currentWorkingDirectory%/tests/*
-    autoload_files:
-        - %currentWorkingDirectory%/vendor/autoload.php
+    level: max
+    paths:
+        - %currentWorkingDirectory%/src/
     ignoreErrors:
+        ## todo?
+        - '#type specified in iterable type#'
+        - '#Unsafe usage of new static#'
+        - '#getIterator\(\) should be compatible with return type#'
+        - '#has no return typehint specified#'
+        - '#extends generic class#'
+        - '#return type with generic#'
+        ## old stuff
         - '#Parameter \#1 \$var of function count expects array\|Countable, DOMNodeList given#'
         - '#on an unknown class voku\\helper\\UTF8#'
         - '#DOMNode\|null#'

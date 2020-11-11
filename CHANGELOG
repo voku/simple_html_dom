@@ -3,6 +3,25 @@
 1: add "findMultiOrFalse()" + "findOneOrFalse()"
 2: fix -> usage of e.g. "textContent"
 3: fix -> usage of special js template tags in the dom
+4: merge improvements from "ivopetkov/html5-dom-document-php -> length attribute
+5: merge improvements from "ivopetkov/html5-dom-document-php -> classList support
+6: add "nextNonWhitespaceSibling()"
+7: fix -> usage of "outerhtml"
+8: add support for "symfony/css-selector": ~5.0
+9: fix -> "save()" -> will use html() insteadof of innerHtml() now
+13: fix -> "val()" -> will now support hidden fields
+14: fix -> keep html comments, also at the beginning of the html input
+15: add "HtmlDomParser->overwriteTemplateLogicSyntaxInSpecialScriptTags()"
+16: add support for "text/x-handlebars-template"
+17: fix -> problem with auto-completion in e.g. PhpStorm
+18: small optimizations + fix phpstan reported errors
+19: add support for different special script-tags
+20: fix -> invalid html (move html that is after "</html>" before "</html>")
+21: fix -> internal invalid self-closing tags (e.g. <wbr>)
+22: fix -> invalid html (remove content before "<!doctype.*>")
+23: fix -> invalid html (remove content before "<!doctype.*>") + try to repair broken html
+24: fix -> normalize the html after replacing the node
+25: add support for PHP 8
 
 
 [PHP Simple HTML Dom v4.6.x]

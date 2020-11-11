@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace voku\helper;
 
+/**
+ * {@inheritdoc}
+ */
 abstract class AbstractSimpleHtmlDomNode extends \ArrayObject
 {
     /** @noinspection MagicMethodsValidityInspection */
@@ -11,12 +14,16 @@ abstract class AbstractSimpleHtmlDomNode extends \ArrayObject
     /**
      * @param string $name
      *
-     * @return array|null
+     * @return array|int|null
      */
     public function __get($name)
     {
         // init
         $name = \strtolower($name);
+
+        if ($name === 'length') {
+            return $this->count();
+        }
 
         if ($this->count() > 0) {
             $return = [];
@@ -41,7 +48,7 @@ abstract class AbstractSimpleHtmlDomNode extends \ArrayObject
      * @param string   $selector
      * @param int|null $idx
      *
-     * @return SimpleHtmlDomNodeInterface|SimpleHtmlDomNodeInterface[]|null
+     * @return SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>|SimpleHtmlDomNodeInterface[]|null
      */
     public function __invoke($selector, $idx = null)
     {
@@ -63,5 +70,11 @@ abstract class AbstractSimpleHtmlDomNode extends \ArrayObject
         return $html;
     }
 
+    /**
+     * @param string $selector
+     * @param int|null   $idx
+     *
+     * @return SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>|SimpleHtmlDomNodeInterface[]|null
+     */
     abstract public function find(string $selector, $idx = null);
 }
