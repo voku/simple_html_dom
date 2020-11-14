@@ -130,6 +130,23 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
         static::assertSame($html, $element->outertext);
     }
 
+    public function testHrefReplacing()
+    {
+        $origUrl = 'https://test.com?param1=1&param2=2';
+        $document = \voku\helper\HtmlDomParser::str_get_html("<a href='" . $origUrl . "'></a>");
+        $link = $document->findOne('a');
+        $link->setAttribute('href', 'https://redirect.com?rdr=' . urlencode($link->getAttribute('href')));
+
+        self::assertSame(
+            'https://redirect.com?rdr=https%3A%2F%2Ftest.com%3Fparam1%3D1%26param2%3D2',
+            $link->getAttribute('href')
+        );
+        self::assertSame(
+            "<a href=\"https://redirect.com?rdr=" . urlencode($origUrl) . "\"></a>",
+            $document->html()
+        );
+    }
+
     public function testWebComponent()
     {
         $html = '<button is="shopping-cart">Add to cart</button>';
