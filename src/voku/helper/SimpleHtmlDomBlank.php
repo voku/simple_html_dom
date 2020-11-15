@@ -156,16 +156,16 @@ class SimpleHtmlDomBlank extends AbstractSimpleHtmlDom implements \IteratorAggre
     /**
      * Set attribute value.
      *
-     * @param string      $name       <p>The name of the html-attribute.</p>
-     * @param string|null $value      <p>Set to NULL or empty string, to remove the attribute.</p>
-     * @param bool        $strict     </p>
+     * @param string      $name                     <p>The name of the html-attribute.</p>
+     * @param string|null $value                    <p>Set to NULL or empty string, to remove the attribute.</p>
+     * @param bool        $strictEmptyValueCheck </p>
      *                                $value must be NULL, to remove the attribute,
      *                                so that you can set an empty string as attribute-value e.g. autofocus=""
      *                                </p>
      *
      * @return SimpleHtmlDomInterface
      */
-    public function setAttribute(string $name, $value = null, bool $strict = false): SimpleHtmlDomInterface
+    public function setAttribute(string $name, $value = null, bool $strictEmptyValueCheck = false): SimpleHtmlDomInterface
     {
         return $this;
     }

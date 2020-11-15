@@ -22,6 +22,55 @@ final class XmlDomParserTest extends \PHPUnit\Framework\TestCase
         );
     }
 
+    public function testError()
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        $content = '<xml>broken xml<foo</xml>';
+
+        $xmlParser = new \voku\helper\XmlDomParser();
+        $xmlParser->reportXmlErrorsAsException();
+        $xmlParser->loadXml($content);
+    }
+
+    public function testErrorWithoutException()
+    {
+        $content = '<xml>broken xml<foo</xml>';
+
+        $xmlParser = new \voku\helper\XmlDomParser();
+        $xmlParser->reportXmlErrorsAsException(false);
+        /** @noinspection PhpUsageOfSilenceOperatorInspection */
+        @$xmlParser->loadXml($content);
+
+        self::assertSame('', $xmlParser->xml());
+    }
+
+    public function testXmlFind()
+    {
+        $xmlParser = new \voku\helper\XmlDomParser();
+        $xmlParser->autoRemoveXPathNamespaces();
+        $xmlParser->setCallbackBeforeCreateDom(
+            static function (string $str, \voku\helper\XmlDomParser $xmlParser) {
+                return \str_replace('array', 'arrayy', $str);
+            }
+        );
+        $xmlParser->setCallbackXPathBeforeQuery(
+            static function (string $cssSelectorString, string $xPathString, \DOMXPath $xPath, \voku\helper\XmlDomParser $xmlParser) {
+                return $cssSelectorString === 'methodsynopsis' ? '//methodsynopsis' : $xPathString;
+            }
+        );
+
+        $filename = __DIR__ . '/fixtures/test_xml_complex.xml';
+        $content = \file_get_contents($filename);
+
+        $xml = $xmlParser->loadXml($content);
+        $data = $xml->find('methodsynopsis');
+        $types = $data->find('type.union type');
+
+        static::assertSame('arrayy', $types[0]->text());
+        static::assertSame('false', $types[1]->text());
+    }
+
     public function testXmlReplace()
     {
         $filename = __DIR__ . '/fixtures/test_xml.xml';

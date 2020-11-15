@@ -34,6 +34,20 @@ namespace voku\helper;
 class HtmlDomParser extends AbstractDomParser
 {
     /**
+     * @var callable|null
+     *
+     * @phpstan-var null|callable(string $cssSelectorString, string $xPathString, \DOMXPath, \voku\helper\HtmlDomParser): string
+     */
+    private $callbackXPathBeforeQuery;
+
+    /**
+     * @var callable|null
+     *
+     * @phpstan-var null|callable(string $htmlString, \voku\helper\HtmlDomParser): string
+     */
+    private $callbackBeforeCreateDom;
+
+    /**
      * @var string[]
      */
     protected static $functionAliases = [
@@ -276,6 +290,10 @@ class HtmlDomParser extends AbstractDomParser
      */
     protected function createDOMDocument(string $html, $libXMLExtraOptions = null): \DOMDocument
     {
+        if ($this->callbackBeforeCreateDom) {
+            $html = \call_user_func($this->callbackBeforeCreateDom, $html, $this);
+        }
+
         // Remove content before <!DOCTYPE.*> because otherwise the DOMDocument can not handle the input.
         $isDOMDocumentCreatedWithDoctype = false;
         if (\stripos($html, '<!DOCTYPE') !== false) {
@@ -484,7 +502,13 @@ class HtmlDomParser extends AbstractDomParser
         $xPathQuery = SelectorConverter::toXPath($selector);
 
         $xPath = new \DOMXPath($this->document);
+
+        if ($this->callbackXPathBeforeQuery) {
+            $xPathQuery = \call_user_func($this->callbackXPathBeforeQuery, $selector, $xPathQuery, $xPath, $this);
+        }
+
         $nodesList = $xPath->query($xPathQuery);
+
         $elements = new SimpleHtmlDomNode();
 
         if ($nodesList) {
@@ -848,8 +872,7 @@ class HtmlDomParser extends AbstractDomParser
 
         try {
             if (\class_exists('\voku\helper\UTF8')) {
-                /** @noinspection PhpUndefinedClassInspection */
-                $html = UTF8::file_get_contents($filePath);
+                $html = \voku\helper\UTF8::file_get_contents($filePath);
             } else {
                 $html = \file_get_contents($filePath);
             }
@@ -1107,5 +1130,25 @@ class HtmlDomParser extends AbstractDomParser
         $this->specialScriptTags = $specialScriptTags;
 
         return $this;
+    }
+
+    /**
+     * @param callable $callbackXPathBeforeQuery
+     *
+     * @phpstan-param callable(string $cssSelectorString, string $xPathString,\DOMXPath,\voku\helper\HtmlDomParser): string $callbackXPathBeforeQuery
+     */
+    public function setCallbackXPathBeforeQuery(callable $callbackXPathBeforeQuery)
+    {
+        $this->callbackXPathBeforeQuery = $callbackXPathBeforeQuery;
+    }
+
+    /**
+     * @param callable $callbackBeforeCreateDom
+     *
+     * @phpstan-param callable(string $htmlString, \voku\helper\HtmlDomParser): string $callbackBeforeCreateDom
+     */
+    public function setCallbackBeforeCreateDom(callable $callbackBeforeCreateDom)
+    {
+        $this->callbackBeforeCreateDom = $callbackBeforeCreateDom;
     }
 }

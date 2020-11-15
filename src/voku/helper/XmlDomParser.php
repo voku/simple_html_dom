@@ -16,6 +16,30 @@ namespace voku\helper;
 class XmlDomParser extends AbstractDomParser
 {
     /**
+     * @var callable|null
+     *
+     * @phpstan-var null|callable(string $cssSelectorString, string $xPathString, \DOMXPath, \voku\helper\XmlDomParser): string
+     */
+    private $callbackXPathBeforeQuery;
+
+    /**
+     * @var callable|null
+     *
+     * @phpstan-var null|callable(string $xmlString, \voku\helper\XmlDomParser): string
+     */
+    private $callbackBeforeCreateDom;
+
+    /**
+     * @var bool
+     */
+    private $autoRemoveXPathNamespaces = false;
+
+    /**
+     * @var bool
+     */
+    private $reportXmlErrorsAsException = false;
+
+    /**
      * @param \DOMNode|SimpleXmlDomInterface|string $element HTML code or SimpleXmlDomInterface, \DOMNode
      */
     public function __construct($element = null)
@@ -112,6 +136,10 @@ class XmlDomParser extends AbstractDomParser
      */
     protected function createDOMDocument(string $xml, $libXMLExtraOptions = null): \DOMDocument
     {
+        if ($this->callbackBeforeCreateDom) {
+            $xml = \call_user_func($this->callbackBeforeCreateDom, $xml, $this);
+        }
+
         // set error level
         $internalErrors = \libxml_use_internal_errors(true);
         if (\PHP_VERSION_ID < 80000) {
@@ -133,16 +161,21 @@ class XmlDomParser extends AbstractDomParser
             $optionsXml |= $libXMLExtraOptions;
         }
 
+        if ($this->autoRemoveXPathNamespaces) {
+            $xml = $this->removeXPathNamespaces($xml);
+        }
+
         $xml = self::replaceToPreserveHtmlEntities($xml);
 
         $documentFound = false;
         $sxe = \simplexml_load_string($xml, \SimpleXMLElement::class, $optionsXml);
-        if ($sxe !== false && \count(\libxml_get_errors()) === 0) {
+        $xmlErrors = \libxml_get_errors();
+        if ($sxe !== false && \count($xmlErrors) === 0) {
             $domElementTmp = \dom_import_simplexml($sxe);
             if (
                 $domElementTmp
                 &&
-                $domElementTmp->ownerDocument
+                $domElementTmp->ownerDocument instanceof \DOMDocument
             ) {
                 $documentFound = true;
                 $this->document = $domElementTmp->ownerDocument;
@@ -159,7 +192,7 @@ class XmlDomParser extends AbstractDomParser
                 $xml = '<?xml encoding="' . $this->getEncoding() . '" ?>' . $xml;
             }
 
-            $this->document->loadXML($xml, $optionsXml);
+            $documentFound = $this->document->loadXML($xml, $optionsXml);
 
             // remove the "xml-encoding" hack
             if ($xmlHackUsed) {
@@ -171,6 +204,20 @@ class XmlDomParser extends AbstractDomParser
                         break;
                     }
                 }
+            }
+        }
+
+        if (
+            $documentFound === false
+            &&
+            \count($xmlErrors) > 0
+        ) {
+            $errorStr = 'XML-Errors: ' . \print_r($xmlErrors, true) . ' in ' . \print_r($xml, true);
+
+            if (!$this->reportXmlErrorsAsException) {
+                \trigger_error($errorStr, \E_USER_WARNING);
+            } else {
+                throw new \InvalidArgumentException($errorStr);
             }
         }
 
@@ -200,7 +247,13 @@ class XmlDomParser extends AbstractDomParser
         $xPathQuery = SelectorConverter::toXPath($selector);
 
         $xPath = new \DOMXPath($this->document);
+
+        if ($this->callbackXPathBeforeQuery) {
+            $xPathQuery = \call_user_func($this->callbackXPathBeforeQuery, $selector, $xPathQuery, $xPath, $this);
+        }
+
         $nodesList = $xPath->query($xPathQuery);
+
         $elements = new SimpleXmlDomNode();
 
         if ($nodesList) {
@@ -450,8 +503,7 @@ class XmlDomParser extends AbstractDomParser
 
         try {
             if (\class_exists('\voku\helper\UTF8')) {
-                /** @noinspection PhpUndefinedClassInspection */
-                $html = UTF8::file_get_contents($filePath);
+                $html = \voku\helper\UTF8::file_get_contents($filePath);
             } else {
                 $html = \file_get_contents($filePath);
             }
@@ -475,6 +527,16 @@ class XmlDomParser extends AbstractDomParser
     public function __invoke($selector, $idx = null)
     {
         return $this->find($selector, $idx);
+    }
+
+    /**
+     * @param string $xml
+     *
+     * @return string
+     */
+    private function removeXPathNamespaces(string $xml): string
+    {
+        return (string) \preg_replace('#xmlns:?.*="(?:.*)"#Ui', '', $xml);
     }
 
     /**
@@ -514,8 +576,7 @@ class XmlDomParser extends AbstractDomParser
 
         try {
             if (\class_exists('\voku\helper\UTF8')) {
-                /** @noinspection PhpUndefinedClassInspection */
-                $xml = UTF8::file_get_contents($filePath);
+                $xml = \voku\helper\UTF8::file_get_contents($filePath);
             } else {
                 $xml = \file_get_contents($filePath);
             }
@@ -567,5 +628,41 @@ class XmlDomParser extends AbstractDomParser
                 }
             }
         }
+    }
+
+    /**
+     * @param bool $autoRemoveXPathNamespaces
+     */
+    public function autoRemoveXPathNamespaces(bool $autoRemoveXPathNamespaces = true)
+    {
+        $this->autoRemoveXPathNamespaces = $autoRemoveXPathNamespaces;
+    }
+
+    /**
+     * @param callable $callbackXPathBeforeQuery
+     *
+     * @phpstan-param callable(string $cssSelectorString, string $xPathString, \DOMXPath, \voku\helper\XmlDomParser): string $callbackXPathBeforeQuery
+     */
+    public function setCallbackXPathBeforeQuery(callable $callbackXPathBeforeQuery)
+    {
+        $this->callbackXPathBeforeQuery = $callbackXPathBeforeQuery;
+    }
+
+    /**
+     * @param callable $callbackBeforeCreateDom
+     *
+     * @phpstan-param callable(string $xmlString, \voku\helper\XmlDomParser): string $callbackBeforeCreateDom
+     */
+    public function setCallbackBeforeCreateDom(callable $callbackBeforeCreateDom)
+    {
+        $this->callbackBeforeCreateDom = $callbackBeforeCreateDom;
+    }
+
+    /**
+     * @param bool $reportXmlErrorsAsException
+     */
+    public function reportXmlErrorsAsException(bool $reportXmlErrorsAsException = true)
+    {
+        $this->reportXmlErrorsAsException = $reportXmlErrorsAsException;
     }
 }

@@ -56,6 +56,8 @@ abstract class AbstractDomParser implements DomParserInterface
 
     /**
      * @var callable|null
+     *
+     * @phpstan-var null|callable([\voku\helper\XmlDomParser|\voku\helper\HtmlDomParser]): void
      */
     protected static $callback;
 
@@ -153,7 +155,6 @@ abstract class AbstractDomParser implements DomParserInterface
     {
         if ($multiDecodeNewHtmlEntity) {
             if (\class_exists('\voku\helper\UTF8')) {
-                /** @noinspection PhpUndefinedClassInspection */
                 $content = UTF8::rawurldecode($content, true);
             } else {
                 do {
@@ -170,7 +171,6 @@ abstract class AbstractDomParser implements DomParserInterface
         } else {
             /** @noinspection NestedPositiveIfStatementsInspection */
             if (\class_exists('\voku\helper\UTF8')) {
-                /** @noinspection PhpUndefinedClassInspection */
                 $content = UTF8::rawurldecode($content, false);
             } else {
                 $content = \rawurldecode(

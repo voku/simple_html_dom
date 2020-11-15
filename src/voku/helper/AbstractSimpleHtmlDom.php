@@ -221,13 +221,13 @@ abstract class AbstractSimpleHtmlDom
     abstract protected function replaceTextWithString($string): SimpleHtmlDomInterface;
 
     /**
-     * @param string $name
-     * @param string|null   $value
-     * @param bool   $strict
+     * @param string      $name
+     * @param string|null $value
+     * @param bool        $strictEmptyValueCheck
      *
      * @return SimpleHtmlDomInterface
      */
-    abstract public function setAttribute(string $name, $value = null, bool $strict = false): SimpleHtmlDomInterface;
+    abstract public function setAttribute(string $name, $value = null, bool $strictEmptyValueCheck = false): SimpleHtmlDomInterface;
 
     abstract public function text(): string;
 }

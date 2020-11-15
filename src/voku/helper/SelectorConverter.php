@@ -9,7 +9,9 @@ use Symfony\Component\CssSelector\CssSelectorConverter;
 class SelectorConverter
 {
     /**
-     * @var array
+     * @var string[]
+     *
+     * @phpstan-var array<string,string>
      */
     protected static $compiled = [];
 
@@ -18,7 +20,7 @@ class SelectorConverter
      *
      * @throws \RuntimeException
      *
-     * @return mixed|string
+     * @return string
      */
     public static function toXPath(string $selector)
     {

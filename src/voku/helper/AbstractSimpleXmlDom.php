@@ -202,11 +202,11 @@ abstract class AbstractSimpleXmlDom
     /**
      * @param string $name
      * @param string|null   $value
-     * @param bool   $strict
+     * @param bool   $strictEmptyValueCheck
      *
      * @return SimpleXmlDomInterface
      */
-    abstract public function setAttribute(string $name, $value = null, bool $strict = false): SimpleXmlDomInterface;
+    abstract public function setAttribute(string $name, $value = null, bool $strictEmptyValueCheck = false): SimpleXmlDomInterface;
 
     abstract public function text(): string;
 

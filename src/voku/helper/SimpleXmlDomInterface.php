@@ -322,14 +322,14 @@ interface SimpleXmlDomInterface extends \IteratorAggregate
      *
      * @param string      $name       <p>The name of the html-attribute.</p>
      * @param string|null $value      <p>Set to NULL or empty string, to remove the attribute.</p>
-     * @param bool        $strict     </p>
+     * @param bool        $strictEmptyValueCheck     </p>
      *                                $value must be NULL, to remove the attribute,
      *                                so that you can set an empty string as attribute-value e.g. autofocus=""
      *                                </p>
      *
      * @return SimpleXmlDomInterface
      */
-    public function setAttribute(string $name, $value = null, bool $strict = false): self;
+    public function setAttribute(string $name, $value = null, bool $strictEmptyValueCheck = false): self;
 
     /**
      * Get dom node's plain text.

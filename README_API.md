@@ -70,7 +70,7 @@
 </td><td><a href="#parentnode-simplehtmldominterface">parentNode</a>
 </td><td><a href="#previoussibling-simplehtmldominterfacenull">previousSibling</a>
 </td><td><a href="#removeattributestring-name-simplehtmldominterface">removeAttribute</a>
-</td></tr><tr><td><a href="#setattributestring-name-stringnull-value-bool-strict-simplehtmldominterface">setAttribute</a>
+</td></tr><tr><td><a href="#setattributestring-name-stringnull-value-bool-strictemptyvaluecheck-simplehtmldominterface">setAttribute</a>
 </td><td><a href="#text-string">text</a>
 </td><td><a href="#valstringstringnull-value-stringstringnull">val</a>
 </td></tr></table>
@@ -805,14 +805,14 @@ Remove attribute.
 
 --------
 
-## setAttribute(string $name, string|null $value, bool $strict): SimpleHtmlDomInterface
+## setAttribute(string $name, string|null $value, bool $strictEmptyValueCheck): SimpleHtmlDomInterface
 <a href="#voku-php-readme-class-methods">↑</a>
 Set attribute value.
 
 **Parameters:**
 - `string $name <p>The name of the html-attribute.</p>`
 - `string|null $value <p>Set to NULL or empty string, to remove the attribute.</p>`
-- `bool $strict </p>
+- `bool $strictEmptyValueCheck </p>
 $value must be NULL, to remove the attribute,
 so that you can set an empty string as attribute-value e.g. autofocus=""
 </p>`

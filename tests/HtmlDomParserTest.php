@@ -135,14 +135,14 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
         $origUrl = 'https://test.com?param1=1&param2=2';
         $document = \voku\helper\HtmlDomParser::str_get_html("<a href='" . $origUrl . "'></a>");
         $link = $document->findOne('a');
-        $link->setAttribute('href', 'https://redirect.com?rdr=' . urlencode($link->getAttribute('href')));
+        $link->setAttribute('href', 'https://redirect.com?rdr=' . \urlencode($link->getAttribute('href')));
 
-        self::assertSame(
+        static::assertSame(
             'https://redirect.com?rdr=https%3A%2F%2Ftest.com%3Fparam1%3D1%26param2%3D2',
             $link->getAttribute('href')
         );
-        self::assertSame(
-            "<a href=\"https://redirect.com?rdr=" . urlencode($origUrl) . "\"></a>",
+        static::assertSame(
+            '<a href="https://redirect.com?rdr=' . \urlencode($origUrl) . '"></a>',
             $document->html()
         );
     }
@@ -829,7 +829,7 @@ HTML;
                 $domain = ($parseLink['host'] ?? '');
 
                 $item->setAttribute('data-url-parse', 'done');
-                $item->setAttribute('onClick', '$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=' . \urlencode($domain) . '\');');
+                $item->setAttribute('onClick', '$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=' . $domain . '\');');
             }
 
             static::assertSame($expected, $dom->html(true), 'tested: ' . $text);
@@ -840,17 +840,29 @@ HTML;
     {
         $str = '<p>イリノイ州シカゴにて</p>';
 
-        $html = HtmlDomParser::str_get_html($str);
+        $html = new HtmlDomParser();
+        $html->setCallbackBeforeCreateDom(
+            static function (string $str, \voku\helper\HtmlDomParser $htmlParser) {
+                return \str_replace('ノ', '?', $str);
+            }
+        );
+        $html->setCallbackXPathBeforeQuery(
+            static function (string $cssSelectorString, string $xPathString, \DOMXPath $xPath, \voku\helper\HtmlDomParser $htmlParser) {
+                return $cssSelectorString === 'xxx' ? '//p' : $xPathString;
+            }
+        );
+        /** @noinspection UnusedFunctionResultInspection */
+        $html->loadHtml($str);
 
-        $html->find('p', 1)->class = 'bar';
+        $html->find('xxx', 1)->class = 'bar';
 
         static::assertSame(
-            '<p>イリノイ州シカゴにて</p>',
+            '<p>イリ?イ州シカゴにて</p>',
             $html->html()
         );
 
         static::assertSame(
-            'イリノイ州シカゴにて',
+            'イリ?イ州シカゴにて',
             $html->text()
         );
 
