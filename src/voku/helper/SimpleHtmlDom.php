@@ -338,7 +338,7 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
             $this->removeAttribute($name);
         } elseif (\method_exists($this->node, 'setAttribute')) {
             /** @noinspection UnusedFunctionResultInspection */
-            $this->node->setAttribute($name, HtmlDomParser::replaceToPreserveHtmlEntities((string)$value));
+            $this->node->setAttribute($name, HtmlDomParser::replaceToPreserveHtmlEntities((string) $value));
         }
 
         return $this;

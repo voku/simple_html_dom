@@ -22,6 +22,7 @@
 23: fix -> invalid html (remove content before "<!doctype.*>") + try to repair broken html
 24: fix -> normalize the html after replacing the node
 25: add support for PHP 8
+26: fix -> fix "setAttribute()" -> for e.g. urls
 
 
 [PHP Simple HTML Dom v4.6.x]

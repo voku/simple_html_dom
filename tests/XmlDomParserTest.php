@@ -42,7 +42,7 @@ final class XmlDomParserTest extends \PHPUnit\Framework\TestCase
         /** @noinspection PhpUsageOfSilenceOperatorInspection */
         @$xmlParser->loadXml($content);
 
-        self::assertSame('', $xmlParser->xml());
+        static::assertSame('', $xmlParser->xml());
     }
 
     public function testXmlFind()
