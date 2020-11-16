@@ -37,7 +37,19 @@ class XmlDomParser extends AbstractDomParser
     /**
      * @var bool
      */
+    private $autoRegisterXPathNamespaces = false;
+
+    /**
+     * @var bool
+     */
     private $reportXmlErrorsAsException = false;
+
+    /**
+     * @var string[]
+     *
+     * @phpstan-var array<string, string>
+     */
+    private $xPathNamespaces = [];
 
     /**
      * @param \DOMNode|SimpleXmlDomInterface|string $element HTML code or SimpleXmlDomInterface, \DOMNode
@@ -161,6 +173,15 @@ class XmlDomParser extends AbstractDomParser
             $optionsXml |= $libXMLExtraOptions;
         }
 
+        $this->xPathNamespaces = []; // reset
+        $matches = [];
+        \preg_match_all('#xmlns:(?<namespaceKey>.*)=(["\'])(?<namespaceValue>.*)\\2#Ui', $xml, $matches);
+        foreach ($matches['namespaceKey'] ?? [] as $index => $key) {
+            if ($key) {
+                $this->xPathNamespaces[\trim($key, ':')] = $matches['namespaceValue'][$index];
+            }
+        }
+
         if ($this->autoRemoveXPathNamespaces) {
             $xml = $this->removeXPathNamespaces($xml);
         }
@@ -247,6 +268,12 @@ class XmlDomParser extends AbstractDomParser
         $xPathQuery = SelectorConverter::toXPath($selector);
 
         $xPath = new \DOMXPath($this->document);
+
+        if ($this->autoRegisterXPathNamespaces) {
+            foreach ($this->xPathNamespaces as $key => $value) {
+                $xPath->registerNamespace($key, $value);
+            }
+        }
 
         if ($this->callbackXPathBeforeQuery) {
             $xPathQuery = \call_user_func($this->callbackXPathBeforeQuery, $selector, $xPathQuery, $xPath, $this);
@@ -536,7 +563,11 @@ class XmlDomParser extends AbstractDomParser
      */
     private function removeXPathNamespaces(string $xml): string
     {
-        return (string) \preg_replace('#xmlns:?.*="(?:.*)"#Ui', '', $xml);
+        foreach ($this->xPathNamespaces as $key => $value) {
+            $xml = \str_replace($key . ':', '', $xml);
+        }
+
+        return (string) \preg_replace('#xmlns:?.*=(["\'])(?:.*)\\1#Ui', '', $xml);
     }
 
     /**
@@ -632,37 +663,65 @@ class XmlDomParser extends AbstractDomParser
 
     /**
      * @param bool $autoRemoveXPathNamespaces
+     *
+     * @return $this
      */
-    public function autoRemoveXPathNamespaces(bool $autoRemoveXPathNamespaces = true)
+    public function autoRemoveXPathNamespaces(bool $autoRemoveXPathNamespaces = true): self
     {
         $this->autoRemoveXPathNamespaces = $autoRemoveXPathNamespaces;
+
+        return $this;
+    }
+
+    /**
+     * @param bool $autoRegisterXPathNamespaces
+     *
+     * @return $this
+     */
+    public function autoRegisterXPathNamespaces(bool $autoRegisterXPathNamespaces = true): self
+    {
+        $this->autoRegisterXPathNamespaces = $autoRegisterXPathNamespaces;
+
+        return $this;
     }
 
     /**
      * @param callable $callbackXPathBeforeQuery
      *
      * @phpstan-param callable(string $cssSelectorString, string $xPathString, \DOMXPath, \voku\helper\XmlDomParser): string $callbackXPathBeforeQuery
+     *
+     * @return $this
      */
-    public function setCallbackXPathBeforeQuery(callable $callbackXPathBeforeQuery)
+    public function setCallbackXPathBeforeQuery(callable $callbackXPathBeforeQuery): self
     {
         $this->callbackXPathBeforeQuery = $callbackXPathBeforeQuery;
+
+        return $this;
     }
 
     /**
      * @param callable $callbackBeforeCreateDom
      *
      * @phpstan-param callable(string $xmlString, \voku\helper\XmlDomParser): string $callbackBeforeCreateDom
+     *
+     * @return $this
      */
-    public function setCallbackBeforeCreateDom(callable $callbackBeforeCreateDom)
+    public function setCallbackBeforeCreateDom(callable $callbackBeforeCreateDom): self
     {
         $this->callbackBeforeCreateDom = $callbackBeforeCreateDom;
+
+        return $this;
     }
 
     /**
      * @param bool $reportXmlErrorsAsException
+     *
+     * @return $this
      */
-    public function reportXmlErrorsAsException(bool $reportXmlErrorsAsException = true)
+    public function reportXmlErrorsAsException(bool $reportXmlErrorsAsException = true): self
     {
         $this->reportXmlErrorsAsException = $reportXmlErrorsAsException;
+
+        return $this;
     }
 }

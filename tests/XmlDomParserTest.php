@@ -71,6 +71,49 @@ final class XmlDomParserTest extends \PHPUnit\Framework\TestCase
         static::assertSame('false', $types[1]->text());
     }
 
+    public function testXmlFindV2()
+    {
+        $xmlParser = new \voku\helper\XmlDomParser();
+        $xmlParser->autoRemoveXPathNamespaces();
+
+        $filename = __DIR__ . '/fixtures/test_xml_complex_v2.xml';
+        $content = \file_get_contents($filename);
+
+        $xml = $xmlParser->loadXml($content);
+        $data = $xml->find('classsynopsisinfo');
+        $classname = $data->find('classname');
+
+        static::assertSame('Closure', $classname[0]->text());
+    }
+
+    public function testXmlFindV21()
+    {
+        $xmlParser = new \voku\helper\XmlDomParser();
+
+        $filename = __DIR__ . '/fixtures/test_xml_complex_v2.xml';
+        $content = \file_get_contents($filename);
+
+        $xml = $xmlParser->loadXml($content);
+
+        static::assertTrue(\strpos($xml->xml(), 'classname>Closure</classname>') !== false);
+    }
+
+    public function testXmlFindV3()
+    {
+        $xmlParser = new \voku\helper\XmlDomParser();
+        $xmlParser->autoRemoveXPathNamespaces();
+        $xmlParser->reportXmlErrorsAsException();
+
+        $filename = __DIR__ . '/fixtures/test_xml_complex_v3.xml';
+        $content = \file_get_contents($filename);
+
+        $xml = $xmlParser->loadXml($content);
+        $data = $xml->find('methodsynopsis');
+        $types = $data->find('type');
+
+        static::assertSame('int', $types[0]->text());
+    }
+
     public function testXmlReplace()
     {
         $filename = __DIR__ . '/fixtures/test_xml.xml';
