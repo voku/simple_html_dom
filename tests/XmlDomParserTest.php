@@ -112,6 +112,14 @@ final class XmlDomParserTest extends \PHPUnit\Framework\TestCase
         $types = $data->find('type');
 
         static::assertSame('int', $types[0]->text());
+
+        // ---
+
+        $xml = $xmlParser->loadXml($content);
+        $data = $xml->find('methodsynopsis');
+        $types = $data->find('descendant-or-self::type');
+
+        static::assertSame('int', $types[0]->text());
     }
 
     public function testXmlReplace()

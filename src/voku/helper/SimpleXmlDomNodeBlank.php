@@ -21,7 +21,7 @@ class SimpleXmlDomNodeBlank extends AbstractSimpleXmlDomNode implements SimpleXm
     }
 
     /**
-     * Find nodes with a CSS selector.
+     * Find nodes with a CSS or xPath selector.
      *
      * @param string $selector
      *
@@ -33,7 +33,7 @@ class SimpleXmlDomNodeBlank extends AbstractSimpleXmlDomNode implements SimpleXm
     }
 
     /**
-     * Find nodes with a CSS selector.
+     * Find nodes with a CSS or xPath selector.
      *
      * @param string $selector
      *
@@ -45,7 +45,7 @@ class SimpleXmlDomNodeBlank extends AbstractSimpleXmlDomNode implements SimpleXm
     }
 
     /**
-     * Find one node with a CSS selector.
+     * Find one node with a CSS or xPath selector.
      *
      * @param string $selector
      *

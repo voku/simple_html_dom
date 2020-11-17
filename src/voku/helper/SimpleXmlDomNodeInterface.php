@@ -42,7 +42,7 @@ interface SimpleXmlDomNodeInterface extends \IteratorAggregate
     public function count();
 
     /**
-     * Find list of nodes with a CSS selector.
+     * Find list of nodes with a CSS or xPath selector.
      *
      * @param string $selector
      * @param int    $idx
@@ -52,7 +52,7 @@ interface SimpleXmlDomNodeInterface extends \IteratorAggregate
     public function find(string $selector, $idx = null);
 
     /**
-     * Find nodes with a CSS selector.
+     * Find nodes with a CSS or xPath selector.
      *
      * @param string $selector
      *
@@ -61,7 +61,7 @@ interface SimpleXmlDomNodeInterface extends \IteratorAggregate
     public function findMulti(string $selector): self;
 
     /**
-     * Find nodes with a CSS selector.
+     * Find nodes with a CSS or xPath selector.
      *
      * @param string $selector
      *
@@ -70,7 +70,7 @@ interface SimpleXmlDomNodeInterface extends \IteratorAggregate
     public function findMultiOrFalse(string $selector);
 
     /**
-     * Find one node with a CSS selector.
+     * Find one node with a CSS or xPath selector.
      *
      * @param string $selector
      *
@@ -79,7 +79,7 @@ interface SimpleXmlDomNodeInterface extends \IteratorAggregate
     public function findOne(string $selector);
 
     /**
-     * Find one node with a CSS selector or false, if no element is found.
+     * Find one node with a CSS or xPath selector or false, if no element is found.
      *
      * @param string $selector
      *

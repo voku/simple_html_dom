@@ -256,7 +256,7 @@ class XmlDomParser extends AbstractDomParser
     }
 
     /**
-     * Find list of nodes with a CSS selector.
+     * Find list of nodes with a CSS or xPath selector.
      *
      * @param string   $selector
      * @param int|null $idx
@@ -265,7 +265,7 @@ class XmlDomParser extends AbstractDomParser
      */
     public function find(string $selector, $idx = null)
     {
-        $xPathQuery = SelectorConverter::toXPath($selector);
+        $xPathQuery = SelectorConverter::toXPath($selector, true);
 
         $xPath = new \DOMXPath($this->document);
 
@@ -308,7 +308,7 @@ class XmlDomParser extends AbstractDomParser
     }
 
     /**
-     * Find nodes with a CSS selector.
+     * Find nodes with a CSS or xPath selector.
      *
      * @param string $selector
      *
@@ -320,7 +320,7 @@ class XmlDomParser extends AbstractDomParser
     }
 
     /**
-     * Find nodes with a CSS selector or false, if no element is found.
+     * Find nodes with a CSS or xPath selector or false, if no element is found.
      *
      * @param string $selector
      *
@@ -338,7 +338,7 @@ class XmlDomParser extends AbstractDomParser
     }
 
     /**
-     * Find one node with a CSS selector.
+     * Find one node with a CSS or xPath selector.
      *
      * @param string $selector
      *
@@ -350,7 +350,7 @@ class XmlDomParser extends AbstractDomParser
     }
 
     /**
-     * Find one node with a CSS selector or false, if no element is found.
+     * Find one node with a CSS or xPath selector or false, if no element is found.
      *
      * @param string $selector
      *
