@@ -32,7 +32,7 @@ foreach ($html->find('span.gb1') as $e) {
     echo $e->outertext . '<br>';
 }
 
-// find all td tags with attribite align=center
+// find all td tags with attribute align=center
 foreach ($html->find('td[align=center]') as $e) {
     echo $e->innertext . '<br>';
 }
