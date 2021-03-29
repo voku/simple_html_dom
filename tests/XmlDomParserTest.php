@@ -45,6 +45,111 @@ final class XmlDomParserTest extends \PHPUnit\Framework\TestCase
         static::assertSame('', $xmlParser->xml());
     }
 
+    public function testAmazonCxml()
+    {
+        $xml = '<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE cXML SYSTEM "http://xml.cxml.org/schemas/cXML/1.2.024/cXML.dtd">
+<cXML payloadID="312312312.452.5972@amazon.com" timestamp="2021-03-17T14:45:25.845Z">
+  <Header>
+    <From>
+      <Credential domain="DUNS">
+        <Identity>123456</Identity>
+      </Credential>
+      <Credential domain="NetworkId">
+        <Identity>Amazon</Identity>
+      </Credential>
+    </From>
+    <To>
+      <Credential domain="NetworkId">
+        <Identity>312312312</Identity>
+      </Credential>
+    </To>
+    <Sender>
+      <Credential domain="DUNS">
+        <Identity>123456</Identity>
+      </Credential>
+      <Credential domain="NetworkId">
+        <Identity>Amazon</Identity>
+      </Credential>
+      <UserAgent>Amazon LLC eProcurement Application</UserAgent>
+    </Sender>
+  </Header>
+  <Message>
+    <PunchOutOrderMessage>
+      <BuyerCookie>1234567</BuyerCookie>
+      <PunchOutOrderMessageHeader operationAllowed="create">
+        <Total>
+          <Money currency="EUR">0.39</Money>
+        </Total>
+        <Shipping>
+          <Money currency="EUR">0.00</Money>
+          <Description xml:lang="de-DE">Versandkosten (Versandsteuern ausgeschlossen).</Description>
+        </Shipping>
+        <Tax>
+          <Money currency="EUR">0.07</Money>
+          <Description xml:lang="de-DE">Steuern, einschließlich Steuer für Versand</Description>
+        </Tax>
+      </PunchOutOrderMessageHeader>
+      <ItemIn quantity="1">
+        <ItemID>
+          <SupplierPartID>B000KJR1A8</SupplierPartID>
+          <SupplierPartAcurrencyuxiliaryID>260-22222-111111,1</SupplierPartAcurrencyuxiliaryID>
+        </ItemID>
+        <ItemDetail>
+          <UnitPrice>
+            <Money currency="EUR">0.39</Money>
+          </UnitPrice>
+          <Description xml:lang="de-DE">Schneider Schreibgeräte Kugelschreiber K 15, Druckmechanik, M, Grün, Farbe des Schaftes: grün</Description>
+          <UnitOfMeasure>EA</UnitOfMeasure>
+          <Classification domain="UNSPSC">44121704</Classification>
+          <ManufacturerPartID>3084</ManufacturerPartID>
+          <ManufacturerName>Stella</ManufacturerName>
+          <Extrinsic name="soldBy">Amazon</Extrinsic>
+          <Extrinsic name="fulfilledBy">Amazon</Extrinsic>
+          <Extrinsic name="category">OFFICE_PRODUCTS</Extrinsic>
+          <Extrinsic name="subCategory">WRITING_INSTRUMENT</Extrinsic>
+          <Extrinsic name="itemCondition">New</Extrinsic>
+          <Extrinsic name="qualifiedOffer">true</Extrinsic>
+          <Extrinsic name="UPC">NA</Extrinsic>
+          <Extrinsic name="detailPageURL">https://www.amazon.de/dp/B000KJR1A8</Extrinsic>
+          <Extrinsic name="ean">4052305136881</Extrinsic>
+          <Extrinsic name="preference">default</Extrinsic>
+        </ItemDetail>
+        <Shipping>
+          <Money currency="EUR">0.00</Money>
+          <Description xml:lang="de-DE">Versandkosten (Versandsteuern ausgeschlossen).</Description>
+        </Shipping>
+        <Tax>
+          <Money currency="EUR">0.07</Money>
+          <Description xml:lang="de-DE">Steuern, einschließlich Steuer für Versand</Description>
+          <TaxDetail category="vat" percentageRate="19.00" purpose="subtotalTax">
+            <TaxAmount>
+              <Money currency="EUR">0.07</Money>
+            </TaxAmount>
+          </TaxDetail>
+        </Tax>
+      </ItemIn>
+    </PunchOutOrderMessage>
+  </Message>
+</cXML>';
+
+        $xmlParser = new \voku\helper\XmlDomParser();
+
+        // "Attempt to load network entity"
+        $xml = \preg_replace('#cXML SYSTEM "http://xml.cxml.org/schemas/cXML/[\d.]*/cXML.dtd"#', 'cXML', $xml);
+
+        $xmlParsed = $xmlParser->loadXml($xml);
+
+        $items = $xmlParsed->findMultiOrFalse('//ItemIn');
+        if ($items !== false) {
+            foreach ($items as $item) {
+                static::assertSame('1', $item->getAttribute('quantity'));
+                static::assertSame('B000KJR1A8', $item->findOne('//SupplierPartID')->text());
+                static::assertSame('Schneider Schreibgeräte Kugelschreiber K 15, Druckmechanik, M, Grün, Farbe des Schaftes: grün', $item->findOne('//ItemDetail //Description')->text());
+            }
+        }
+    }
+
     public function testXmlFind()
     {
         $xmlParser = new \voku\helper\XmlDomParser();
