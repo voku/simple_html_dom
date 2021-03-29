@@ -25,9 +25,6 @@ jobs:
             8.0
         ]
         composer: [basic]
-        include:
-          - php: 7.3
-            composer: lowest
     timeout-minutes: 10
     steps:
       - name: Checkout code
