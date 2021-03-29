@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/voku/simple_html_dom.svg?branch=master)](https://travis-ci.com/voku/simple_html_dom)
+[![Build Status](https://github.com/voku/simple_html_dom/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/voku/simple_html_dom/actions)
 [![Coverage Status](https://coveralls.io/repos/github/voku/simple_html_dom/badge.svg?branch=master)](https://coveralls.io/github/voku/simple_html_dom?branch=master)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/3290fdc35c8f49ad9abdf053582466eb)](https://www.codacy.com/app/voku/simple_html_dom?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=voku/simple_html_dom&amp;utm_campaign=Badge_Grade)
 [![Latest Stable Version](https://poser.pugx.org/voku/simple_html_dom/v/stable)](https://packagist.org/packages/voku/simple_html_dom) 
