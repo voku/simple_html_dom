@@ -706,7 +706,6 @@ class SimpleXmlDom extends AbstractSimpleXmlDom implements \IteratorAggregate, S
                 if ($options instanceof SimpleXmlDomNode) {
                     foreach ($options as $option) {
                         if ($this->hasAttribute('checked')) {
-                            /** @noinspection UnnecessaryCastingInspection */
                             $valuesFromDom[] = (string) $option->getAttribute('value');
                         }
                     }
