@@ -405,6 +405,16 @@ class SimpleXmlDomBlank extends AbstractSimpleXmlDom implements \IteratorAggrega
     }
 
     /**
+     * Returns the previous sibling of node.
+     *
+     * @return null
+     */
+    public function previousNonWhitespaceSibling()
+    {
+        return null;
+    }
+
+    /**
      * @param string|string[]|null $value <p>
      *                                    null === get the current input value
      *                                    text === set a new input value

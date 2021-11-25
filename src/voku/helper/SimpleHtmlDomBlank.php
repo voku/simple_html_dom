@@ -373,6 +373,16 @@ class SimpleHtmlDomBlank extends AbstractSimpleHtmlDom implements \IteratorAggre
     }
 
     /**
+     * Returns the previous sibling of node.
+     *
+     * @return null
+     */
+    public function previousNonWhitespaceSibling()
+    {
+        return null;
+    }
+
+    /**
      * Returns the parent of node.
      *
      * @return SimpleHtmlDomInterface

@@ -684,7 +684,6 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
         return new static($node);
     }
 
-
     /**
      * Returns the previous sibling of node.
      *

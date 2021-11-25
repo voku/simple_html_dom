@@ -309,6 +309,13 @@ interface SimpleXmlDomInterface extends \IteratorAggregate
     public function previousSibling();
 
     /**
+     * Returns the previous sibling of node.
+     *
+     * @return SimpleXmlDomInterface|null
+     */
+    public function previousNonWhitespaceSibling();
+
+    /**
      * Remove attribute.
      *
      * @param string $name <p>The name of the html-attribute.</p>
