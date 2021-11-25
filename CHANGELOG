@@ -26,7 +26,7 @@
 27: fix -> "XmlDomParser" -> add option for "auto-remove-xpath-namespace"
 28: fix -> allow CSS and xPath syntax for XmlDomParser
 29: use github actions
-
+30: add "previousNonWhitespaceSibling()"
 
 [PHP Simple HTML Dom v4.6.x]
 1: add an XmlDomParser Class + simple tests
