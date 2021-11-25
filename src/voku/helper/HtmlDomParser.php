@@ -211,7 +211,7 @@ class HtmlDomParser extends AbstractDomParser
      * @throws \BadMethodCallException
      * @throws \RuntimeException
      *
-     * @return HtmlDomParser
+     * @return static
      */
     public static function __callStatic($name, $arguments)
     {
@@ -835,7 +835,7 @@ class HtmlDomParser extends AbstractDomParser
      * @param string   $html
      * @param int|null $libXMLExtraOptions
      *
-     * @return HtmlDomParser
+     * @return $this
      */
     public function loadHtml(string $html, $libXMLExtraOptions = null): DomParserInterface
     {
@@ -855,7 +855,7 @@ class HtmlDomParser extends AbstractDomParser
      *
      * @throws \RuntimeException
      *
-     * @return HtmlDomParser
+     * @return $this
      */
     public function loadHtmlFile(string $filePath, $libXMLExtraOptions = null): DomParserInterface
     {
@@ -1087,7 +1087,7 @@ class HtmlDomParser extends AbstractDomParser
     /**
      * @param bool $keepBrokenHtml
      *
-     * @return HtmlDomParser
+     * @return $this
      */
     public function useKeepBrokenHtml(bool $keepBrokenHtml): DomParserInterface
     {
@@ -1099,7 +1099,7 @@ class HtmlDomParser extends AbstractDomParser
     /**
      * @param string[] $templateLogicSyntaxInSpecialScriptTags
      *
-     * @return HtmlDomParser
+     * @return $this
      */
     public function overwriteTemplateLogicSyntaxInSpecialScriptTags(array $templateLogicSyntaxInSpecialScriptTags): DomParserInterface
     {
@@ -1117,7 +1117,7 @@ class HtmlDomParser extends AbstractDomParser
     /**
      * @param string[] $specialScriptTags
      *
-     * @return HtmlDomParser
+     * @return $this
      */
     public function overwriteSpecialScriptTags(array $specialScriptTags): DomParserInterface
     {
@@ -1136,19 +1136,27 @@ class HtmlDomParser extends AbstractDomParser
      * @param callable $callbackXPathBeforeQuery
      *
      * @phpstan-param callable(string $cssSelectorString, string $xPathString,\DOMXPath,\voku\helper\HtmlDomParser): string $callbackXPathBeforeQuery
+     *
+     * @return $this
      */
-    public function setCallbackXPathBeforeQuery(callable $callbackXPathBeforeQuery)
+    public function setCallbackXPathBeforeQuery(callable $callbackXPathBeforeQuery): self
     {
         $this->callbackXPathBeforeQuery = $callbackXPathBeforeQuery;
+
+        return $this;
     }
 
     /**
      * @param callable $callbackBeforeCreateDom
      *
      * @phpstan-param callable(string $htmlString, \voku\helper\HtmlDomParser): string $callbackBeforeCreateDom
+     *
+     * @return $this
      */
-    public function setCallbackBeforeCreateDom(callable $callbackBeforeCreateDom)
+    public function setCallbackBeforeCreateDom(callable $callbackBeforeCreateDom): self
     {
         $this->callbackBeforeCreateDom = $callbackBeforeCreateDom;
+
+        return $this;
     }
 }

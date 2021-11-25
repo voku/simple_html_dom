@@ -9,6 +9,8 @@ interface DomParserInterface
      *
      * @param string   $selector
      * @param int|null $idx
+     *
+     * @return mixed
      */
     public function find(string $selector, $idx = null);
 
@@ -16,6 +18,8 @@ interface DomParserInterface
      * Find nodes with a CSS selector.
      *
      * @param string $selector
+     *
+     * @return mixed
      */
     public function findMulti(string $selector);
 
@@ -23,6 +27,8 @@ interface DomParserInterface
      * Find nodes with a CSS selector or false, if no element is found.
      *
      * @param string $selector
+     *
+     * @return mixed
      */
     public function findMultiOrFalse(string $selector);
 
@@ -30,6 +36,8 @@ interface DomParserInterface
      * Find one node with a CSS selector.
      *
      * @param string $selector
+     *
+     * @return mixed
      */
     public function findOne(string $selector);
 
@@ -37,6 +45,8 @@ interface DomParserInterface
      * Find one node with a CSS selector or false, if no element is found.
      *
      * @param string $selector
+     *
+     * @return mixed
      */
     public function findOneOrFalse(string $selector);
 
@@ -57,6 +67,8 @@ interface DomParserInterface
      * Return elements by ".class".
      *
      * @param string $class
+     *
+     * @return mixed
      */
     public function getElementByClass(string $class);
 
@@ -64,6 +76,8 @@ interface DomParserInterface
      * Return element by #id.
      *
      * @param string $id
+     *
+     * @return mixed
      */
     public function getElementById(string $id);
 
@@ -71,6 +85,8 @@ interface DomParserInterface
      * Return element by tag name.
      *
      * @param string $name
+     *
+     * @return mixed
      */
     public function getElementByTagName(string $name);
 
@@ -79,6 +95,8 @@ interface DomParserInterface
      *
      * @param string   $id
      * @param int|null $idx
+     *
+     * @return mixed
      */
     public function getElementsById(string $id, $idx = null);
 
@@ -87,6 +105,8 @@ interface DomParserInterface
      *
      * @param string   $name
      * @param int|null $idx
+     *
+     * @return mixed
      */
     public function getElementsByTagName(string $name, $idx = null);
 
@@ -150,6 +170,8 @@ interface DomParserInterface
 
     /**
      * @param callable $functionName
+     *
+     * @return mixed
      */
     public function set_callback($functionName);
 

@@ -57,7 +57,7 @@ abstract class AbstractDomParser implements DomParserInterface
     /**
      * @var callable|null
      *
-     * @phpstan-var null|callable([\voku\helper\XmlDomParser|\voku\helper\HtmlDomParser]): void
+     * @phpstan-var null|callable(\voku\helper\XmlDomParser|\voku\helper\HtmlDomParser): void
      */
     protected static $callback;
 
@@ -190,6 +190,8 @@ abstract class AbstractDomParser implements DomParserInterface
      *
      * @param string   $selector
      * @param int|null $idx
+     *
+     * @return mixed
      */
     abstract public function find(string $selector, $idx = null);
 
@@ -197,6 +199,8 @@ abstract class AbstractDomParser implements DomParserInterface
      * Find nodes with a CSS selector.
      *
      * @param string $selector
+     *
+     * @return mixed
      */
     abstract public function findMulti(string $selector);
 
@@ -204,6 +208,8 @@ abstract class AbstractDomParser implements DomParserInterface
      * Find nodes with a CSS selector or false, if no element is found.
      *
      * @param string $selector
+     *
+     * @return mixed
      */
     abstract public function findMultiOrFalse(string $selector);
 
@@ -211,6 +217,8 @@ abstract class AbstractDomParser implements DomParserInterface
      * Find one node with a CSS selector.
      *
      * @param string $selector
+     *
+     * @return mixed
      */
     abstract public function findOne(string $selector);
 
@@ -218,6 +226,8 @@ abstract class AbstractDomParser implements DomParserInterface
      * Find one node with a CSS selector or false, if no element is found.
      *
      * @param string $selector
+     *
+     * @return mixed
      */
     abstract public function findOneOrFalse(string $selector);
 
@@ -321,6 +331,10 @@ abstract class AbstractDomParser implements DomParserInterface
 
     /**
      * @param callable $functionName
+     *
+     * @phpstan-param callable(\voku\helper\XmlDomParser|\voku\helper\HtmlDomParser): void $functionName
+     *
+     * @return void
      */
     public function set_callback($functionName)
     {
@@ -389,6 +403,8 @@ abstract class AbstractDomParser implements DomParserInterface
      * workaround for bug: https://bugs.php.net/bug.php?id=74628
      *
      * @param string $html
+     *
+     * @return void
      */
     protected function html5FallbackForScriptTags(string &$html)
     {
