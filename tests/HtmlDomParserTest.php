@@ -843,7 +843,8 @@ HTML;
      *
      * @return string
      */
-    private function mergeHtmlAttributes(string $html, string $optionStr, string $htmlCssSelector): string {
+    private function mergeHtmlAttributes(string $html, string $optionStr, string $htmlCssSelector): string
+    {
         if (!$optionStr) {
             return $html;
         }
@@ -896,7 +897,8 @@ HTML;
         return $domElement->html();
     }
 
-    public function testMergeHmlAttributes() {
+    public function testMergeHmlAttributes()
+    {
         $html = '<span id="test123" class="glyphicon-style vdmg-icon--shopping-cart" autocomplete="off" style="color: red;" ></span>';
 
         $newHtml = $this->mergeHtmlAttributes($html, 'class="foo" style="background-color: #DDDDDD;"', '#test123');
