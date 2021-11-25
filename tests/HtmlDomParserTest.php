@@ -90,7 +90,7 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
         $domInner = HtmlDomParser::str_get_html($headerSearchTemplateHtml);
         $h1 = $domInner->findOneOrFalse('h1');
         static::assertSame(
-            '<h1 class="hd"><a href="http://www.11st.co.kr" data-ga-event-category="PC_GNB" data-ga-event-action="»ó´Ü¿µ¿ª_·Î°í" data-ga-event-label="">11¹ø°¡</a></h1>',
+            '<h1 class="hd"><a href="http://www.11st.co.kr" data-ga-event-category="PC_GNB" data-ga-event-action="Âó´Ü¿µ¿ª_·Î°í" data-ga-event-label="">11¹ø°¡</a></h1>',
             $h1->html()
         );
     }
@@ -834,6 +834,77 @@ HTML;
 
             static::assertSame($expected, $dom->html(true), 'tested: ' . $text);
         }
+    }
+
+    /**
+     * @param string $html
+     * @param string $optionStr
+     * @param string $htmlCssSelector
+     *
+     * @return string
+     */
+    private function mergeHtmlAttributes(string $html, string $optionStr, string $htmlCssSelector): string {
+        if (!$optionStr) {
+            return $html;
+        }
+
+        $dom = \voku\helper\HtmlDomParser::str_get_html($html);
+        $domNew = \voku\helper\HtmlDomParser::str_get_html('<textarea ' . $optionStr . '></textarea>');
+
+        $domElement = $dom->findOneOrFalse($htmlCssSelector);
+        if ($domElement === false) {
+            return $html;
+        }
+        $attributes = $domElement->getAllAttributes();
+        if (!$attributes) {
+            return $html;
+        }
+
+        $domElementNew = $domNew->findOneOrFalse('textarea');
+        if ($domElementNew === false) {
+            return $html;
+        }
+        $attributesNew = $domElementNew->getAllAttributes();
+        if (!$attributesNew) {
+            return $html;
+        }
+
+        foreach ($attributesNew as $attributeNameNew => $attributeValueNew) {
+            $attributeNameNew = \strtolower($attributeNameNew);
+
+            if (
+                $attributeNameNew === 'class'
+                ||
+                $attributeNameNew === 'style'
+                ||
+                strpos($attributeNameNew, 'on') === 0
+            ) {
+                if (isset($attributes[$attributeNameNew])) {
+                    $attributes[$attributeNameNew] .= ' ' . $attributeValueNew;
+                } else {
+                    $attributes[$attributeNameNew] = $attributeValueNew;
+                }
+            } else {
+                $attributes[$attributeNameNew] = $attributeValueNew;
+            }
+        }
+
+        foreach ($attributes as $attributeName => $attributeValue) {
+            $domElement->setAttribute($attributeName, $attributeValue);
+        }
+
+        return $domElement->html();
+    }
+
+    public function testMergeHmlAttributes() {
+        $html = '<span id="test123" class="glyphicon-style vdmg-icon--shopping-cart" autocomplete="off" style="color: red;" ></span>';
+
+        $newHtml = $this->mergeHtmlAttributes($html, 'class="foo" style="background-color: #DDDDDD;"', '#test123');
+
+        static::assertSame(
+            '<span id="test123" class="glyphicon-style vdmg-icon--shopping-cart foo" autocomplete="off" style="color: red; background-color: #DDDDDD;"></span>',
+            $newHtml
+        );
     }
 
     public function testWithUTF8()
