@@ -265,7 +265,7 @@ class XmlDomParser extends AbstractDomParser
      */
     public function find(string $selector, $idx = null)
     {
-        $xPathQuery = SelectorConverter::toXPath($selector, true);
+        $xPathQuery = SelectorConverter::toXPath($selector, true, false);
 
         $xPath = new \DOMXPath($this->document);
 
