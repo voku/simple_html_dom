@@ -53,6 +53,11 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
         return $this->getHtmlDomParser()->find($selector, $idx);
     }
 
+    public function getTag(): string
+    {
+        return $this->tag;
+    }
+
     /**
      * Returns an array of attributes.
      *
@@ -155,6 +160,21 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
             $this->node->removeAttribute($name);
         }
 
+        return $this;
+    }
+
+    /**
+     * Remove all attributes
+     *
+     * @return SimpleHtmlDomInterface
+     */
+    public function removeAttributes(): SimpleHtmlDomInterface
+    {
+        if ($this->hasAttributes()) {
+            foreach ($this->getAllAttributes() as $key=>$value) {
+                $this->removeAttribute($key);
+            }
+        }
         return $this;
     }
 

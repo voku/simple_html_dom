@@ -45,6 +45,11 @@ class SimpleHtmlDomBlank extends AbstractSimpleHtmlDom implements \IteratorAggre
         return new SimpleHtmlDomNodeBlank();
     }
 
+    public function getTag(): string
+    {
+        return "";
+    }
+
     /**
      * Returns an array of attributes.
      *
@@ -119,6 +124,16 @@ class SimpleHtmlDomBlank extends AbstractSimpleHtmlDom implements \IteratorAggre
      * @return SimpleHtmlDomInterface
      */
     public function removeAttribute(string $name): SimpleHtmlDomInterface
+    {
+        return $this;
+    }
+
+    /**
+     * Remove all attributes
+     *
+     * @return SimpleHtmlDomBlank
+     */
+    public function removeAttributes(): SimpleHtmlDomInterface
     {
         return $this;
     }
