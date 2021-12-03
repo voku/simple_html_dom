@@ -15,7 +15,7 @@ class AuxiliarFunctions extends TestCase
     public function testRemoveAttributes()
     {
         $parser= HtmlDomParser::str_get_html('<body><span id=\'hello\' class=\'hello\'>Hello</span></body>');
-        static::assertSame('<span>Hello</span>', $parser->findOne("span")->removeAttributes()->outerHtml());
+        static::assertSame('<span>Hello</span>', $parser->findOne('span')->removeAttributes()->outerHtml());
     }
 
     public function removeUsingDelete()
