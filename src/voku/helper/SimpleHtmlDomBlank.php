@@ -457,4 +457,14 @@ class SimpleHtmlDomBlank extends AbstractSimpleHtmlDom implements \IteratorAggre
     {
         return '';
     }
+
+    /**
+     * Delete
+     *
+     * @return void
+     */
+    public function delete()
+    {
+        $this->outertext="";
+    }
 }

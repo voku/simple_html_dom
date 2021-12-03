@@ -378,4 +378,11 @@ interface SimpleHtmlDomInterface extends \IteratorAggregate
      * @return string|string[]|null
      */
     public function val($value = null);
+
+    /**
+     * Delete
+     *
+     * @return mixed
+     */
+    public function delete();
 }
