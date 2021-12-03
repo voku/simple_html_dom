@@ -4,7 +4,7 @@
 use PHPUnit\Framework\TestCase;
 use voku\helper\HtmlDomParser;
 
-class AuxiliarFunctions extends TestCase
+class AuxiliarFunctionsTest extends TestCase
 {
     public function testGetTag()
     {
