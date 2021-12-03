@@ -171,8 +171,8 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
     public function removeAttributes(): SimpleHtmlDomInterface
     {
         if ($this->hasAttributes()) {
-            foreach ($this->getAllAttributes() as $key=>$value) {
-                $this->removeAttribute($key);
+            foreach (array_keys($this->getAllAttributes()) as $attribute) {
+                $this->removeAttribute($attribute);
             }
         }
         return $this;
