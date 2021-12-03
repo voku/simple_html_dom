@@ -47,7 +47,7 @@ class SimpleHtmlDomBlank extends AbstractSimpleHtmlDom implements \IteratorAggre
 
     public function getTag(): string
     {
-        return "";
+        return '';
     }
 
     /**
@@ -465,6 +465,6 @@ class SimpleHtmlDomBlank extends AbstractSimpleHtmlDom implements \IteratorAggre
      */
     public function delete()
     {
-        $this->outertext="";
+        $this->outertext='';
     }
 }

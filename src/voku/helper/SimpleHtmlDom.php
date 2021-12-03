@@ -999,6 +999,6 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
      */
     public function delete()
     {
-        $this->outertext="";
+        $this->outertext='';
     }
 }
