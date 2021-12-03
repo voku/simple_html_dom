@@ -4,7 +4,7 @@
 use PHPUnit\Framework\TestCase;
 use voku\helper\HtmlDomParser;
 
-class AuxiliarFunctionsTest extends TestCase
+final class AuxiliarFunctionsTest extends TestCase
 {
     public function testGetTag()
     {
@@ -18,7 +18,7 @@ class AuxiliarFunctionsTest extends TestCase
         static::assertSame('<span>Hello</span>', $parser->findOne('span')->removeAttributes()->outerHtml());
     }
 
-    public function removeUsingDelete()
+    public function testRemoveUsingDelete()
     {
         $parser= HtmlDomParser::str_get_html("<body><span id='hello' class='hello'>Hello</span></body>");
         $parser->findOne('span')->delete();
