@@ -89,10 +89,19 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
 
         $domInner = HtmlDomParser::str_get_html($headerSearchTemplateHtml);
         $h1 = $domInner->findOneOrFalse('h1');
-        static::assertSame(
-            '<h1 class="hd"><a href="http://www.11st.co.kr" data-ga-event-category="PC_GNB" data-ga-event-action="»ó´Ü¿µ¿ª_·Î°í" data-ga-event-label="">11¹ø°¡</a></h1>',
-            $h1->html()
-        );
+
+        if (PHP_VERSION_ID >= 80100) {
+            static::assertSame(
+                '<h1 class="hd"><a href="http://www.11st.co.kr" data-ga-event-category="PC_GNB" data-ga-event-action="Âó´Ü¿µ¿ª_·Î°í" data-ga-event-label="">11¹ø°¡</a></h1>',
+                $h1->html()
+            );
+        } else {
+            static::assertSame(
+                '<h1 class="hd"><a href="http://www.11st.co.kr" data-ga-event-category="PC_GNB" data-ga-event-action="»ó´Ü¿µ¿ª_·Î°í" data-ga-event-label="">11¹ø°¡</a></h1>',
+                $h1->html()
+            );
+        }
+
     }
 
     public function testMethodNotExist()
