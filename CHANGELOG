@@ -27,6 +27,8 @@
 28: fix -> allow CSS and xPath syntax for XmlDomParser
 29: use github actions
 30: add "previousNonWhitespaceSibling()"
+31: add "SimpleHtmlDom->delete()" & "SimpleHtmlDom->getTag()" thanks @marioquartz
+    add support for "symfony/css-selector": ~6.0 thanks @dora38
 
 [PHP Simple HTML Dom v4.6.x]
 1: add an XmlDomParser Class + simple tests
