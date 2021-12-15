@@ -89,6 +89,13 @@ interface SimpleHtmlDomInterface extends \IteratorAggregate
     public function __toString();
 
     /**
+     * Return the tag of node
+     *
+     * @return string
+     */
+    public function getTag():string;
+
+    /**
      * Returns children of node.
      *
      * @param int $idx
@@ -349,6 +356,13 @@ interface SimpleHtmlDomInterface extends \IteratorAggregate
     public function setAttribute(string $name, $value = null, bool $strictEmptyValueCheck = false): self;
 
     /**
+     * Remove all attributes
+     *
+     * @return SimpleHtmlDomInterface
+     */
+    public function removeAttributes(): self;
+
+    /**
      * Get dom node's plain text.
      *
      * @return string
@@ -364,4 +378,11 @@ interface SimpleHtmlDomInterface extends \IteratorAggregate
      * @return string|string[]|null
      */
     public function val($value = null);
+
+    /**
+     * Delete
+     *
+     * @return mixed
+     */
+    public function delete();
 }
