@@ -18,4 +18,5 @@ foreach ($htmlTmp->find('ul br') as $br) {
 $templateHtml = $htmlTmp->save();
 
 // dump contents
-echo $templateHtml;
+echo $templateHtml; // <p>lall<br></p>
+                    // <ul><li>test321test123</li></ul>

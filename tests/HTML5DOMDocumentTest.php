@@ -865,7 +865,7 @@ final class HTML5DOMDocumentTest extends PHPUnit\Framework\TestCase
         static::assertFalse($dom->findMultiOrFalse('.unknown'));
     }
 
-    public function testhtml()
+    public function testHtml()
     {
         $testSource = static function ($source, $expectedSource) {
             $dom = new HtmlDomParser();

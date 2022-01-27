@@ -25,4 +25,6 @@ $html = '
 ';
 
 // html without comments
-echo html_no_comment($html);
+echo html_no_comment($html); // <p>lall<br></p>
+                                  //
+                                  // <ul><li>test321<br>test123</li></ul>

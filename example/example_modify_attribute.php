@@ -22,4 +22,4 @@ foreach ($document->find('div') as $e) {
     }
 }
 
-echo $document->html();
+echo $document->html(); // <html><div class="post" id="p1">foo</div><div class="post" id="p2">bar</div></html>
