@@ -100,12 +100,22 @@ class SimpleXmlDomNode extends AbstractSimpleXmlDomNode implements SimpleXmlDomN
     {
         $return = $this->find($selector, 0);
 
-        /** @noinspection NullCoalescingOperatorCanBeUsedInspection */
-        if ($return === null) {
-            return false;
-        }
+        return $return ?? false;
+    }
 
-        return $return;
+
+    /**
+     * Find one node with a CSS selector.
+     *
+     * @param string $selector
+     *
+     * @return SimpleXmlDomNodeInterface<SimpleXmlDomInterface>
+     */
+    public function findOneOrBlank(string $selector)
+    {
+        $return = $this->find($selector, 0);
+
+        return $return ?? new SimpleXmlDomNodeBlank();
     }
 
     /**

@@ -241,6 +241,18 @@ class SimpleXmlDomBlank extends AbstractSimpleXmlDom implements \IteratorAggrega
     }
 
     /**
+     * Find one node with a CSS selector or a Blank instance, if no element is found.
+     *
+     * @param string $selector
+     *
+     * @return static
+     */
+    public function findOneOrBlank(string $selector)
+    {
+        return new static();
+    }
+
+    /**
      * Returns the first child of node.
      *
      * @return null

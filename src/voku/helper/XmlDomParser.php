@@ -368,6 +368,18 @@ class XmlDomParser extends AbstractDomParser
     }
 
     /**
+     * Find one node with a CSS selector or a Blank instance, if no element is found.
+     *
+     * @param string $selector
+     *
+     * @return SimpleXmlDomInterface
+     */
+    public function findOneOrBlank(string $selector)
+    {
+        return $this->find($selector, 0);
+    }
+
+    /**
      * @param string $content
      * @param bool   $multiDecodeNewHtmlEntity
      *

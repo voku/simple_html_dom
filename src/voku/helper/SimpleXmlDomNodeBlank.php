@@ -67,6 +67,18 @@ class SimpleXmlDomNodeBlank extends AbstractSimpleXmlDomNode implements SimpleXm
     }
 
     /**
+     * Find one node with a CSS selector a Blank instance, if no element is found.
+     *
+     * @param string $selector
+     *
+     * @return static
+     */
+    public function findOneOrBlank(string $selector)
+    {
+        return new static();
+    }
+
+    /**
      * @return string[]
      */
     public function innerHtml(): array

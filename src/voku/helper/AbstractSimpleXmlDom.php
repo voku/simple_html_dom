@@ -58,7 +58,7 @@ abstract class AbstractSimpleXmlDom
             case 'plaintext':
                 return $this->text();
             case 'tag':
-                return $this->node ? $this->node->nodeName : '';
+                return $this->node->nodeName ?? '';
             case 'attr':
                 return $this->getAllAttributes();
             default:

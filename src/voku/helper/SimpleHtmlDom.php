@@ -476,6 +476,18 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
     }
 
     /**
+     * Find one node with a CSS selector or a Blank instance, if no element is found.
+     *
+     * @param string $selector
+     *
+     * @return SimpleHtmlDomInterface
+     */
+    public function findOneOrBlank(string $selector)
+    {
+        return $this->getHtmlDomParser()->findOneOrBlank($selector);
+    }
+
+    /**
      * Returns the first child of node.
      *
      * @return SimpleHtmlDomInterface|null

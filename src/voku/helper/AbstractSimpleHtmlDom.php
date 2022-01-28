@@ -73,7 +73,7 @@ abstract class AbstractSimpleHtmlDom
             case 'plaintext':
                 return $this->text();
             case 'tag':
-                return $this->node ? $this->node->nodeName : '';
+                return $this->node->nodeName ?? '';
             case 'attr':
                 return $this->getAllAttributes();
             case 'classlist':

@@ -124,6 +124,15 @@ final class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
         static::assertSame('1', $v);
     }
 
+    public function testIssue63() {
+        $dom = (new voku\helper\HtmlDomParser())->loadHtml('<div> foo bar </div>');
+        static::assertSame(' foo bar ', $dom->findOneOrBlank('div')->innerXml());
+        static::assertInstanceOf(\voku\helper\SimpleHtmlDomBlank::class, $dom->findOneOrBlank('span'));
+        static::assertInstanceOf(\voku\helper\SimpleHtmlDomBlank::class, $dom->findOneOrBlank('span')->findOneOrBlank('span'));
+        static::assertInstanceOf(\voku\helper\SimpleHtmlDomBlank::class, $dom->findOneOrBlank('span')->findOneOrBlank('span')->findOneOrBlank('span'));
+        static::assertInstanceOf(\voku\helper\SimpleHtmlDomBlank::class, $dom->findOneOrBlank('span')->findOneOrBlank('span')->findOneOrBlank('span')->findOneOrBlank('span'));
+    }
+
     public function testCommentWp()
     {
         $html = '

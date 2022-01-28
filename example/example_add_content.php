@@ -8,8 +8,12 @@ $templateHtml = '<ul><li>test321</li></ul>';
 
 // add: "<br>" to "<li>"
 $htmlTmp = HtmlDomParser::str_get_html($templateHtml);
-foreach ($htmlTmp->find('ul li') as $li) {
+foreach ($htmlTmp->findMulti('ul li') as $li) {
     $li->innerhtml = '<br>' . $li->innerhtml . '<br>';
+}
+foreach ($htmlTmp->findMulti('br') as $br) {
+    // DEBUG:
+    echo $br->tag; // br
 }
 
 $templateHtml = $htmlTmp->save();

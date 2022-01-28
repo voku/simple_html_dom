@@ -227,6 +227,15 @@ final class XmlDomParserTest extends \PHPUnit\Framework\TestCase
         static::assertSame('int', $types[0]->text());
     }
 
+    public function testIssue63() {
+        $dom = (new voku\helper\XmlDomParser())->loadHtml('<Foo> foo bar </Foo>');
+        static::assertSame(' foo bar ', $dom->findOneOrBlank('Foo')->innerXml());
+        static::assertInstanceOf(\voku\helper\SimpleXmlDomBlank::class, $dom->findOneOrBlank('Bar'));
+        static::assertInstanceOf(\voku\helper\SimpleXmlDomBlank::class, $dom->findOneOrBlank('Bar')->findOneOrBlank('Bar'));
+        static::assertInstanceOf(\voku\helper\SimpleXmlDomBlank::class, $dom->findOneOrBlank('Bar')->findOneOrBlank('Bar')->findOneOrBlank('Bar'));
+        static::assertInstanceOf(\voku\helper\SimpleXmlDomBlank::class, $dom->findOneOrBlank('Bar')->findOneOrBlank('Bar')->findOneOrBlank('Bar')->findOneOrBlank('Bar'));
+    }
+
     public function testXmlReplace()
     {
         $filename = __DIR__ . '/fixtures/test_xml.xml';
