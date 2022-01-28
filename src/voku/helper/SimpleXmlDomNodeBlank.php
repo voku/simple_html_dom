@@ -49,11 +49,11 @@ class SimpleXmlDomNodeBlank extends AbstractSimpleXmlDomNode implements SimpleXm
      *
      * @param string $selector
      *
-     * @return null
+     * @return static
      */
     public function findOne(string $selector)
     {
-        return null;
+        return new static();
     }
 
     /**
@@ -64,18 +64,6 @@ class SimpleXmlDomNodeBlank extends AbstractSimpleXmlDomNode implements SimpleXm
     public function findOneOrFalse(string $selector)
     {
         return false;
-    }
-
-    /**
-     * Find one node with a CSS selector a Blank instance, if no element is found.
-     *
-     * @param string $selector
-     *
-     * @return static
-     */
-    public function findOneOrBlank(string $selector)
-    {
-        return new static();
     }
 
     /**

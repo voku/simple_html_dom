@@ -229,11 +229,11 @@ final class XmlDomParserTest extends \PHPUnit\Framework\TestCase
 
     public function testIssue63() {
         $dom = (new voku\helper\XmlDomParser())->loadHtml('<Foo> foo bar </Foo>');
-        static::assertSame(' foo bar ', $dom->findOneOrBlank('Foo')->innerXml());
-        static::assertInstanceOf(\voku\helper\SimpleXmlDomBlank::class, $dom->findOneOrBlank('Bar'));
-        static::assertInstanceOf(\voku\helper\SimpleXmlDomBlank::class, $dom->findOneOrBlank('Bar')->findOneOrBlank('Bar'));
-        static::assertInstanceOf(\voku\helper\SimpleXmlDomBlank::class, $dom->findOneOrBlank('Bar')->findOneOrBlank('Bar')->findOneOrBlank('Bar'));
-        static::assertInstanceOf(\voku\helper\SimpleXmlDomBlank::class, $dom->findOneOrBlank('Bar')->findOneOrBlank('Bar')->findOneOrBlank('Bar')->findOneOrBlank('Bar'));
+        static::assertSame(' foo bar ', $dom->findOne('Foo')->innerXml());
+        static::assertInstanceOf(\voku\helper\SimpleXmlDomBlank::class, $dom->findOne('Bar'));
+        static::assertInstanceOf(\voku\helper\SimpleXmlDomBlank::class, $dom->findOne('Bar')->findOne('Bar'));
+        static::assertInstanceOf(\voku\helper\SimpleXmlDomBlank::class, $dom->findOne('Bar')->findOne('Bar')->findOne('Bar'));
+        static::assertInstanceOf(\voku\helper\SimpleXmlDomBlank::class, $dom->findOne('Bar')->findOne('Bar')->findOne('Bar')->findOne('Bar'));
     }
 
     public function testXmlReplace()

@@ -126,11 +126,11 @@ final class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
 
     public function testIssue63() {
         $dom = (new voku\helper\HtmlDomParser())->loadHtml('<div> foo bar </div>');
-        static::assertSame(' foo bar ', $dom->findOneOrBlank('div')->innerXml());
-        static::assertInstanceOf(\voku\helper\SimpleHtmlDomBlank::class, $dom->findOneOrBlank('span'));
-        static::assertInstanceOf(\voku\helper\SimpleHtmlDomBlank::class, $dom->findOneOrBlank('span')->findOneOrBlank('span'));
-        static::assertInstanceOf(\voku\helper\SimpleHtmlDomBlank::class, $dom->findOneOrBlank('span')->findOneOrBlank('span')->findOneOrBlank('span'));
-        static::assertInstanceOf(\voku\helper\SimpleHtmlDomBlank::class, $dom->findOneOrBlank('span')->findOneOrBlank('span')->findOneOrBlank('span')->findOneOrBlank('span'));
+        static::assertSame('foo bar', $dom->findOne('div')->innerHtml());
+        static::assertInstanceOf(\voku\helper\SimpleHtmlDomBlank::class, $dom->findOne('span'));
+        static::assertInstanceOf(\voku\helper\SimpleHtmlDomBlank::class, $dom->findOne('span')->findOne('span'));
+        static::assertInstanceOf(\voku\helper\SimpleHtmlDomBlank::class, $dom->findOne('span')->findOne('span')->findOne('span'));
+        static::assertInstanceOf(\voku\helper\SimpleHtmlDomBlank::class, $dom->findOne('span')->findOne('span')->findOne('span')->findOne('span'));
     }
 
     public function testCommentWp()

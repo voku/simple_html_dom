@@ -3,25 +3,25 @@
 
 ### DomParser API
 
-<p id="voku-php-readme-class-methods"></p><table><tr><td><a href="#findstring-selector-intnull-idx">find</a>
-</td><td><a href="#findmultistring-selector">findMulti</a>
-</td><td><a href="#findmultiorfalsestring-selector">findMultiOrFalse</a>
-</td><td><a href="#findonestring-selector">findOne</a>
-</td></tr><tr><td><a href="#findoneorfalsestring-selector">findOneOrFalse</a>
+<p id="voku-php-readme-class-methods"></p><table><tr><td><a href="#findstring-selector-intnull-idx-mixed">find</a>
+</td><td><a href="#findmultistring-selector-mixed">findMulti</a>
+</td><td><a href="#findmultiorfalsestring-selector-mixed">findMultiOrFalse</a>
+</td><td><a href="#findonestring-selector-static">findOne</a>
+</td></tr><tr><td><a href="#findoneorfalsestring-selector-mixed">findOneOrFalse</a>
 </td><td><a href="#fixhtmloutputstring-content-bool-multidecodenewhtmlentity-string">fixHtmlOutput</a>
 </td><td><a href="#getdocument-domdocument">getDocument</a>
-</td><td><a href="#getelementbyclassstring-class">getElementByClass</a>
-</td></tr><tr><td><a href="#getelementbyidstring-id">getElementById</a>
-</td><td><a href="#getelementbytagnamestring-name">getElementByTagName</a>
-</td><td><a href="#getelementsbyidstring-id-intnull-idx">getElementsById</a>
-</td><td><a href="#getelementsbytagnamestring-name-intnull-idx">getElementsByTagName</a>
+</td><td><a href="#getelementbyclassstring-class-mixed">getElementByClass</a>
+</td></tr><tr><td><a href="#getelementbyidstring-id-mixed">getElementById</a>
+</td><td><a href="#getelementbytagnamestring-name-mixed">getElementByTagName</a>
+</td><td><a href="#getelementsbyidstring-id-intnull-idx-mixed">getElementsById</a>
+</td><td><a href="#getelementsbytagnamestring-name-intnull-idx-mixed">getElementsByTagName</a>
 </td></tr><tr><td><a href="#htmlbool-multidecodenewhtmlentity-string">html</a>
 </td><td><a href="#innerhtmlbool-multidecodenewhtmlentity-string">innerHtml</a>
 </td><td><a href="#innerxmlbool-multidecodenewhtmlentity-string">innerXml</a>
 </td><td><a href="#loadhtmlstring-html-intnull-libxmlextraoptions-domparserinterface">loadHtml</a>
 </td></tr><tr><td><a href="#loadhtmlfilestring-filepath-intnull-libxmlextraoptions-domparserinterface">loadHtmlFile</a>
 </td><td><a href="#savestring-filepath-string">save</a>
-</td><td><a href="#set_callbackcallable-functionname">set_callback</a>
+</td><td><a href="#set_callbackcallable-functionname-mixed">set_callback</a>
 </td><td><a href="#textbool-multidecodenewhtmlentity-string">text</a>
 </td></tr><tr><td><a href="#xmlbool-multidecodenewhtmlentity-bool-htmltoxml-bool-removexmlheader-int-options-string">xml</a>
 </td></tr></table>
@@ -43,33 +43,37 @@
 ### SimpleHtmlDom (single dom element) API
 
 <p id="voku-php-readme-class-methods"></p><table><tr><td><a href="#childnodesint-idx-simplehtmldominterfacesimplehtmldominterfacesimplehtmldomnodeinterfacenull">childNodes</a>
+</td><td><a href="#delete-mixed">delete</a>
 </td><td><a href="#findstring-selector-intnull-idx-simplehtmldominterfacesimplehtmldominterfacesimplehtmldomnodeinterfacesimplehtmldominterface">find</a>
 </td><td><a href="#findmultistring-selector-simplehtmldominterfacesimplehtmldomnodeinterfacesimplehtmldominterface">findMulti</a>
-</td><td><a href="#findmultiorfalsestring-selector-falsesimplehtmldominterfacesimplehtmldomnodeinterfacesimplehtmldominterface">findMultiOrFalse</a>
-</td></tr><tr><td><a href="#findonestring-selector-simplehtmldominterface">findOne</a>
+</td></tr><tr><td><a href="#findmultiorfalsestring-selector-falsesimplehtmldominterfacesimplehtmldomnodeinterfacesimplehtmldominterface">findMultiOrFalse</a>
+</td><td><a href="#findonestring-selector-simplehtmldominterface">findOne</a>
 </td><td><a href="#findoneorfalsestring-selector-falsesimplehtmldominterface">findOneOrFalse</a>
 </td><td><a href="#firstchild-simplehtmldominterfacenull">firstChild</a>
-</td><td><a href="#getallattributes-stringnull">getAllAttributes</a>
-</td></tr><tr><td><a href="#getattributestring-name-string">getAttribute</a>
+</td></tr><tr><td><a href="#getallattributes-stringnull">getAllAttributes</a>
+</td><td><a href="#getattributestring-name-string">getAttribute</a>
 </td><td><a href="#getelementbyclassstring-class-simplehtmldominterfacesimplehtmldomnodeinterfacesimplehtmldominterface">getElementByClass</a>
 </td><td><a href="#getelementbyidstring-id-simplehtmldominterface">getElementById</a>
-</td><td><a href="#getelementbytagnamestring-name-simplehtmldominterface">getElementByTagName</a>
-</td></tr><tr><td><a href="#getelementsbyidstring-id-intnull-idx-simplehtmldominterfacesimplehtmldominterfacesimplehtmldomnodeinterfacesimplehtmldominterface">getElementsById</a>
+</td></tr><tr><td><a href="#getelementbytagnamestring-name-simplehtmldominterface">getElementByTagName</a>
+</td><td><a href="#getelementsbyidstring-id-intnull-idx-simplehtmldominterfacesimplehtmldominterfacesimplehtmldomnodeinterfacesimplehtmldominterface">getElementsById</a>
 </td><td><a href="#getelementsbytagnamestring-name-intnull-idx-simplehtmldominterfacesimplehtmldominterfacesimplehtmldomnodeinterfacesimplehtmldominterface">getElementsByTagName</a>
 </td><td><a href="#gethtmldomparser-htmldomparser">getHtmlDomParser</a>
-</td><td><a href="#getiterator-simplehtmldomnodeinterfacesimplehtmldominterface">getIterator</a>
-</td></tr><tr><td><a href="#getnode-domnode">getNode</a>
+</td></tr><tr><td><a href="#getiterator-simplehtmldomnodeinterfacesimplehtmldominterface">getIterator</a>
+</td><td><a href="#getnode-domnode">getNode</a>
+</td><td><a href="#gettag-string">getTag</a>
 </td><td><a href="#hasattributestring-name-bool">hasAttribute</a>
-</td><td><a href="#htmlbool-multidecodenewhtmlentity-string">html</a>
+</td></tr><tr><td><a href="#htmlbool-multidecodenewhtmlentity-string">html</a>
 </td><td><a href="#innerhtmlbool-multidecodenewhtmlentity-string">innerHtml</a>
-</td></tr><tr><td><a href="#innerxmlbool-multidecodenewhtmlentity-string">innerXml</a>
+</td><td><a href="#innerxmlbool-multidecodenewhtmlentity-string">innerXml</a>
 </td><td><a href="#isremoved-bool">isRemoved</a>
-</td><td><a href="#lastchild-simplehtmldominterfacenull">lastChild</a>
+</td></tr><tr><td><a href="#lastchild-simplehtmldominterfacenull">lastChild</a>
 </td><td><a href="#nextnonwhitespacesibling-simplehtmldominterfacenull">nextNonWhitespaceSibling</a>
-</td></tr><tr><td><a href="#nextsibling-simplehtmldominterfacenull">nextSibling</a>
+</td><td><a href="#nextsibling-simplehtmldominterfacenull">nextSibling</a>
 </td><td><a href="#parentnode-simplehtmldominterface">parentNode</a>
+</td></tr><tr><td><a href="#previousnonwhitespacesibling-simplehtmldominterfacenull">previousNonWhitespaceSibling</a>
 </td><td><a href="#previoussibling-simplehtmldominterfacenull">previousSibling</a>
 </td><td><a href="#removeattributestring-name-simplehtmldominterface">removeAttribute</a>
+</td><td><a href="#removeattributes-simplehtmldominterface">removeAttributes</a>
 </td></tr><tr><td><a href="#setattributestring-name-stringnull-value-bool-strictemptyvaluecheck-simplehtmldominterface">setAttribute</a>
 </td><td><a href="#text-string">text</a>
 </td><td><a href="#valstringstringnull-value-stringstringnull">val</a>
@@ -77,7 +81,7 @@
 
 ---
 
-## find(string $selector, int|null $idx): 
+## find(string $selector, int|null $idx): mixed
 <a href="#voku-php-readme-class-methods">↑</a>
 Find list of nodes with a CSS selector.
 
@@ -86,11 +90,11 @@ Find list of nodes with a CSS selector.
 - `int|null $idx`
 
 **Return:**
-- `TODO: __not_detected__`
+- `mixed`
 
 --------
 
-## findMulti(string $selector): 
+## findMulti(string $selector): mixed
 <a href="#voku-php-readme-class-methods">↑</a>
 Find nodes with a CSS selector.
 
@@ -98,11 +102,11 @@ Find nodes with a CSS selector.
 - `string $selector`
 
 **Return:**
-- `TODO: __not_detected__`
+- `mixed`
 
 --------
 
-## findMultiOrFalse(string $selector): 
+## findMultiOrFalse(string $selector): mixed
 <a href="#voku-php-readme-class-methods">↑</a>
 Find nodes with a CSS selector or false, if no element is found.
 
@@ -110,11 +114,11 @@ Find nodes with a CSS selector or false, if no element is found.
 - `string $selector`
 
 **Return:**
-- `TODO: __not_detected__`
+- `mixed`
 
 --------
 
-## findOne(string $selector): 
+## findOne(string $selector): static
 <a href="#voku-php-readme-class-methods">↑</a>
 Find one node with a CSS selector.
 
@@ -122,11 +126,11 @@ Find one node with a CSS selector.
 - `string $selector`
 
 **Return:**
-- `TODO: __not_detected__`
+- `static`
 
 --------
 
-## findOneOrFalse(string $selector): 
+## findOneOrFalse(string $selector): mixed
 <a href="#voku-php-readme-class-methods">↑</a>
 Find one node with a CSS selector or false, if no element is found.
 
@@ -134,7 +138,7 @@ Find one node with a CSS selector or false, if no element is found.
 - `string $selector`
 
 **Return:**
-- `TODO: __not_detected__`
+- `mixed`
 
 --------
 
@@ -163,7 +167,7 @@ __nothing__
 
 --------
 
-## getElementByClass(string $class): 
+## getElementByClass(string $class): mixed
 <a href="#voku-php-readme-class-methods">↑</a>
 Return elements by ".class".
 
@@ -171,11 +175,11 @@ Return elements by ".class".
 - `string $class`
 
 **Return:**
-- `TODO: __not_detected__`
+- `mixed`
 
 --------
 
-## getElementById(string $id): 
+## getElementById(string $id): mixed
 <a href="#voku-php-readme-class-methods">↑</a>
 Return element by #id.
 
@@ -183,11 +187,11 @@ Return element by #id.
 - `string $id`
 
 **Return:**
-- `TODO: __not_detected__`
+- `mixed`
 
 --------
 
-## getElementByTagName(string $name): 
+## getElementByTagName(string $name): mixed
 <a href="#voku-php-readme-class-methods">↑</a>
 Return element by tag name.
 
@@ -195,11 +199,11 @@ Return element by tag name.
 - `string $name`
 
 **Return:**
-- `TODO: __not_detected__`
+- `mixed`
 
 --------
 
-## getElementsById(string $id, int|null $idx): 
+## getElementsById(string $id, int|null $idx): mixed
 <a href="#voku-php-readme-class-methods">↑</a>
 Returns elements by "#id".
 
@@ -208,11 +212,11 @@ Returns elements by "#id".
 - `int|null $idx`
 
 **Return:**
-- `TODO: __not_detected__`
+- `mixed`
 
 --------
 
-## getElementsByTagName(string $name, int|null $idx): 
+## getElementsByTagName(string $name, int|null $idx): mixed
 <a href="#voku-php-readme-class-methods">↑</a>
 Returns elements by tag name.
 
@@ -221,7 +225,7 @@ Returns elements by tag name.
 - `int|null $idx`
 
 **Return:**
-- `TODO: __not_detected__`
+- `mixed`
 
 --------
 
@@ -299,7 +303,7 @@ Save the html-dom as string.
 
 --------
 
-## set_callback(callable $functionName): 
+## set_callback(callable $functionName): mixed
 <a href="#voku-php-readme-class-methods">↑</a>
 
 
@@ -307,7 +311,7 @@ Save the html-dom as string.
 - `callable $functionName`
 
 **Return:**
-- `TODO: __not_detected__`
+- `mixed`
 
 --------
 
@@ -470,6 +474,18 @@ Returns children of node.
 
 **Return:**
 - `\SimpleHtmlDomInterface|\SimpleHtmlDomInterface[]|\SimpleHtmlDomNodeInterface|null`
+
+--------
+
+## delete(): mixed
+<a href="#voku-php-readme-class-methods">↑</a>
+Delete
+
+**Parameters:**
+__nothing__
+
+**Return:**
+- `mixed`
 
 --------
 
@@ -671,6 +687,18 @@ __nothing__
 
 --------
 
+## getTag(): string
+<a href="#voku-php-readme-class-methods">↑</a>
+Return the tag of node
+
+**Parameters:**
+__nothing__
+
+**Return:**
+- `string`
+
+--------
+
 ## hasAttribute(string $name): bool
 <a href="#voku-php-readme-class-methods">↑</a>
 Determine if an attribute exists on the element.
@@ -747,7 +775,7 @@ __nothing__
 
 ## nextNonWhitespaceSibling(): SimpleHtmlDomInterface|null
 <a href="#voku-php-readme-class-methods">↑</a>
-Returns the next sibling of node and it will ignore whitespace elements.
+Returns the next sibling of node, and it will ignore whitespace elements.
 
 **Parameters:**
 __nothing__
@@ -781,6 +809,18 @@ __nothing__
 
 --------
 
+## previousNonWhitespaceSibling(): SimpleHtmlDomInterface|null
+<a href="#voku-php-readme-class-methods">↑</a>
+Returns the previous sibling of node, and it will ignore whitespace elements.
+
+**Parameters:**
+__nothing__
+
+**Return:**
+- `\SimpleHtmlDomInterface|null`
+
+--------
+
 ## previousSibling(): SimpleHtmlDomInterface|null
 <a href="#voku-php-readme-class-methods">↑</a>
 Returns the previous sibling of node.
@@ -799,6 +839,18 @@ Remove attribute.
 
 **Parameters:**
 - `string $name <p>The name of the html-attribute.</p>`
+
+**Return:**
+- `\SimpleHtmlDomInterface`
+
+--------
+
+## removeAttributes(): SimpleHtmlDomInterface
+<a href="#voku-php-readme-class-methods">↑</a>
+Remove all attributes
+
+**Parameters:**
+__nothing__
 
 **Return:**
 - `\SimpleHtmlDomInterface`

@@ -37,7 +37,7 @@ interface DomParserInterface
      *
      * @param string $selector
      *
-     * @return mixed
+     * @return static
      */
     public function findOne(string $selector);
 

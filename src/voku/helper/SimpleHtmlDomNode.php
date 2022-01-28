@@ -86,7 +86,9 @@ class SimpleHtmlDomNode extends AbstractSimpleHtmlDomNode implements SimpleHtmlD
      */
     public function findOne(string $selector)
     {
-        return $this->find($selector, 0);
+        $return = $this->find($selector, 0);
+
+        return $return ?? new SimpleHtmlDomNodeBlank();
     }
 
     /**
@@ -101,20 +103,6 @@ class SimpleHtmlDomNode extends AbstractSimpleHtmlDomNode implements SimpleHtmlD
         $return = $this->find($selector, 0);
 
         return $return ?? false;
-    }
-
-    /**
-     * Find one node with a CSS selector.
-     *
-     * @param string $selector
-     *
-     * @return SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>
-     */
-    public function findOneOrBlank(string $selector)
-    {
-        $return = $this->find($selector, 0);
-
-        return $return ?? new SimpleHtmlDomNodeBlank();
     }
 
     /**
