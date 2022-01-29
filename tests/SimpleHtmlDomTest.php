@@ -124,7 +124,8 @@ final class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
         static::assertSame('1', $v);
     }
 
-    public function testIssue63() {
+    public function testIssue63()
+    {
         $dom = (new voku\helper\HtmlDomParser())->loadHtml('<div> foo bar </div>');
         static::assertSame('foo bar', $dom->findOne('div')->innerHtml());
         static::assertInstanceOf(\voku\helper\SimpleHtmlDomBlank::class, $dom->findOne('span'));

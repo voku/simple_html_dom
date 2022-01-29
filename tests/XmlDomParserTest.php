@@ -227,7 +227,8 @@ final class XmlDomParserTest extends \PHPUnit\Framework\TestCase
         static::assertSame('int', $types[0]->text());
     }
 
-    public function testIssue63() {
+    public function testIssue63()
+    {
         $dom = (new voku\helper\XmlDomParser())->loadHtml('<Foo> foo bar </Foo>');
         static::assertSame(' foo bar ', $dom->findOne('Foo')->innerXml());
         static::assertInstanceOf(\voku\helper\SimpleXmlDomBlank::class, $dom->findOne('Bar'));
