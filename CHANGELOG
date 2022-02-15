@@ -31,7 +31,7 @@
 30: add "previousNonWhitespaceSibling()"
 31: add "SimpleHtmlDom->delete()" & "SimpleHtmlDom->getTag()" thanks @marioquartz
     add support for "symfony/css-selector": ~6.0 thanks @dora38
-
+32: "SimpleXmlDomNodeInterface" -> fix phpdocs only
 
 [PHP Simple HTML Dom v4.6.x]
 1: add an XmlDomParser Class + simple tests
