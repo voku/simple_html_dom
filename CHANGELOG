@@ -1,5 +1,6 @@
 [PHP Simple HTML Dom v4.8.x]
 1:  refactor -> findOne() -> will now return always an "Blank" object if no element was found
+2: "SimpleXmlDomNodeInterface" -> fix phpdocs only
 
 [PHP Simple HTML Dom v4.7.x]
 1: add "findMultiOrFalse()" + "findOneOrFalse()"
@@ -31,7 +32,6 @@
 30: add "previousNonWhitespaceSibling()"
 31: add "SimpleHtmlDom->delete()" & "SimpleHtmlDom->getTag()" thanks @marioquartz
     add support for "symfony/css-selector": ~6.0 thanks @dora38
-32: "SimpleXmlDomNodeInterface" -> fix phpdocs only
 
 [PHP Simple HTML Dom v4.6.x]
 1: add an XmlDomParser Class + simple tests
