@@ -10,7 +10,7 @@ parameters:
         - '#extends generic class#'
         - '#return type with generic#'
         - '#DOMNode\|null#'
-        - '#function of function call_user_func_array expects callable#'
+        - '#function call_user_func_array expects callable#'
         ## old stuff
         - '#Method voku\\helper\\HtmlDomParser::findOne\(\) should return#'
         - '#Method voku\\helper\\HtmlDomParser::findMulti\(\) should return#'
@@ -28,3 +28,4 @@ parameters:
         - '#Method voku\\helper\\SimpleXmlDomNode::findMulti\(\) should return#'
         - '#Method voku\\helper\\SimpleXmlDomNode::findOneOrFalse\(\) should return#'
         - '#Method voku\\helper\\SimpleXmlDomNode::findMultiOrFalse\(\) should return#'
+        - '#method voku\\helper\\SimpleHtmlDomNodeBlank::findOne\(\) should be compatible with return type#'

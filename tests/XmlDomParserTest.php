@@ -186,9 +186,15 @@ final class XmlDomParserTest extends \PHPUnit\Framework\TestCase
 
         $xml = $xmlParser->loadXml($content);
         $data = $xml->find('classsynopsisinfo');
-        $classname = $data->find('classname');
 
+        $classname = $data->find('classname');
         static::assertSame('Closure', $classname[0]->text());
+
+        $classname = $data->findOne('classname');
+        static::assertSame('Closure', $classname->text());
+
+        $classname = $data->findOneOrFalse('classname');
+        static::assertSame('Closure', $classname->text());
     }
 
     public function testXmlFindV21()

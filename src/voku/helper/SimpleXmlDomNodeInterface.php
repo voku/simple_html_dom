@@ -74,7 +74,7 @@ interface SimpleXmlDomNodeInterface extends \IteratorAggregate
      *
      * @param string $selector
      *
-     * @return SimpleXmlDomNode
+     * @return static
      */
     public function findOne(string $selector);
 
@@ -83,7 +83,7 @@ interface SimpleXmlDomNodeInterface extends \IteratorAggregate
      *
      * @param string $selector
      *
-     * @return false|SimpleXmlDomNode
+     * @return false|static
      */
     public function findOneOrFalse(string $selector);
 

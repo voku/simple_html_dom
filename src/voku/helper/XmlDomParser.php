@@ -193,11 +193,7 @@ class XmlDomParser extends AbstractDomParser
         $xmlErrors = \libxml_get_errors();
         if ($sxe !== false && \count($xmlErrors) === 0) {
             $domElementTmp = \dom_import_simplexml($sxe);
-            if (
-                $domElementTmp
-                &&
-                $domElementTmp->ownerDocument instanceof \DOMDocument
-            ) {
+            if ($domElementTmp->ownerDocument instanceof \DOMDocument) {
                 $documentFound = true;
                 $this->document = $domElementTmp->ownerDocument;
             }

@@ -439,11 +439,7 @@ class HtmlDomParser extends AbstractDomParser
         $sxe = \simplexml_load_string($html, \SimpleXMLElement::class, $optionsXml);
         if ($sxe !== false && \count(\libxml_get_errors()) === 0) {
             $domElementTmp = \dom_import_simplexml($sxe);
-            if (
-                $domElementTmp
-                &&
-                $domElementTmp->ownerDocument
-            ) {
+            if ($domElementTmp->ownerDocument instanceof \DOMDocument) {
                 $documentFound = true;
                 $this->document = $domElementTmp->ownerDocument;
             }
