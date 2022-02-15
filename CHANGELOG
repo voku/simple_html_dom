@@ -1,6 +1,7 @@
 [PHP Simple HTML Dom v4.8.x]
 0: refactor -> findOne() -> will now return always an "Blank" object if no element was found
 1: "SimpleXmlDomNodeInterface" -> fix phpdocs only
+2: "*NodeBlank" -> fix return type from "findOne()"
 
 [PHP Simple HTML Dom v4.7.x]
 1: add "findMultiOrFalse()" + "findOneOrFalse()"
