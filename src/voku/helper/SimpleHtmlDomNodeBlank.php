@@ -49,11 +49,11 @@ class SimpleHtmlDomNodeBlank extends AbstractSimpleHtmlDomNode implements Simple
      *
      * @param string $selector
      *
-     * @return static
+     * @return SimpleHtmlDomInterface
      */
     public function findOne(string $selector)
     {
-        return new static();
+        return new SimpleHtmlDomBlank();
     }
 
     /**
