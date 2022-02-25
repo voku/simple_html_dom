@@ -974,7 +974,7 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
 
         return
             urldecode(
-            \urlencode(
+                \urlencode(
                 \urldecode(
                     \trim(
                         \str_replace(
@@ -994,7 +994,7 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
                         )
                     )
                 )
-                )
+            )
             );
     }
 

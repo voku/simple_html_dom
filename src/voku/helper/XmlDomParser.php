@@ -374,8 +374,7 @@ class XmlDomParser extends AbstractDomParser
         string $content,
         bool $multiDecodeNewHtmlEntity = false,
         bool $putBrokenReplacedBack = true
-    ): string
-    {
+    ): string {
         $content = $this->decodeHtmlEntity($content, $multiDecodeNewHtmlEntity);
 
         return self::putReplacedBackToPreserveHtmlEntities($content, $putBrokenReplacedBack);
