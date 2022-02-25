@@ -1224,8 +1224,8 @@ HTML;
         $dom->load_file(__DIR__ . '/fixtures/issue81.html');
         static::assertSame('Start your WordPress.com site with this theme.', $dom->find('#demosite-activate-wrap .demosite-tagline', 0)->text);
 
-        $tags = $dom->find( 'style' );
-        foreach ( $tags as $tag ) {
+        $tags = $dom->find('style');
+        foreach ($tags as $tag) {
             $tag->innerhtmlKeep .= ' .test{color: red;} ';
         }
 

@@ -14,8 +14,8 @@ HTML;
 
 $document = new HtmlDomParser($html);
 
-$tags = $document->find( 'style' );
-foreach ( $tags as $tag ) {
+$tags = $document->find('style');
+foreach ($tags as $tag) {
     // INFO: here we need to use "innerhtmlKeep" instead of "innerhtml", so that we keep the svg-hack
     $tag->innerhtmlKeep .= ' .test{color: red;} ';
 }
