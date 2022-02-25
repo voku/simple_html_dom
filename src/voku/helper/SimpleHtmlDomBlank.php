@@ -108,10 +108,11 @@ class SimpleHtmlDomBlank extends AbstractSimpleHtmlDom implements \IteratorAggre
      * Get dom node's inner html.
      *
      * @param bool $multiDecodeNewHtmlEntity
+     * @param bool $putBrokenReplacedBack
      *
      * @return string
      */
-    public function innerHtml(bool $multiDecodeNewHtmlEntity = false): string
+    public function innerHtml(bool $multiDecodeNewHtmlEntity = false, bool $putBrokenReplacedBack = true): string
     {
         return '';
     }
@@ -140,10 +141,11 @@ class SimpleHtmlDomBlank extends AbstractSimpleHtmlDom implements \IteratorAggre
 
     /**
      * @param string $string
+     * @param bool   $putBrokenReplacedBack
      *
      * @return SimpleHtmlDomInterface
      */
-    protected function replaceChildWithString(string $string): SimpleHtmlDomInterface
+    protected function replaceChildWithString(string $string, bool $putBrokenReplacedBack = true): SimpleHtmlDomInterface
     {
         return new static();
     }

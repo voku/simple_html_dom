@@ -113,10 +113,11 @@ class SimpleXmlDomBlank extends AbstractSimpleXmlDom implements \IteratorAggrega
 
     /**
      * @param string $string
+     * @param bool   $putBrokenReplacedBack
      *
      * @return SimpleXmlDomInterface
      */
-    protected function replaceChildWithString(string $string): SimpleXmlDomInterface
+    protected function replaceChildWithString(string $string, bool $putBrokenReplacedBack = true): SimpleXmlDomInterface
     {
         return new static();
     }
@@ -334,10 +335,11 @@ class SimpleXmlDomBlank extends AbstractSimpleXmlDom implements \IteratorAggrega
      * Get dom node's inner html.
      *
      * @param bool $multiDecodeNewHtmlEntity
+     * @param bool $putBrokenReplacedBack
      *
      * @return string
      */
-    public function innerHtml(bool $multiDecodeNewHtmlEntity = false): string
+    public function innerHtml(bool $multiDecodeNewHtmlEntity = false, bool $putBrokenReplacedBack = true): string
     {
         return '';
     }

@@ -1218,6 +1218,25 @@ HTML;
         static::assertSame('VonBurgermeister', $dom->find('.post-row div .post-user font', 0)->text);
     }
 
+    public function testIssue81()
+    {
+        $dom = new HtmlDomParser();
+        $dom->load_file(__DIR__ . '/fixtures/issue81.html');
+        static::assertSame('Start your WordPress.com site with this theme.', $dom->find('#demosite-activate-wrap .demosite-tagline', 0)->text);
+
+        $tags = $dom->find( 'style' );
+        foreach ( $tags as $tag ) {
+            $tag->innerhtmlKeep .= ' .test{color: red;} ';
+        }
+
+        $html = \str_replace(["\r\n", "\r", "\n"], "\n", $dom->html());
+
+        $expected = $this->loadFixture('issue81_v2.html');
+        $expected = \str_replace(["\r\n", "\r", "\n"], "\n", $expected);
+
+        static::assertSame($expected, $html);
+    }
+
     public function testLoadUtf8()
     {
         $dom = new HtmlDomParser();

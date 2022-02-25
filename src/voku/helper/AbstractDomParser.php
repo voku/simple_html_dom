@@ -243,19 +243,21 @@ abstract class AbstractDomParser implements DomParserInterface
      * Get dom node's outer html.
      *
      * @param bool $multiDecodeNewHtmlEntity
+     * @param bool $putBrokenReplacedBack
      *
      * @return string
      */
-    abstract public function html(bool $multiDecodeNewHtmlEntity = false): string;
+    abstract public function html(bool $multiDecodeNewHtmlEntity = false, bool $putBrokenReplacedBack = true): string;
 
     /**
      * Get dom node's inner html.
      *
      * @param bool $multiDecodeNewHtmlEntity
+     * @param bool $putBrokenReplacedBack
      *
      * @return string
      */
-    public function innerHtml(bool $multiDecodeNewHtmlEntity = false): string
+    public function innerHtml(bool $multiDecodeNewHtmlEntity = false, bool $putBrokenReplacedBack = true): string
     {
         // init
         $text = '';
@@ -266,7 +268,7 @@ abstract class AbstractDomParser implements DomParserInterface
             }
         }
 
-        return $this->fixHtmlOutput($text, $multiDecodeNewHtmlEntity);
+        return $this->fixHtmlOutput($text, $multiDecodeNewHtmlEntity, $putBrokenReplacedBack);
     }
 
     /**
@@ -410,7 +412,7 @@ abstract class AbstractDomParser implements DomParserInterface
     {
         // regEx for e.g.: [<script id="elements-image-2">...<script>]
         /** @noinspection HtmlDeprecatedTag */
-        $regExSpecialScript = '/<(script)(?<attr>[^>]*)>(?<content>.*)<\/\1>/isU';
+        $regExSpecialScript = '/<script(?<attr>[^>]*?)>(?<content>.*)<\/script>/isU';
         $htmlTmp = \preg_replace_callback(
             $regExSpecialScript,
             static function ($scripts) {
@@ -433,7 +435,7 @@ abstract class AbstractDomParser implements DomParserInterface
      *
      * @return string
      */
-    public static function putReplacedBackToPreserveHtmlEntities(string $html): string
+    public static function putReplacedBackToPreserveHtmlEntities(string $html, bool $putBrokenReplacedBack = true): string
     {
         static $DOM_REPLACE__HELPER_CACHE = null;
 
@@ -461,6 +463,8 @@ abstract class AbstractDomParser implements DomParserInterface
         }
 
         if (
+            $putBrokenReplacedBack === true
+            &&
             isset(self::$domBrokenReplaceHelper['tmp'])
             &&
             \count(self::$domBrokenReplaceHelper['tmp']) > 0

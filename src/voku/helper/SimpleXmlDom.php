@@ -150,16 +150,18 @@ class SimpleXmlDom extends AbstractSimpleXmlDom implements \IteratorAggregate, S
      * Replace child node.
      *
      * @param string $string
+     * @param bool   $putBrokenReplacedBack
      *
      * @return SimpleXmlDomInterface
      */
-    protected function replaceChildWithString(string $string): SimpleXmlDomInterface
+    protected function replaceChildWithString(string $string, bool $putBrokenReplacedBack = true): SimpleXmlDomInterface
     {
         if (!empty($string)) {
             $newDocument = new XmlDomParser($string);
 
             $tmpDomString = $this->normalizeStringForComparision($newDocument);
             $tmpStr = $this->normalizeStringForComparision($string);
+
             if ($tmpDomString !== $tmpStr) {
                 throw new \RuntimeException(
                     'Not valid XML fragment!' . "\n" .
@@ -219,6 +221,7 @@ class SimpleXmlDom extends AbstractSimpleXmlDom implements \IteratorAggregate, S
 
         $tmpDomOuterTextString = $this->normalizeStringForComparision($newDocument);
         $tmpStr = $this->normalizeStringForComparision($string);
+
         if ($tmpDomOuterTextString !== $tmpStr) {
             throw new \RuntimeException(
                 'Not valid XML fragment!' . "\n"
@@ -564,12 +567,13 @@ class SimpleXmlDom extends AbstractSimpleXmlDom implements \IteratorAggregate, S
      * Get dom node's inner html.
      *
      * @param bool $multiDecodeNewHtmlEntity
+     * @param bool $putBrokenReplacedBack
      *
      * @return string
      */
-    public function innerHtml(bool $multiDecodeNewHtmlEntity = false): string
+    public function innerHtml(bool $multiDecodeNewHtmlEntity = false, bool $putBrokenReplacedBack = true): string
     {
-        return $this->getXmlDomParser()->innerHtml($multiDecodeNewHtmlEntity);
+        return $this->getXmlDomParser()->innerHtml($multiDecodeNewHtmlEntity, $putBrokenReplacedBack);
     }
 
     /**
@@ -808,7 +812,7 @@ class SimpleXmlDom extends AbstractSimpleXmlDom implements \IteratorAggregate, S
     private function normalizeStringForComparision($input): string
     {
         if ($input instanceof XmlDomParser) {
-            $string = $input->plaintext;
+            $string = $input->html(false, false);
         } else {
             $string = (string) $input;
         }

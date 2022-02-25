@@ -366,14 +366,19 @@ class XmlDomParser extends AbstractDomParser
     /**
      * @param string $content
      * @param bool   $multiDecodeNewHtmlEntity
+     * @param bool   $putBrokenReplacedBack
      *
      * @return string
      */
-    public function fixHtmlOutput(string $content, bool $multiDecodeNewHtmlEntity = false): string
+    public function fixHtmlOutput(
+        string $content,
+        bool $multiDecodeNewHtmlEntity = false,
+        bool $putBrokenReplacedBack = true
+    ): string
     {
         $content = $this->decodeHtmlEntity($content, $multiDecodeNewHtmlEntity);
 
-        return self::putReplacedBackToPreserveHtmlEntities($content);
+        return self::putReplacedBackToPreserveHtmlEntities($content, $putBrokenReplacedBack);
     }
 
     /**
@@ -471,10 +476,11 @@ class XmlDomParser extends AbstractDomParser
      * Get dom node's outer html.
      *
      * @param bool $multiDecodeNewHtmlEntity
+     * @param bool $putBrokenReplacedBack
      *
      * @return string
      */
-    public function html(bool $multiDecodeNewHtmlEntity = false): string
+    public function html(bool $multiDecodeNewHtmlEntity = false, bool $putBrokenReplacedBack = true): string
     {
         if (static::$callback !== null) {
             \call_user_func(static::$callback, [$this]);
@@ -486,7 +492,7 @@ class XmlDomParser extends AbstractDomParser
             return '';
         }
 
-        return $this->fixHtmlOutput($content, $multiDecodeNewHtmlEntity);
+        return $this->fixHtmlOutput($content, $multiDecodeNewHtmlEntity, $putBrokenReplacedBack);
     }
 
     /**

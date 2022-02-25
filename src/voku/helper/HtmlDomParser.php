@@ -174,7 +174,6 @@ class HtmlDomParser extends AbstractDomParser
             $domNode = $this->document->importNode($element, true);
 
             if ($domNode instanceof \DOMNode) {
-                /** @noinspection UnusedFunctionResultInspection */
                 $this->document->appendChild($domNode);
             }
 
@@ -182,7 +181,6 @@ class HtmlDomParser extends AbstractDomParser
         }
 
         if ($element !== null) {
-            /** @noinspection UnusedFunctionResultInspection */
             $this->loadHtml($element);
         }
     }
@@ -252,6 +250,8 @@ class HtmlDomParser extends AbstractDomParser
             case 'innerhtml':
             case 'innertext':
                 return $this->innerHtml();
+            case 'innerhtmlkeep':
+                return $this->innerHtml(false, false);
             case 'text':
             case 'plaintext':
                 return $this->text();
@@ -299,7 +299,7 @@ class HtmlDomParser extends AbstractDomParser
         if (\stripos($html, '<!DOCTYPE') !== false) {
             $isDOMDocumentCreatedWithDoctype = true;
             if (
-                \preg_match('/(^.*?)<!(?:DOCTYPE)(?: [^>]*)?>/sui', $html, $matches_before_doctype)
+                \preg_match('/(^.*?)<!DOCTYPE(?: [^>]*)?>/sui', $html, $matches_before_doctype)
                 &&
                 \trim($matches_before_doctype[1])
             ) {
@@ -382,6 +382,10 @@ class HtmlDomParser extends AbstractDomParser
                     $this->keepSpecialScriptTags($html);
                 }
             }
+        }
+
+        if (\strpos($html, '<svg') !== false) {
+            $this->keepSpecialSvgTags($html);
         }
 
         $html = \str_replace(
@@ -594,12 +598,14 @@ class HtmlDomParser extends AbstractDomParser
     /**
      * @param string $content
      * @param bool   $multiDecodeNewHtmlEntity
+     * @param bool   $putBrokenReplacedBack
      *
      * @return string
      */
     public function fixHtmlOutput(
         string $content,
-        bool $multiDecodeNewHtmlEntity = false
+        bool $multiDecodeNewHtmlEntity = false,
+        bool $putBrokenReplacedBack = true
     ): string {
         // INFO: DOMDocument will encapsulate plaintext into a e.g. paragraph tag (<p>),
         //          so we try to remove it here again ...
@@ -705,7 +711,7 @@ class HtmlDomParser extends AbstractDomParser
 
         $content = $this->decodeHtmlEntity($content, $multiDecodeNewHtmlEntity);
 
-        return self::putReplacedBackToPreserveHtmlEntities($content);
+        return self::putReplacedBackToPreserveHtmlEntities($content, $putBrokenReplacedBack);
     }
 
     /**
@@ -803,10 +809,11 @@ class HtmlDomParser extends AbstractDomParser
      * Get dom node's outer html.
      *
      * @param bool $multiDecodeNewHtmlEntity
+     * @param bool $putBrokenReplacedBack
      *
      * @return string
      */
-    public function html(bool $multiDecodeNewHtmlEntity = false): string
+    public function html(bool $multiDecodeNewHtmlEntity = false, bool $putBrokenReplacedBack = true): string
     {
         if (static::$callback !== null) {
             \call_user_func(static::$callback, [$this]);
@@ -822,7 +829,7 @@ class HtmlDomParser extends AbstractDomParser
             return '';
         }
 
-        return $this->fixHtmlOutput($content, $multiDecodeNewHtmlEntity);
+        return $this->fixHtmlOutput($content, $multiDecodeNewHtmlEntity, $putBrokenReplacedBack);
     }
 
     /**
@@ -835,9 +842,6 @@ class HtmlDomParser extends AbstractDomParser
      */
     public function loadHtml(string $html, $libXMLExtraOptions = null): DomParserInterface
     {
-        // reset
-        self::$domBrokenReplaceHelper = [];
-
         $this->document = $this->createDOMDocument($html, $libXMLExtraOptions);
 
         return $this;
@@ -855,9 +859,6 @@ class HtmlDomParser extends AbstractDomParser
      */
     public function loadHtmlFile(string $filePath, $libXMLExtraOptions = null): DomParserInterface
     {
-        // reset
-        self::$domBrokenReplaceHelper = [];
-
         if (
             !\preg_match("/^https?:\/\//i", $filePath)
             &&
@@ -1013,7 +1014,7 @@ class HtmlDomParser extends AbstractDomParser
             $original = $html;
 
             $html = (string) \preg_replace_callback(
-                '/(?<start>[^<]*)?(?<broken>(?:(?:<\/\w+(?:\s+\w+=\\"[^\"]+\\")*+)(?:[^<]+)>)+)(?<end>.*)/u',
+                '/(?<start>[^<]*)?(?<broken>(?:<\/\w+(?:\s+\w+=\"[^"]+\")*+[^<]+>)+)(?<end>.*)/u',
                 static function ($matches) {
                     $matches['broken'] = \str_replace(
                         ['°lt/_simple_html_dom__voku_°', '°lt_simple_html_dom__voku_°', '°gt_simple_html_dom__voku_°'],
@@ -1038,6 +1039,39 @@ class HtmlDomParser extends AbstractDomParser
     }
 
     /**
+     * workaround for bug: https://bugs.php.net/bug.php?id=74628
+     *
+     * @param string $html
+     *
+     * @return void
+     */
+    protected function keepSpecialSvgTags(string &$html)
+    {
+        // regEx for e.g.: [mask-image:url('data:image/svg+xml;utf8,<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">...</svg>')]
+        /** @noinspection HtmlDeprecatedTag */
+        $regExSpecialSvg = '/\((["\'])?(?<start>data:image\/svg.*)<svg(?<attr>[^>]*?)>(?<content>.*)<\/svg>\1\)/isU';
+        $htmlTmp = \preg_replace_callback(
+            $regExSpecialSvg,
+            static function ($svgs) {
+                if (empty($svgs['content'])) {
+                    return $svgs[0];
+                }
+
+                $content = '<svg' . $svgs['attr'] . '>' . $svgs['content'] . '</svg>';
+                self::$domBrokenReplaceHelper['orig'][] = $content;
+                self::$domBrokenReplaceHelper['tmp'][] = $matchesHash = self::$domHtmlBrokenHtmlHelper . \crc32($content);
+
+                return '(' . $svgs[1] . $svgs['start'] . $matchesHash . $svgs[1] . ')';
+            },
+            $html
+        );
+
+        if ($htmlTmp !== null) {
+            $html = $htmlTmp;
+        }
+    }
+
+    /**
      * @param string $html
      *
      * @return void
@@ -1052,18 +1086,18 @@ class HtmlDomParser extends AbstractDomParser
             $this->specialScriptTags
         ));
         $html = (string) \preg_replace_callback(
-            '/(?<start>((?:<script) [^>]*type=(?:["\'])?(?:' . $tags . ')+(?:[^>]*)>))(?<innerContent>.*)(?<end><\/script>)/isU',
+            '/(?<start>(<script [^>]*type=["\']?(?:' . $tags . ')+[^>]*>))(?<innerContent>.*)(?<end><\/script>)/isU',
             function ($matches) {
 
                 // Check for logic in special script tags, like [<% _.each(tierPrices, function(item, key) { %>],
-                // because often this looks like non valid html in the template itself.
+                // because often this looks like non-valid html in the template itself.
                 foreach ($this->templateLogicSyntaxInSpecialScriptTags as $logicSyntaxInSpecialScriptTag) {
                     if (\strpos($matches['innerContent'], $logicSyntaxInSpecialScriptTag) !== false) {
                         // remove the html5 fallback
                         $matches['innerContent'] = \str_replace('<\/', '</', $matches['innerContent']);
 
                         self::$domBrokenReplaceHelper['orig'][] = $matches['innerContent'];
-                        self::$domBrokenReplaceHelper['tmp'][] = $matchesHash = '' . self::$domHtmlBrokenHtmlHelper . '' . \crc32($matches['innerContent']);
+                        self::$domBrokenReplaceHelper['tmp'][] = $matchesHash = self::$domHtmlBrokenHtmlHelper . \crc32($matches['innerContent']);
 
                         return $matches['start'] . $matchesHash . $matches['end'];
                     }
