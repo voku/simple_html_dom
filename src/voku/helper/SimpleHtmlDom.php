@@ -973,7 +973,6 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
         }
 
         return
-            urldecode(
             \urlencode(
                 \urldecode(
                     \trim(
@@ -993,7 +992,6 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
                             \strtolower($string)
                         )
                     )
-                )
                 )
             );
     }
