@@ -3,6 +3,7 @@
 1: "SimpleXmlDomNodeInterface" -> fix phpdocs only
 2: "*NodeBlank" -> fix return type from "findOne()"
 3: "innerhtmlKeep" -> added for modifying html without loosing html-hacks for e.g. svg elements
+4: "HtmlDomHelper" -> added "mergeHtmlAttributes()"
 
 [PHP Simple HTML Dom v4.7.x]
 1: add "findMultiOrFalse()" + "findOneOrFalse()"
