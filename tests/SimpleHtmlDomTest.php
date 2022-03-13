@@ -155,9 +155,28 @@ final class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
         $p = $d->find('p', 0);
         $p->outerhtml .= '<div>outer</div>';
 
-        static::assertSame('<p>p1</p>
-<div>outer</div><p>p2</p>', $d->html());
+        static::assertSame('<p>p1</p><div>outer</div><p>p2</p>', $d->html());
         static::assertSame('p1outerp2', $d->plaintext);
+    }
+
+    public function testMultiRootElements()
+    {
+        $html = '
+<p>
+	foo <code>bar</code>. ZIiiii  zzz <code>1.1</code> Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+</p>
+						
+<p>
+	<h3>Vestibulum eget velit arcu.</h3>
+
+	Vestibulum eget velit arcu. Phasellus eget scelerisque dui, nec elementum ante. <code>aoaoaoao</code>
+</p>
+';
+
+        $d = new voku\helper\HtmlDomParser();
+        $d->loadHtml($html);
+
+        static::assertSame($html, $d->html());
     }
 
     public function testReplaceText()

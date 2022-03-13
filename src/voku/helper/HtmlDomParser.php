@@ -148,6 +148,11 @@ class HtmlDomParser extends AbstractDomParser
     /**
      * @var bool
      */
+    protected $isDOMDocumentCreatedWithMultiRoot = false;
+
+    /**
+     * @var bool
+     */
     protected $isDOMDocumentCreatedWithFakeEndScript = false;
 
     /**
@@ -388,6 +393,23 @@ class HtmlDomParser extends AbstractDomParser
             $this->keepSpecialSvgTags($html);
         }
 
+        if (
+            $this->isDOMDocumentCreatedWithoutHtmlWrapper
+            &&
+            $this->isDOMDocumentCreatedWithoutBodyWrapper
+        ) {
+            if (\substr_count($html, '</') >= 2) {
+                $regexForMultiRootDetection = '#<(.*)>.*?</(\1)>#su';
+                \preg_match($regexForMultiRootDetection, $html, $matches);
+                if (($matches[0] ?? '') !== $html) {
+                    $htmlTmp = \preg_replace($regexForMultiRootDetection, '', $html);
+                    if ($htmlTmp !== null && trim($htmlTmp) === '') {
+                        $this->isDOMDocumentCreatedWithMultiRoot = true;
+                    }
+                }
+            }
+        }
+
         $html = \str_replace(
             \array_map(static function ($e) {
                 return '<' . $e . '>';
@@ -424,6 +446,8 @@ class HtmlDomParser extends AbstractDomParser
         }
 
         if (
+            $this->isDOMDocumentCreatedWithMultiRoot
+            ||
             $this->isDOMDocumentCreatedWithoutWrapper
             ||
             $this->isDOMDocumentCreatedWithCommentWrapper
@@ -453,7 +477,6 @@ class HtmlDomParser extends AbstractDomParser
 
             // UTF-8 hack: http://php.net/manual/en/domdocument.loadhtml.php#95251
             $xmlHackUsed = false;
-            /** @noinspection StringFragmentMisplacedInspection */
             if (\stripos('<?xml', $html) !== 0) {
                 $xmlHackUsed = true;
                 $html = '<?xml encoding="' . $this->getEncoding() . '" ?>' . $html;
@@ -467,7 +490,6 @@ class HtmlDomParser extends AbstractDomParser
             if ($xmlHackUsed) {
                 foreach ($this->document->childNodes as $child) {
                     if ($child->nodeType === \XML_PI_NODE) {
-                        /** @noinspection UnusedFunctionResultInspection */
                         $this->document->removeChild($child);
 
                         break;
@@ -723,7 +745,7 @@ class HtmlDomParser extends AbstractDomParser
      */
     public function getElementByClass(string $class): SimpleHtmlDomNodeInterface
     {
-        return $this->findMulti(".${class}");
+        return $this->findMulti('.' . $class);
     }
 
     /**
@@ -735,7 +757,7 @@ class HtmlDomParser extends AbstractDomParser
      */
     public function getElementById(string $id): SimpleHtmlDomInterface
     {
-        return $this->findOne("#${id}");
+        return $this->findOne('#' . $id);
     }
 
     /**
@@ -766,7 +788,7 @@ class HtmlDomParser extends AbstractDomParser
      */
     public function getElementsById(string $id, $idx = null)
     {
-        return $this->find("#${id}", $idx);
+        return $this->find('#' . $id, $idx);
     }
 
     /**
@@ -864,7 +886,7 @@ class HtmlDomParser extends AbstractDomParser
             &&
             !\file_exists($filePath)
         ) {
-            throw new \RuntimeException("File ${filePath} not found");
+            throw new \RuntimeException("File " . $filePath . " not found");
         }
 
         try {
@@ -874,11 +896,11 @@ class HtmlDomParser extends AbstractDomParser
                 $html = \file_get_contents($filePath);
             }
         } catch (\Exception $e) {
-            throw new \RuntimeException("Could not load file ${filePath}");
+            throw new \RuntimeException("Could not load file " . $filePath);
         }
 
         if ($html === false) {
-            throw new \RuntimeException("Could not load file ${filePath}");
+            throw new \RuntimeException("Could not load file " . $filePath);
         }
 
         return $this->loadHtml($html, $libXMLExtraOptions);
@@ -961,6 +983,14 @@ class HtmlDomParser extends AbstractDomParser
     public function getIsDOMDocumentCreatedWithoutBodyWrapper(): bool
     {
         return $this->isDOMDocumentCreatedWithoutBodyWrapper;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getIsDOMDocumentCreatedWithMultiRoot(): bool
+    {
+        return $this->isDOMDocumentCreatedWithMultiRoot;
     }
 
     /**

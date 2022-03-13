@@ -685,14 +685,9 @@ final class HTML5DOMDocumentTest extends PHPUnit\Framework\TestCase
                        . '<div> &nbsp;&nbsp;&nbsp; </div>'
                        . '<div> &nbsp; <span>&nbsp;</span></div>'
                        . '<div>text1 text2 </div>';
-        $expectedSource = '<div> &nbsp; &nbsp; &nbsp; </div>
-<div> &nbsp;&nbsp;&nbsp; </div>
-<div> &nbsp; <span>&nbsp;</span>
-</div>
-<div>text1 text2 </div>';
         $dom = new HtmlDomParser();
         $dom->loadHtml($bodyContent);
-        static::assertSame($expectedSource, $dom->html());
+        static::assertSame($bodyContent, $dom->html());
     }
 
     public function testOmitedElements()
