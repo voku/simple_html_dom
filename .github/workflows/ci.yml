@@ -89,11 +89,6 @@ jobs:
         with:
           files: build/logs/clover.xml
           
-      - name: Upload coverage results to Scrutinizer
-        uses: sudo-bot/action-scrutinizer@latest
-        with:
-          cli-args: "--format=php-clover build/logs/clover.xml"
-      
       - name: Archive logs artifacts
         if: ${{ failure() }}
         uses: actions/upload-artifact@v2
