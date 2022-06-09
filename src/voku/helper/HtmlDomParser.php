@@ -886,7 +886,7 @@ class HtmlDomParser extends AbstractDomParser
             &&
             !\file_exists($filePath)
         ) {
-            throw new \RuntimeException("File " . $filePath . " not found");
+            throw new \RuntimeException('File ' . $filePath . ' not found');
         }
 
         try {
@@ -896,11 +896,11 @@ class HtmlDomParser extends AbstractDomParser
                 $html = \file_get_contents($filePath);
             }
         } catch (\Exception $e) {
-            throw new \RuntimeException("Could not load file " . $filePath);
+            throw new \RuntimeException('Could not load file ' . $filePath);
         }
 
         if ($html === false) {
-            throw new \RuntimeException("Could not load file " . $filePath);
+            throw new \RuntimeException('Could not load file ' . $filePath);
         }
 
         return $this->loadHtml($html, $libXMLExtraOptions);

@@ -3,7 +3,6 @@
 use PHPUnit\Framework\TestCase;
 
 use voku\helper\HtmlDomHelper;
-use voku\helper\HtmlDomParser;
 
 /**
  * @internal
