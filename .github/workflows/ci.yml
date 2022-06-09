@@ -64,8 +64,6 @@ jobs:
             composer update --prefer-dist --no-interaction
           fi;
 
-          composer dump-autoload -o
-
       - name: Run tests
         run: |
           mkdir -p build/logs
