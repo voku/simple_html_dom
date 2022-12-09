@@ -64,14 +64,14 @@ final class HTML5DOMDocumentTest extends PHPUnit\Framework\TestCase
         $text = '';
         $html = $dom->findOne('html');
         foreach ($html->classList->entries() as $class) {
-            $text .= "[${class}]";
+            $text .= "[{$class}]";
         }
         static::assertSame('', $text);
 
         $text = '';
         $body = $dom->findOne('body');
         foreach ($body->classList->entries() as $class) {
-            $text .= "[${class}]";
+            $text .= "[{$class}]";
         }
         static::assertSame('[a][b][c]', $text);
     }

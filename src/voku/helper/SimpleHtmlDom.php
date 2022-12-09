@@ -505,7 +505,7 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
      */
     public function getElementByClass(string $class): SimpleHtmlDomNodeInterface
     {
-        return $this->findMulti(".${class}");
+        return $this->findMulti(".{$class}");
     }
 
     /**
@@ -517,7 +517,7 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
      */
     public function getElementById(string $id): SimpleHtmlDomInterface
     {
-        return $this->findOne("#${id}");
+        return $this->findOne("#{$id}");
     }
 
     /**
@@ -552,7 +552,7 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
      */
     public function getElementsById(string $id, $idx = null)
     {
-        return $this->find("#${id}", $idx);
+        return $this->find("#{$id}", $idx);
     }
 
     /**
