@@ -22,6 +22,16 @@ final class XmlDomParserTest extends \PHPUnit\Framework\TestCase
         );
     }
 
+    public function testXMLWithoutLoadingDtd() {
+        $cxmlData = '<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE cXML SYSTEM "http://xml.cXML.org/schemas/cXML/1.2.024/cXML.dtd"><cXML payloadID="dsfsfsdds" timestamp="2022-12-21T15:35:02+01:00" xml:lang="en-US"><Header><From><Credential domain="NetworkId"><Identity>sdfdfsdf-123</Identity></Credential></From><To><Credential domain="NetworkId"><Identity>fsdfdsfdsfds-321</Identity></Credential></To><Sender><Credential domain="NetworkId"><Identity>fsdfdsfds-1234</Identity></Credential><UserAgent>vdmg: Moelleken, Lars (VDMG-Connect)</UserAgent></Sender></Header><Message><PunchOutOrderMessage><BuyerCookie/><PunchOutOrderMessageHeader operationAllowed="edit"><Total><Money currency="EUR">2.13</Money></Total></PunchOutOrderMessageHeader><ItemIn quantity="1"><ItemID><SupplierPartID>43423342</SupplierPartID></ItemID><ItemDetail><UnitPrice><Money currency="EUR">2.13</Money></UnitPrice><Description xml:lang="de">Stahlblech 10 mm 1200</Description><Classification domain="UNSPSC"/></ItemDetail></ItemIn></PunchOutOrderMessage></Message></cXML>';
+
+        $xmlParser = new \voku\helper\XmlDomParser();
+        $xmlParsed = $xmlParser->loadXml($cxmlData, LIBXML_NONET, false);
+
+        $items = $xmlParsed->findMultiOrFalse('//ItemIn');
+        static::assertSame('1', $items[0]->getAttribute('quantity'));
+    }
+
     public function testError()
     {
         $this->expectException(InvalidArgumentException::class);

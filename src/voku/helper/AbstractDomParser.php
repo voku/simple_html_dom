@@ -453,11 +453,23 @@ abstract class AbstractDomParser implements DomParserInterface
             $DOM_REPLACE__HELPER_CACHE['orig']['html_wrapper__start'] = '';
             $DOM_REPLACE__HELPER_CACHE['orig']['html_wrapper__end'] = '';
 
+            $DOM_REPLACE__HELPER_CACHE['tmp']['html_wrapper__start_broken'] = self::$domHtmlWrapperHelper . '>';
+            $DOM_REPLACE__HELPER_CACHE['tmp']['html_wrapper__end_broken'] = '</' . self::$domHtmlWrapperHelper;
+
+            $DOM_REPLACE__HELPER_CACHE['orig']['html_wrapper__start_broken'] = '';
+            $DOM_REPLACE__HELPER_CACHE['orig']['html_wrapper__end_broken'] = '';
+
             $DOM_REPLACE__HELPER_CACHE['tmp']['html_special_script__start'] = '<' . self::$domHtmlSpecialScriptHelper;
             $DOM_REPLACE__HELPER_CACHE['tmp']['html_special_script__end'] = '</' . self::$domHtmlSpecialScriptHelper . '>';
 
             $DOM_REPLACE__HELPER_CACHE['orig']['html_special_script__start'] = '<script';
             $DOM_REPLACE__HELPER_CACHE['orig']['html_special_script__end'] = '</script>';
+
+            $DOM_REPLACE__HELPER_CACHE['tmp']['html_special_script__start_broken'] = self::$domHtmlSpecialScriptHelper;
+            $DOM_REPLACE__HELPER_CACHE['tmp']['html_special_script__end_broken'] = '</' . self::$domHtmlSpecialScriptHelper;
+
+            $DOM_REPLACE__HELPER_CACHE['orig']['html_special_script__start_broken'] = 'script';
+            $DOM_REPLACE__HELPER_CACHE['orig']['html_special_script__end_broken'] = '</script';
         }
 
         if (
