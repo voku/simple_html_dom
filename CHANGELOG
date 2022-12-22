@@ -6,6 +6,7 @@
 4: "HtmlDomHelper" -> added "mergeHtmlAttributes()"
 5: "HtmlDomParser" -> hack for multiple root elements
 6: "AbstractSimpleHtmlDom" -> PHP 8.1 -> try to fix php type errors
+7: "XmlDomParser" -> added workaround for DTD requests
 
 [PHP Simple HTML Dom v4.7.x]
 1: add "findMultiOrFalse()" + "findOneOrFalse()"
