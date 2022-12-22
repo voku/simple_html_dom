@@ -1,48 +1,48 @@
 {
-  "name": "voku/simple_html_dom",
-  "description": "Simple HTML DOM package.",
-  "keywords": [
-    "dom",
-    "php dom",
-    "HTML parser"
-  ],
-  "homepage": "http://simplehtmldom.sourceforge.net/",
-  "license": "MIT",
-  "type": "library",
-  "authors": [
-    {
-      "name": "dimabdc",
-      "email": "support@titor.ru",
-      "homepage": "http://github.com/dimabdc",
-      "role": "Developer"
+    "name": "voku/simple_html_dom",
+    "description": "Simple HTML DOM package.",
+    "keywords": [
+        "dom",
+        "php dom",
+        "HTML parser"
+    ],
+    "homepage": "https://github.com/voku/simple_html_dom",
+    "license": "MIT",
+    "type": "library",
+    "authors": [
+        {
+            "name": "dimabdc",
+            "email": "support@titor.ru",
+            "homepage": "https://github.com/dimabdc",
+            "role": "Developer"
+        },
+        {
+            "name": "Lars Moelleken",
+            "homepage": "https://www.moelleken.org/",
+            "role": "Fork-Maintainer"
+        }
+    ],
+    "require": {
+        "php": ">=7.0.0",
+        "ext-dom": "*",
+        "ext-libxml": "*",
+        "ext-simplexml": "*",
+        "symfony/css-selector": "~3.0 || ~4.0 || ~5.0 || ~6.0"
     },
-    {
-      "name": "Lars Moelleken",
-      "homepage": "http://www.moelleken.org/",
-      "role": "Developer"
+    "suggest": {
+        "voku/portable-utf8": "If you need e.g. UTF-8 fixed output."
+    },
+    "require-dev": {
+        "phpunit/phpunit": "~6.0 || ~7.0 || ~9.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "voku\\helper\\": "src/voku/helper/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests"
+        }
     }
-  ],
-  "require": {
-    "php": ">=7.0.0",
-    "symfony/css-selector": "~3.0 || ~4.0 || ~5.0 || ~6.0",
-    "ext-dom": "*",
-    "ext-libxml": "*",
-    "ext-simplexml": "*"
-  },
-  "suggest": {
-    "voku/portable-utf8": "If you need e.g. UTF-8 fixed output."
-  },
-  "require-dev": {
-    "phpunit/phpunit": "~6.0 || ~7.0 || ~9.0"
-  },
-  "autoload": {
-    "psr-4": {
-      "voku\\helper\\": "src/voku/helper/"
-    }
-  },
-  "autoload-dev": {
-    "psr-4": {
-      "Tests\\": "tests"
-    }
-  }
 }
