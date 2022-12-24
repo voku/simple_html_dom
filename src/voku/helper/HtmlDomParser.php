@@ -462,7 +462,7 @@ class HtmlDomParser extends AbstractDomParser
                 $this->keepBrokenHtml
             )
         ) {
-            $html = self::$domHtmlWrapperHelperStart . $html . self::$domHtmlWrapperHelperEnd;
+            $html = self::$domHtmlWrapperStart . $html . self::$domHtmlWrapperEnd;
         }
 
         $html = self::replaceToPreserveHtmlEntities($html);

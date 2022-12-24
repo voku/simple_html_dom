@@ -14,12 +14,12 @@ abstract class AbstractDomParser implements DomParserInterface
     /**
      * @var string
      */
-    protected static $domHtmlWrapperHelperStart = '<span>____simple_html_dom__voku__html_wrapper_start____</span>';
+    protected static $domHtmlWrapperStart = '<span>____simple_html_dom__voku__html_wrapper_start____</span>';
 
     /**
      * @var string
      */
-    protected static $domHtmlWrapperHelperEnd = '<span>____simple_html_dom__voku__html_wrapper_end____</span>';
+    protected static $domHtmlWrapperEnd = '<span>____simple_html_dom__voku__html_wrapper_end____</span>';
 
     /**
      * @var string
@@ -457,8 +457,8 @@ abstract class AbstractDomParser implements DomParserInterface
                 self::$domReplaceHelper['orig']
             );
 
-            $DOM_REPLACE__HELPER_CACHE['tmp']['html_wrapper__start'] = self::$domHtmlWrapperHelperStart;
-            $DOM_REPLACE__HELPER_CACHE['tmp']['html_wrapper__end'] = self::$domHtmlWrapperHelperEnd;
+            $DOM_REPLACE__HELPER_CACHE['tmp']['html_wrapper__start'] = self::$domHtmlWrapperStart;
+            $DOM_REPLACE__HELPER_CACHE['tmp']['html_wrapper__end'] = self::$domHtmlWrapperEnd;
 
             $DOM_REPLACE__HELPER_CACHE['orig']['html_wrapper__start'] = '';
             $DOM_REPLACE__HELPER_CACHE['orig']['html_wrapper__end'] = '';
