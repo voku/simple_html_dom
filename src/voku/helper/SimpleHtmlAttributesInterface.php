@@ -1,6 +1,6 @@
 <?php
 
-namespace voku\helper;
+namespace Voku\Helper;
 
 /**
  * Represents a set of space-separated attributes of an element attribute.

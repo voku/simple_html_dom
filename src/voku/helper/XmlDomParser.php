@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace voku\helper;
+namespace Voku\Helper;
 
 /**
  * @property-read string $plaintext
@@ -18,14 +18,14 @@ class XmlDomParser extends AbstractDomParser
     /**
      * @var callable|null
      *
-     * @phpstan-var null|callable(string $cssSelectorString, string $xPathString, \DOMXPath, \voku\helper\XmlDomParser): string
+     * @phpstan-var null|callable(string $cssSelectorString, string $xPathString, \DOMXPath, \Voku\Helper\XmlDomParser): string
      */
     private $callbackXPathBeforeQuery;
 
     /**
      * @var callable|null
      *
-     * @phpstan-var null|callable(string $xmlString, \voku\helper\XmlDomParser): string
+     * @phpstan-var null|callable(string $xmlString, \Voku\Helper\XmlDomParser): string
      */
     private $callbackBeforeCreateDom;
 
@@ -534,8 +534,8 @@ class XmlDomParser extends AbstractDomParser
         }
 
         try {
-            if (\class_exists('\voku\helper\UTF8')) {
-                $html = \voku\helper\UTF8::file_get_contents($filePath);
+            if (\class_exists('\Voku\Helper\UTF8')) {
+                $html = \Voku\Helper\UTF8::file_get_contents($filePath);
             } else {
                 $html = \file_get_contents($filePath);
             }
@@ -613,8 +613,8 @@ class XmlDomParser extends AbstractDomParser
         }
 
         try {
-            if (\class_exists('\voku\helper\UTF8')) {
-                $xml = \voku\helper\UTF8::file_get_contents($filePath);
+            if (\class_exists('\Voku\Helper\UTF8')) {
+                $xml = \Voku\Helper\UTF8::file_get_contents($filePath);
             } else {
                 $xml = \file_get_contents($filePath);
             }
@@ -695,7 +695,7 @@ class XmlDomParser extends AbstractDomParser
     /**
      * @param callable $callbackXPathBeforeQuery
      *
-     * @phpstan-param callable(string $cssSelectorString, string $xPathString, \DOMXPath, \voku\helper\XmlDomParser): string $callbackXPathBeforeQuery
+     * @phpstan-param callable(string $cssSelectorString, string $xPathString, \DOMXPath, \Voku\Helper\XmlDomParser): string $callbackXPathBeforeQuery
      *
      * @return $this
      */
@@ -709,7 +709,7 @@ class XmlDomParser extends AbstractDomParser
     /**
      * @param callable $callbackBeforeCreateDom
      *
-     * @phpstan-param callable(string $xmlString, \voku\helper\XmlDomParser): string $callbackBeforeCreateDom
+     * @phpstan-param callable(string $xmlString, \Voku\Helper\XmlDomParser): string $callbackBeforeCreateDom
      *
      * @return $this
      */

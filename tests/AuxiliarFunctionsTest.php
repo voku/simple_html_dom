@@ -2,7 +2,7 @@
 
 
 use PHPUnit\Framework\TestCase;
-use voku\helper\HtmlDomParser;
+use Voku\Helper\HtmlDomParser;
 
 final class AuxiliarFunctionsTest extends TestCase
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace voku\helper;
+namespace HVoku\elper;
 
 interface DomParserInterface
 {

@@ -33,7 +33,7 @@ composer require voku/portable-utf8 # if you need e.g. UTF-8 fixed output
 ### Quick Start
 
 ```php
-use voku\helper\HtmlDomParser;
+use Voku\Helper\HtmlDomParser;
 
 require_once 'composer/autoload.php';
 

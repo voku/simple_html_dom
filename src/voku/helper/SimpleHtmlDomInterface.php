@@ -1,6 +1,6 @@
 <?php
 
-namespace voku\helper;
+namespace Voku\Helper;
 
 /**
  * @property string      $outertext

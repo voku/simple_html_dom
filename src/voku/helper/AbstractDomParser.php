@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace voku\helper;
+namespace Voku\Helper;
 
 abstract class AbstractDomParser implements DomParserInterface
 {
@@ -57,7 +57,7 @@ abstract class AbstractDomParser implements DomParserInterface
     /**
      * @var callable|null
      *
-     * @phpstan-var null|callable(\voku\helper\XmlDomParser|\voku\helper\HtmlDomParser): void
+     * @phpstan-var null|callable(\Voku\Helper\XmlDomParser|\Voku\Helper\HtmlDomParser): void
      */
     protected static $callback;
 
@@ -152,7 +152,7 @@ abstract class AbstractDomParser implements DomParserInterface
     protected function decodeHtmlEntity(string $content, bool $multiDecodeNewHtmlEntity): string
     {
         if ($multiDecodeNewHtmlEntity) {
-            if (\class_exists('\voku\helper\UTF8')) {
+            if (\class_exists('\Voku\Helper\UTF8')) {
                 $content = UTF8::rawurldecode($content, true);
             } else {
                 do {
@@ -168,7 +168,7 @@ abstract class AbstractDomParser implements DomParserInterface
             }
         } else {
             /** @noinspection NestedPositiveIfStatementsInspection */
-            if (\class_exists('\voku\helper\UTF8')) {
+            if (\class_exists('\Voku\Helper\UTF8')) {
                 $content = UTF8::rawurldecode($content, false);
             } else {
                 $content = \rawurldecode(
@@ -332,7 +332,7 @@ abstract class AbstractDomParser implements DomParserInterface
     /**
      * @param callable $functionName
      *
-     * @phpstan-param callable(\voku\helper\XmlDomParser|\voku\helper\HtmlDomParser): void $functionName
+     * @phpstan-param callable(\Voku\Helper\XmlDomParser|\Voku\Helper\HtmlDomParser): void $functionName
      *
      * @return void
      */

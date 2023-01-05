@@ -1,6 +1,6 @@
 <?php
 
-use voku\helper\XmlDomParser;
+use Voku\Helper\XmlDomParser;
 
 /**
  * @internal
@@ -25,7 +25,7 @@ final class XmlDomParserTest extends \PHPUnit\Framework\TestCase
     public function testXMLWithoutLoadingDtd() {
         $cxmlData = '<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE cXML SYSTEM "http://xml.cXML.org/schemas/cXML/1.2.024/cXML.dtd"><cXML payloadID="dsfsfsdds" timestamp="2022-12-21T15:35:02+01:00" xml:lang="en-US"><Header><From><Credential domain="NetworkId"><Identity>sdfdfsdf-123</Identity></Credential></From><To><Credential domain="NetworkId"><Identity>fsdfdsfdsfds-321</Identity></Credential></To><Sender><Credential domain="NetworkId"><Identity>fsdfdsfds-1234</Identity></Credential><UserAgent>vdmg: Moelleken, Lars (VDMG-Connect)</UserAgent></Sender></Header><Message><PunchOutOrderMessage><BuyerCookie/><PunchOutOrderMessageHeader operationAllowed="edit"><Total><Money currency="EUR">2.13</Money></Total></PunchOutOrderMessageHeader><ItemIn quantity="1"><ItemID><SupplierPartID>43423342</SupplierPartID></ItemID><ItemDetail><UnitPrice><Money currency="EUR">2.13</Money></UnitPrice><Description xml:lang="de">Stahlblech 10 mm 1200</Description><Classification domain="UNSPSC"/></ItemDetail></ItemIn></PunchOutOrderMessage></Message></cXML>';
 
-        $xmlParser = new \voku\helper\XmlDomParser();
+        $xmlParser = new \Voku\Helper\XmlDomParser();
         $xmlParsed = $xmlParser->loadXml($cxmlData, LIBXML_NONET, false);
 
         $items = $xmlParsed->findMultiOrFalse('//ItemIn');
@@ -38,7 +38,7 @@ final class XmlDomParserTest extends \PHPUnit\Framework\TestCase
 
         $content = '<xml>broken xml<foo</xml>';
 
-        $xmlParser = new \voku\helper\XmlDomParser();
+        $xmlParser = new \Voku\Helper\XmlDomParser();
         $xmlParser->reportXmlErrorsAsException();
         $xmlParser->loadXml($content);
     }
@@ -47,7 +47,7 @@ final class XmlDomParserTest extends \PHPUnit\Framework\TestCase
     {
         $content = '<xml>broken xml<foo</xml>';
 
-        $xmlParser = new \voku\helper\XmlDomParser();
+        $xmlParser = new \Voku\Helper\XmlDomParser();
         $xmlParser->reportXmlErrorsAsException(false);
         /** @noinspection PhpUsageOfSilenceOperatorInspection */
         @$xmlParser->loadXml($content);
@@ -143,7 +143,7 @@ final class XmlDomParserTest extends \PHPUnit\Framework\TestCase
   </Message>
 </cXML>';
 
-        $xmlParser = new \voku\helper\XmlDomParser();
+        $xmlParser = new \Voku\Helper\XmlDomParser();
 
         // "Attempt to load network entity"
         $xml = \preg_replace('#cXML SYSTEM "http://xml.cxml.org/schemas/cXML/[\d.]*/cXML.dtd"#', 'cXML', $xml);
@@ -162,15 +162,15 @@ final class XmlDomParserTest extends \PHPUnit\Framework\TestCase
 
     public function testXmlFind()
     {
-        $xmlParser = new \voku\helper\XmlDomParser();
+        $xmlParser = new \Voku\Helper\XmlDomParser();
         $xmlParser->autoRemoveXPathNamespaces();
         $xmlParser->setCallbackBeforeCreateDom(
-            static function (string $str, \voku\helper\XmlDomParser $xmlParser) {
+            static function (string $str, \Voku\Helper\XmlDomParser $xmlParser) {
                 return \str_replace('array', 'arrayy', $str);
             }
         );
         $xmlParser->setCallbackXPathBeforeQuery(
-            static function (string $cssSelectorString, string $xPathString, \DOMXPath $xPath, \voku\helper\XmlDomParser $xmlParser) {
+            static function (string $cssSelectorString, string $xPathString, \DOMXPath $xPath, \Voku\Helper\XmlDomParser $xmlParser) {
                 return $cssSelectorString === 'methodsynopsis' ? '//methodsynopsis' : $xPathString;
             }
         );
@@ -188,7 +188,7 @@ final class XmlDomParserTest extends \PHPUnit\Framework\TestCase
 
     public function testXmlFindV2()
     {
-        $xmlParser = new \voku\helper\XmlDomParser();
+        $xmlParser = new \Voku\Helper\XmlDomParser();
         $xmlParser->autoRemoveXPathNamespaces();
 
         $filename = __DIR__ . '/fixtures/test_xml_complex_v2.xml';
@@ -209,7 +209,7 @@ final class XmlDomParserTest extends \PHPUnit\Framework\TestCase
 
     public function testXmlFindV21()
     {
-        $xmlParser = new \voku\helper\XmlDomParser();
+        $xmlParser = new \Voku\Helper\XmlDomParser();
 
         $filename = __DIR__ . '/fixtures/test_xml_complex_v2.xml';
         $content = \file_get_contents($filename);
@@ -221,7 +221,7 @@ final class XmlDomParserTest extends \PHPUnit\Framework\TestCase
 
     public function testXmlFindV3()
     {
-        $xmlParser = new \voku\helper\XmlDomParser();
+        $xmlParser = new \Voku\Helper\XmlDomParser();
         $xmlParser->autoRemoveXPathNamespaces();
         $xmlParser->reportXmlErrorsAsException();
 
@@ -245,12 +245,12 @@ final class XmlDomParserTest extends \PHPUnit\Framework\TestCase
 
     public function testIssue63()
     {
-        $dom = (new voku\helper\XmlDomParser())->loadHtml('<Foo> foo bar </Foo>');
+        $dom = (new Voku\Helper\XmlDomParser())->loadHtml('<Foo> foo bar </Foo>');
         static::assertSame(' foo bar ', $dom->findOne('Foo')->innerXml());
-        static::assertInstanceOf(\voku\helper\SimpleXmlDomBlank::class, $dom->findOne('Bar'));
-        static::assertInstanceOf(\voku\helper\SimpleXmlDomBlank::class, $dom->findOne('Bar')->findOne('Bar'));
-        static::assertInstanceOf(\voku\helper\SimpleXmlDomBlank::class, $dom->findOne('Bar')->findOne('Bar')->findOne('Bar'));
-        static::assertInstanceOf(\voku\helper\SimpleXmlDomBlank::class, $dom->findOne('Bar')->findOne('Bar')->findOne('Bar')->findOne('Bar'));
+        static::assertInstanceOf(\Voku\Helper\SimpleXmlDomBlank::class, $dom->findOne('Bar'));
+        static::assertInstanceOf(\Voku\Helper\SimpleXmlDomBlank::class, $dom->findOne('Bar')->findOne('Bar'));
+        static::assertInstanceOf(\Voku\Helper\SimpleXmlDomBlank::class, $dom->findOne('Bar')->findOne('Bar')->findOne('Bar'));
+        static::assertInstanceOf(\Voku\Helper\SimpleXmlDomBlank::class, $dom->findOne('Bar')->findOne('Bar')->findOne('Bar')->findOne('Bar'));
     }
 
     public function testXmlReplace()

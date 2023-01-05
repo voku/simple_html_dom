@@ -6,7 +6,7 @@ require_once '../vendor/autoload.php';
 function html_no_comment(string $html): string
 {
     // create HTML DOM
-    $dom = \voku\helper\HtmlDomParser::str_get_html($html);
+    $dom = \Voku\Helper\HtmlDomParser::str_get_html($html);
 
     // remove all comment elements
     foreach ($dom->find('comment') as $e) {

@@ -10,7 +10,7 @@ $html = '
 <p class="lall">foo</p>
 ';
 
-$document = new \voku\helper\HtmlDomParser($html);
+$document = new \Voku\Helper\HtmlDomParser($html);
 
 $imageOrFalse = $document->findOneOrFalse('#test');
 if ($imageOrFalse !== false) {
@@ -25,7 +25,7 @@ $html = '
 <p class="lall">foo</p>
 ';
 
-$document = new \voku\helper\HtmlDomParser($html);
+$document = new \Voku\Helper\HtmlDomParser($html);
 
 $imageOrFalse = $document->findOneOrFalse('#non_test');
 if ($imageOrFalse !== false) {
@@ -41,7 +41,7 @@ $html = '
 <img class="image_foo" src="lall2.png" alt="foo2">
 ';
 
-$document = new \voku\helper\HtmlDomParser($html);
+$document = new \Voku\Helper\HtmlDomParser($html);
 
 $imagesOrFalse = $document->findMultiOrFalse('.image_foo');
 if ($imagesOrFalse !== false) {

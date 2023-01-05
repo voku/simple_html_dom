@@ -8,7 +8,7 @@ function scraping_lebensmittelwarnung($url)
     $return = [];
 
     // create HTML DOM
-    $dom = \voku\helper\HtmlDomParser::file_get_html($url);
+    $dom = \Voku\Helper\HtmlDomParser::file_get_html($url);
 
     foreach ($dom->findMulti('item') as $item) {
         $title = $item->getElementByTagName('title')->text();

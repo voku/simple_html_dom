@@ -1,20 +1,20 @@
 <?php
 
-use voku\helper\SimpleHtmlDomInterface;
-use voku\helper\SimpleHtmlDomNode;
-use voku\helper\SimpleHtmlDomNodeInterface;
+use Voku\Helper\SimpleHtmlDomInterface;
+use Voku\Helper\SimpleHtmlDomNode;
+use Voku\Helper\SimpleHtmlDomNodeInterface;
 
 require_once '../vendor/autoload.php';
 
 /**
- * @param \voku\helper\HtmlDomParser $dom
+ * @param \Voku\Helper\HtmlDomParser $dom
  * @param string                     $selector
  * @param string                     $keyword
  *
  * @return SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>
  */
 function find_contains(
-    \voku\helper\HtmlDomParser $dom,
+    \Voku\Helper\HtmlDomParser $dom,
     string $selector,
     string $keyword
 ) {
@@ -38,7 +38,7 @@ $html = '
 <ul><li class="lall">test321<br>foo</li><!----></ul>
 ';
 
-$document = new \voku\helper\HtmlDomParser($html);
+$document = new \Voku\Helper\HtmlDomParser($html);
 
 foreach (find_contains($document, '.lall', 'foo') as $child_dom) {
     echo $child_dom->html() . "\n";

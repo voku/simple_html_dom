@@ -1,6 +1,6 @@
 <?php
 
-use voku\helper\HtmlDomParser;
+use Voku\Helper\HtmlDomParser;
 
 /**
  * @internal
@@ -36,11 +36,11 @@ final class SimpleHtmlDomNodeTest extends \PHPUnit\Framework\TestCase
 
         $elements = $nodeList->find($selector);
 
-        static::assertInstanceOf(voku\helper\SimpleHtmlDomNodeInterface::class, $elements);
+        static::assertInstanceOf(Voku\Helper\SimpleHtmlDomNodeInterface::class, $elements);
         static::assertCount($count, $elements);
 
         foreach ($elements as $node) {
-            static::assertInstanceOf(voku\helper\SimpleHtmlDom::class, $node);
+            static::assertInstanceOf(Voku\Helper\SimpleHtmlDom::class, $node);
         }
     }
 
@@ -93,8 +93,8 @@ final class SimpleHtmlDomNodeTest extends \PHPUnit\Framework\TestCase
         $document = new HtmlDomParser($html);
         $element = $document->find('span');
 
-        static::assertInstanceOf(\voku\helper\SimpleHtmlDomNodeInterface::class, $element);
-        static::assertInstanceOf(\voku\helper\SimpleHtmlDomNodeBlank::class, $element);
+        static::assertInstanceOf(\Voku\Helper\SimpleHtmlDomNodeInterface::class, $element);
+        static::assertInstanceOf(\Voku\Helper\SimpleHtmlDomNodeBlank::class, $element);
         static::assertSame([], $element->text());
         static::assertSame([], $element->plaintext);
     }
@@ -105,8 +105,8 @@ final class SimpleHtmlDomNodeTest extends \PHPUnit\Framework\TestCase
         $document = new HtmlDomParser($html);
         $element = $document->find('span', 0);
 
-        static::assertInstanceOf(\voku\helper\SimpleHtmlDomInterface::class, $element);
-        static::assertInstanceOf(\voku\helper\SimpleHtmlDomBlank::class, $element);
+        static::assertInstanceOf(\Voku\Helper\SimpleHtmlDomInterface::class, $element);
+        static::assertInstanceOf(\Voku\Helper\SimpleHtmlDomBlank::class, $element);
         static::assertSame('', $element->class);
         static::assertSame('', $element->text());
         static::assertSame('', $element->plaintext);
@@ -119,8 +119,8 @@ final class SimpleHtmlDomNodeTest extends \PHPUnit\Framework\TestCase
         $elements = $document->find('span', 1);
 
         static::assertCount(0, $elements);
-        static::assertInstanceOf(\voku\helper\SimpleHtmlDomInterface::class, $elements);
-        static::assertInstanceOf(\voku\helper\SimpleHtmlDomBlank::class, $elements);
+        static::assertInstanceOf(\Voku\Helper\SimpleHtmlDomInterface::class, $elements);
+        static::assertInstanceOf(\Voku\Helper\SimpleHtmlDomBlank::class, $elements);
         static::assertSame('', $elements->class);
         static::assertSame('', $elements->text());
         static::assertSame('', $elements->plaintext);

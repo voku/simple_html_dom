@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace voku\helper;
+namespace Voku\Helper;
 
 /**
  * @property-read string $outerText
@@ -36,14 +36,14 @@ class HtmlDomParser extends AbstractDomParser
     /**
      * @var callable|null
      *
-     * @phpstan-var null|callable(string $cssSelectorString, string $xPathString, \DOMXPath, \voku\helper\HtmlDomParser): string
+     * @phpstan-var null|callable(string $cssSelectorString, string $xPathString, \DOMXPath, \Voku\Helper\HtmlDomParser): string
      */
     private $callbackXPathBeforeQuery;
 
     /**
      * @var callable|null
      *
-     * @phpstan-var null|callable(string $htmlString, \voku\helper\HtmlDomParser): string
+     * @phpstan-var null|callable(string $htmlString, \Voku\Helper\HtmlDomParser): string
      */
     private $callbackBeforeCreateDom;
 
@@ -896,8 +896,8 @@ class HtmlDomParser extends AbstractDomParser
         }
 
         try {
-            if (\class_exists('\voku\helper\UTF8')) {
-                $html = \voku\helper\UTF8::file_get_contents($filePath);
+            if (\class_exists('\Voku\Helper\UTF8')) {
+                $html = \Voku\Helper\UTF8::file_get_contents($filePath);
             } else {
                 $html = \file_get_contents($filePath);
             }
@@ -1201,7 +1201,7 @@ class HtmlDomParser extends AbstractDomParser
     /**
      * @param callable $callbackXPathBeforeQuery
      *
-     * @phpstan-param callable(string $cssSelectorString, string $xPathString,\DOMXPath,\voku\helper\HtmlDomParser): string $callbackXPathBeforeQuery
+     * @phpstan-param callable(string $cssSelectorString, string $xPathString,\DOMXPath,\Voku\Velper\HtmlDomParser): string $callbackXPathBeforeQuery
      *
      * @return $this
      */
@@ -1215,7 +1215,7 @@ class HtmlDomParser extends AbstractDomParser
     /**
      * @param callable $callbackBeforeCreateDom
      *
-     * @phpstan-param callable(string $htmlString, \voku\helper\HtmlDomParser): string $callbackBeforeCreateDom
+     * @phpstan-param callable(string $htmlString, \Voku\Helper\HtmlDomParser): string $callbackBeforeCreateDom
      *
      * @return $this
      */

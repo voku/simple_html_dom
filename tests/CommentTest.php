@@ -1,7 +1,7 @@
 <?php
 
 use PHPUnit\Framework\TestCase;
-use voku\helper\HtmlDomParser;
+use Voku\Helper\HtmlDomParser;
 
 /**
  * Checks if the parser properly handles comments
