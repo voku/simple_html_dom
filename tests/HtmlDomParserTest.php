@@ -331,6 +331,47 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
         }
     }
 
+    public function testIssue96()
+    {
+        $html = '<html>
+        <body>
+                <div class="mydiv">
+                </div>
+                <div class="mydiv">
+                    <div class="mydiv-item"><span>A1</span></div>
+                </div>
+                <div class="mydiv">
+                    <div class="mydiv-item"><span>B1</span><span>B2</span></div>
+                </div>
+        </body>
+        </html>';
+
+        $expected = '<html>
+        <body>
+                <div class="myreplacement">
+                </div>
+                <div class="myreplacement">
+                    <div class="replaced"><span>A1</span></div>
+                </div>
+                <div class="myreplacement">
+                    <div class="replaced"><span>B1</span><span>B2</span></div>
+                </div>
+        </body>
+        </html>';
+
+        $dom = new voku\helper\HtmlDomParser();
+        $dom->load($html);
+
+        foreach($dom->findMulti('.mydiv .mydiv-item') as $childEl) {
+            $childEl->class = 'replaced';
+        }
+        foreach ($dom->findMulti('.mydiv') as $myDivEl) {
+            $myDivEl->class = 'myreplacement';
+        }
+
+        static::assertSame($expected, $dom->html());
+    }
+
     public function testSaveIssue42()
     {
         $html = '<div><p>p1</p></div>';
