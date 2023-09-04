@@ -6,7 +6,6 @@ namespace voku\helper;
 
 final class HtmlDomHelper
 {
-
     /**
      * @param string $html
      * @param string $optionStr

@@ -362,7 +362,7 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
         $dom = new voku\helper\HtmlDomParser();
         $dom->load($html);
 
-        foreach($dom->findMulti('.mydiv .mydiv-item') as $childEl) {
+        foreach ($dom->findMulti('.mydiv .mydiv-item') as $childEl) {
             $childEl->class = 'replaced';
         }
         foreach ($dom->findMulti('.mydiv') as $myDivEl) {
