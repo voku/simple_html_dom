@@ -831,7 +831,6 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
             ||
             $newDocument->getIsDOMDocumentCreatedWithoutHtmlWrapper()
         ) {
-
             // Remove doc-type node.
             if ($newDocument->getDocument()->doctype !== null) {
                 $newDocument->getDocument()->doctype->parentNode->removeChild($newDocument->getDocument()->doctype);

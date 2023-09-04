@@ -478,7 +478,6 @@ class HtmlDomParser extends AbstractDomParser
         }
 
         if ($documentFound === false) {
-
             // UTF-8 hack: http://php.net/manual/en/domdocument.loadhtml.php#95251
             $xmlHackUsed = false;
             if (\stripos('<?xml', $html) !== 0) {
@@ -1124,7 +1123,6 @@ class HtmlDomParser extends AbstractDomParser
         $html = (string) \preg_replace_callback(
             '/(?<start>(<script [^>]*type=["\']?(?:' . $tags . ')+[^>]*>))(?<innerContent>.*)(?<end><\/script>)/isU',
             function ($matches) {
-
                 // Check for logic in special script tags, like [<% _.each(tierPrices, function(item, key) { %>],
                 // because often this looks like non-valid html in the template itself.
                 foreach ($this->templateLogicSyntaxInSpecialScriptTags as $logicSyntaxInSpecialScriptTag) {
