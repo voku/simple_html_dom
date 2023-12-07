@@ -23,6 +23,15 @@ abstract class AbstractSimpleHtmlDom
         'innerhtmlkeep'    => 'innerHtmlKeep',
     ];
 
+    /** 
+     * @var string[] 
+     */
+    protected static $stringDomNodes = [
+        'id',
+        'prefix',
+        'content'
+    ];
+
     /**
      * @var \DOMElement|\DOMNode|null
      */
@@ -167,7 +176,7 @@ abstract class AbstractSimpleHtmlDom
             default:
                 if ($this->node && \property_exists($this->node, $nameOrig)) {
                     // INFO: Cannot assign null to property DOMNode::* of type string
-                    if ($nameOrig === 'prefix' || $nameOrig === 'textContent') {
+                    if (in_array($nameOrig, self::$stringDomNodes)) {
                         $value = (string)$value;
                     }
 
