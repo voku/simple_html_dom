@@ -23,8 +23,8 @@ abstract class AbstractSimpleHtmlDom
         'innerhtmlkeep'    => 'innerHtmlKeep',
     ];
 
-    /** 
-     * @var string[] 
+    /**
+     * @var string[]
      */
     protected static $stringDomNodes = [
         'id',
