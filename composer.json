@@ -27,7 +27,7 @@
         "ext-dom": "*",
         "ext-libxml": "*",
         "ext-simplexml": "*",
-        "symfony/css-selector": "~3.0 || ~4.0 || ~5.0 || ~6.0"
+        "symfony/css-selector": "~3.0 || ~4.0 || ~5.0 || ~6.0 || ~7.0"
     },
     "suggest": {
         "voku/portable-utf8": "If you need e.g. UTF-8 fixed output."
