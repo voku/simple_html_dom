@@ -171,7 +171,9 @@ abstract class AbstractSimpleHtmlDom
                         $value = (string)$value;
                     }
 
-                    return $this->node->{$nameOrig} = $value;
+                    if (!is_null($value)) {
+                        return $this->node->{$nameOrig} = $value;
+                    }
                 }
 
                 return $this->setAttribute($name, $value);
