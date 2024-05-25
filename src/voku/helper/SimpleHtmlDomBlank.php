@@ -402,9 +402,9 @@ class SimpleHtmlDomBlank extends AbstractSimpleHtmlDom implements \IteratorAggre
     /**
      * Returns the parent of node.
      *
-     * @return SimpleHtmlDomInterface
+     * @return SimpleHtmlDomInterface|null
      */
-    public function parentNode(): SimpleHtmlDomInterface
+    public function parentNode(): ?SimpleHtmlDomInterface
     {
         return new static();
     }
