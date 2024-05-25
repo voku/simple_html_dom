@@ -75,6 +75,7 @@ class HtmlDomParser extends AbstractDomParser
      * ```php
      * protected $specialScriptTags = [
      *     'text/html',
+     *     'text/template',
      *     'text/x-custom-template',
      *     'text/x-handlebars-template'
      * ]
@@ -84,6 +85,7 @@ class HtmlDomParser extends AbstractDomParser
      */
     protected $specialScriptTags = [
         'text/html',
+        'text/template',
         'text/x-custom-template',
         'text/x-handlebars-template',
     ];
