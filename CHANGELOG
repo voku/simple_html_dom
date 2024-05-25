@@ -8,6 +8,11 @@
 6: "AbstractSimpleHtmlDom" -> PHP 8.1 -> try to fix php type errors
 7: "XmlDomParser" -> added workaround for DTD requests
 8: "Replace deprecated string interpolation usage" thanks @flavioheleno [Flávio Heleno]
+9: "Adding 'id' to DOMNodes with type string." thanks @devteam-emroc [Dev Team - emroc GmbH]
+   "Add symfony 7 support" thanks @GerB
+   "Fix error in parent() method if no parent node" thanks @DieterHolvoet [Dieter Holvoet]
+   "Add text/template type" thanks @all9lives [Jeremy Brennan]
+   "fix: Cannot assign null to property DOMNode::* of type string" thanks @frugan-dev [Frugan]
 
 [PHP Simple HTML Dom v4.7.x]
 1: add "findMultiOrFalse()" + "findOneOrFalse()"
