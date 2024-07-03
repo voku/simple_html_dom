@@ -64,7 +64,7 @@ final class HtmlDomHelper
         }
 
         foreach ($attributes as $attributeName => $attributeValue) {
-            $domElement->setAttribute($attributeName, $attributeValue);
+            $domElement->setAttribute($attributeName, $attributeValue, true);
         }
 
         return $domElement->html();
