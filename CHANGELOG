@@ -13,6 +13,7 @@
    "Fix error in parent() method if no parent node" thanks @DieterHolvoet [Dieter Holvoet]
    "Add text/template type" thanks @all9lives [Jeremy Brennan]
    "fix: Cannot assign null to property DOMNode::* of type string" thanks @frugan-dev [Frugan]
+10: "fix: HtmlDomHelper::mergeHtmlAttributes() with zero values"
 
 [PHP Simple HTML Dom v4.7.x]
 1: add "findMultiOrFalse()" + "findOneOrFalse()"
