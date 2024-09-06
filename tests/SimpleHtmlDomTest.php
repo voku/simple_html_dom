@@ -608,4 +608,26 @@ final class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
         static::assertTrue($element->hasAttribute('class'));
         static::assertTrue(isset($element->id));
     }
+
+    public function testIssue112()
+    {
+        $html = '<div class="woocommerce-variation single_variation">
+            <div class="woocommerce-variation-description"></div>
+            <div class="woocommerce-variation-price"></div>
+            <div class="woocommerce-variation-availability"><p class="stock in-stock">30 in stock</p></div>
+        </div>';
+
+        $expected = '<div class="woocommerce-variation single_variation">
+            <div class="woocommerce-variation-description"></div>
+            <div class="woocommerce-variation-price"></div>
+            <div class="woocommerce-variation-availability"><p class="stock in-stock">30 in stock</p></div>
+        </div>';
+
+        $document = new HtmlDomParser($html);
+        $htmlNew = $document->html();
+        static::assertSame($expected, $htmlNew);
+
+        $availabilityHtml = $document->findOne('.woocommerce-variation-availability');
+        static::assertSame('<p class="stock in-stock">30 in stock</p>', $availabilityHtml->innerHtml());
+    }
 }
