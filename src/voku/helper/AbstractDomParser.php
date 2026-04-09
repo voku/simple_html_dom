@@ -9,17 +9,17 @@ abstract class AbstractDomParser implements DomParserInterface
     /**
      * @var string
      */
-    protected static $domHtmlWrapperHelper = '____simple_html_dom__voku__html_wrapper____';
+    protected static $domHtmlWrapperHelper = 'simplehtml-voku-wrapper';
 
     /**
      * @var string
      */
-    protected static $domHtmlBrokenHtmlHelper = '____simple_html_dom__voku__broken_html____';
+    protected static $domHtmlBrokenHtmlHelper = 'simplehtml-voku-broken';
 
     /**
      * @var string
      */
-    protected static $domHtmlSpecialScriptHelper = '____simple_html_dom__voku__html_special_script____';
+    protected static $domHtmlSpecialScriptHelper = 'simplehtml-voku-special-script';
 
     /**
      * @var array
@@ -32,10 +32,10 @@ abstract class AbstractDomParser implements DomParserInterface
     protected static $domLinkReplaceHelper = [
         'orig' => ['[', ']', '{', '}'],
         'tmp'  => [
-            '____SIMPLE_HTML_DOM__VOKU__SQUARE_BRACKET_LEFT____',
-            '____SIMPLE_HTML_DOM__VOKU__SQUARE_BRACKET_RIGHT____',
-            '____SIMPLE_HTML_DOM__VOKU__BRACKET_LEFT____',
-            '____SIMPLE_HTML_DOM__VOKU__BRACKET_RIGHT____',
+            'SHDOM_SQUARE_BRACKET_LEFT',
+            'SHDOM_SQUARE_BRACKET_RIGHT',
+            'SHDOM_BRACKET_LEFT',
+            'SHDOM_BRACKET_RIGHT',
         ],
     ];
 
@@ -45,12 +45,12 @@ abstract class AbstractDomParser implements DomParserInterface
     protected static $domReplaceHelper = [
         'orig' => ['&', '|', '+', '%', '@', '<html ⚡'],
         'tmp'  => [
-            '____SIMPLE_HTML_DOM__VOKU__AMP____',
-            '____SIMPLE_HTML_DOM__VOKU__PIPE____',
-            '____SIMPLE_HTML_DOM__VOKU__PLUS____',
-            '____SIMPLE_HTML_DOM__VOKU__PERCENT____',
-            '____SIMPLE_HTML_DOM__VOKU__AT____',
-            '<html ____SIMPLE_HTML_DOM__VOKU__GOOGLE_AMP____="true"',
+            'SHDOM_AMP',
+            'SHDOM_PIPE',
+            'SHDOM_PLUS',
+            'SHDOM_PERCENT',
+            'SHDOM_AT',
+            '<html SHDOM_GOOGLE_AMP="true"',
         ],
     ];
 
