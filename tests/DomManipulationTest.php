@@ -22,7 +22,7 @@ final class DomManipulationTest extends TestCase
     {
         $this->dom = new HtmlDomParser();
 
-        $expected = "<html>\n<head></head>\n<body></body>\n</html>";
+        $expected = "<html><head></head><body></body></html>";
 
         $html = $this->dom->getDocument()->createElement('html');
         $head = $this->dom->getDocument()->createElement('head');

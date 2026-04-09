@@ -1,14 +1,14 @@
-<phpunit bootstrap="tests/bootstrap.php"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd">
+<phpunit bootstrap="tests/bootstrap.php">
     <coverage processUncoveredFiles="true">
         <include>
             <directory suffix=".php">./src/</directory>
         </include>
-        <report>
-            <clover outputFile="build/logs/clover.xml"/>
-        </report>
     </coverage>
+    <filter>
+        <whitelist processUncoveredFilesFromWhitelist="true">
+            <directory suffix=".php">./src/</directory>
+        </whitelist>
+    </filter>
     <testsuites>
         <testsuite name="Simple HTML Dom Test Suite">
             <directory>tests</directory>

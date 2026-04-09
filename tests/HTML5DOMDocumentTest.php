@@ -384,7 +384,7 @@ final class HTML5DOMDocumentTest extends PHPUnit\Framework\TestCase
         $dom = new HtmlDomParser();
         $dom->loadHtml($content);
 
-        static::assertSame('<div id="key1">1</div>' . "\n" . '<div><div id="key1">2</div></div>', $dom->html());
+        static::assertSame('<div id="key1">1</div><div><div id="key1">2</div></div>', $dom->html());
     }
 
     public function testDuplicateElementIDsQueries()
@@ -893,28 +893,13 @@ final class HTML5DOMDocumentTest extends PHPUnit\Framework\TestCase
         $dom = new HtmlDomParser();
         $dom->loadHtml($html);
 
-        $expectedOutput = '<html>
-<head><component><script src="url1"></script><script src="url2"></script></component></head>
-<body><div><component><ul>
-<li><a href="#">Link 1</a></li>
-<li><a href="#">Link 2</a></li>
-</ul></component></div></body>
-</html>';
+        $expectedOutput = '<html><head><component><script src="url1"></script><script src="url2"></script></component></head><body><div><component><ul><li><a href="#">Link 1</a></li><li><a href="#">Link 2</a></li></ul></component></div></body></html>';
         static::assertSame($expectedOutput, $dom->html());
 
-        $expectedOutput = '<body><div><component><ul>
-<li><a href="#">Link 1</a></li>
-<li><a href="#">Link 2</a></li>
-</ul></component></div></body>';
+        $expectedOutput = '<body><div><component><ul><li><a href="#">Link 1</a></li><li><a href="#">Link 2</a></li></ul></component></div></body>';
         static::assertSame($expectedOutput, $dom->findOne('div')->parentNode()->html());
 
-        $expectedOutput = '<html>
-<head><component><script src="url1"></script><script src="url2"></script></component></head>
-<body><div><component><ul>
-<li><a href="#">Link 1</a></li>
-<li><a href="#">Link 2</a></li>
-</ul></component></div></body>
-</html>';
+        $expectedOutput = '<html><head><component><script src="url1"></script><script src="url2"></script></component></head><body><div><component><ul><li><a href="#">Link 1</a></li><li><a href="#">Link 2</a></li></ul></component></div></body></html>';
         static::assertSame($expectedOutput, $dom->findOne('div')->parentNode()->parentNode()->html());
 
         $div = $dom->findOne('div');
@@ -930,13 +915,7 @@ final class HTML5DOMDocumentTest extends PHPUnit\Framework\TestCase
         $expectedOutput = '<head><component><script src="url1"></script><script src="url2"></script></component></head>';
         static::assertSame($expectedOutput, $dom->findOne('script')->parentNode()->parentNode()->html);
 
-        $expectedOutput = '<html>
-<head><component><script src="url1"></script><script src="url2"></script></component></head>
-<body><div><component><ul>
-<li><a href="#">Link 1</a></li>
-<li><a href="#">Link 2</a></li>
-</ul></component></div></body>
-</html>';
+        $expectedOutput = '<html><head><component><script src="url1"></script><script src="url2"></script></component></head><body><div><component><ul><li><a href="#">Link 1</a></li><li><a href="#">Link 2</a></li></ul></component></div></body></html>';
         static::assertSame($expectedOutput, $dom->findOne('script')->parentNode()->parentNode()->parentNode()->html);
     }
 }

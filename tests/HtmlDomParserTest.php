@@ -465,7 +465,7 @@ HTML;
             $e->outertext = '[INPUT]';
         }
 
-        static::assertSame('<form name="form1" method="post" action="">' . "\n" . '[INPUT]中文空白</form>', (string) $html);
+        static::assertSame('<form name="form1" method="post" action="">[INPUT]中文空白</form>', (string) $html);
     }
 
     public function testInnertextWithHtmlHeadTag()
@@ -528,7 +528,7 @@ HTML;
         $html->find('div', 1)->class = 'bar';
         $html->find('div[id=hello]', 0)->innertext = 'foo';
 
-        static::assertSame('<div id="hello">foo</div>' . "\n" . '<div id="world" class="bar">World</div>', (string) $html);
+        static::assertSame('<div id="hello">foo</div><div id="world" class="bar">World</div>', (string) $html);
     }
 
     public function testMail2()
@@ -1038,7 +1038,7 @@ HTML;
         $html->findOne('div[id=hello]')->innertext = 'foo';
 
         static::assertSame(
-            '<div id="hello">foo</div>' . "\n" . '<div id="world" class="bar">World</div>' . "\n" . '<strong></strong>',
+            '<div id="hello">foo</div><div id="world" class="bar">World</div><strong></strong>',
             $html->html()
         );
 
@@ -1047,7 +1047,7 @@ HTML;
         $html->find('div[id=fail]', 0)->innertext = 'foobar';
 
         static::assertSame(
-            '<div id="hello">foo</div>' . "\n" . '<div id="world" class="bar">World</div>' . "\n" . '<strong></strong>',
+            '<div id="hello">foo</div><div id="world" class="bar">World</div><strong></strong>',
             (string) $html
         );
     }
@@ -1063,13 +1063,13 @@ HTML;
         $html->find('div', 1)->class = 'bar';
         $html->find('div[id=hello]', 0)->innertext = 'foo';
 
-        static::assertSame('<div id="hello">foo</div>' . "\n" . '<div id="world" class="bar">World</div>', (string) $html);
+        static::assertSame('<div id="hello">foo</div><div id="world" class="bar">World</div>', (string) $html);
 
         // -------------
 
         $html->find('div[id=fail]', 0)->innertext = 'foobar';
 
-        static::assertSame('<div id="hello">foo</div>' . "\n" . '<div id="world" class="bar">World</div>', (string) $html);
+        static::assertSame('<div id="hello">foo</div><div id="world" class="bar">World</div>', (string) $html);
     }
 
     public function testLoad()
@@ -1694,7 +1694,7 @@ ___;
         $dom = new HtmlDomParser();
         $dom->load('hi</b><p>سلام<div>の家庭に、9 ☆<><');
         static::assertSame(
-            'hi<p>سلام' . "\n" . '<div>の家庭に、9 ☆<><</div>',
+            'hi<p>سلام<div>の家庭に、9 ☆<><</div>',
             $dom->innerHtml
         );
     }
@@ -2005,7 +2005,7 @@ ___;
     {
         $dom = new HtmlDomParser();
         $dom->load('<div class="stream-container "  > <div class="stream-item js-new-items-bar-container"> </div> <div class="stream">');
-        static::assertSame('<div class="stream-container "> <div class="stream-item js-new-items-bar-container"> </div> <div class="stream"></div>' . "\n" . '</div>', (string) $dom);
+        static::assertSame('<div class="stream-container "> <div class="stream-item js-new-items-bar-container"> </div> <div class="stream"></div></div>', (string) $dom);
     }
 
     public function testCodeTag()
@@ -2107,8 +2107,7 @@ ___;
                     ]
                   }
                 </script>
-                <style amp-boilerplate>body{-webkit-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-moz-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-ms-animation:-amp-start 8s steps(1,end) 0s 1 normal both;animation:-amp-start 8s steps(1,end) 0s 1 normal both}@-webkit-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-moz-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-ms-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-o-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}</style>
-<noscript><style amp-boilerplate>body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}</style></noscript>
+                <style amp-boilerplate>body{-webkit-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-moz-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-ms-animation:-amp-start 8s steps(1,end) 0s 1 normal both;animation:-amp-start 8s steps(1,end) 0s 1 normal both}@-webkit-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-moz-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-ms-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-o-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}</style><noscript><style amp-boilerplate>body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}</style></noscript>
               </head>
               <body>
                 <h1>Welcome to the mobile web</h1>
