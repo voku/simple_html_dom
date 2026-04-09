@@ -856,7 +856,71 @@ class HtmlDomParser extends AbstractDomParser
             return '';
         }
 
+        $content = $this->fixWrapperFormatting($content);
+
         return $this->fixHtmlOutput($content, $multiDecodeNewHtmlEntity, $putBrokenReplacedBack);
+    }
+
+    /**
+     * Fix formatting newlines that saveHTML() adds between block-level children
+     * of the custom wrapper element on older PHP/libxml versions.
+     *
+     * Re-serializes wrapper children individually to remove any formatting newlines
+     * while preserving content newlines.
+     *
+     * @param string $content
+     *
+     * @return string
+     */
+    private function fixWrapperFormatting($content)
+    {
+        $wrapperTag = self::$domHtmlWrapperHelper;
+        $wrapperElements = $this->document->getElementsByTagName($wrapperTag);
+
+        if ($wrapperElements->length === 0) {
+            return $content;
+        }
+
+        for ($i = 0; $i < $wrapperElements->length; $i++) {
+            $wrapper = $wrapperElements->item($i);
+            $originalWrapperHtml = $this->document->saveHTML($wrapper);
+
+            if ($originalWrapperHtml === false) {
+                continue;
+            }
+
+            // Re-serialize children individually (avoids formatting newlines)
+            $childrenHtml = '';
+            foreach ($wrapper->childNodes as $child) {
+                $childrenHtml .= $this->document->saveHTML($child);
+            }
+
+            $fixedWrapperHtml = '<' . $wrapperTag . '>' . $childrenHtml . '</' . $wrapperTag . '>';
+
+            if ($originalWrapperHtml !== $fixedWrapperHtml) {
+                $content = \str_replace($originalWrapperHtml, $fixedWrapperHtml, $content);
+            }
+        }
+
+        return $content;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function innerHtml(bool $multiDecodeNewHtmlEntity = false, bool $putBrokenReplacedBack = true): string
+    {
+        $text = '';
+
+        if ($this->document->documentElement) {
+            foreach ($this->document->documentElement->childNodes as $node) {
+                $text .= $this->document->saveHTML($node);
+            }
+        }
+
+        $text = $this->fixWrapperFormatting($text);
+
+        return $this->fixHtmlOutput($text, $multiDecodeNewHtmlEntity, $putBrokenReplacedBack);
     }
 
     /**
