@@ -268,7 +268,7 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
 
         $htmlTmp = $document->html();
 
-        if (\method_exists(__CLASS__, 'assertIsString')) {
+        if (\method_exists(static::class, 'assertIsString')) {
             static::assertIsString($htmlTmp);
         } else {
             /** @noinspection PhpUndefinedMethodInspection */
@@ -276,14 +276,14 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
         }
 
         $xmlTmp = $document->xml();
-        if (\method_exists(__CLASS__, 'assertIsString')) {
+        if (\method_exists(static::class, 'assertIsString')) {
             static::assertIsString($xmlTmp);
         } else {
             /** @noinspection PhpUndefinedMethodInspection */
             static::assertInternalType('string', $xmlTmp);
         }
 
-        if (\method_exists(__CLASS__, 'assertIsString')) {
+        if (\method_exists(static::class, 'assertIsString')) {
             static::assertIsString($document->outertext);
         } else {
             /** @noinspection PhpUndefinedMethodInspection */
@@ -323,7 +323,7 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
         $html = $this->loadFixture('test_page.html');
         $document = new HtmlDomParser($html);
 
-        if (\method_exists(__CLASS__, 'assertIsString')) {
+        if (\method_exists(static::class, 'assertIsString')) {
             static::assertIsString($document->save());
         } else {
             /** @noinspection PhpUndefinedMethodInspection */
@@ -791,7 +791,7 @@ HTML;
         // test toString
         $htmlTmp = (string) $htmlTmp;
         static::assertCount(16, $tmpArray);
-        if (\method_exists(__CLASS__, 'assertStringContainsString')) {
+        if (\method_exists(static::class, 'assertStringContainsString')) {
             static::assertStringContainsString('<img src="foobar" alt="" width="5" height="3" border="0">', $htmlTmp);
             static::assertStringContainsString('© 2015 Test', $htmlTmp);
         } else {
@@ -845,7 +845,7 @@ HTML;
         static::assertSame('bar', $divs[1]->text());
 
         // Verify script and p tags are still present
-        if (\method_exists(__CLASS__, 'assertStringContainsString')) {
+        if (\method_exists(static::class, 'assertStringContainsString')) {
             static::assertStringContainsString('<script type="application/ld+json"></script>', $result);
             static::assertStringContainsString('<p></p>', $result);
         }
@@ -2169,7 +2169,7 @@ ___;
             $allReviews .= $review->plaintext . "\n";
         }
         static::assertTrue(\strlen($allReviews) > 0);
-        if (\method_exists(__CLASS__, 'assertStringContainsString')) {
+        if (\method_exists(static::class, 'assertStringContainsString')) {
             static::assertStringContainsString('It&#39;s obvious having', $allReviews);
             static::assertStringContainsString('2006 Volvo into Dave&#39;s due', $allReviews);
         } else {
