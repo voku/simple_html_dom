@@ -196,7 +196,7 @@ class SelectorConverter
         $trimmedSelectorGroup = \trim($selectorGroup);
 
         if ($trimmedSelectorGroup === '') {
-            throw new \RuntimeException('Selector list cannot contain an empty group.');
+            throw new \RuntimeException('Selector group cannot be empty.');
         }
 
         if ($trimmedSelectorGroup === 'text') {
@@ -245,7 +245,7 @@ class SelectorConverter
             case self::GENERAL_SIBLING_COMBINATOR:
                 return '/*/following-sibling::';
             default:
-                throw new \RuntimeException('Unexpected combinator: ' . $combinator);
+                throw new \RuntimeException('Unexpected combinator in element axis prefix: ' . $combinator);
         }
     }
 
@@ -259,7 +259,7 @@ class SelectorConverter
             case self::GENERAL_SIBLING_COMBINATOR:
                 return '/*/following-sibling::' . $nodeTest;
             default:
-                throw new \RuntimeException('Unexpected combinator: ' . $combinator);
+                throw new \RuntimeException('Unexpected combinator in node test XPath: ' . $combinator);
         }
     }
 
