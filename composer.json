@@ -27,13 +27,17 @@
         "ext-dom": "*",
         "ext-libxml": "*",
         "ext-simplexml": "*",
-        "symfony/css-selector": "~3.0 || ~4.0 || ~5.0 || ~6.0 || ~7.0"
+        "symfony/css-selector": "~3.0 || ~4.0 || ~5.0 || ~6.0 || ~7.0 || ~8.0"
     },
     "suggest": {
         "voku/portable-utf8": "If you need e.g. UTF-8 fixed output."
     },
     "require-dev": {
+<<<<<<< PHP84
         "phpunit/phpunit": "~7.0 || ~9.0 || ~10.0 || ~11.0"
+=======
+        "phpunit/phpunit": "~6.0 || ~7.0 || ~8.0 || ~9.0"
+>>>>>>> master
     },
     "autoload": {
         "psr-4": {

@@ -1,5 +1,6 @@
 <?php
 
+use voku\helper\AbstractDomParser;
 use voku\helper\HtmlDomParser;
 use voku\helper\SimpleHtmlDom;
 use voku\helper\SimpleHtmlDomInterface;
@@ -93,6 +94,49 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
             '<h1 class="hd"><a href="http://www.11st.co.kr" data-ga-event-category="PC_GNB" data-ga-event-action="Âó´Ü¿µ¿ª_·Î°í" data-ga-event-label="">11¹ø°¡</a></h1>',
             $h1->html()
         );
+    }
+
+    public function testBrokenReplaceHelperIsResetBetweenDocuments()
+    {
+        $property = new \ReflectionProperty(AbstractDomParser::class, 'domBrokenReplaceHelper');
+        $property->setAccessible(true);
+        $keysProperty = new \ReflectionProperty(AbstractDomParser::class, 'dynamicDomBrokenReplaceHelperKeys');
+        $keysProperty->setAccessible(true);
+
+        $dom = new HtmlDomParser();
+        // The broken-replacement map is static, so seed it explicitly to
+        // verify that reparsing clears the current parser's old entries.
+        $property->setValue(null, [
+            'orig' => ['leftover-original'],
+            'tmp' => ['simplevokubroken123'],
+        ]);
+        $keysProperty->setValue($dom, ['simplevokubroken123']);
+        static::assertNotEmpty($property->getValue()['tmp'] ?? []);
+
+        $dom->loadHtml('<div>ok</div>', \LIBXML_HTML_NOIMPLIED);
+
+        static::assertSame([], $property->getValue());
+    }
+
+    public function testHasMultipleTopLevelNodesRestoresLibxmlState()
+    {
+        $method = new \ReflectionMethod(HtmlDomParser::class, 'hasMultipleTopLevelNodes');
+        $method->setAccessible(true);
+
+        $dom = new HtmlDomParser();
+        $originalInternalErrors = \libxml_use_internal_errors(false);
+
+        try {
+            static::assertTrue($method->invoke($dom, '<div>one</div><div>two</div>', 0));
+            static::assertFalse(\libxml_use_internal_errors());
+
+            \libxml_use_internal_errors(true);
+            static::assertFalse($method->invoke($dom, '<div', 0));
+            static::assertTrue(\libxml_use_internal_errors());
+        } finally {
+            \libxml_clear_errors();
+            \libxml_use_internal_errors($originalInternalErrors);
+        }
     }
 
     public function testMethodNotExist()
@@ -268,7 +312,7 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
 
         $htmlTmp = $document->html();
 
-        if (\method_exists(__CLASS__, 'assertIsString')) {
+        if (\method_exists(static::class, 'assertIsString')) {
             static::assertIsString($htmlTmp);
         } else {
             /** @noinspection PhpUndefinedMethodInspection */
@@ -276,14 +320,14 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
         }
 
         $xmlTmp = $document->xml();
-        if (\method_exists(__CLASS__, 'assertIsString')) {
+        if (\method_exists(static::class, 'assertIsString')) {
             static::assertIsString($xmlTmp);
         } else {
             /** @noinspection PhpUndefinedMethodInspection */
             static::assertInternalType('string', $xmlTmp);
         }
 
-        if (\method_exists(__CLASS__, 'assertIsString')) {
+        if (\method_exists(static::class, 'assertIsString')) {
             static::assertIsString($document->outertext);
         } else {
             /** @noinspection PhpUndefinedMethodInspection */
@@ -323,7 +367,7 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
         $html = $this->loadFixture('test_page.html');
         $document = new HtmlDomParser($html);
 
-        if (\method_exists(__CLASS__, 'assertIsString')) {
+        if (\method_exists(static::class, 'assertIsString')) {
             static::assertIsString($document->save());
         } else {
             /** @noinspection PhpUndefinedMethodInspection */
@@ -465,7 +509,7 @@ HTML;
             $e->outertext = '[INPUT]';
         }
 
-        static::assertSame('<form name="form1" method="post" action="">' . "\n" . '[INPUT]中文空白</form>', (string) $html);
+        static::assertSame('<form name="form1" method="post" action="">[INPUT]中文空白</form>', (string) $html);
     }
 
     public function testInnertextWithHtmlHeadTag()
@@ -528,7 +572,7 @@ HTML;
         $html->find('div', 1)->class = 'bar';
         $html->find('div[id=hello]', 0)->innertext = 'foo';
 
-        static::assertSame('<div id="hello">foo</div>' . "\n" . '<div id="world" class="bar">World</div>', (string) $html);
+        static::assertSame('<div id="hello">foo</div><div id="world" class="bar">World</div>', (string) $html);
     }
 
     public function testMail2()
@@ -791,7 +835,7 @@ HTML;
         // test toString
         $htmlTmp = (string) $htmlTmp;
         static::assertCount(16, $tmpArray);
-        if (\method_exists(__CLASS__, 'assertStringContainsString')) {
+        if (\method_exists(static::class, 'assertStringContainsString')) {
             static::assertStringContainsString('<img src="foobar" alt="" width="5" height="3" border="0">', $htmlTmp);
             static::assertStringContainsString('© 2015 Test', $htmlTmp);
         } else {
@@ -814,7 +858,6 @@ HTML;
     public function testSetAttr()
     {
         $html = '<html><script type="application/ld+json"></script><p></p><div id="p1" class="post">foo</div><div class="post" id="p2">bar</div></html>';
-        $expected = '<html><script type="application/ld+json"></script><p></p><div class="post" id="p1">foo</div><div class="post" id="p2">bar</div></html>';
 
         $document = new HtmlDomParser($html);
 
@@ -832,7 +875,24 @@ HTML;
             }
         }
 
-        static::assertSame($expected, $document->html());
+        $result = $document->html();
+
+        // Verify all attributes are preserved after removal and re-addition
+        // (attribute order in output may vary by PHP/libxml version)
+        $resultDoc = new HtmlDomParser($result);
+        $divs = $resultDoc->find('div');
+        static::assertSame('p1', $divs[0]->getAttribute('id'));
+        static::assertSame('post', $divs[0]->getAttribute('class'));
+        static::assertSame('foo', $divs[0]->text());
+        static::assertSame('p2', $divs[1]->getAttribute('id'));
+        static::assertSame('post', $divs[1]->getAttribute('class'));
+        static::assertSame('bar', $divs[1]->text());
+
+        // Verify script and p tags are still present
+        if (\method_exists(static::class, 'assertStringContainsString')) {
+            static::assertStringContainsString('<script type="application/ld+json"></script>', $result);
+            static::assertStringContainsString('<p></p>', $result);
+        }
     }
 
     public function testEditLinks()
@@ -1022,7 +1082,7 @@ HTML;
         $html->findOne('div[id=hello]')->innertext = 'foo';
 
         static::assertSame(
-            '<div id="hello">foo</div>' . "\n" . '<div id="world" class="bar">World</div>' . "\n" . '<strong></strong>',
+            '<div id="hello">foo</div><div id="world" class="bar">World</div><strong></strong>',
             $html->html()
         );
 
@@ -1031,7 +1091,7 @@ HTML;
         $html->find('div[id=fail]', 0)->innertext = 'foobar';
 
         static::assertSame(
-            '<div id="hello">foo</div>' . "\n" . '<div id="world" class="bar">World</div>' . "\n" . '<strong></strong>',
+            '<div id="hello">foo</div><div id="world" class="bar">World</div><strong></strong>',
             (string) $html
         );
     }
@@ -1047,13 +1107,13 @@ HTML;
         $html->find('div', 1)->class = 'bar';
         $html->find('div[id=hello]', 0)->innertext = 'foo';
 
-        static::assertSame('<div id="hello">foo</div>' . "\n" . '<div id="world" class="bar">World</div>', (string) $html);
+        static::assertSame('<div id="hello">foo</div><div id="world" class="bar">World</div>', (string) $html);
 
         // -------------
 
         $html->find('div[id=fail]', 0)->innertext = 'foobar';
 
-        static::assertSame('<div id="hello">foo</div>' . "\n" . '<div id="world" class="bar">World</div>', (string) $html);
+        static::assertSame('<div id="hello">foo</div><div id="world" class="bar">World</div>', (string) $html);
     }
 
     public function testLoad()
@@ -1660,7 +1720,7 @@ ___;
         $dom = new HtmlDomParser();
         $dom->load('hi سلام<div>の家庭に、9 ☆<><');
         static::assertSame(
-            'hi سلام<div>の家庭に、9 ☆</div>',
+            'hi سلام<div>の家庭に、9 ☆<><</div>',
             $dom->innerHtml
         );
 
@@ -1669,7 +1729,7 @@ ___;
         $dom = new HtmlDomParser();
         $dom->load('hi</b>سلام<div>の家庭に、9 ☆<><');
         static::assertSame(
-            'hiسلام<div>の家庭に、9 ☆</div>',
+            'hiسلام<div>の家庭に、9 ☆<><</div>',
             $dom->innerHtml
         );
 
@@ -1678,7 +1738,7 @@ ___;
         $dom = new HtmlDomParser();
         $dom->load('hi</b><p>سلام<div>の家庭に、9 ☆<><');
         static::assertSame(
-            'hi<p>سلام' . "\n" . '<div>の家庭に、9 ☆</div>',
+            'hi<p>سلام<div>の家庭に、9 ☆<><</div>',
             $dom->innerHtml
         );
     }
@@ -1707,13 +1767,13 @@ ___;
             // non url && non dom special chars -> no changes
             '{{foo}}' => '{{foo}}',
             // dom special chars -> changes
-            '`?/=()=$&,|,+,%"?#![{@`' => '`?/=()=$____SIMPLE_HTML_DOM__VOKU__AMP____,____SIMPLE_HTML_DOM__VOKU__PIPE____,____SIMPLE_HTML_DOM__VOKU__PLUS____,____SIMPLE_HTML_DOM__VOKU__PERCENT____"?#![{____SIMPLE_HTML_DOM__VOKU__AT____`',
+            '`?/=()=$&,|,+,%"?#![{@`' => '`?/=()=$SHDOM_AMP,SHDOM_PIPE,SHDOM_PLUS,SHDOM_PERCENT"?#![{SHDOM_AT`',
             // non url && non dom special chars -> no changes
-            'www.domain.de/foo.php?foobar=1&email=lars%40moelleken.org&guid=test1233312&{{foo}}' => 'www.domain.de/foo.php?foobar=1____SIMPLE_HTML_DOM__VOKU__AMP____email=lars____SIMPLE_HTML_DOM__VOKU__PERCENT____40moelleken.org____SIMPLE_HTML_DOM__VOKU__AMP____guid=test1233312____SIMPLE_HTML_DOM__VOKU__AMP____{{foo}}',
+            'www.domain.de/foo.php?foobar=1&email=lars%40moelleken.org&guid=test1233312&{{foo}}' => 'www.domain.de/foo.php?foobar=1SHDOM_AMPemail=larsSHDOM_PERCENT40moelleken.orgSHDOM_AMPguid=test1233312SHDOM_AMP{{foo}}',
             // url -> changes
-            '[https://www.domain.de/foo.php?foobar=1&email=lars%40moelleken.org&guid=test1233312&{{foo}}#bar]' => '____SIMPLE_HTML_DOM__VOKU__SQUARE_BRACKET_LEFT____https://www.domain.de/foo.php?foobar=1____SIMPLE_HTML_DOM__VOKU__AMP____email=lars____SIMPLE_HTML_DOM__VOKU__PERCENT____40moelleken.org____SIMPLE_HTML_DOM__VOKU__AMP____guid=test1233312____SIMPLE_HTML_DOM__VOKU__AMP________SIMPLE_HTML_DOM__VOKU__BRACKET_LEFT________SIMPLE_HTML_DOM__VOKU__BRACKET_LEFT____foo____SIMPLE_HTML_DOM__VOKU__BRACKET_RIGHT________SIMPLE_HTML_DOM__VOKU__BRACKET_RIGHT____#bar____SIMPLE_HTML_DOM__VOKU__SQUARE_BRACKET_RIGHT____',
+            '[https://www.domain.de/foo.php?foobar=1&email=lars%40moelleken.org&guid=test1233312&{{foo}}#bar]' => 'SHDOM_SQUARE_BRACKET_LEFThttps://www.domain.de/foo.php?foobar=1SHDOM_AMPemail=larsSHDOM_PERCENT40moelleken.orgSHDOM_AMPguid=test1233312SHDOM_AMPSHDOM_BRACKET_LEFTSHDOM_BRACKET_LEFTfooSHDOM_BRACKET_RIGHTSHDOM_BRACKET_RIGHT#barSHDOM_SQUARE_BRACKET_RIGHT',
             // url -> changes
-            'https://www.domain.de/foo.php?foobar=1&email=lars%40moelleken.org&guid=test1233312&{{foo}}#foo' => 'https://www.domain.de/foo.php?foobar=1____SIMPLE_HTML_DOM__VOKU__AMP____email=lars____SIMPLE_HTML_DOM__VOKU__PERCENT____40moelleken.org____SIMPLE_HTML_DOM__VOKU__AMP____guid=test1233312____SIMPLE_HTML_DOM__VOKU__AMP________SIMPLE_HTML_DOM__VOKU__BRACKET_LEFT________SIMPLE_HTML_DOM__VOKU__BRACKET_LEFT____foo____SIMPLE_HTML_DOM__VOKU__BRACKET_RIGHT________SIMPLE_HTML_DOM__VOKU__BRACKET_RIGHT____#foo',
+            'https://www.domain.de/foo.php?foobar=1&email=lars%40moelleken.org&guid=test1233312&{{foo}}#foo' => 'https://www.domain.de/foo.php?foobar=1SHDOM_AMPemail=larsSHDOM_PERCENT40moelleken.orgSHDOM_AMPguid=test1233312SHDOM_AMPSHDOM_BRACKET_LEFTSHDOM_BRACKET_LEFTfooSHDOM_BRACKET_RIGHTSHDOM_BRACKET_RIGHT#foo',
         ];
 
         foreach ($tests as $test => $expected) {
@@ -1989,7 +2049,7 @@ ___;
     {
         $dom = new HtmlDomParser();
         $dom->load('<div class="stream-container "  > <div class="stream-item js-new-items-bar-container"> </div> <div class="stream">');
-        static::assertSame('<div class="stream-container "> <div class="stream-item js-new-items-bar-container"> </div> <div class="stream"></div>' . "\n" . '</div>', (string) $dom);
+        static::assertSame('<div class="stream-container "> <div class="stream-item js-new-items-bar-container"> </div> <div class="stream"></div></div>', (string) $dom);
     }
 
     public function testCodeTag()
@@ -2091,8 +2151,7 @@ ___;
                     ]
                   }
                 </script>
-                <style amp-boilerplate>body{-webkit-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-moz-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-ms-animation:-amp-start 8s steps(1,end) 0s 1 normal both;animation:-amp-start 8s steps(1,end) 0s 1 normal both}@-webkit-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-moz-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-ms-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-o-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}</style>
-<noscript><style amp-boilerplate>body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}</style></noscript>
+                <style amp-boilerplate>body{-webkit-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-moz-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-ms-animation:-amp-start 8s steps(1,end) 0s 1 normal both;animation:-amp-start 8s steps(1,end) 0s 1 normal both}@-webkit-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-moz-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-ms-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-o-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}</style><noscript><style amp-boilerplate>body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}</style></noscript>
               </head>
               <body>
                 <h1>Welcome to the mobile web</h1>
@@ -2154,7 +2213,7 @@ ___;
             $allReviews .= $review->plaintext . "\n";
         }
         static::assertTrue(\strlen($allReviews) > 0);
-        if (\method_exists(__CLASS__, 'assertStringContainsString')) {
+        if (\method_exists(static::class, 'assertStringContainsString')) {
             static::assertStringContainsString('It&#39;s obvious having', $allReviews);
             static::assertStringContainsString('2006 Volvo into Dave&#39;s due', $allReviews);
         } else {

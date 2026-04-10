@@ -9,17 +9,19 @@ abstract class AbstractDomParser implements DomParserInterface
     /**
      * @var string
      */
-    protected static $domHtmlWrapperHelper = '____simple_html_dom__voku__html_wrapper____';
+    // Keep this helper tag non-hyphenated: older libxml HTML serializers treat
+    // unknown hyphenated elements as block-level and inject formatting newlines.
+    protected static $domHtmlWrapperHelper = 'simplevokuwrapper';
 
     /**
      * @var string
      */
-    protected static $domHtmlBrokenHtmlHelper = '____simple_html_dom__voku__broken_html____';
+    protected static $domHtmlBrokenHtmlHelper = 'simplevokubroken';
 
     /**
      * @var string
      */
-    protected static $domHtmlSpecialScriptHelper = '____simple_html_dom__voku__html_special_script____';
+    protected static $domHtmlSpecialScriptHelper = 'simplevokuspecialscript';
 
     /**
      * @var array
@@ -32,10 +34,10 @@ abstract class AbstractDomParser implements DomParserInterface
     protected static $domLinkReplaceHelper = [
         'orig' => ['[', ']', '{', '}'],
         'tmp'  => [
-            '____SIMPLE_HTML_DOM__VOKU__SQUARE_BRACKET_LEFT____',
-            '____SIMPLE_HTML_DOM__VOKU__SQUARE_BRACKET_RIGHT____',
-            '____SIMPLE_HTML_DOM__VOKU__BRACKET_LEFT____',
-            '____SIMPLE_HTML_DOM__VOKU__BRACKET_RIGHT____',
+            'SHDOM_SQUARE_BRACKET_LEFT',
+            'SHDOM_SQUARE_BRACKET_RIGHT',
+            'SHDOM_BRACKET_LEFT',
+            'SHDOM_BRACKET_RIGHT',
         ],
     ];
 
@@ -45,12 +47,12 @@ abstract class AbstractDomParser implements DomParserInterface
     protected static $domReplaceHelper = [
         'orig' => ['&', '|', '+', '%', '@', '<html ⚡'],
         'tmp'  => [
-            '____SIMPLE_HTML_DOM__VOKU__AMP____',
-            '____SIMPLE_HTML_DOM__VOKU__PIPE____',
-            '____SIMPLE_HTML_DOM__VOKU__PLUS____',
-            '____SIMPLE_HTML_DOM__VOKU__PERCENT____',
-            '____SIMPLE_HTML_DOM__VOKU__AT____',
-            '<html ____SIMPLE_HTML_DOM__VOKU__GOOGLE_AMP____="true"',
+            'SHDOM_AMP',
+            'SHDOM_PIPE',
+            'SHDOM_PLUS',
+            'SHDOM_PERCENT',
+            'SHDOM_AT',
+            '<html SHDOM_GOOGLE_AMP="true"',
         ],
     ];
 
@@ -65,6 +67,52 @@ abstract class AbstractDomParser implements DomParserInterface
      * @var string[]
      */
     protected static $functionAliases = [];
+
+    /**
+     * @var string[]
+     */
+    protected $dynamicDomBrokenReplaceHelperKeys = [];
+
+    /**
+     * Remove the current parser instance's dynamic placeholder mappings from
+     * the shared replacement table before reparsing this parser instance.
+     *
+     * @return void
+     */
+    protected function resetDynamicDomHelpers()
+    {
+        if (empty($this->dynamicDomBrokenReplaceHelperKeys)) {
+            return;
+        }
+
+        foreach ($this->dynamicDomBrokenReplaceHelperKeys as $token) {
+            foreach (\array_keys(self::$domBrokenReplaceHelper['tmp'] ?? [], $token, true) as $index) {
+                unset(self::$domBrokenReplaceHelper['tmp'][$index], self::$domBrokenReplaceHelper['orig'][$index]);
+            }
+        }
+
+        if (empty(self::$domBrokenReplaceHelper['tmp'])) {
+            self::$domBrokenReplaceHelper = [];
+        } else {
+            self::$domBrokenReplaceHelper['tmp'] = \array_values(self::$domBrokenReplaceHelper['tmp']);
+            self::$domBrokenReplaceHelper['orig'] = \array_values(self::$domBrokenReplaceHelper['orig']);
+        }
+
+        $this->dynamicDomBrokenReplaceHelperKeys = [];
+    }
+
+    /**
+     * @param string $original
+     * @param string $token
+     *
+     * @return void
+     */
+    protected function registerDynamicDomBrokenReplaceHelper(string $original, string $token)
+    {
+        self::$domBrokenReplaceHelper['orig'][] = $original;
+        self::$domBrokenReplaceHelper['tmp'][] = $token;
+        $this->dynamicDomBrokenReplaceHelperKeys[] = $token;
+    }
 
     /**
      * @var \DOMDocument
@@ -408,9 +456,55 @@ abstract class AbstractDomParser implements DomParserInterface
      */
     protected function html5FallbackForScriptTags(string &$html)
     {
+        // Normalize self-closing <script ... /> to <script ...></script> so
+        // that the regex below does not treat the self-closing form as an
+        // opening tag whose "content" extends to the next </script>.
+        $html = (string) \preg_replace('/<script([^>]*)\/>/', '<script$1></script>', $html);
+
         // regEx for e.g.: [<script id="elements-image-2">...<script>]
         /** @noinspection HtmlDeprecatedTag */
         $regExSpecialScript = '/<script(?<attr>[^>]*?)>(?<content>.*)<\/script>/isU';
+
+        if (\PHP_VERSION_ID < 80000) {
+            // On PHP < 8.0, older libxml's HTML parser can mishandle <\/ inside
+            // <script> content, causing content after the sequence to leak outside
+            // the element. Use a placeholder to protect any script content that
+            // contains literal < characters so that loadHTML() receives safe input.
+            $htmlTmp = \preg_replace_callback(
+                $regExSpecialScript,
+                function ($scripts) {
+                    if (empty($scripts['content'])) {
+                        return $scripts[0];
+                    }
+
+                    // Revert any existing <\/ escaping to check for bare < chars.
+                    $contentReverted = \str_replace('<\/', '</', $scripts['content']);
+
+                    if (\strpos($contentReverted, '<') === false) {
+                        return $scripts[0];
+                    }
+
+                    // Apply the same </ → <\/ escaping that PHP 8+ applies so that
+                    // when the placeholder is restored the output matches PHP 8+
+                    // behaviour.  Any <\/ already present is left untouched because
+                    // str_replace('</', ...) only matches the two-char sequence
+                    // '<' + '/' and '<\/' has '\' in between.
+                    $storedContent = \str_replace('</', '<\/', $scripts['content']);
+                    $matchesHash = self::$domHtmlBrokenHtmlHelper . \crc32($storedContent);
+                    $this->registerDynamicDomBrokenReplaceHelper($storedContent, $matchesHash);
+
+                    return '<script' . $scripts['attr'] . '>' . $matchesHash . '</script>';
+                },
+                $html
+            );
+
+            if ($htmlTmp !== null) {
+                $html = $htmlTmp;
+            }
+
+            return;
+        }
+
         $htmlTmp = \preg_replace_callback(
             $regExSpecialScript,
             static function ($scripts) {

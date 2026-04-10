@@ -384,7 +384,7 @@ final class HTML5DOMDocumentTest extends PHPUnit\Framework\TestCase
         $dom = new HtmlDomParser();
         $dom->loadHtml($content);
 
-        static::assertSame('<div id="key1">1</div>' . "\n" . '<div><div id="key1">2</div></div>', $dom->html());
+        static::assertSame('<div id="key1">1</div><div><div id="key1">2</div></div>', $dom->html());
     }
 
     public function testDuplicateElementIDsQueries()
@@ -679,6 +679,51 @@ final class HTML5DOMDocumentTest extends PHPUnit\Framework\TestCase
         static::assertSame($content, $dom->html());
     }
 
+    public function testLIBXMLHTMLNOIMPLIEDWithMultipleTopLevelNodesAndAttributes()
+    {
+        $content = '<div data-x="ab">x</div><div>y</div>';
+        $dom = new HtmlDomParser();
+        $dom->loadHtml($content, \LIBXML_HTML_NOIMPLIED);
+
+        static::assertSame($content, $dom->html());
+    }
+
+    public function testLIBXMLHTMLNOIMPLIEDWithMultipleTopLevelNodesAndNestedMarkup()
+    {
+        $content = '<div data-x="ab"><span>&nbsp;</span></div><div>y</div>';
+        $dom = new HtmlDomParser();
+        $dom->loadHtml($content, \LIBXML_HTML_NOIMPLIED);
+
+        static::assertSame($content, $dom->html());
+    }
+
+    public function testNestedSingleRootFragmentWithOuterWhitespaceIsPreserved()
+    {
+        $content = ' <p><a href="http://foobar.de">Mehr</a></p>';
+        $dom = new HtmlDomParser();
+        $dom->loadHtml($content);
+
+        static::assertSame($content, $dom->html());
+    }
+
+    public function testInternalWrapperHelperNameIsNotHyphenated()
+    {
+        $reflection = new \ReflectionProperty(\voku\helper\AbstractDomParser::class, 'domHtmlWrapperHelper');
+        $reflection->setAccessible(true);
+
+        static::assertSame('simplevokuwrapper', $reflection->getValue());
+        static::assertStringNotContainsString('-', $reflection->getValue());
+    }
+
+    public function testMultiRootNestedSerializationDoesNotAddFormattingNewlines()
+    {
+        $content = '<div id="outer">before</div><div><div>inside</div><span>after</span></div>';
+        $dom = new HtmlDomParser();
+        $dom->loadHtml($content, \LIBXML_HTML_NOIMPLIED);
+
+        static::assertSame($content, $dom->html());
+    }
+
     public function testNbspAndWhiteSpace()
     {
         $bodyContent = '<div> &nbsp; &nbsp; &nbsp; </div>'
@@ -893,28 +938,13 @@ final class HTML5DOMDocumentTest extends PHPUnit\Framework\TestCase
         $dom = new HtmlDomParser();
         $dom->loadHtml($html);
 
-        $expectedOutput = '<html>
-<head><component><script src="url1"></script><script src="url2"></script></component></head>
-<body><div><component><ul>
-<li><a href="#">Link 1</a></li>
-<li><a href="#">Link 2</a></li>
-</ul></component></div></body>
-</html>';
+        $expectedOutput = '<html><head><component><script src="url1"></script><script src="url2"></script></component></head><body><div><component><ul><li><a href="#">Link 1</a></li><li><a href="#">Link 2</a></li></ul></component></div></body></html>';
         static::assertSame($expectedOutput, $dom->html());
 
-        $expectedOutput = '<body><div><component><ul>
-<li><a href="#">Link 1</a></li>
-<li><a href="#">Link 2</a></li>
-</ul></component></div></body>';
+        $expectedOutput = '<body><div><component><ul><li><a href="#">Link 1</a></li><li><a href="#">Link 2</a></li></ul></component></div></body>';
         static::assertSame($expectedOutput, $dom->findOne('div')->parentNode()->html());
 
-        $expectedOutput = '<html>
-<head><component><script src="url1"></script><script src="url2"></script></component></head>
-<body><div><component><ul>
-<li><a href="#">Link 1</a></li>
-<li><a href="#">Link 2</a></li>
-</ul></component></div></body>
-</html>';
+        $expectedOutput = '<html><head><component><script src="url1"></script><script src="url2"></script></component></head><body><div><component><ul><li><a href="#">Link 1</a></li><li><a href="#">Link 2</a></li></ul></component></div></body></html>';
         static::assertSame($expectedOutput, $dom->findOne('div')->parentNode()->parentNode()->html());
 
         $div = $dom->findOne('div');
@@ -930,13 +960,7 @@ final class HTML5DOMDocumentTest extends PHPUnit\Framework\TestCase
         $expectedOutput = '<head><component><script src="url1"></script><script src="url2"></script></component></head>';
         static::assertSame($expectedOutput, $dom->findOne('script')->parentNode()->parentNode()->html);
 
-        $expectedOutput = '<html>
-<head><component><script src="url1"></script><script src="url2"></script></component></head>
-<body><div><component><ul>
-<li><a href="#">Link 1</a></li>
-<li><a href="#">Link 2</a></li>
-</ul></component></div></body>
-</html>';
+        $expectedOutput = '<html><head><component><script src="url1"></script><script src="url2"></script></component></head><body><div><component><ul><li><a href="#">Link 1</a></li><li><a href="#">Link 2</a></li></ul></component></div></body></html>';
         static::assertSame($expectedOutput, $dom->findOne('script')->parentNode()->parentNode()->parentNode()->html);
     }
 }
