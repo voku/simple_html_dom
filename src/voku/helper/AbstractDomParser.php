@@ -410,6 +410,11 @@ abstract class AbstractDomParser implements DomParserInterface
      */
     protected function html5FallbackForScriptTags(string &$html)
     {
+        // Normalize self-closing <script ... /> to <script ...></script> so
+        // that the regex below does not treat the self-closing form as an
+        // opening tag whose "content" extends to the next </script>.
+        $html = (string) \preg_replace('/<script([^>]*)\/>/', '<script$1></script>', $html);
+
         // regEx for e.g.: [<script id="elements-image-2">...<script>]
         /** @noinspection HtmlDeprecatedTag */
         $regExSpecialScript = '/<script(?<attr>[^>]*?)>(?<content>.*)<\/script>/isU';
@@ -426,15 +431,19 @@ abstract class AbstractDomParser implements DomParserInterface
                         return $scripts[0];
                     }
 
-                    // Revert any existing <\/ escaping before computing the hash.
-                    $content = \str_replace('<\/', '</', $scripts['content']);
+                    // Revert any existing <\/ escaping to check for bare < chars.
+                    $contentReverted = \str_replace('<\/', '</', $scripts['content']);
 
-                    if (\strpos($content, '<') === false) {
+                    if (\strpos($contentReverted, '<') === false) {
                         return $scripts[0];
                     }
 
-                    self::$domBrokenReplaceHelper['orig'][] = $content;
-                    self::$domBrokenReplaceHelper['tmp'][] = $matchesHash = self::$domHtmlBrokenHtmlHelper . \crc32($content);
+                    // Store the *original* content (with any <\/ preserved) so
+                    // that backslash-escaped sequences like <\/script> survive
+                    // the round-trip through the placeholder mechanism.
+                    $originalContent = $scripts['content'];
+                    self::$domBrokenReplaceHelper['orig'][] = $originalContent;
+                    self::$domBrokenReplaceHelper['tmp'][] = $matchesHash = self::$domHtmlBrokenHtmlHelper . \crc32($originalContent);
 
                     return '<script' . $scripts['attr'] . '>' . $matchesHash . '</script>';
                 },

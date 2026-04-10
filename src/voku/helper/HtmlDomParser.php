@@ -402,13 +402,21 @@ class HtmlDomParser extends AbstractDomParser
         }
 
         if (\strpos($html, '<script') !== false) {
-            $this->html5FallbackForScriptTags($html);
-
+            // keepSpecialScriptTags must run before html5FallbackForScriptTags so
+            // that special-type scripts (type="text/html", etc.) are converted to
+            // the simplevokuspecialscript placeholder element before the script-tag
+            // regex runs.  On PHP < 8.0 the regex uses hash placeholders; if it
+            // ran first the special-script content would be hashed and
+            // keepSpecialScriptTags would only see the hash, losing the ability to
+            // pass the real HTML content to the DOM for error-recovery parsing.
             foreach ($this->specialScriptTags as $tag) {
                 if (\strpos($html, $tag) !== false) {
                     $this->keepSpecialScriptTags($html);
+                    break;
                 }
             }
+
+            $this->html5FallbackForScriptTags($html);
         }
 
         if (\strpos($html, '<svg') !== false) {
@@ -872,39 +880,38 @@ class HtmlDomParser extends AbstractDomParser
 
         $output = $this->fixHtmlOutput($content, $multiDecodeNewHtmlEntity, $putBrokenReplacedBack);
 
-        // On PHP < 8.0, older libxml may leave trailing whitespace (from text
-        // nodes that appear after the last element inside the wrapper) once the
-        // wrapper tags have been stripped by putReplacedBackToPreserveHtmlEntities.
-        // Strip that trailing whitespace here so the result matches PHP 8 output.
-        if (\PHP_VERSION_ID < 80000) {
-            $output = \rtrim($output);
-        }
-
         return $output;
     }
 
     /**
      * Serialize a single DOM node to HTML.
      *
-     * On PHP 8.0+, a detached DOMDocument is used so that the serialization
-     * context is independent of the internal wrapper tag name (older libxml
-     * HTML serializers treat unknown hyphenated tags as block-level and inject
+     * A detached DOMDocument is used so that the serialization context is
+     * independent of the internal wrapper tag name (older libxml HTML
+     * serializers treat unknown hyphenated tags as block-level and inject
      * formatting newlines into the wrapper's children when saving the full
      * document).
      *
-     * On PHP < 8.0, fresh DOMDocuments behave inconsistently on older libxml:
-     * for example, saveHTML() injects a newline inside <script> element
-     * content when the element is the root of a fresh document. Serializing
-     * from the original document avoids that regression. The trailing newline
-     * that older libxml appends after HTML block-level elements is left intact
-     * here; fixHtmlOutput() strips those injected newlines via a regex that
-     * can distinguish them from original "\n" text nodes following as siblings.
+     * On PHP < 8.0, older libxml injects a trailing "\n" after raw-text
+     * elements (script, style) when they are the root of a fresh document.
+     * For those elements we fall back to serializing from the original
+     * document and strip only the single trailing "\n".  For all other
+     * element types the fresh-document approach is used to avoid libxml
+     * injecting formatting newlines inside block-level content.  Text and
+     * other non-element nodes are always serialized from the owner document
+     * without any trailing-newline stripping (they carry no injected newline).
      *
      * @param \DOMNode $node
      */
     private function serializeNode(\DOMNode $node): string
     {
-        if (\PHP_VERSION_ID >= 80000) {
+        // For script/style on PHP < 8.0 use ownerDocument to avoid fresh-doc
+        // libxml injecting "\n" inside raw-text content.
+        $useOwnerDoc = \PHP_VERSION_ID < 80000
+            && $node instanceof \DOMElement
+            && \in_array(\strtolower($node->tagName), ['script', 'style'], true);
+
+        if (!$useOwnerDoc) {
             $document = new \DOMDocument('1.0', $this->getEncoding());
             $document->preserveWhiteSpace = true;
             $document->formatOutput = false;
@@ -918,11 +925,9 @@ class HtmlDomParser extends AbstractDomParser
 
             $content = $document->saveHTML($importedNode);
         } else {
-            // PHP < 8.0: serialize directly from the original document to
-            // avoid inconsistent fresh-document behaviour on older libxml.
-            // Use rtrim("\n") to strip only the trailing "\n" that older libxml
-            // injects after block-level elements; internal "\n" characters (from
-            // original whitespace text nodes between inline children) are preserved.
+            // PHP < 8.0 script/style: serialize from original document and
+            // strip only the trailing "\n" that older libxml appends after
+            // raw-text elements.
             $ownerDoc = $node->ownerDocument;
             $content = $ownerDoc !== null ? $ownerDoc->saveHTML($node) : false;
             if ($content !== false) {
@@ -1063,10 +1068,6 @@ class HtmlDomParser extends AbstractDomParser
         }
 
         $output = $this->fixHtmlOutput($text, $multiDecodeNewHtmlEntity, $putBrokenReplacedBack);
-
-        if (\PHP_VERSION_ID < 80000) {
-            $output = \rtrim($output);
-        }
 
         return $output;
     }
