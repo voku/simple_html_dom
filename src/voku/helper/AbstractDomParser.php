@@ -9,17 +9,17 @@ abstract class AbstractDomParser implements DomParserInterface
     /**
      * @var string
      */
-    protected static $domHtmlWrapperHelper = 'simplehtml-voku-wrapper';
+    protected static $domHtmlWrapperHelper = 'simplevokuwrapper';
 
     /**
      * @var string
      */
-    protected static $domHtmlBrokenHtmlHelper = 'simplehtml-voku-broken';
+    protected static $domHtmlBrokenHtmlHelper = 'simplevokubroken';
 
     /**
      * @var string
      */
-    protected static $domHtmlSpecialScriptHelper = 'simplehtml-voku-special-script';
+    protected static $domHtmlSpecialScriptHelper = 'simplevokuspecialscript';
 
     /**
      * @var array
