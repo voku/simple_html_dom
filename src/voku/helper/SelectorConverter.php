@@ -183,7 +183,7 @@ class SelectorConverter
         $trimmedSelectorGroup = \trim($selectorGroup);
 
         if ($trimmedSelectorGroup === '') {
-            throw new \RuntimeException('Selector cannot contain an empty group: ' . $selectorGroup);
+            throw new \RuntimeException('Selector list cannot contain an empty group.');
         }
 
         if ($trimmedSelectorGroup === 'text') {
@@ -205,7 +205,7 @@ class SelectorConverter
         $combinator = $trimmedSelectorGroup[0];
         $restSelector = \ltrim(\substr($trimmedSelectorGroup, 1));
         if ($restSelector === '') {
-            throw new \RuntimeException('Selector cannot end with a combinator: ' . $selectorGroup);
+            throw new \RuntimeException('Selector group cannot end with a combinator (' . $combinator . '): ' . $selectorGroup);
         }
 
         if ($restSelector === 'text') {

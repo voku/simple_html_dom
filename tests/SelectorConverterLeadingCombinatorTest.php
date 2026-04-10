@@ -57,8 +57,8 @@ final class SelectorConverterLeadingCombinatorTest extends TestCase
 
     public function testEmptyLeadingCombinatorThrows(): void
     {
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Selector cannot end with a combinator');
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Selector group cannot end with a combinator');
 
         SelectorConverter::toXPath('> ');
     }
