@@ -862,17 +862,18 @@ class HtmlDomParser extends AbstractDomParser
     }
 
     /**
-     * Fix formatting newlines that saveHTML() adds between block-level children
+     * Fix formatting newlines that saveHTML() may add between block-level children
      * of the custom wrapper element on older PHP/libxml versions.
      *
-     * Re-serializes wrapper children individually to remove any formatting newlines
-     * while preserving content newlines.
+     * Re-serializes wrapper children individually to avoid any wrapper-level formatting
+     * newlines. Content newlines inside child elements are preserved naturally because
+     * each child is serialized independently.
      *
      * @param string $content
      *
      * @return string
      */
-    private function fixWrapperFormatting($content)
+    private function fixWrapperFormatting(string $content): string
     {
         $wrapperTag = self::$domHtmlWrapperHelper;
         $wrapperElements = $this->document->getElementsByTagName($wrapperTag);
