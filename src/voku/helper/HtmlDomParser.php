@@ -866,7 +866,9 @@ class HtmlDomParser extends AbstractDomParser
             \call_user_func(static::$callback, [$this]);
         }
 
-        if ($this->usesInternalWrapperDocument()) {
+        if ($this->shouldUseWholeDocumentSerializationForHtmlOnPhpLt8()) {
+            $content = $this->document->saveHTML();
+        } elseif ($this->usesInternalWrapperDocument()) {
             $content = $this->serializeInternalWrapperContent();
         } elseif ($this->getIsDOMDocumentCreatedWithoutHtmlWrapper()) {
             $content = $this->document->saveHTML($this->document->documentElement);
@@ -968,6 +970,60 @@ class HtmlDomParser extends AbstractDomParser
     }
 
     /**
+     * Older libxml preserves body-only fragments more faithfully when the whole
+     * temporary document is serialized and fixHtmlOutput() removes the wrappers
+     * afterwards. Head-only fragments still need root-element serialization, or
+     * <meta charset=...> can trigger output re-encoding (e.g. utf-7).
+     */
+    private function isBodyOnlyHtmlFragmentDocument(): bool
+    {
+        $documentElement = $this->document->documentElement;
+        if (!$documentElement instanceof \DOMElement || \strtolower($documentElement->tagName) !== 'html') {
+            return false;
+        }
+
+        $head = $documentElement->getElementsByTagName('head')->item(0);
+        $body = $documentElement->getElementsByTagName('body')->item(0);
+
+        $hasHeadContent = $head instanceof \DOMElement && $head->childNodes->length > 0;
+        $hasBodyContent = $body instanceof \DOMElement && $body->childNodes->length > 0;
+
+        return !$hasHeadContent && $hasBodyContent;
+    }
+
+    private function shouldUseWholeDocumentSerializationForHtmlOnPhpLt8(): bool
+    {
+        if (\PHP_VERSION_ID >= 80000) {
+            return false;
+        }
+
+        if ($this->usesInternalWrapperDocument()) {
+            return true;
+        }
+
+        if (!$this->getIsDOMDocumentCreatedWithoutHtmlWrapper()) {
+            return false;
+        }
+
+        $documentElement = $this->document->documentElement;
+        if (!$documentElement instanceof \DOMElement) {
+            return false;
+        }
+
+        return \strtolower($documentElement->tagName) !== 'html'
+            || $this->isBodyOnlyHtmlFragmentDocument();
+    }
+
+    private function shouldUseWholeDocumentSerializationForInnerHtmlOnPhpLt8(): bool
+    {
+        return \PHP_VERSION_ID < 80000
+            && (
+                $this->usesInternalWrapperDocument()
+                || $this->isBodyOnlyHtmlFragmentDocument()
+            );
+    }
+
+    /**
      * Keep helper wrapper markers around detached child serialization so
      * fixHtmlOutput() does not trim leading/trailing fragment whitespace.
      *
@@ -1060,7 +1116,9 @@ class HtmlDomParser extends AbstractDomParser
         $text = '';
 
         if ($this->document->documentElement) {
-            if ($this->usesInternalWrapperDocument()) {
+            if ($this->shouldUseWholeDocumentSerializationForInnerHtmlOnPhpLt8()) {
+                $text = $this->document->saveHTML();
+            } elseif ($this->usesInternalWrapperDocument()) {
                 $text = $this->serializeInternalWrapperContent();
             } else {
                 $text = $this->serializeChildNodes($this->document->documentElement);
