@@ -155,6 +155,11 @@ class HtmlDomParser extends AbstractDomParser
     /**
      * @var bool
      */
+    protected $isDOMDocumentCreatedWithEdgeWhitespace = false;
+
+    /**
+     * @var bool
+     */
     protected $isDOMDocumentCreatedWithFakeEndScript = false;
 
     /**
@@ -346,6 +351,20 @@ class HtmlDomParser extends AbstractDomParser
             $this->isDOMDocumentCreatedWithoutBodyWrapper = true;
         }
 
+        if (
+            $this->isDOMDocumentCreatedWithoutHtmlWrapper
+            &&
+            $this->isDOMDocumentCreatedWithoutBodyWrapper
+            &&
+            \trim($html) !== $html
+            &&
+            \substr_count($html, '</') >= 2
+            &&
+            \preg_match('#^\s*<([a-zA-Z][^\\s>/]*)>.*?</\\1>#su', $html) === 1
+        ) {
+            $this->isDOMDocumentCreatedWithEdgeWhitespace = true;
+        }
+
         /** @noinspection HtmlRequiredTitleElement */
         if (
             \strpos($html, '<head ') === false
@@ -396,23 +415,6 @@ class HtmlDomParser extends AbstractDomParser
             $this->keepSpecialSvgTags($html);
         }
 
-        if (
-            $this->isDOMDocumentCreatedWithoutHtmlWrapper
-            &&
-            $this->isDOMDocumentCreatedWithoutBodyWrapper
-        ) {
-            if (\substr_count($html, '</') >= 2) {
-                $regexForMultiRootDetection = '#<(.*)>.*?</(\1)>#su';
-                \preg_match($regexForMultiRootDetection, $html, $matches);
-                if (($matches[0] ?? '') !== $html) {
-                    $htmlTmp = \preg_replace($regexForMultiRootDetection, '', $html);
-                    if ($htmlTmp !== null && trim($htmlTmp) === '') {
-                        $this->isDOMDocumentCreatedWithMultiRoot = true;
-                    }
-                }
-            }
-        }
-
         $html = \str_replace(
             \array_map(static function ($e) {
                 return '<' . $e . '>';
@@ -452,7 +454,17 @@ class HtmlDomParser extends AbstractDomParser
         }
 
         if (
+            $this->isDOMDocumentCreatedWithoutHtmlWrapper
+            &&
+            $this->isDOMDocumentCreatedWithoutBodyWrapper
+        ) {
+            $this->isDOMDocumentCreatedWithMultiRoot = $this->hasMultipleTopLevelNodes($html, $optionsXml);
+        }
+
+        if (
             $this->isDOMDocumentCreatedWithMultiRoot
+            ||
+            $this->isDOMDocumentCreatedWithEdgeWhitespace
             ||
             $this->isDOMDocumentCreatedWithoutWrapper
             ||
@@ -846,7 +858,9 @@ class HtmlDomParser extends AbstractDomParser
             \call_user_func(static::$callback, [$this]);
         }
 
-        if ($this->getIsDOMDocumentCreatedWithoutHtmlWrapper()) {
+        if ($this->usesInternalWrapperDocument()) {
+            $content = $this->serializeInternalWrapperContent();
+        } elseif ($this->getIsDOMDocumentCreatedWithoutHtmlWrapper()) {
             $content = $this->document->saveHTML($this->document->documentElement);
         } else {
             $content = $this->document->saveHTML();
@@ -856,54 +870,146 @@ class HtmlDomParser extends AbstractDomParser
             return '';
         }
 
-        $content = $this->fixWrapperFormatting($content);
-
         return $this->fixHtmlOutput($content, $multiDecodeNewHtmlEntity, $putBrokenReplacedBack);
     }
 
     /**
-     * Fix formatting newlines that saveHTML() may add between block-level children
-     * of the custom wrapper element on older PHP/libxml versions.
+     * Older libxml HTML serializers may inject formatting newlines for the
+     * internal helper wrapper and its descendants. Serialize wrapper-backed
+     * fragments in a detached document so serialization is independent from the
+     * wrapper tag name and parser context.
      *
-     * Re-serializes wrapper children individually to avoid any wrapper-level formatting
-     * newlines. Content newlines inside child elements are preserved naturally because
-     * each child is serialized independently.
-     *
-     * @param string $content
-     *
-     * @return string
+     * @param \DOMNode $node
      */
-    private function fixWrapperFormatting(string $content): string
+    private function serializeNode(\DOMNode $node): string
     {
-        $wrapperTag = self::$domHtmlWrapperHelper;
-        $wrapperElements = $this->document->getElementsByTagName($wrapperTag);
+        $document = new \DOMDocument('1.0', $this->getEncoding());
+        $document->preserveWhiteSpace = true;
+        $document->formatOutput = false;
 
-        if ($wrapperElements->length === 0) {
-            return $content;
+        $importedNode = $document->importNode($node, true);
+        if (!$importedNode instanceof \DOMNode) {
+            return '';
         }
 
-        for ($i = 0; $i < $wrapperElements->length; $i++) {
-            $wrapper = $wrapperElements->item($i);
-            $originalWrapperHtml = $this->document->saveHTML($wrapper);
+        $document->appendChild($importedNode);
 
-            if ($originalWrapperHtml === false) {
-                continue;
-            }
-
-            // Re-serialize children individually (avoids formatting newlines)
-            $childrenHtml = '';
-            foreach ($wrapper->childNodes as $child) {
-                $childrenHtml .= $this->document->saveHTML($child);
-            }
-
-            $fixedWrapperHtml = '<' . $wrapperTag . '>' . $childrenHtml . '</' . $wrapperTag . '>';
-
-            if ($originalWrapperHtml !== $fixedWrapperHtml) {
-                $content = \str_replace($originalWrapperHtml, $fixedWrapperHtml, $content);
-            }
+        $content = $document->saveHTML($importedNode);
+        if ($content === false) {
+            return '';
         }
 
         return $content;
+    }
+
+    /**
+     * @param \DOMNode $parentNode
+     *
+     * @return string
+     */
+    private function serializeChildNodes(\DOMNode $parentNode): string
+    {
+        $content = '';
+
+        foreach ($parentNode->childNodes as $childNode) {
+            $content .= $this->serializeNode($childNode);
+        }
+
+        return $content;
+    }
+
+    /**
+     * @return bool
+     */
+    private function usesInternalWrapperDocument(): bool
+    {
+        return $this->document->documentElement instanceof \DOMElement
+            && $this->document->documentElement->tagName === self::$domHtmlWrapperHelper;
+    }
+
+    /**
+     * Keep helper wrapper markers around detached child serialization so
+     * fixHtmlOutput() does not trim leading/trailing fragment whitespace.
+     *
+     * @return string
+     */
+    private function serializeInternalWrapperContent(): string
+    {
+        $wrapperTag = self::$domHtmlWrapperHelper;
+
+        return '<' . $wrapperTag . '>'
+            . $this->serializeChildNodes($this->document->documentElement)
+            . '</' . $wrapperTag . '>';
+    }
+
+    /**
+     * Parse the fragment inside the internal wrapper and count significant
+     * direct children. This is more reliable than regex for fragments whose
+     * top-level elements have attributes or nested markup.
+     *
+     * @param string $html
+     * @param int    $optionsXml
+     *
+     * @return bool
+     */
+    private function hasMultipleTopLevelNodes(string $html, int $optionsXml): bool
+    {
+        $internalErrors = \libxml_use_internal_errors(true);
+        \libxml_clear_errors();
+
+        $xmlProbe = '<' . self::$domHtmlWrapperHelper . '>'
+            . self::replaceToPreserveHtmlEntities($html)
+            . '</' . self::$domHtmlWrapperHelper . '>';
+
+        $simpleXml = \simplexml_load_string($xmlProbe, \SimpleXMLElement::class, $optionsXml);
+        if ($simpleXml === false || \count(\libxml_get_errors()) > 0) {
+            \libxml_clear_errors();
+            \libxml_use_internal_errors($internalErrors);
+
+            return false;
+        }
+
+        $wrapper = \dom_import_simplexml($simpleXml);
+        if (!$wrapper instanceof \DOMElement) {
+            \libxml_clear_errors();
+            \libxml_use_internal_errors($internalErrors);
+
+            return false;
+        }
+
+        $hasMultipleTopLevelNodes = $this->countSignificantChildNodes($wrapper) > 1;
+
+        \libxml_clear_errors();
+        \libxml_use_internal_errors($internalErrors);
+
+        return $hasMultipleTopLevelNodes;
+    }
+
+    /**
+     * @param \DOMNode $node
+     *
+     * @return int
+     */
+    private function countSignificantChildNodes(\DOMNode $node): int
+    {
+        $count = 0;
+
+        foreach ($node->childNodes as $childNode) {
+            if (
+                $childNode->nodeType === \XML_TEXT_NODE
+                &&
+                \trim($childNode->textContent) === ''
+            ) {
+                continue;
+            }
+
+            ++$count;
+            if ($count > 1) {
+                return $count;
+            }
+        }
+
+        return $count;
     }
 
     /**
@@ -914,12 +1020,12 @@ class HtmlDomParser extends AbstractDomParser
         $text = '';
 
         if ($this->document->documentElement) {
-            foreach ($this->document->documentElement->childNodes as $node) {
-                $text .= $this->document->saveHTML($node);
+            if ($this->usesInternalWrapperDocument()) {
+                $text = $this->serializeInternalWrapperContent();
+            } else {
+                $text = $this->serializeChildNodes($this->document->documentElement);
             }
         }
-
-        $text = $this->fixWrapperFormatting($text);
 
         return $this->fixHtmlOutput($text, $multiDecodeNewHtmlEntity, $putBrokenReplacedBack);
     }

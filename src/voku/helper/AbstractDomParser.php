@@ -9,6 +9,8 @@ abstract class AbstractDomParser implements DomParserInterface
     /**
      * @var string
      */
+    // Keep this helper tag non-hyphenated: older libxml HTML serializers treat
+    // unknown hyphenated elements as block-level and inject formatting newlines.
     protected static $domHtmlWrapperHelper = 'simplevokuwrapper';
 
     /**

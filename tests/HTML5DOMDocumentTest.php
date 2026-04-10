@@ -679,6 +679,51 @@ final class HTML5DOMDocumentTest extends PHPUnit\Framework\TestCase
         static::assertSame($content, $dom->html());
     }
 
+    public function testLIBXMLHTMLNOIMPLIEDWithMultipleTopLevelNodesAndAttributes()
+    {
+        $content = '<div data-x="ab">x</div><div>y</div>';
+        $dom = new HtmlDomParser();
+        $dom->loadHtml($content, \LIBXML_HTML_NOIMPLIED);
+
+        static::assertSame($content, $dom->html());
+    }
+
+    public function testLIBXMLHTMLNOIMPLIEDWithMultipleTopLevelNodesAndNestedMarkup()
+    {
+        $content = '<div data-x="ab"><span>&nbsp;</span></div><div>y</div>';
+        $dom = new HtmlDomParser();
+        $dom->loadHtml($content, \LIBXML_HTML_NOIMPLIED);
+
+        static::assertSame($content, $dom->html());
+    }
+
+    public function testNestedSingleRootFragmentWithOuterWhitespaceIsPreserved()
+    {
+        $content = ' <p><a href="http://foobar.de">Mehr</a></p>';
+        $dom = new HtmlDomParser();
+        $dom->loadHtml($content);
+
+        static::assertSame($content, $dom->html());
+    }
+
+    public function testInternalWrapperHelperNameIsNotHyphenated()
+    {
+        $reflection = new \ReflectionProperty(\voku\helper\AbstractDomParser::class, 'domHtmlWrapperHelper');
+        $reflection->setAccessible(true);
+
+        static::assertSame('simplevokuwrapper', $reflection->getValue());
+        static::assertStringNotContainsString('-', $reflection->getValue());
+    }
+
+    public function testMultiRootNestedSerializationDoesNotAddFormattingNewlines()
+    {
+        $content = '<div id="outer">before</div><div><div>inside</div><span>after</span></div>';
+        $dom = new HtmlDomParser();
+        $dom->loadHtml($content, \LIBXML_HTML_NOIMPLIED);
+
+        static::assertSame($content, $dom->html());
+    }
+
     public function testNbspAndWhiteSpace()
     {
         $bodyContent = '<div> &nbsp; &nbsp; &nbsp; </div>'
