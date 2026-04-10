@@ -438,12 +438,14 @@ abstract class AbstractDomParser implements DomParserInterface
                         return $scripts[0];
                     }
 
-                    // Store the *original* content (with any <\/ preserved) so
-                    // that backslash-escaped sequences like <\/script> survive
-                    // the round-trip through the placeholder mechanism.
-                    $originalContent = $scripts['content'];
-                    self::$domBrokenReplaceHelper['orig'][] = $originalContent;
-                    self::$domBrokenReplaceHelper['tmp'][] = $matchesHash = self::$domHtmlBrokenHtmlHelper . \crc32($originalContent);
+                    // Apply the same </ → <\/ escaping that PHP 8+ applies so that
+                    // when the placeholder is restored the output matches PHP 8+
+                    // behaviour.  Any <\/ already present is left untouched because
+                    // str_replace('</', ...) only matches the two-char sequence
+                    // '<' + '/' and '<\/' has '\' in between.
+                    $storedContent = \str_replace('</', '<\/', $scripts['content']);
+                    self::$domBrokenReplaceHelper['orig'][] = $storedContent;
+                    self::$domBrokenReplaceHelper['tmp'][] = $matchesHash = self::$domHtmlBrokenHtmlHelper . \crc32($storedContent);
 
                     return '<script' . $scripts['attr'] . '>' . $matchesHash . '</script>';
                 },

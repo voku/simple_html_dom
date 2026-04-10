@@ -965,14 +965,20 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
     private function normalizeStringForComparison($input): string
     {
         if ($input instanceof HtmlDomParser) {
-            $string = $input->html(false, false);
+            $string = $input->html(false, true);
 
             if ($input->getIsDOMDocumentCreatedWithoutHeadWrapper()) {
                 /** @noinspection HtmlRequiredTitleElement */
                 $string = \str_replace(['<head>', '</head>'], '', $string);
             }
         } else {
-            $string = (string) $input;
+            // Also restore any broken-HTML placeholders that may already be
+            // present in the raw string (e.g. when innerhtmlKeep concatenates
+            // the current innerHTML — which still contains placeholders — with
+            // new content before passing the combined string back as the new
+            // innerHTML).  This keeps both sides of the comparison at the same
+            // level of substitution.
+            $string = HtmlDomParser::putReplacedBackToPreserveHtmlEntities((string) $input, true);
         }
 
         return
