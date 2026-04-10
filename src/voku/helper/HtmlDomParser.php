@@ -874,29 +874,54 @@ class HtmlDomParser extends AbstractDomParser
     }
 
     /**
-     * Older libxml HTML serializers may inject formatting newlines for the
-     * internal helper wrapper and its descendants. Serialize wrapper-backed
-     * fragments in a detached document so serialization is independent from the
-     * wrapper tag name and parser context.
+     * Serialize a single DOM node to HTML.
+     *
+     * On PHP 8.0+, a detached DOMDocument is used so that the serialization
+     * context is independent of the internal wrapper tag name (older libxml
+     * HTML serializers treat unknown hyphenated tags as block-level and inject
+     * formatting newlines into the wrapper's children when saving the full
+     * document).
+     *
+     * On PHP < 8.0, fresh DOMDocuments behave inconsistently on older libxml:
+     * for example, saveHTML() injects a newline inside <script> element
+     * content when the element is the root of a fresh document. Serializing
+     * from the original document avoids that regression. A trailing newline
+     * that older libxml appends after HTML block-level elements is stripped
+     * explicitly so that sibling nodes are concatenated without gaps.
      *
      * @param \DOMNode $node
      */
     private function serializeNode(\DOMNode $node): string
     {
-        $document = new \DOMDocument('1.0', $this->getEncoding());
-        $document->preserveWhiteSpace = true;
-        $document->formatOutput = false;
+        if (\PHP_VERSION_ID >= 80000) {
+            $document = new \DOMDocument('1.0', $this->getEncoding());
+            $document->preserveWhiteSpace = true;
+            $document->formatOutput = false;
 
-        $importedNode = $document->importNode($node, true);
-        if (!$importedNode instanceof \DOMNode) {
+            $importedNode = $document->importNode($node, true);
+            if (!$importedNode instanceof \DOMNode) {
+                return '';
+            }
+
+            $document->appendChild($importedNode);
+
+            $content = $document->saveHTML($importedNode);
+        } else {
+            // PHP < 8.0: serialize directly from the original document to
+            // avoid inconsistent fresh-document behaviour on older libxml.
+            $ownerDoc = $node->ownerDocument;
+            $content = $ownerDoc !== null ? $ownerDoc->saveHTML($node) : false;
+        }
+
+        if ($content === false) {
             return '';
         }
 
-        $document->appendChild($importedNode);
-
-        $content = $document->saveHTML($importedNode);
-        if ($content === false) {
-            return '';
+        // PHP < 8.0 with older libxml appends a trailing "\n" after HTML
+        // block-level elements (e.g. <p>, <div>, <form>). Strip it so that
+        // concatenated siblings do not gain spurious blank lines.
+        if (\PHP_VERSION_ID < 80000 && $node->nodeType === \XML_ELEMENT_NODE) {
+            $content = \rtrim($content, "\n");
         }
 
         return $content;
