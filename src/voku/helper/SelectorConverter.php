@@ -16,7 +16,7 @@ class SelectorConverter
         self::ADJACENT_SIBLING_COMBINATOR,
         self::GENERAL_SIBLING_COMBINATOR,
     ];
-    private const DESCENDANT_OR_SELF_AXIS = 'descendant-or-self::';
+    private const DESCENDANT_OR_SELF_AXIS_PREFIX = 'descendant-or-self::';
 
     /**
      * @var string[]
@@ -216,7 +216,7 @@ class SelectorConverter
         }
 
         $combinator = $trimmedSelectorGroup[0];
-        $restSelector = \ltrim(\substr($trimmedSelectorGroup, 1));
+        $restSelector = \ltrim(\substr($trimmedSelectorGroup, 1), " \t\n\r\0\x0B");
         if ($restSelector === '') {
             throw new \RuntimeException('Selector group cannot end with a combinator (' . $combinator . ').');
         }
@@ -265,8 +265,8 @@ class SelectorConverter
 
     private static function replaceLeadingAxis(string $xPathQuery, string $replacement): string
     {
-        if (\strpos($xPathQuery, self::DESCENDANT_OR_SELF_AXIS) === 0) {
-            return $replacement . \substr($xPathQuery, \strlen(self::DESCENDANT_OR_SELF_AXIS));
+        if (\strpos($xPathQuery, self::DESCENDANT_OR_SELF_AXIS_PREFIX) === 0) {
+            return $replacement . \substr($xPathQuery, \strlen(self::DESCENDANT_OR_SELF_AXIS_PREFIX));
         }
 
         if (\strpos($xPathQuery, '//') === 0) {
