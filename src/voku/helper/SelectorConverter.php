@@ -8,6 +8,14 @@ use Symfony\Component\CssSelector\CssSelectorConverter;
 
 class SelectorConverter
 {
+    private const CHILD_COMBINATOR = '>';
+    private const ADJACENT_SIBLING_COMBINATOR = '+';
+    private const GENERAL_SIBLING_COMBINATOR = '~';
+    private const LEADING_COMBINATORS = [
+        self::CHILD_COMBINATOR,
+        self::ADJACENT_SIBLING_COMBINATOR,
+        self::GENERAL_SIBLING_COMBINATOR,
+    ];
     private const DESCENDANT_OR_SELF_AXIS = 'descendant-or-self::';
 
     /**
@@ -73,6 +81,11 @@ class SelectorConverter
         self::$compiled[$selector] = $xPathQuery;
 
         return $xPathQuery;
+    }
+
+    public static function clearCompiledCache(): void
+    {
+        self::$compiled = [];
     }
 
     private static function convertSelectorListToXPath(string $selector, CssSelectorConverter $converter): string
@@ -198,7 +211,7 @@ class SelectorConverter
             return $trimmedSelectorGroup;
         }
 
-        if (!isset($trimmedSelectorGroup[0]) || !\in_array($trimmedSelectorGroup[0], ['>', '+', '~'], true)) {
+        if (!isset($trimmedSelectorGroup[0]) || !\in_array($trimmedSelectorGroup[0], self::LEADING_COMBINATORS, true)) {
             return $converter->toXPath($trimmedSelectorGroup);
         }
 
@@ -225,11 +238,11 @@ class SelectorConverter
     private static function createElementAxisPrefix(string $combinator): string
     {
         switch ($combinator) {
-            case '>':
+            case self::CHILD_COMBINATOR:
                 return '/*/';
-            case '+':
+            case self::ADJACENT_SIBLING_COMBINATOR:
                 return '/*/following-sibling::*[1]/self::';
-            case '~':
+            case self::GENERAL_SIBLING_COMBINATOR:
                 return '/*/following-sibling::';
             default:
                 throw new \RuntimeException('Unexpected combinator: ' . $combinator);
@@ -239,11 +252,11 @@ class SelectorConverter
     private static function createNodeTestXPath(string $combinator, string $nodeTest): string
     {
         switch ($combinator) {
-            case '>':
+            case self::CHILD_COMBINATOR:
                 return '/*/' . $nodeTest;
-            case '+':
+            case self::ADJACENT_SIBLING_COMBINATOR:
                 return '/*/following-sibling::node()[1]/self::' . $nodeTest;
-            case '~':
+            case self::GENERAL_SIBLING_COMBINATOR:
                 return '/*/following-sibling::' . $nodeTest;
             default:
                 throw new \RuntimeException('Unexpected combinator: ' . $combinator);

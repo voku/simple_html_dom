@@ -11,9 +11,7 @@ final class SelectorConverterLeadingCombinatorTest extends TestCase
 {
     protected function setUp(): void
     {
-        $compiledProperty = new ReflectionProperty(SelectorConverter::class, 'compiled');
-        $compiledProperty->setAccessible(true);
-        $compiledProperty->setValue(null, []);
+        SelectorConverter::clearCompiledCache();
     }
 
     public function testChildCombinatorSpanXPath(): void
