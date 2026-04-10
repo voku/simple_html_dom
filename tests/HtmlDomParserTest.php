@@ -108,9 +108,9 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
         // verify that reparsing clears the current parser's old entries.
         $property->setValue(null, [
             'orig' => ['leftover-original'],
-            'tmp' => ['leftover-token'],
+            'tmp' => ['simplevokubroken123'],
         ]);
-        $keysProperty->setValue($dom, ['leftover-token']);
+        $keysProperty->setValue($dom, ['simplevokubroken123']);
         static::assertNotEmpty($property->getValue()['tmp'] ?? []);
 
         $dom->loadHtml('<div>ok</div>', \LIBXML_HTML_NOIMPLIED);
