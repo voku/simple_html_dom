@@ -654,7 +654,7 @@ class HtmlDomParser extends AbstractDomParser
         // newlines now, before any tag-stripping steps, so that tags being removed
         // in the steps below do not leave behind orphaned newlines.
         if (\PHP_VERSION_ID < 80000) {
-            $content = (string) \preg_replace('/(</[a-zA-Z][a-zA-Z0-9]*>)\n/', '$1', $content);
+            $content = (string) \preg_replace('#(<\/[a-zA-Z][a-zA-Z0-9]*>)\n#', '$1', $content);
         }
 
         if ($this->getIsDOMDocumentCreatedWithoutHtmlWrapper()) {
