@@ -8,6 +8,8 @@ use Symfony\Component\CssSelector\CssSelectorConverter;
 
 class SelectorConverter
 {
+    private const DESCENDANT_OR_SELF_AXIS = 'descendant-or-self::';
+
     /**
      * @var string[]
      *
@@ -60,16 +62,204 @@ class SelectorConverter
 
         if ($ignoreCssSelectorErrors) {
             try {
-                $xPathQuery = $converter->toXPath($selector);
+                $xPathQuery = self::convertSelectorListToXPath($selector, $converter);
             } catch (\Exception $e) {
                 $xPathQuery = $selector;
             }
         } else {
-            $xPathQuery = $converter->toXPath($selector);
+            $xPathQuery = self::convertSelectorListToXPath($selector, $converter);
         }
 
         self::$compiled[$selector] = $xPathQuery;
 
         return $xPathQuery;
+    }
+
+    private static function convertSelectorListToXPath(string $selector, CssSelectorConverter $converter): string
+    {
+        $xPathQueries = [];
+        foreach (self::splitSelectorGroups($selector) as $selectorGroup) {
+            $xPathQueries[] = self::convertSelectorGroupToXPath($selectorGroup, $converter);
+        }
+
+        return \implode(' | ', $xPathQueries);
+    }
+
+    /**
+     * @return string[]
+     */
+    private static function splitSelectorGroups(string $selector): array
+    {
+        $selectorGroups = [];
+        $currentSelectorGroup = '';
+        $quote = '';
+        $bracketLevel = 0;
+        $parenthesisLevel = 0;
+        $isEscaped = false;
+
+        $selectorLength = \strlen($selector);
+        for ($i = 0; $i < $selectorLength; ++$i) {
+            $char = $selector[$i];
+
+            if ($isEscaped) {
+                $currentSelectorGroup .= $char;
+                $isEscaped = false;
+
+                continue;
+            }
+
+            if ($char === '\\') {
+                $currentSelectorGroup .= $char;
+                $isEscaped = true;
+
+                continue;
+            }
+
+            if ($quote !== '') {
+                $currentSelectorGroup .= $char;
+                if ($char === $quote) {
+                    $quote = '';
+                }
+
+                continue;
+            }
+
+            if ($char === '"' || $char === '\'') {
+                $currentSelectorGroup .= $char;
+                $quote = $char;
+
+                continue;
+            }
+
+            if ($char === '[') {
+                ++$bracketLevel;
+                $currentSelectorGroup .= $char;
+
+                continue;
+            }
+
+            if ($char === ']') {
+                if ($bracketLevel > 0) {
+                    --$bracketLevel;
+                }
+                $currentSelectorGroup .= $char;
+
+                continue;
+            }
+
+            if ($char === '(') {
+                ++$parenthesisLevel;
+                $currentSelectorGroup .= $char;
+
+                continue;
+            }
+
+            if ($char === ')') {
+                if ($parenthesisLevel > 0) {
+                    --$parenthesisLevel;
+                }
+                $currentSelectorGroup .= $char;
+
+                continue;
+            }
+
+            if ($char === ',' && $bracketLevel === 0 && $parenthesisLevel === 0) {
+                $selectorGroups[] = $currentSelectorGroup;
+                $currentSelectorGroup = '';
+
+                continue;
+            }
+
+            $currentSelectorGroup .= $char;
+        }
+
+        $selectorGroups[] = $currentSelectorGroup;
+
+        return $selectorGroups;
+    }
+
+    private static function convertSelectorGroupToXPath(string $selectorGroup, CssSelectorConverter $converter): string
+    {
+        $trimmedSelectorGroup = \trim($selectorGroup);
+
+        if ($trimmedSelectorGroup === '') {
+            throw new \RuntimeException('Selector cannot contain an empty group: ' . $selectorGroup);
+        }
+
+        if ($trimmedSelectorGroup === 'text') {
+            return '//text()';
+        }
+
+        if ($trimmedSelectorGroup === 'comment') {
+            return '//comment()';
+        }
+
+        if (\strpos($trimmedSelectorGroup, '//') === 0) {
+            return $trimmedSelectorGroup;
+        }
+
+        if (!isset($trimmedSelectorGroup[0]) || !\in_array($trimmedSelectorGroup[0], ['>', '+', '~'], true)) {
+            return $converter->toXPath($trimmedSelectorGroup);
+        }
+
+        $combinator = $trimmedSelectorGroup[0];
+        $restSelector = \ltrim(\substr($trimmedSelectorGroup, 1));
+        if ($restSelector === '') {
+            throw new \RuntimeException('Selector cannot end with a combinator: ' . $selectorGroup);
+        }
+
+        if ($restSelector === 'text') {
+            return self::createNodeTestXPath($combinator, 'text()');
+        }
+
+        if ($restSelector === 'comment') {
+            return self::createNodeTestXPath($combinator, 'comment()');
+        }
+
+        return self::replaceLeadingAxis(
+            $converter->toXPath($restSelector),
+            self::createElementAxisPrefix($combinator)
+        );
+    }
+
+    private static function createElementAxisPrefix(string $combinator): string
+    {
+        switch ($combinator) {
+            case '>':
+                return '/*/';
+            case '+':
+                return '/*/following-sibling::*[1]/self::';
+            case '~':
+                return '/*/following-sibling::';
+            default:
+                throw new \RuntimeException('Unexpected combinator: ' . $combinator);
+        }
+    }
+
+    private static function createNodeTestXPath(string $combinator, string $nodeTest): string
+    {
+        switch ($combinator) {
+            case '>':
+                return '/*/' . $nodeTest;
+            case '+':
+                return '/*/following-sibling::node()[1]/self::' . $nodeTest;
+            case '~':
+                return '/*/following-sibling::' . $nodeTest;
+            default:
+                throw new \RuntimeException('Unexpected combinator: ' . $combinator);
+        }
+    }
+
+    private static function replaceLeadingAxis(string $xPathQuery, string $replacement): string
+    {
+        if (\strpos($xPathQuery, self::DESCENDANT_OR_SELF_AXIS) === 0) {
+            return $replacement . \substr($xPathQuery, \strlen(self::DESCENDANT_OR_SELF_AXIS));
+        }
+
+        if (\strpos($xPathQuery, '//') === 0) {
+            return $replacement . \substr($xPathQuery, 2);
+        }
+
+        return $replacement . $xPathQuery;
     }
 }
