@@ -649,14 +649,6 @@ class HtmlDomParser extends AbstractDomParser
         // INFO: DOMDocument will encapsulate plaintext into a e.g. paragraph tag (<p>),
         //          so we try to remove it here again ...
 
-        // On PHP < 8.0, older libxml injects a spurious "\n" after each block-level
-        // HTML closing tag when serialising via saveHTML(). Strip these injected
-        // newlines now, before any tag-stripping steps, so that tags being removed
-        // in the steps below do not leave behind orphaned newlines.
-        if (\PHP_VERSION_ID < 80000) {
-            $content = (string) \preg_replace('#(<\/[a-zA-Z][a-zA-Z0-9]*>)\n#', '$1', $content);
-        }
-
         if ($this->getIsDOMDocumentCreatedWithoutHtmlWrapper()) {
             /** @noinspection HtmlRequiredLangAttribute */
             $content = \str_replace(
@@ -928,12 +920,14 @@ class HtmlDomParser extends AbstractDomParser
         } else {
             // PHP < 8.0: serialize directly from the original document to
             // avoid inconsistent fresh-document behaviour on older libxml.
-            // The trailing "\n" that older libxml appends after block-level
-            // elements is intentionally preserved here; fixHtmlOutput() removes
-            // those injected newlines via a regex that can distinguish them from
-            // original "\n" text nodes that follow as separate sibling nodes.
+            // Use rtrim("\n") to strip only the trailing "\n" that older libxml
+            // injects after block-level elements; internal "\n" characters (from
+            // original whitespace text nodes between inline children) are preserved.
             $ownerDoc = $node->ownerDocument;
             $content = $ownerDoc !== null ? $ownerDoc->saveHTML($node) : false;
+            if ($content !== false) {
+                $content = \rtrim($content, "\n");
+            }
         }
 
         if ($content === false) {
