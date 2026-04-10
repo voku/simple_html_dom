@@ -104,6 +104,8 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
         $keysProperty->setAccessible(true);
 
         $dom = new HtmlDomParser();
+        // The broken-replacement map is static, so seed it explicitly to
+        // verify that reparsing clears the current parser's old entries.
         $property->setValue(null, [
             'orig' => ['leftover-original'],
             'tmp' => ['leftover-token'],
@@ -126,11 +128,13 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
 
         try {
             static::assertTrue($method->invoke($dom, '<div>one</div><div>two</div>', 0));
-            static::assertFalse(\libxml_use_internal_errors(false));
+            $internalErrors = \libxml_use_internal_errors(false);
+            static::assertFalse($internalErrors);
 
             \libxml_use_internal_errors(true);
             static::assertFalse($method->invoke($dom, '<div', 0));
-            static::assertTrue(\libxml_use_internal_errors(false));
+            $internalErrors = \libxml_use_internal_errors(false);
+            static::assertTrue($internalErrors);
         } finally {
             \libxml_clear_errors();
             \libxml_use_internal_errors($originalInternalErrors);

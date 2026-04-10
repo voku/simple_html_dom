@@ -934,6 +934,8 @@ class HtmlDomParser extends AbstractDomParser
             // raw-text elements.
             $ownerDoc = $node->ownerDocument;
             $content = $ownerDoc !== null ? $ownerDoc->saveHTML($node) : false;
+            // Older libxml appends exactly one synthetic trailing "\n" here;
+            // preserve any real user-provided trailing newlines in the content.
             if ($content !== false && \substr($content, -1) === "\n") {
                 $content = \substr($content, 0, -1);
             }
