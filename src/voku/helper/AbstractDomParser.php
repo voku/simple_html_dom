@@ -73,15 +73,9 @@ abstract class AbstractDomParser implements DomParserInterface
      */
     protected $dynamicDomBrokenReplaceHelperKeys = [];
 
-    public function __destruct()
-    {
-        $this->resetDynamicDomHelpers();
-    }
-
     /**
      * Remove the current parser instance's dynamic placeholder mappings from
-     * the shared replacement table before reparsing or when the parser is
-     * destroyed.
+     * the shared replacement table before reparsing this parser instance.
      *
      * @return void
      */
