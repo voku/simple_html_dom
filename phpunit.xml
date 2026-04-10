@@ -1,13 +1,17 @@
 <phpunit bootstrap="tests/bootstrap.php">
-    <testsuite name="Simple HTML Dom Test Suite">
-        <directory>tests</directory>
-    </testsuite>
+    <coverage processUncoveredFiles="true">
+        <include>
+            <directory suffix=".php">./src/</directory>
+        </include>
+    </coverage>
     <filter>
         <whitelist processUncoveredFilesFromWhitelist="true">
             <directory suffix=".php">./src/</directory>
         </whitelist>
     </filter>
-    <logging>
-        <log type="coverage-clover" target="build/logs/clover.xml"/>
-    </logging>
+    <testsuites>
+        <testsuite name="Simple HTML Dom Test Suite">
+            <directory>tests</directory>
+        </testsuite>
+    </testsuites>
 </phpunit>
