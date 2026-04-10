@@ -92,10 +92,8 @@ abstract class AbstractDomParser implements DomParserInterface
         }
 
         foreach ($this->dynamicDomBrokenReplaceHelperKeys as $token) {
-            $index = \array_search($token, self::$domBrokenReplaceHelper['tmp'] ?? [], true);
-            while ($index !== false) {
+            foreach (\array_keys(self::$domBrokenReplaceHelper['tmp'] ?? [], $token, true) as $index) {
                 unset(self::$domBrokenReplaceHelper['tmp'][$index], self::$domBrokenReplaceHelper['orig'][$index]);
-                $index = \array_search($token, self::$domBrokenReplaceHelper['tmp'] ?? [], true);
             }
         }
 

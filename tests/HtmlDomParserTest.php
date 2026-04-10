@@ -116,7 +116,7 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
         static::assertSame([], $property->getValue());
     }
 
-    public function testHasMultipleTopLevelNodesRestoresLibxmlInternalErrorsState()
+    public function testHasMultipleTopLevelNodesRestoresLibxmlState()
     {
         $method = new \ReflectionMethod(HtmlDomParser::class, 'hasMultipleTopLevelNodes');
         $method->setAccessible(true);
