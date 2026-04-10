@@ -69,6 +69,60 @@ abstract class AbstractDomParser implements DomParserInterface
     protected static $functionAliases = [];
 
     /**
+     * @var string[]
+     */
+    protected $dynamicDomBrokenReplaceHelperKeys = [];
+
+    public function __destruct()
+    {
+        $this->resetDynamicDomHelpers();
+    }
+
+    /**
+     * Remove the current parser instance's dynamic placeholder mappings from
+     * the shared replacement table before reparsing or when the parser is
+     * destroyed.
+     *
+     * @return void
+     */
+    protected function resetDynamicDomHelpers()
+    {
+        if (empty($this->dynamicDomBrokenReplaceHelperKeys)) {
+            return;
+        }
+
+        foreach ($this->dynamicDomBrokenReplaceHelperKeys as $token) {
+            $index = \array_search($token, self::$domBrokenReplaceHelper['tmp'] ?? [], true);
+            while ($index !== false) {
+                unset(self::$domBrokenReplaceHelper['tmp'][$index], self::$domBrokenReplaceHelper['orig'][$index]);
+                $index = \array_search($token, self::$domBrokenReplaceHelper['tmp'] ?? [], true);
+            }
+        }
+
+        if (!empty(self::$domBrokenReplaceHelper['tmp'])) {
+            self::$domBrokenReplaceHelper['tmp'] = \array_values(self::$domBrokenReplaceHelper['tmp']);
+            self::$domBrokenReplaceHelper['orig'] = \array_values(self::$domBrokenReplaceHelper['orig']);
+        } else {
+            self::$domBrokenReplaceHelper = [];
+        }
+
+        $this->dynamicDomBrokenReplaceHelperKeys = [];
+    }
+
+    /**
+     * @param string $original
+     * @param string $token
+     *
+     * @return void
+     */
+    protected function registerDynamicDomBrokenReplaceHelper(string $original, string $token)
+    {
+        self::$domBrokenReplaceHelper['orig'][] = $original;
+        self::$domBrokenReplaceHelper['tmp'][] = $token;
+        $this->dynamicDomBrokenReplaceHelperKeys[] = $token;
+    }
+
+    /**
      * @var \DOMDocument
      */
     protected $document;
@@ -444,8 +498,8 @@ abstract class AbstractDomParser implements DomParserInterface
                     // str_replace('</', ...) only matches the two-char sequence
                     // '<' + '/' and '<\/' has '\' in between.
                     $storedContent = \str_replace('</', '<\/', $scripts['content']);
-                    self::$domBrokenReplaceHelper['orig'][] = $storedContent;
-                    self::$domBrokenReplaceHelper['tmp'][] = $matchesHash = self::$domHtmlBrokenHtmlHelper . \crc32($storedContent);
+                    $matchesHash = self::$domHtmlBrokenHtmlHelper . \crc32($storedContent);
+                    $this->registerDynamicDomBrokenReplaceHelper($storedContent, $matchesHash);
 
                     return '<script' . $scripts['attr'] . '>' . $matchesHash . '</script>';
                 },

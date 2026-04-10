@@ -303,6 +303,8 @@ class HtmlDomParser extends AbstractDomParser
      */
     protected function createDOMDocument(string $html, $libXMLExtraOptions = null, $useDefaultLibXMLOptions = true): \DOMDocument
     {
+        $this->resetDynamicDomHelpers();
+
         if ($this->callbackBeforeCreateDom) {
             $html = \call_user_func($this->callbackBeforeCreateDom, $html, $this);
         }
@@ -932,8 +934,8 @@ class HtmlDomParser extends AbstractDomParser
             // raw-text elements.
             $ownerDoc = $node->ownerDocument;
             $content = $ownerDoc !== null ? $ownerDoc->saveHTML($node) : false;
-            if ($content !== false) {
-                $content = \rtrim($content, "\n");
+            if ($content !== false && \substr($content, -1) === "\n") {
+                $content = \substr($content, 0, -1);
             }
         }
 
@@ -1051,34 +1053,28 @@ class HtmlDomParser extends AbstractDomParser
     private function hasMultipleTopLevelNodes(string $html, int $optionsXml): bool
     {
         $internalErrors = \libxml_use_internal_errors(true);
-        \libxml_clear_errors();
+        try {
+            \libxml_clear_errors();
 
-        $xmlProbe = '<' . self::$domHtmlWrapperHelper . '>'
-            . self::replaceToPreserveHtmlEntities($html)
-            . '</' . self::$domHtmlWrapperHelper . '>';
+            $xmlProbe = '<' . self::$domHtmlWrapperHelper . '>'
+                . self::replaceToPreserveHtmlEntities($html)
+                . '</' . self::$domHtmlWrapperHelper . '>';
 
-        $simpleXml = \simplexml_load_string($xmlProbe, \SimpleXMLElement::class, $optionsXml);
-        if ($simpleXml === false || \count(\libxml_get_errors()) > 0) {
+            $simpleXml = \simplexml_load_string($xmlProbe, \SimpleXMLElement::class, $optionsXml);
+            if ($simpleXml === false || \count(\libxml_get_errors()) > 0) {
+                return false;
+            }
+
+            $wrapper = \dom_import_simplexml($simpleXml);
+            if (!$wrapper instanceof \DOMElement) {
+                return false;
+            }
+
+            return $this->countSignificantChildNodes($wrapper) > 1;
+        } finally {
             \libxml_clear_errors();
             \libxml_use_internal_errors($internalErrors);
-
-            return false;
         }
-
-        $wrapper = \dom_import_simplexml($simpleXml);
-        if (!$wrapper instanceof \DOMElement) {
-            \libxml_clear_errors();
-            \libxml_use_internal_errors($internalErrors);
-
-            return false;
-        }
-
-        $hasMultipleTopLevelNodes = $this->countSignificantChildNodes($wrapper) > 1;
-
-        \libxml_clear_errors();
-        \libxml_use_internal_errors($internalErrors);
-
-        return $hasMultipleTopLevelNodes;
     }
 
     /**
@@ -1323,15 +1319,15 @@ class HtmlDomParser extends AbstractDomParser
 
             $html = (string) \preg_replace_callback(
                 '/(?<start>[^<]*)?(?<broken>(?:<\/\w+(?:\s+\w+=\"[^"]+\")*+[^<]+>)+)(?<end>.*)/u',
-                static function ($matches) {
+                function ($matches) {
                     $matches['broken'] = \str_replace(
                         ['°lt/_simple_html_dom__voku_°', '°lt_simple_html_dom__voku_°', '°gt_simple_html_dom__voku_°'],
                         ['</', '<', '>'],
                         $matches['broken']
                     );
 
-                    self::$domBrokenReplaceHelper['orig'][] = $matches['broken'];
-                    self::$domBrokenReplaceHelper['tmp'][] = $matchesHash = self::$domHtmlBrokenHtmlHelper . \crc32($matches['broken']);
+                    $matchesHash = self::$domHtmlBrokenHtmlHelper . \crc32($matches['broken']);
+                    $this->registerDynamicDomBrokenReplaceHelper($matches['broken'], $matchesHash);
 
                     return $matches['start'] . $matchesHash . $matches['end'];
                 },
@@ -1360,14 +1356,14 @@ class HtmlDomParser extends AbstractDomParser
         $regExSpecialSvg = '/\((["\'])?(?<start>data:image\/svg.*)<svg(?<attr>[^>]*?)>(?<content>.*)<\/svg>\1\)/isU';
         $htmlTmp = \preg_replace_callback(
             $regExSpecialSvg,
-            static function ($svgs) {
+            function ($svgs) {
                 if (empty($svgs['content'])) {
                     return $svgs[0];
                 }
 
                 $content = '<svg' . $svgs['attr'] . '>' . $svgs['content'] . '</svg>';
-                self::$domBrokenReplaceHelper['orig'][] = $content;
-                self::$domBrokenReplaceHelper['tmp'][] = $matchesHash = self::$domHtmlBrokenHtmlHelper . \crc32($content);
+                $matchesHash = self::$domHtmlBrokenHtmlHelper . \crc32($content);
+                $this->registerDynamicDomBrokenReplaceHelper($content, $matchesHash);
 
                 return '(' . $svgs[1] . $svgs['start'] . $matchesHash . $svgs[1] . ')';
             },
@@ -1403,8 +1399,8 @@ class HtmlDomParser extends AbstractDomParser
                         // remove the html5 fallback
                         $matches['innerContent'] = \str_replace('<\/', '</', $matches['innerContent']);
 
-                        self::$domBrokenReplaceHelper['orig'][] = $matches['innerContent'];
-                        self::$domBrokenReplaceHelper['tmp'][] = $matchesHash = self::$domHtmlBrokenHtmlHelper . \crc32($matches['innerContent']);
+                        $matchesHash = self::$domHtmlBrokenHtmlHelper . \crc32($matches['innerContent']);
+                        $this->registerDynamicDomBrokenReplaceHelper($matches['innerContent'], $matchesHash);
 
                         return $matches['start'] . $matchesHash . $matches['end'];
                     }

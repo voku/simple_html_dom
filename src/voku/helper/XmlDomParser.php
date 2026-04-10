@@ -149,6 +149,8 @@ class XmlDomParser extends AbstractDomParser
      */
     protected function createDOMDocument(string $xml, $libXMLExtraOptions = null, $useDefaultLibXMLOptions = true): \DOMDocument
     {
+        $this->resetDynamicDomHelpers();
+
         if ($this->callbackBeforeCreateDom) {
             $xml = \call_user_func($this->callbackBeforeCreateDom, $xml, $this);
         }

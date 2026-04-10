@@ -1,5 +1,6 @@
 <?php
 
+use voku\helper\AbstractDomParser;
 use voku\helper\HtmlDomParser;
 use voku\helper\SimpleHtmlDom;
 use voku\helper\SimpleHtmlDomInterface;
@@ -93,6 +94,47 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
             '<h1 class="hd"><a href="http://www.11st.co.kr" data-ga-event-category="PC_GNB" data-ga-event-action="Âó´Ü¿µ¿ª_·Î°í" data-ga-event-label="">11¹ø°¡</a></h1>',
             $h1->html()
         );
+    }
+
+    public function testBrokenReplaceHelperIsResetBetweenDocuments()
+    {
+        $property = new \ReflectionProperty(AbstractDomParser::class, 'domBrokenReplaceHelper');
+        $property->setAccessible(true);
+        $keysProperty = new \ReflectionProperty(AbstractDomParser::class, 'dynamicDomBrokenReplaceHelperKeys');
+        $keysProperty->setAccessible(true);
+
+        $dom = new HtmlDomParser();
+        $property->setValue(null, [
+            'orig' => ['leftover-original'],
+            'tmp' => ['leftover-token'],
+        ]);
+        $keysProperty->setValue($dom, ['leftover-token']);
+        static::assertNotEmpty($property->getValue()['tmp'] ?? []);
+
+        $dom->loadHtml('<div>ok</div>', \LIBXML_HTML_NOIMPLIED);
+
+        static::assertSame([], $property->getValue());
+    }
+
+    public function testHasMultipleTopLevelNodesRestoresLibxmlInternalErrorsState()
+    {
+        $method = new \ReflectionMethod(HtmlDomParser::class, 'hasMultipleTopLevelNodes');
+        $method->setAccessible(true);
+
+        $dom = new HtmlDomParser();
+        $originalInternalErrors = \libxml_use_internal_errors(false);
+
+        try {
+            static::assertTrue($method->invoke($dom, '<div>one</div><div>two</div>', 0));
+            static::assertFalse(\libxml_use_internal_errors(false));
+
+            \libxml_use_internal_errors(true);
+            static::assertFalse($method->invoke($dom, '<div', 0));
+            static::assertTrue(\libxml_use_internal_errors(false));
+        } finally {
+            \libxml_clear_errors();
+            \libxml_use_internal_errors($originalInternalErrors);
+        }
     }
 
     public function testMethodNotExist()
