@@ -205,7 +205,7 @@ class SelectorConverter
         $combinator = $trimmedSelectorGroup[0];
         $restSelector = \ltrim(\substr($trimmedSelectorGroup, 1));
         if ($restSelector === '') {
-            throw new \RuntimeException('Selector group cannot end with a combinator (' . $combinator . '): ' . $selectorGroup);
+            throw new \RuntimeException('Selector group cannot end with a combinator (' . $combinator . '): ' . $trimmedSelectorGroup);
         }
 
         if ($restSelector === 'text') {
