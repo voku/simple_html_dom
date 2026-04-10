@@ -649,6 +649,14 @@ class HtmlDomParser extends AbstractDomParser
         // INFO: DOMDocument will encapsulate plaintext into a e.g. paragraph tag (<p>),
         //          so we try to remove it here again ...
 
+        // On PHP < 8.0, older libxml injects a spurious "\n" after each block-level
+        // HTML closing tag when serialising via saveHTML(). Strip these injected
+        // newlines now, before any tag-stripping steps, so that tags being removed
+        // in the steps below do not leave behind orphaned newlines.
+        if (\PHP_VERSION_ID < 80000) {
+            $content = (string) \preg_replace('/(</[a-zA-Z][a-zA-Z0-9]*>)\n/', '$1', $content);
+        }
+
         if ($this->getIsDOMDocumentCreatedWithoutHtmlWrapper()) {
             /** @noinspection HtmlRequiredLangAttribute */
             $content = \str_replace(
@@ -870,7 +878,17 @@ class HtmlDomParser extends AbstractDomParser
             return '';
         }
 
-        return $this->fixHtmlOutput($content, $multiDecodeNewHtmlEntity, $putBrokenReplacedBack);
+        $output = $this->fixHtmlOutput($content, $multiDecodeNewHtmlEntity, $putBrokenReplacedBack);
+
+        // On PHP < 8.0, older libxml may leave trailing whitespace (from text
+        // nodes that appear after the last element inside the wrapper) once the
+        // wrapper tags have been stripped by putReplacedBackToPreserveHtmlEntities.
+        // Strip that trailing whitespace here so the result matches PHP 8 output.
+        if (\PHP_VERSION_ID < 80000) {
+            $output = \rtrim($output);
+        }
+
+        return $output;
     }
 
     /**
@@ -885,9 +903,10 @@ class HtmlDomParser extends AbstractDomParser
      * On PHP < 8.0, fresh DOMDocuments behave inconsistently on older libxml:
      * for example, saveHTML() injects a newline inside <script> element
      * content when the element is the root of a fresh document. Serializing
-     * from the original document avoids that regression. A trailing newline
-     * that older libxml appends after HTML block-level elements is stripped
-     * explicitly so that sibling nodes are concatenated without gaps.
+     * from the original document avoids that regression. The trailing newline
+     * that older libxml appends after HTML block-level elements is left intact
+     * here; fixHtmlOutput() strips those injected newlines via a regex that
+     * can distinguish them from original "\n" text nodes following as siblings.
      *
      * @param \DOMNode $node
      */
@@ -909,19 +928,16 @@ class HtmlDomParser extends AbstractDomParser
         } else {
             // PHP < 8.0: serialize directly from the original document to
             // avoid inconsistent fresh-document behaviour on older libxml.
+            // The trailing "\n" that older libxml appends after block-level
+            // elements is intentionally preserved here; fixHtmlOutput() removes
+            // those injected newlines via a regex that can distinguish them from
+            // original "\n" text nodes that follow as separate sibling nodes.
             $ownerDoc = $node->ownerDocument;
             $content = $ownerDoc !== null ? $ownerDoc->saveHTML($node) : false;
         }
 
         if ($content === false) {
             return '';
-        }
-
-        // PHP < 8.0 with older libxml appends a trailing "\n" after HTML
-        // block-level elements (e.g. <p>, <div>, <form>). Strip it so that
-        // concatenated siblings do not gain spurious blank lines.
-        if (\PHP_VERSION_ID < 80000 && $node->nodeType === \XML_ELEMENT_NODE) {
-            $content = \rtrim($content, "\n");
         }
 
         return $content;
@@ -1052,7 +1068,13 @@ class HtmlDomParser extends AbstractDomParser
             }
         }
 
-        return $this->fixHtmlOutput($text, $multiDecodeNewHtmlEntity, $putBrokenReplacedBack);
+        $output = $this->fixHtmlOutput($text, $multiDecodeNewHtmlEntity, $putBrokenReplacedBack);
+
+        if (\PHP_VERSION_ID < 80000) {
+            $output = \rtrim($output);
+        }
+
+        return $output;
     }
 
     /**

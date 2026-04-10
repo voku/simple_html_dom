@@ -413,6 +413,41 @@ abstract class AbstractDomParser implements DomParserInterface
         // regEx for e.g.: [<script id="elements-image-2">...<script>]
         /** @noinspection HtmlDeprecatedTag */
         $regExSpecialScript = '/<script(?<attr>[^>]*?)>(?<content>.*)<\/script>/isU';
+
+        if (\PHP_VERSION_ID < 80000) {
+            // On PHP < 8.0, older libxml's HTML parser can mishandle <\/ inside
+            // <script> content, causing content after the sequence to leak outside
+            // the element. Use a placeholder to protect any script content that
+            // contains literal < characters so that loadHTML() receives safe input.
+            $htmlTmp = \preg_replace_callback(
+                $regExSpecialScript,
+                function ($scripts) {
+                    if (empty($scripts['content'])) {
+                        return $scripts[0];
+                    }
+
+                    // Revert any existing <\/ escaping before computing the hash.
+                    $content = \str_replace('<\/', '</', $scripts['content']);
+
+                    if (\strpos($content, '<') === false) {
+                        return $scripts[0];
+                    }
+
+                    self::$domBrokenReplaceHelper['orig'][] = $content;
+                    self::$domBrokenReplaceHelper['tmp'][] = $matchesHash = self::$domHtmlBrokenHtmlHelper . \crc32($content);
+
+                    return '<script' . $scripts['attr'] . '>' . $matchesHash . '</script>';
+                },
+                $html
+            );
+
+            if ($htmlTmp !== null) {
+                $html = $htmlTmp;
+            }
+
+            return;
+        }
+
         $htmlTmp = \preg_replace_callback(
             $regExSpecialScript,
             static function ($scripts) {
