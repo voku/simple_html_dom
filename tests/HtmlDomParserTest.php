@@ -128,13 +128,11 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
 
         try {
             static::assertTrue($method->invoke($dom, '<div>one</div><div>two</div>', 0));
-            $internalErrors = \libxml_use_internal_errors(false);
-            static::assertFalse($internalErrors);
+            static::assertFalse(\libxml_use_internal_errors());
 
             \libxml_use_internal_errors(true);
             static::assertFalse($method->invoke($dom, '<div', 0));
-            $internalErrors = \libxml_use_internal_errors(false);
-            static::assertTrue($internalErrors);
+            static::assertTrue(\libxml_use_internal_errors());
         } finally {
             \libxml_clear_errors();
             \libxml_use_internal_errors($originalInternalErrors);

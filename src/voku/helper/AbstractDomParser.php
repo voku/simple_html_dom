@@ -97,11 +97,11 @@ abstract class AbstractDomParser implements DomParserInterface
             }
         }
 
-        if (!empty(self::$domBrokenReplaceHelper['tmp'])) {
+        if (empty(self::$domBrokenReplaceHelper['tmp'])) {
+            self::$domBrokenReplaceHelper = [];
+        } else {
             self::$domBrokenReplaceHelper['tmp'] = \array_values(self::$domBrokenReplaceHelper['tmp']);
             self::$domBrokenReplaceHelper['orig'] = \array_values(self::$domBrokenReplaceHelper['orig']);
-        } else {
-            self::$domBrokenReplaceHelper = [];
         }
 
         $this->dynamicDomBrokenReplaceHelperKeys = [];
