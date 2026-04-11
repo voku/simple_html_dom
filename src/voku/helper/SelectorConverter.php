@@ -280,6 +280,11 @@ class SelectorConverter
 
     private static function createCompiledCacheKey(string $selector, bool $ignoreCssSelectorErrors, bool $isForHtml): string
     {
-        return $selector . "\0" . (int) $ignoreCssSelectorErrors . "\0" . (int) $isForHtml;
+        $cacheKey = \json_encode([$selector, $ignoreCssSelectorErrors, $isForHtml]);
+        if ($cacheKey === false) {
+            throw new \RuntimeException('Unable to encode the selector conversion cache key.');
+        }
+
+        return $cacheKey;
     }
 }
