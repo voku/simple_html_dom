@@ -214,6 +214,34 @@ class SelectorConverter
         }
 
         if (!\in_array($trimmedSelectorGroup[0], self::LEADING_COMBINATORS, true)) {
+            // Handle compound selectors ending with 'text' or 'comment'
+            // e.g. "div text"   -> descendant-or-self::div//text()
+            //      "div > text" -> descendant-or-self::div/text()
+            //      "div + text" -> descendant-or-self::div/following-sibling::node()[1]/self::text()
+            //      "div ~ text" -> descendant-or-self::div/following-sibling::text()
+            if (\preg_match('/^(.*?)\s+(?:([>+~])\s+)?(text|comment)$/', $trimmedSelectorGroup, $matches)) {
+                $prefixSelector = $matches[1];
+                $innerCombinator = $matches[2] ?? '';
+                $nodeTest = $matches[3] === 'text' ? 'text()' : 'comment()';
+
+                if ($prefixSelector === '') {
+                    return '//' . $nodeTest;
+                }
+
+                $prefixXPath = $converter->toXPath($prefixSelector);
+
+                switch ($innerCombinator) {
+                    case '>':
+                        return $prefixXPath . '/' . $nodeTest;
+                    case '+':
+                        return $prefixXPath . '/following-sibling::node()[1]/self::' . $nodeTest;
+                    case '~':
+                        return $prefixXPath . '/following-sibling::' . $nodeTest;
+                    default:
+                        return $prefixXPath . '//' . $nodeTest;
+                }
+            }
+
             return $converter->toXPath($trimmedSelectorGroup);
         }
 
@@ -229,6 +257,32 @@ class SelectorConverter
 
         if ($restSelector === 'comment') {
             return self::createNodeTestXPath($combinator, 'comment()');
+        }
+
+        // Handle compound rest-selectors ending with 'text' or 'comment'
+        // e.g. "> div text"  -> leading > + prefix "div" + descendant text()
+        if (\preg_match('/^(.*?)\s+(?:([>+~])\s+)?(text|comment)$/', $restSelector, $matches)) {
+            $innerPrefix = $matches[1];
+            $innerCombinator = $matches[2] ?? '';
+            $nodeTest = $matches[3] === 'text' ? 'text()' : 'comment()';
+
+            if ($innerPrefix === '') {
+                return self::createNodeTestXPath($combinator, $nodeTest);
+            }
+
+            $innerPrefixXPath = $converter->toXPath($innerPrefix);
+            $innerPrefixWithAxis = self::replaceLeadingAxis($innerPrefixXPath, self::createElementAxisPrefix($combinator));
+
+            switch ($innerCombinator) {
+                case '>':
+                    return $innerPrefixWithAxis . '/' . $nodeTest;
+                case '+':
+                    return $innerPrefixWithAxis . '/following-sibling::node()[1]/self::' . $nodeTest;
+                case '~':
+                    return $innerPrefixWithAxis . '/following-sibling::' . $nodeTest;
+                default:
+                    return $innerPrefixWithAxis . '//' . $nodeTest;
+            }
         }
 
         return self::replaceLeadingAxis(
