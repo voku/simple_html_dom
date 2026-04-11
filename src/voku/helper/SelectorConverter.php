@@ -37,7 +37,7 @@ class SelectorConverter
      *
      * @return string
      */
-    public static function toXPath(string $selector, bool $ignoreCssSelectorErrors = false, bool $isForHtml = true)
+    public static function toXPath(string $selector, bool $ignoreCssSelectorErrors = false, bool $isForHtml = true): string
     {
         // Select DOMText
         if ($selector === 'text') {
