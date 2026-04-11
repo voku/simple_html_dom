@@ -144,12 +144,19 @@ final class SelectorConverterTextCommentTest extends TestCase
 
     public function testIssue62Reproduction(): void
     {
+        // Exact reproduction from issue #62: compound selector 'div text' must find
+        // the DOMText node inside <div>, equivalent to find('div',0)->find('text',0).
         $html = '<div> foo </div>';
 
         $dom = HtmlDomParser::str_get_html($html);
-        $node = $dom->find('div text', 0);
-        static::assertNotNull($node);
-        static::assertNotFalse($node);
-        static::assertStringContainsString('foo', $node->plaintext);
+
+        $compoundResult = $dom->find('div text', 0);
+        $chainedResult = $dom->find('div', 0)->find('text', 0);
+
+        static::assertNotNull($compoundResult);
+        static::assertNotFalse($compoundResult);
+
+        // Both approaches must return the same text content
+        static::assertSame($chainedResult->plaintext, $compoundResult->plaintext);
     }
 }

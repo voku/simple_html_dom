@@ -20,9 +20,22 @@ class SelectorConverter
     private const SELECTOR_WHITESPACE_CHARACTERS = " \t\n\r\0\x0B";
     /**
      * Matches a compound selector ending with a 'text' or 'comment' node-test,
-     * optionally preceded by a combinator (>, +, ~). The space (descendant) combinator
+     * optionally preceded by an explicit combinator (>, +, ~). The space (descendant) combinator
      * is implied when no explicit combinator is present.
      * Groups: 1=prefix selector, 2=combinator (may be empty), 3=node keyword (text|comment).
+     *
+     * Examples that DO match:
+     *   "div text"         -> prefix="div",       combinator="",  keyword="text"
+     *   "div > text"       -> prefix="div",       combinator=">", keyword="text"
+     *   "div + comment"    -> prefix="div",       combinator="+", keyword="comment"
+     *   "div > span text"  -> prefix="div > span",combinator="",  keyword="text"
+     *   ".cls text"        -> prefix=".cls",      combinator="",  keyword="text"
+     *   "div[attr] > text" -> prefix="div[attr]", combinator=">", keyword="text"
+     *
+     * Examples that do NOT match (no whitespace before keyword):
+     *   "div.text"   (class named "text")
+     *   "div#text"   (id named "text")
+     *   "[text]"     (attribute named "text")
      */
     private const TRAILING_NODE_TEST_PATTERN = '/^(.*?)\s+(?:([>+~])\s+)?(text|comment)$/';
 
