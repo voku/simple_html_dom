@@ -18,6 +18,13 @@ class SelectorConverter
     ];
     private const DESCENDANT_OR_SELF_AXIS_PREFIX = 'descendant-or-self::';
     private const SELECTOR_WHITESPACE_CHARACTERS = " \t\n\r\0\x0B";
+    /**
+     * Matches a compound selector ending with a 'text' or 'comment' node-test,
+     * optionally preceded by a combinator (>, +, ~). The space (descendant) combinator
+     * is implied when no explicit combinator is present.
+     * Groups: 1=prefix selector, 2=combinator (may be empty), 3=node keyword (text|comment).
+     */
+    private const TRAILING_NODE_TEST_PATTERN = '/^(.*?)\s+(?:([>+~])\s+)?(text|comment)$/';
 
     /**
      * @var string[]
@@ -219,7 +226,7 @@ class SelectorConverter
             //      "div > text" -> descendant-or-self::div/text()
             //      "div + text" -> descendant-or-self::div/following-sibling::node()[1]/self::text()
             //      "div ~ text" -> descendant-or-self::div/following-sibling::text()
-            if (\preg_match('/^(.*?)\s+(?:([>+~])\s+)?(text|comment)$/', $trimmedSelectorGroup, $matches)) {
+            if (\preg_match(self::TRAILING_NODE_TEST_PATTERN, $trimmedSelectorGroup, $matches)) {
                 $prefixSelector = $matches[1];
                 $innerCombinator = $matches[2] ?? '';
                 $nodeTest = $matches[3] === 'text' ? 'text()' : 'comment()';
@@ -228,18 +235,7 @@ class SelectorConverter
                     return '//' . $nodeTest;
                 }
 
-                $prefixXPath = $converter->toXPath($prefixSelector);
-
-                switch ($innerCombinator) {
-                    case '>':
-                        return $prefixXPath . '/' . $nodeTest;
-                    case '+':
-                        return $prefixXPath . '/following-sibling::node()[1]/self::' . $nodeTest;
-                    case '~':
-                        return $prefixXPath . '/following-sibling::' . $nodeTest;
-                    default:
-                        return $prefixXPath . '//' . $nodeTest;
-                }
+                return self::appendNodeTestToXPath($converter->toXPath($prefixSelector), $innerCombinator, $nodeTest);
             }
 
             return $converter->toXPath($trimmedSelectorGroup);
@@ -261,7 +257,7 @@ class SelectorConverter
 
         // Handle compound rest-selectors ending with 'text' or 'comment'
         // e.g. "> div text"  -> leading > + prefix "div" + descendant text()
-        if (\preg_match('/^(.*?)\s+(?:([>+~])\s+)?(text|comment)$/', $restSelector, $matches)) {
+        if (\preg_match(self::TRAILING_NODE_TEST_PATTERN, $restSelector, $matches)) {
             $innerPrefix = $matches[1];
             $innerCombinator = $matches[2] ?? '';
             $nodeTest = $matches[3] === 'text' ? 'text()' : 'comment()';
@@ -270,19 +266,9 @@ class SelectorConverter
                 return self::createNodeTestXPath($combinator, $nodeTest);
             }
 
-            $innerPrefixXPath = $converter->toXPath($innerPrefix);
-            $innerPrefixWithAxis = self::replaceLeadingAxis($innerPrefixXPath, self::createElementAxisPrefix($combinator));
+            $innerPrefixWithAxis = self::replaceLeadingAxis($converter->toXPath($innerPrefix), self::createElementAxisPrefix($combinator));
 
-            switch ($innerCombinator) {
-                case '>':
-                    return $innerPrefixWithAxis . '/' . $nodeTest;
-                case '+':
-                    return $innerPrefixWithAxis . '/following-sibling::node()[1]/self::' . $nodeTest;
-                case '~':
-                    return $innerPrefixWithAxis . '/following-sibling::' . $nodeTest;
-                default:
-                    return $innerPrefixWithAxis . '//' . $nodeTest;
-            }
+            return self::appendNodeTestToXPath($innerPrefixWithAxis, $innerCombinator, $nodeTest);
         }
 
         return self::replaceLeadingAxis(
@@ -316,6 +302,31 @@ class SelectorConverter
                 return './following-sibling::' . $nodeTest;
             default:
                 throw new \RuntimeException('Unexpected combinator in node test XPath: ' . $combinator);
+        }
+    }
+
+    /**
+     * Appends a node-test XPath suffix to an already-converted prefix XPath expression,
+     * using the given inner combinator to determine the axis relationship.
+     *
+     * @param string $prefixXPath    XPath for the prefix (e.g. "descendant-or-self::div")
+     * @param string $innerCombinator One of '>', '+', '~', or '' (empty = descendant/space)
+     * @param string $nodeTest       The node-test, e.g. "text()" or "comment()"
+     *
+     * @return string
+     */
+    private static function appendNodeTestToXPath(string $prefixXPath, string $innerCombinator, string $nodeTest): string
+    {
+        switch ($innerCombinator) {
+            case '>':
+                return $prefixXPath . '/' . $nodeTest;
+            case '+':
+                // Text nodes are not elements, so we use node()[1]/self:: rather than *[1]/self::
+                return $prefixXPath . '/following-sibling::node()[1]/self::' . $nodeTest;
+            case '~':
+                return $prefixXPath . '/following-sibling::' . $nodeTest;
+            default:
+                return $prefixXPath . '//' . $nodeTest;
         }
     }
 
