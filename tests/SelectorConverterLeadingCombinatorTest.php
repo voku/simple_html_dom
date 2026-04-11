@@ -109,4 +109,19 @@ final class SelectorConverterLeadingCombinatorTest extends TestCase
         static::assertCount(1, $matches);
         static::assertSame('direct', trim($matches[0]->text()));
     }
+
+    public function testCompiledCacheIncludesHtmlModeFlag(): void
+    {
+        static::assertSame('descendant-or-self::div', SelectorConverter::toXPath('DIV', false, true));
+        static::assertSame('descendant-or-self::DIV', SelectorConverter::toXPath('DIV', false, false));
+    }
+
+    public function testCompiledCacheIncludesIgnoreErrorsFlag(): void
+    {
+        static::assertSame(':bogus', SelectorConverter::toXPath(':bogus', true));
+
+        $this->expectException(\Exception::class);
+
+        SelectorConverter::toXPath(':bogus', false);
+    }
 }

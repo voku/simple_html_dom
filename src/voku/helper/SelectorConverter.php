@@ -39,10 +39,6 @@ class SelectorConverter
      */
     public static function toXPath(string $selector, bool $ignoreCssSelectorErrors = false, bool $isForHtml = true)
     {
-        if (isset(self::$compiled[$selector])) {
-            return self::$compiled[$selector];
-        }
-
         // Select DOMText
         if ($selector === 'text') {
             return '//text()';
@@ -57,6 +53,11 @@ class SelectorConverter
             return $selector;
         }
 
+        $cacheKey = self::createCompiledCacheKey($selector, $ignoreCssSelectorErrors, $isForHtml);
+        if (isset(self::$compiled[$cacheKey])) {
+            return self::$compiled[$cacheKey];
+        }
+
         if (!\class_exists(CssSelectorConverter::class)) {
             throw new \RuntimeException('Unable to filter with a CSS selector as the Symfony CssSelector 2.8+ is not installed (you can use filterXPath instead).');
         }
@@ -69,17 +70,17 @@ class SelectorConverter
         $converter = $converterArray[$converterKey];
         assert($converter instanceof CssSelectorConverter);
 
-        if ($ignoreCssSelectorErrors) {
-            try {
-                $xPathQuery = self::convertSelectorListToXPath($selector, $converter);
-            } catch (\Exception $e) {
-                $xPathQuery = $selector;
-            }
-        } else {
+        try {
             $xPathQuery = self::convertSelectorListToXPath($selector, $converter);
+        } catch (\Exception $e) {
+            if (!$ignoreCssSelectorErrors) {
+                throw $e;
+            }
+
+            $xPathQuery = $selector;
         }
 
-        self::$compiled[$selector] = $xPathQuery;
+        self::$compiled[$cacheKey] = $xPathQuery;
 
         return $xPathQuery;
     }
@@ -212,7 +213,7 @@ class SelectorConverter
             return $trimmedSelectorGroup;
         }
 
-        if (!isset($trimmedSelectorGroup[0]) || !\in_array($trimmedSelectorGroup[0], self::LEADING_COMBINATORS, true)) {
+        if (!\in_array($trimmedSelectorGroup[0], self::LEADING_COMBINATORS, true)) {
             return $converter->toXPath($trimmedSelectorGroup);
         }
 
@@ -275,5 +276,10 @@ class SelectorConverter
         }
 
         return $replacement . $xPathQuery;
+    }
+
+    private static function createCompiledCacheKey(string $selector, bool $ignoreCssSelectorErrors, bool $isForHtml): string
+    {
+        return $selector . "\0" . (int) $ignoreCssSelectorErrors . "\0" . (int) $isForHtml;
     }
 }
