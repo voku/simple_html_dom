@@ -17,6 +17,7 @@ class SelectorConverter
         self::GENERAL_SIBLING_COMBINATOR,
     ];
     private const DESCENDANT_OR_SELF_AXIS_PREFIX = 'descendant-or-self::';
+    private const SELECTOR_WHITESPACE_CHARACTERS = " \t\n\r\0\x0B";
 
     /**
      * @var string[]
@@ -216,7 +217,7 @@ class SelectorConverter
         }
 
         $combinator = $trimmedSelectorGroup[0];
-        $restSelector = \ltrim(\substr($trimmedSelectorGroup, 1));
+        $restSelector = \ltrim(\substr($trimmedSelectorGroup, 1), self::SELECTOR_WHITESPACE_CHARACTERS);
         if ($restSelector === '') {
             throw new \RuntimeException('Selector group cannot end with a combinator (' . $combinator . ').');
         }

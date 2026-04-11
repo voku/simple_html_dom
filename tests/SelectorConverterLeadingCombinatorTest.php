@@ -61,6 +61,22 @@ final class SelectorConverterLeadingCombinatorTest extends TestCase
         SelectorConverter::toXPath('> ');
     }
 
+    public function testEmptyAdjacentLeadingCombinatorThrows(): void
+    {
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Selector group cannot end with a combinator (+)');
+
+        SelectorConverter::toXPath('+ ');
+    }
+
+    public function testEmptyGeneralSiblingLeadingCombinatorThrows(): void
+    {
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Selector group cannot end with a combinator (~)');
+
+        SelectorConverter::toXPath('~ ');
+    }
+
     public function testChildCombinatorOnlyMatchesDirectChildren(): void
     {
         $html = '<div><span>direct</span><p><span>nested</span></p></div>';
