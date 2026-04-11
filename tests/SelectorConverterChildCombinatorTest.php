@@ -11,9 +11,7 @@ final class SelectorConverterChildCombinatorTest extends TestCase
 {
     protected function setUp(): void
     {
-        // Clear the compiled cache between tests via reflection
-        $ref = new \ReflectionProperty(SelectorConverter::class, 'compiled');
-        $ref->setValue(null, []);
+        SelectorConverter::clearCompiledCache();
     }
 
     // Unit tests: SelectorConverter::toXPath()
@@ -21,25 +19,25 @@ final class SelectorConverterChildCombinatorTest extends TestCase
     public function testChildCombinatorSpan()
     {
         $xpath = SelectorConverter::toXPath('> span');
-        static::assertSame('/*/span', $xpath);
+        static::assertSame('./span', $xpath);
     }
 
     public function testChildCombinatorStar()
     {
         $xpath = SelectorConverter::toXPath('> *');
-        static::assertSame('/*/*', $xpath);
+        static::assertSame('./*', $xpath);
     }
 
     public function testNestedChildCombinator()
     {
         $xpath = SelectorConverter::toXPath('> p > span');
-        static::assertSame('/*/p/span', $xpath);
+        static::assertSame('./p/span', $xpath);
     }
 
     public function testChildCombinatorWithClass()
     {
         $xpath = SelectorConverter::toXPath('> span.highlight');
-        static::assertStringStartsWith('/*/', $xpath);
+        static::assertStringStartsWith('./', $xpath);
         static::assertStringContainsString('span', $xpath);
     }
 
