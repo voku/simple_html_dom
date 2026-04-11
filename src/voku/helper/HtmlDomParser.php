@@ -155,6 +155,11 @@ class HtmlDomParser extends AbstractDomParser
     /**
      * @var bool
      */
+    protected $isDOMDocumentCreatedWithEdgeWhitespace = false;
+
+    /**
+     * @var bool
+     */
     protected $isDOMDocumentCreatedWithFakeEndScript = false;
 
     /**
@@ -171,7 +176,7 @@ class HtmlDomParser extends AbstractDomParser
 
         // DOMDocument settings
         $this->document->preserveWhiteSpace = true;
-        $this->document->formatOutput = true;
+        $this->document->formatOutput = false;
 
         if ($element instanceof SimpleHtmlDomInterface) {
             $element = $element->getNode();
@@ -298,6 +303,8 @@ class HtmlDomParser extends AbstractDomParser
      */
     protected function createDOMDocument(string $html, $libXMLExtraOptions = null, $useDefaultLibXMLOptions = true): \DOMDocument
     {
+        $this->resetDynamicDomHelpers();
+
         if ($this->callbackBeforeCreateDom) {
             $html = \call_user_func($this->callbackBeforeCreateDom, $html, $this);
         }
@@ -346,6 +353,20 @@ class HtmlDomParser extends AbstractDomParser
             $this->isDOMDocumentCreatedWithoutBodyWrapper = true;
         }
 
+        if (
+            $this->isDOMDocumentCreatedWithoutHtmlWrapper
+            &&
+            $this->isDOMDocumentCreatedWithoutBodyWrapper
+            &&
+            \trim($html) !== $html
+            &&
+            \substr_count($html, '</') >= 2
+            &&
+            \preg_match('#^\s*<([a-zA-Z][^\\s>/]*)>.*?</\\1>#su', $html) === 1
+        ) {
+            $this->isDOMDocumentCreatedWithEdgeWhitespace = true;
+        }
+
         /** @noinspection HtmlRequiredTitleElement */
         if (
             \strpos($html, '<head ') === false
@@ -383,34 +404,25 @@ class HtmlDomParser extends AbstractDomParser
         }
 
         if (\strpos($html, '<script') !== false) {
-            $this->html5FallbackForScriptTags($html);
-
+            // keepSpecialScriptTags must run before html5FallbackForScriptTags so
+            // that special-type scripts (type="text/html", etc.) are converted to
+            // the simplevokuspecialscript placeholder element before the script-tag
+            // regex runs.  On PHP < 8.0 the regex uses hash placeholders; if it
+            // ran first the special-script content would be hashed and
+            // keepSpecialScriptTags would only see the hash, losing the ability to
+            // pass the real HTML content to the DOM for error-recovery parsing.
             foreach ($this->specialScriptTags as $tag) {
                 if (\strpos($html, $tag) !== false) {
                     $this->keepSpecialScriptTags($html);
+                    break;
                 }
             }
+
+            $this->html5FallbackForScriptTags($html);
         }
 
         if (\strpos($html, '<svg') !== false) {
             $this->keepSpecialSvgTags($html);
-        }
-
-        if (
-            $this->isDOMDocumentCreatedWithoutHtmlWrapper
-            &&
-            $this->isDOMDocumentCreatedWithoutBodyWrapper
-        ) {
-            if (\substr_count($html, '</') >= 2) {
-                $regexForMultiRootDetection = '#<(.*)>.*?</(\1)>#su';
-                \preg_match($regexForMultiRootDetection, $html, $matches);
-                if (($matches[0] ?? '') !== $html) {
-                    $htmlTmp = \preg_replace($regexForMultiRootDetection, '', $html);
-                    if ($htmlTmp !== null && trim($htmlTmp) === '') {
-                        $this->isDOMDocumentCreatedWithMultiRoot = true;
-                    }
-                }
-            }
         }
 
         $html = \str_replace(
@@ -452,7 +464,17 @@ class HtmlDomParser extends AbstractDomParser
         }
 
         if (
+            $this->isDOMDocumentCreatedWithoutHtmlWrapper
+            &&
+            $this->isDOMDocumentCreatedWithoutBodyWrapper
+        ) {
+            $this->isDOMDocumentCreatedWithMultiRoot = $this->hasMultipleTopLevelNodes($html, $optionsXml);
+        }
+
+        if (
             $this->isDOMDocumentCreatedWithMultiRoot
+            ||
+            $this->isDOMDocumentCreatedWithEdgeWhitespace
             ||
             $this->isDOMDocumentCreatedWithoutWrapper
             ||
@@ -846,7 +868,11 @@ class HtmlDomParser extends AbstractDomParser
             \call_user_func(static::$callback, [$this]);
         }
 
-        if ($this->getIsDOMDocumentCreatedWithoutHtmlWrapper()) {
+        if ($this->shouldUseWholeDocumentSerializationForHtmlOnPhpLt8()) {
+            $content = $this->document->saveHTML();
+        } elseif ($this->usesInternalWrapperDocument()) {
+            $content = $this->serializeInternalWrapperContent();
+        } elseif ($this->getIsDOMDocumentCreatedWithoutHtmlWrapper()) {
             $content = $this->document->saveHTML($this->document->documentElement);
         } else {
             $content = $this->document->saveHTML();
@@ -856,7 +882,250 @@ class HtmlDomParser extends AbstractDomParser
             return '';
         }
 
-        return $this->fixHtmlOutput($content, $multiDecodeNewHtmlEntity, $putBrokenReplacedBack);
+        $output = $this->fixHtmlOutput($content, $multiDecodeNewHtmlEntity, $putBrokenReplacedBack);
+
+        return $output;
+    }
+
+    /**
+     * Serialize a single DOM node to HTML.
+     *
+     * A detached DOMDocument is used so that the serialization context is
+     * independent of the internal wrapper tag name (older libxml HTML
+     * serializers treat unknown hyphenated tags as block-level and inject
+     * formatting newlines into the wrapper's children when saving the full
+     * document).
+     *
+     * On PHP < 8.0, older libxml injects a trailing "\n" after raw-text
+     * elements (script, style) when they are the root of a fresh document.
+     * For those elements we fall back to serializing from the original
+     * document and strip only the single trailing "\n".  For all other
+     * element types the fresh-document approach is used to avoid libxml
+     * injecting formatting newlines inside block-level content.  Text and
+     * other non-element nodes are always serialized from the owner document
+     * without any trailing-newline stripping (they carry no injected newline).
+     *
+     * @param \DOMNode $node
+     */
+    private function serializeNode(\DOMNode $node): string
+    {
+        // For script/style on PHP < 8.0 use ownerDocument to avoid fresh-doc
+        // libxml injecting "\n" inside raw-text content.
+        $useOwnerDoc = \PHP_VERSION_ID < 80000
+            && $node instanceof \DOMElement
+            && \in_array(\strtolower($node->tagName), ['script', 'style'], true);
+
+        if (!$useOwnerDoc) {
+            $document = new \DOMDocument('1.0', $this->getEncoding());
+            $document->preserveWhiteSpace = true;
+            $document->formatOutput = false;
+
+            $importedNode = $document->importNode($node, true);
+            if (!$importedNode instanceof \DOMNode) {
+                return '';
+            }
+
+            $document->appendChild($importedNode);
+
+            $content = $document->saveHTML($importedNode);
+        } else {
+            // PHP < 8.0 script/style: serialize from original document and
+            // strip only the trailing "\n" that older libxml appends after
+            // raw-text elements.
+            $ownerDoc = $node->ownerDocument;
+            $content = $ownerDoc !== null ? $ownerDoc->saveHTML($node) : false;
+            // Older libxml appends exactly one synthetic trailing "\n" here;
+            // preserve any real user-provided trailing newlines in the content.
+            if ($content !== false && \substr($content, -1) === "\n") {
+                $content = \substr($content, 0, -1);
+            }
+        }
+
+        if ($content === false) {
+            return '';
+        }
+
+        return $content;
+    }
+
+    /**
+     * @param \DOMNode $parentNode
+     *
+     * @return string
+     */
+    private function serializeChildNodes(\DOMNode $parentNode): string
+    {
+        $content = '';
+
+        foreach ($parentNode->childNodes as $childNode) {
+            $content .= $this->serializeNode($childNode);
+        }
+
+        return $content;
+    }
+
+    /**
+     * @return bool
+     */
+    private function usesInternalWrapperDocument(): bool
+    {
+        return $this->document->documentElement instanceof \DOMElement
+            && $this->document->documentElement->tagName === self::$domHtmlWrapperHelper;
+    }
+
+    /**
+     * Older libxml preserves body-only fragments more faithfully when the whole
+     * temporary document is serialized and fixHtmlOutput() removes the wrappers
+     * afterwards. Head-only fragments still need root-element serialization, or
+     * <meta charset=...> can trigger output re-encoding (e.g. utf-7).
+     */
+    private function isBodyOnlyHtmlFragmentDocument(): bool
+    {
+        $documentElement = $this->document->documentElement;
+        if (!$documentElement instanceof \DOMElement || \strtolower($documentElement->tagName) !== 'html') {
+            return false;
+        }
+
+        $head = $documentElement->getElementsByTagName('head')->item(0);
+        $body = $documentElement->getElementsByTagName('body')->item(0);
+
+        $hasHeadContent = $head instanceof \DOMElement && $head->childNodes->length > 0;
+        $hasBodyContent = $body instanceof \DOMElement && $body->childNodes->length > 0;
+
+        return !$hasHeadContent && $hasBodyContent;
+    }
+
+    private function shouldUseWholeDocumentSerializationForHtmlOnPhpLt8(): bool
+    {
+        if (\PHP_VERSION_ID >= 80000) {
+            return false;
+        }
+
+        if ($this->usesInternalWrapperDocument()) {
+            return true;
+        }
+
+        if (!$this->getIsDOMDocumentCreatedWithoutHtmlWrapper()) {
+            return false;
+        }
+
+        $documentElement = $this->document->documentElement;
+        if (!$documentElement instanceof \DOMElement) {
+            return false;
+        }
+
+        return \strtolower($documentElement->tagName) !== 'html'
+            || $this->isBodyOnlyHtmlFragmentDocument();
+    }
+
+    private function shouldUseWholeDocumentSerializationForInnerHtmlOnPhpLt8(): bool
+    {
+        return \PHP_VERSION_ID < 80000
+            && (
+                $this->usesInternalWrapperDocument()
+                || $this->isBodyOnlyHtmlFragmentDocument()
+            );
+    }
+
+    /**
+     * Keep helper wrapper markers around detached child serialization so
+     * fixHtmlOutput() does not trim leading/trailing fragment whitespace.
+     *
+     * @return string
+     */
+    private function serializeInternalWrapperContent(): string
+    {
+        $wrapperTag = self::$domHtmlWrapperHelper;
+
+        return '<' . $wrapperTag . '>'
+            . $this->serializeChildNodes($this->document->documentElement)
+            . '</' . $wrapperTag . '>';
+    }
+
+    /**
+     * Parse the fragment inside the internal wrapper and count significant
+     * direct children. This is more reliable than regex for fragments whose
+     * top-level elements have attributes or nested markup.
+     *
+     * @param string $html
+     * @param int    $optionsXml
+     *
+     * @return bool
+     */
+    private function hasMultipleTopLevelNodes(string $html, int $optionsXml): bool
+    {
+        $internalErrors = \libxml_use_internal_errors(true);
+        try {
+            \libxml_clear_errors();
+
+            $xmlProbe = '<' . self::$domHtmlWrapperHelper . '>'
+                . self::replaceToPreserveHtmlEntities($html)
+                . '</' . self::$domHtmlWrapperHelper . '>';
+
+            $simpleXml = \simplexml_load_string($xmlProbe, \SimpleXMLElement::class, $optionsXml);
+            if ($simpleXml === false || \count(\libxml_get_errors()) > 0) {
+                return false;
+            }
+
+            $wrapper = \dom_import_simplexml($simpleXml);
+            if (!$wrapper instanceof \DOMElement) {
+                return false;
+            }
+
+            return $this->countSignificantChildNodes($wrapper) > 1;
+        } finally {
+            \libxml_clear_errors();
+            \libxml_use_internal_errors($internalErrors);
+        }
+    }
+
+    /**
+     * @param \DOMNode $node
+     *
+     * @return int
+     */
+    private function countSignificantChildNodes(\DOMNode $node): int
+    {
+        $count = 0;
+
+        foreach ($node->childNodes as $childNode) {
+            if (
+                $childNode->nodeType === \XML_TEXT_NODE
+                &&
+                \trim($childNode->textContent) === ''
+            ) {
+                continue;
+            }
+
+            ++$count;
+            if ($count > 1) {
+                return $count;
+            }
+        }
+
+        return $count;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function innerHtml(bool $multiDecodeNewHtmlEntity = false, bool $putBrokenReplacedBack = true): string
+    {
+        $text = '';
+
+        if ($this->document->documentElement) {
+            if ($this->shouldUseWholeDocumentSerializationForInnerHtmlOnPhpLt8()) {
+                $text = $this->document->saveHTML();
+            } elseif ($this->usesInternalWrapperDocument()) {
+                $text = $this->serializeInternalWrapperContent();
+            } else {
+                $text = $this->serializeChildNodes($this->document->documentElement);
+            }
+        }
+
+        $output = $this->fixHtmlOutput($text, $multiDecodeNewHtmlEntity, $putBrokenReplacedBack);
+
+        return $output;
     }
 
     /**
@@ -1052,15 +1321,15 @@ class HtmlDomParser extends AbstractDomParser
 
             $html = (string) \preg_replace_callback(
                 '/(?<start>[^<]*)?(?<broken>(?:<\/\w+(?:\s+\w+=\"[^"]+\")*+[^<]+>)+)(?<end>.*)/u',
-                static function ($matches) {
+                function ($matches) {
                     $matches['broken'] = \str_replace(
                         ['°lt/_simple_html_dom__voku_°', '°lt_simple_html_dom__voku_°', '°gt_simple_html_dom__voku_°'],
                         ['</', '<', '>'],
                         $matches['broken']
                     );
 
-                    self::$domBrokenReplaceHelper['orig'][] = $matches['broken'];
-                    self::$domBrokenReplaceHelper['tmp'][] = $matchesHash = self::$domHtmlBrokenHtmlHelper . \crc32($matches['broken']);
+                    $matchesHash = self::$domHtmlBrokenHtmlHelper . \crc32($matches['broken']);
+                    $this->registerDynamicDomBrokenReplaceHelper($matches['broken'], $matchesHash);
 
                     return $matches['start'] . $matchesHash . $matches['end'];
                 },
@@ -1089,14 +1358,14 @@ class HtmlDomParser extends AbstractDomParser
         $regExSpecialSvg = '/\((["\'])?(?<start>data:image\/svg.*)<svg(?<attr>[^>]*?)>(?<content>.*)<\/svg>\1\)/isU';
         $htmlTmp = \preg_replace_callback(
             $regExSpecialSvg,
-            static function ($svgs) {
+            function ($svgs) {
                 if (empty($svgs['content'])) {
                     return $svgs[0];
                 }
 
                 $content = '<svg' . $svgs['attr'] . '>' . $svgs['content'] . '</svg>';
-                self::$domBrokenReplaceHelper['orig'][] = $content;
-                self::$domBrokenReplaceHelper['tmp'][] = $matchesHash = self::$domHtmlBrokenHtmlHelper . \crc32($content);
+                $matchesHash = self::$domHtmlBrokenHtmlHelper . \crc32($content);
+                $this->registerDynamicDomBrokenReplaceHelper($content, $matchesHash);
 
                 return '(' . $svgs[1] . $svgs['start'] . $matchesHash . $svgs[1] . ')';
             },
@@ -1132,8 +1401,8 @@ class HtmlDomParser extends AbstractDomParser
                         // remove the html5 fallback
                         $matches['innerContent'] = \str_replace('<\/', '</', $matches['innerContent']);
 
-                        self::$domBrokenReplaceHelper['orig'][] = $matches['innerContent'];
-                        self::$domBrokenReplaceHelper['tmp'][] = $matchesHash = self::$domHtmlBrokenHtmlHelper . \crc32($matches['innerContent']);
+                        $matchesHash = self::$domHtmlBrokenHtmlHelper . \crc32($matches['innerContent']);
+                        $this->registerDynamicDomBrokenReplaceHelper($matches['innerContent'], $matchesHash);
 
                         return $matches['start'] . $matchesHash . $matches['end'];
                     }

@@ -78,5 +78,5 @@ interface SimpleHtmlAttributesInterface
      * @return bool false if the token is not in the list after the call, or true if the token is in the list after the
      *              call
      */
-    public function toggle(string $token, bool $force = null): bool;
+    public function toggle(string $token, ?bool $force = null): bool;
 }

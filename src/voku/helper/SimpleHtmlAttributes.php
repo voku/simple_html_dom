@@ -184,7 +184,7 @@ class SimpleHtmlAttributes implements SimpleHtmlAttributesInterface
     /**
      * {@inheritdoc}
      */
-    public function toggle(string $token, bool $force = null): bool
+    public function toggle(string $token, ?bool $force = null): bool
     {
         // init
         $this->tokenize();
