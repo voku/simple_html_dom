@@ -21,25 +21,25 @@ final class SelectorConverterChildCombinatorTest extends TestCase
     public function testChildCombinatorSpan()
     {
         $xpath = SelectorConverter::toXPath('> span');
-        static::assertSame('/*/span', $xpath);
+        static::assertSame('./span', $xpath);
     }
 
     public function testChildCombinatorStar()
     {
         $xpath = SelectorConverter::toXPath('> *');
-        static::assertSame('/*/*', $xpath);
+        static::assertSame('./*', $xpath);
     }
 
     public function testNestedChildCombinator()
     {
         $xpath = SelectorConverter::toXPath('> p > span');
-        static::assertSame('/*/p/span', $xpath);
+        static::assertSame('./p/span', $xpath);
     }
 
     public function testChildCombinatorWithClass()
     {
         $xpath = SelectorConverter::toXPath('> span.highlight');
-        static::assertStringStartsWith('/*/', $xpath);
+        static::assertStringStartsWith('./', $xpath);
         static::assertStringContainsString('span', $xpath);
     }
 
