@@ -16,13 +16,13 @@ final class SelectorConverterLeadingCombinatorTest extends TestCase
 
     public function testChildCombinatorSpanXPath(): void
     {
-        static::assertSame('/*/span', SelectorConverter::toXPath('> span'));
+        static::assertSame('./span', SelectorConverter::toXPath('> span'));
     }
 
     public function testChildCombinatorPreservesNestedDescendantAxis(): void
     {
         static::assertSame(
-            '/*/div/descendant-or-self::*/span',
+            './div/descendant-or-self::*/span',
             SelectorConverter::toXPath('> div span')
         );
     }
@@ -30,27 +30,27 @@ final class SelectorConverterLeadingCombinatorTest extends TestCase
     public function testAdjacentSiblingCombinatorXPath(): void
     {
         static::assertSame(
-            '/*/following-sibling::*[1]/self::span',
+            './following-sibling::*[1]/self::span',
             SelectorConverter::toXPath('+ span')
         );
     }
 
     public function testGeneralSiblingCombinatorXPath(): void
     {
-        static::assertSame('/*/following-sibling::span', SelectorConverter::toXPath('~ span'));
+        static::assertSame('./following-sibling::span', SelectorConverter::toXPath('~ span'));
     }
 
     public function testLeadingCombinatorGroupedSelectorOnlyRewritesMatchingGroup(): void
     {
         static::assertSame(
-            '/*/span | descendant-or-self::div',
+            './span | descendant-or-self::div',
             SelectorConverter::toXPath('> span, div')
         );
     }
 
     public function testChildCombinatorTextXPath(): void
     {
-        static::assertSame('/*/text()', SelectorConverter::toXPath('> text'));
+        static::assertSame('./text()', SelectorConverter::toXPath('> text'));
     }
 
     public function testEmptyLeadingCombinatorThrows(): void

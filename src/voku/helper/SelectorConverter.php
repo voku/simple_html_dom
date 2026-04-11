@@ -239,11 +239,11 @@ class SelectorConverter
     {
         switch ($combinator) {
             case self::CHILD_COMBINATOR:
-                return '/*/';
+                return './';
             case self::ADJACENT_SIBLING_COMBINATOR:
-                return '/*/following-sibling::*[1]/self::';
+                return './following-sibling::*[1]/self::';
             case self::GENERAL_SIBLING_COMBINATOR:
-                return '/*/following-sibling::';
+                return './following-sibling::';
             default:
                 throw new \RuntimeException('Unexpected combinator in element axis prefix: ' . $combinator);
         }
@@ -253,11 +253,11 @@ class SelectorConverter
     {
         switch ($combinator) {
             case self::CHILD_COMBINATOR:
-                return '/*/' . $nodeTest;
+                return './' . $nodeTest;
             case self::ADJACENT_SIBLING_COMBINATOR:
-                return '/*/following-sibling::node()[1]/self::' . $nodeTest;
+                return './following-sibling::node()[1]/self::' . $nodeTest;
             case self::GENERAL_SIBLING_COMBINATOR:
-                return '/*/following-sibling::' . $nodeTest;
+                return './following-sibling::' . $nodeTest;
             default:
                 throw new \RuntimeException('Unexpected combinator in node test XPath: ' . $combinator);
         }
