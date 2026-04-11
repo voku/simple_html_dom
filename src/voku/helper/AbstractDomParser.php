@@ -201,7 +201,20 @@ abstract class AbstractDomParser implements DomParserInterface
     {
         if ($multiDecodeNewHtmlEntity) {
             if (\class_exists('\voku\helper\UTF8')) {
-                $content = UTF8::rawurldecode($content, true);
+                try {
+                    $content = UTF8::rawurldecode($content, true);
+                } catch (\Throwable $e) {
+                    do {
+                        $content_compare = $content;
+
+                        $content = \rawurldecode(
+                            \html_entity_decode(
+                                $content,
+                                \ENT_QUOTES | \ENT_HTML5
+                            )
+                        );
+                    } while ($content_compare !== $content);
+                }
             } else {
                 do {
                     $content_compare = $content;
@@ -217,7 +230,16 @@ abstract class AbstractDomParser implements DomParserInterface
         } else {
             /** @noinspection NestedPositiveIfStatementsInspection */
             if (\class_exists('\voku\helper\UTF8')) {
-                $content = UTF8::rawurldecode($content, false);
+                try {
+                    $content = UTF8::rawurldecode($content, false);
+                } catch (\Throwable $e) {
+                    $content = \rawurldecode(
+                        \html_entity_decode(
+                            $content,
+                            \ENT_QUOTES | \ENT_HTML5
+                        )
+                    );
+                }
             } else {
                 $content = \rawurldecode(
                     \html_entity_decode(
