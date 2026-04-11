@@ -216,7 +216,7 @@ class SelectorConverter
         }
 
         $combinator = $trimmedSelectorGroup[0];
-        $restSelector = \ltrim(\substr($trimmedSelectorGroup, 1), " \t\n\r\0\x0B");
+        $restSelector = \ltrim(\substr($trimmedSelectorGroup, 1));
         if ($restSelector === '') {
             throw new \RuntimeException('Selector group cannot end with a combinator (' . $combinator . ').');
         }
