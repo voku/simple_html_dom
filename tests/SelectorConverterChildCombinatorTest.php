@@ -11,9 +11,7 @@ final class SelectorConverterChildCombinatorTest extends TestCase
 {
     protected function setUp(): void
     {
-        // Clear the compiled cache between tests via reflection
-        $ref = new \ReflectionProperty(SelectorConverter::class, 'compiled');
-        $ref->setValue(null, []);
+        SelectorConverter::clearCompiledCache();
     }
 
     // Unit tests: SelectorConverter::toXPath()
