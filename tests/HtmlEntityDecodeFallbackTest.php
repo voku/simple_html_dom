@@ -51,7 +51,7 @@ final class HtmlEntityDecodeFallbackTest extends TestCase
     private function requireThrowingUtf8Stub(): void
     {
         if (\class_exists('\voku\helper\UTF8', false)) {
-            $this->markTestSkipped('The UTF8 helper was already loaded before the throwing stub could be installed.');
+            $this->markTestSkipped('The UTF8 helper was already loaded before this test could install the throwing stub.');
         }
 
         require_once __DIR__ . '/fixtures/ThrowingUtf8Stub.php';
