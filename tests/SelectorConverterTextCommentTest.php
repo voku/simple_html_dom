@@ -50,12 +50,28 @@ final class SelectorConverterTextCommentTest extends TestCase
         static::assertStringNotContainsString('//text()', $xpath);
     }
 
+    public function testChildTextSelectorWithoutWhitespaceAroundCombinator(): void
+    {
+        static::assertSame('descendant-or-self::div/text()', SelectorConverter::toXPath('div>text'));
+        static::assertSame('descendant-or-self::div/text()', SelectorConverter::toXPath('div >text'));
+        static::assertSame('descendant-or-self::div/text()', SelectorConverter::toXPath('div> text'));
+    }
+
     public function testChildCommentSelector(): void
     {
         $xpath = SelectorConverter::toXPath('div > comment');
         static::assertStringContainsString('div', $xpath);
         static::assertStringContainsString('/comment()', $xpath);
         static::assertStringNotContainsString('//comment()', $xpath);
+    }
+
+    public function testAdjacentSiblingCommentSelectorWithoutWhitespaceAroundCombinator(): void
+    {
+        $expected = 'descendant-or-self::div/following-sibling::node()[1]/self::comment()';
+
+        static::assertSame($expected, SelectorConverter::toXPath('div+comment'));
+        static::assertSame($expected, SelectorConverter::toXPath('div +comment'));
+        static::assertSame($expected, SelectorConverter::toXPath('div+ comment'));
     }
 
     public function testGeneralSiblingTextSelector(): void
@@ -120,6 +136,26 @@ final class SelectorConverterTextCommentTest extends TestCase
         static::assertGreaterThan(0, \count($nodes));
         // Only the direct text child, not "child" inside <span>
         static::assertSame('direct', \trim($nodes[0]->plaintext));
+    }
+
+    public function testFindDivChildTextNodeWithoutWhitespaceAroundCombinator(): void
+    {
+        $html = '<div>direct<span>child</span></div>';
+        $dom = HtmlDomParser::str_get_html($html);
+
+        static::assertSame('direct', \trim($dom->find('div>text', 0)->plaintext));
+        static::assertSame('direct', \trim($dom->find('div >text', 0)->plaintext));
+        static::assertSame('direct', \trim($dom->find('div> text', 0)->plaintext));
+    }
+
+    public function testFindAdjacentSiblingCommentWithoutWhitespaceAroundCombinator(): void
+    {
+        $html = '<div>first</div><!--after--><p>last</p>';
+        $dom = HtmlDomParser::str_get_html($html);
+
+        static::assertSame('after', $dom->find('div+comment', 0)->text());
+        static::assertSame('after', $dom->find('div +comment', 0)->text());
+        static::assertSame('after', $dom->find('div+ comment', 0)->text());
     }
 
     public function testFindNestedDescendantText(): void
