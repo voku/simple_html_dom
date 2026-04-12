@@ -254,6 +254,14 @@ final class XmlDomParserTest extends \PHPUnit\Framework\TestCase
         static::assertInstanceOf(\voku\helper\SimpleXmlDomBlank::class, $dom->findOne('Bar')->findOne('Bar')->findOne('Bar')->findOne('Bar'));
     }
 
+    public function testTextNodeSelectorPreservesWhitespace()
+    {
+        $dom = (new voku\helper\XmlDomParser())->loadXml('<root><Foo> foo </Foo></root>');
+
+        static::assertSame(' foo ', $dom->findOne('Foo')->findOne('text')->text());
+        static::assertSame(' foo ', $dom->findOne('Foo text')->text());
+    }
+
     public function testXmlReplace()
     {
         $filename = __DIR__ . '/fixtures/test_xml.xml';

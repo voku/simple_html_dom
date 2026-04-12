@@ -142,6 +142,53 @@ final class SelectorConverterTextCommentTest extends TestCase
         static::assertCount(2, $nodes);
     }
 
+    public function testFindMultipleGroupsWithComments(): void
+    {
+        $html = '<div><!--a--></div><span><!--b--></span>';
+        $dom = HtmlDomParser::str_get_html($html);
+
+        $nodes = $dom->find('div comment, span comment');
+
+        static::assertCount(2, $nodes);
+        static::assertSame('a', $nodes[0]->text());
+        static::assertSame('b', $nodes[1]->text());
+    }
+
+    public function testFindTextSelectorWithAttributeContainingComma(): void
+    {
+        $html = '<div data-label="a,b">first</div><div data-label="c">second</div>';
+        $dom = HtmlDomParser::str_get_html($html);
+
+        $nodes = $dom->find('div[data-label="a,b"] text, div[data-label="c"] text');
+
+        static::assertCount(2, $nodes);
+        static::assertSame('first', $nodes[0]->text());
+        static::assertSame('second', $nodes[1]->text());
+    }
+
+    public function testTextNodePlaintextPreservesWhitespaceForCompoundSelector(): void
+    {
+        $html = '<div> foo <span>bar</span> baz </div>';
+        $dom = HtmlDomParser::str_get_html($html);
+
+        $firstTextNode = $dom->find('div > text', 0);
+        $lastTextNode = $dom->find('div > text', 1);
+
+        static::assertSame(' foo ', $firstTextNode->plaintext);
+        static::assertSame(' baz ', $lastTextNode->plaintext);
+    }
+
+    public function testTextNodeTextPreservesWhitespaceForBareSelector(): void
+    {
+        $html = '<div> foo </div>';
+        $dom = HtmlDomParser::str_get_html($html);
+
+        $textNode = $dom->find('text', 0);
+
+        static::assertSame(' foo ', $textNode->text());
+        static::assertSame($textNode->nodeValue, $textNode->text());
+    }
+
     public function testIssue62Reproduction(): void
     {
         // Exact reproduction from issue #62: compound selector 'div text' must find
