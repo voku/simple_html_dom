@@ -373,6 +373,10 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
      */
     public function text(): string
     {
+        if ($this->node instanceof \DOMCharacterData) {
+            return HtmlDomParser::putReplacedBackToPreserveHtmlEntities($this->node->nodeValue);
+        }
+
         return $this->getHtmlDomParser()->fixHtmlOutput($this->node->textContent);
     }
 

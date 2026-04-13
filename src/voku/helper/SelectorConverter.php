@@ -18,7 +18,6 @@ class SelectorConverter
     ];
     private const DESCENDANT_OR_SELF_AXIS_PREFIX = 'descendant-or-self::';
     private const SELECTOR_WHITESPACE_CHARACTERS = " \t\n\r\0\x0B";
-
     /**
      * @var string[]
      *
@@ -214,6 +213,20 @@ class SelectorConverter
         }
 
         if (!\in_array($trimmedSelectorGroup[0], self::LEADING_COMBINATORS, true)) {
+            // Handle compound selectors ending with 'text' or 'comment'
+            // e.g. "div text"   -> descendant-or-self::div//text()
+            //      "div > text" -> descendant-or-self::div/text()
+            //      "div + text" -> descendant-or-self::div/following-sibling::node()[1]/self::text()
+            //      "div ~ text" -> descendant-or-self::div/following-sibling::text()
+            $parsedTrailingNodeTest = self::parseTrailingNodeTestSelector($trimmedSelectorGroup);
+            if ($parsedTrailingNodeTest !== null) {
+                $prefixSelector = $parsedTrailingNodeTest['prefixSelector'];
+                $innerCombinator = $parsedTrailingNodeTest['combinator'];
+                $nodeTest = $parsedTrailingNodeTest['nodeTest'];
+
+                return self::appendNodeTestToXPath($converter->toXPath($prefixSelector), $innerCombinator, $nodeTest);
+            }
+
             return $converter->toXPath($trimmedSelectorGroup);
         }
 
@@ -229,6 +242,18 @@ class SelectorConverter
 
         if ($restSelector === 'comment') {
             return self::createNodeTestXPath($combinator, 'comment()');
+        }
+
+        // Handle compound rest-selectors ending with 'text' or 'comment'
+        // e.g. "> div text"  -> leading > + prefix "div" + descendant text()
+        $parsedTrailingNodeTest = self::parseTrailingNodeTestSelector($restSelector);
+        if ($parsedTrailingNodeTest !== null) {
+            $innerPrefix = $parsedTrailingNodeTest['prefixSelector'];
+            $innerCombinator = $parsedTrailingNodeTest['combinator'];
+            $nodeTest = $parsedTrailingNodeTest['nodeTest'];
+            $innerPrefixWithAxis = self::replaceLeadingAxis($converter->toXPath($innerPrefix), self::createElementAxisPrefix($combinator));
+
+            return self::appendNodeTestToXPath($innerPrefixWithAxis, $innerCombinator, $nodeTest);
         }
 
         return self::replaceLeadingAxis(
@@ -265,6 +290,31 @@ class SelectorConverter
         }
     }
 
+    /**
+     * Appends a node-test XPath suffix to an already-converted prefix XPath expression,
+     * using the given inner combinator to determine the axis relationship.
+     *
+     * @param string $prefixXPath    XPath for the prefix (e.g. "descendant-or-self::div")
+     * @param string $innerCombinator One of '>', '+', '~', or '' (empty = descendant/space)
+     * @param string $nodeTest       The node-test, e.g. "text()" or "comment()"
+     *
+     * @return string
+     */
+    private static function appendNodeTestToXPath(string $prefixXPath, string $innerCombinator, string $nodeTest): string
+    {
+        switch ($innerCombinator) {
+            case '>':
+                return $prefixXPath . '/' . $nodeTest;
+            case '+':
+                // Text nodes are not elements, so we use node()[1]/self:: rather than *[1]/self::
+                return $prefixXPath . '/following-sibling::node()[1]/self::' . $nodeTest;
+            case '~':
+                return $prefixXPath . '/following-sibling::' . $nodeTest;
+            default:
+                return $prefixXPath . '//' . $nodeTest;
+        }
+    }
+
     private static function replaceLeadingAxis(string $xPathQuery, string $replacement): string
     {
         if (\strpos($xPathQuery, self::DESCENDANT_OR_SELF_AXIS_PREFIX) === 0) {
@@ -276,6 +326,59 @@ class SelectorConverter
         }
 
         return $replacement . $xPathQuery;
+    }
+
+    /**
+     * @return array{prefixSelector: string, combinator: string, nodeTest: string}|null
+     */
+    private static function parseTrailingNodeTestSelector(string $selector): ?array
+    {
+        foreach (['text' => 'text()', 'comment' => 'comment()'] as $keyword => $nodeTest) {
+            $keywordLength = \strlen($keyword);
+            if (\substr($selector, -$keywordLength) !== $keyword) {
+                continue;
+            }
+
+            $beforeKeyword = \substr($selector, 0, -$keywordLength);
+            if ($beforeKeyword === '') {
+                return null;
+            }
+
+            $beforeKeywordWithoutTrailingWhitespace = \rtrim($beforeKeyword, self::SELECTOR_WHITESPACE_CHARACTERS);
+            if ($beforeKeywordWithoutTrailingWhitespace === '') {
+                return null;
+            }
+
+            $lastCharBeforeKeyword = \substr($beforeKeywordWithoutTrailingWhitespace, -1);
+            if (\in_array($lastCharBeforeKeyword, self::LEADING_COMBINATORS, true)) {
+                $prefixSelector = \rtrim(
+                    \substr($beforeKeywordWithoutTrailingWhitespace, 0, -1),
+                    self::SELECTOR_WHITESPACE_CHARACTERS
+                );
+
+                if ($prefixSelector === '') {
+                    return null;
+                }
+
+                return [
+                    'prefixSelector' => $prefixSelector,
+                    'combinator' => $lastCharBeforeKeyword,
+                    'nodeTest' => $nodeTest,
+                ];
+            }
+
+            if ($beforeKeywordWithoutTrailingWhitespace === $beforeKeyword) {
+                return null;
+            }
+
+            return [
+                'prefixSelector' => $beforeKeywordWithoutTrailingWhitespace,
+                'combinator' => '',
+                'nodeTest' => $nodeTest,
+            ];
+        }
+
+        return null;
     }
 
     private static function createCompiledCacheKey(string $selector, bool $ignoreCssSelectorErrors, bool $isForHtml): string

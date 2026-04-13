@@ -254,6 +254,30 @@ final class XmlDomParserTest extends \PHPUnit\Framework\TestCase
         static::assertInstanceOf(\voku\helper\SimpleXmlDomBlank::class, $dom->findOne('Bar')->findOne('Bar')->findOne('Bar')->findOne('Bar'));
     }
 
+    public function testTextNodeSelectorPreservesWhitespace()
+    {
+        $dom = (new voku\helper\XmlDomParser())->loadXml('<root><Foo> foo </Foo></root>');
+
+        static::assertSame(' foo ', $dom->findOne('Foo')->findOne('text')->text());
+        static::assertSame(' foo ', $dom->findOne('Foo text')->text());
+    }
+
+    public function testCommentNodeSelectorPreservesWhitespaceAndEntities(): void
+    {
+        $dom = (new voku\helper\XmlDomParser())->loadXml('<root><!--  &amp; <b>Hello, World!</b>  --></root>');
+        $comment = $dom->findOne('comment');
+
+        static::assertSame('  &amp; <b>Hello, World!</b>  ', $comment->text());
+    }
+
+    public function testCdataNodeSelectorPreservesWhitespaceAndEntities(): void
+    {
+        $dom = (new voku\helper\XmlDomParser())->loadXml('<root><![CDATA[  &amp; <b>Hello, World!</b>  ]]></root>');
+        $textNode = $dom->findOne('text');
+
+        static::assertSame('  &amp; <b>Hello, World!</b>  ', $textNode->text());
+    }
+
     public function testXmlReplace()
     {
         $filename = __DIR__ . '/fixtures/test_xml.xml';
