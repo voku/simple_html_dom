@@ -1145,9 +1145,10 @@ class HtmlDomParser extends AbstractDomParser
 
         $xPath = new \DOMXPath($this->document);
         $textNodes = $xPath->query(
-            '//text()[not(ancestor::script or ancestor::style or ancestor::'
-            . self::$domHtmlSpecialScriptHelper
-            . ')]'
+            \sprintf(
+                '//text()[not(ancestor::script or ancestor::style or ancestor::%s)]',
+                self::$domHtmlSpecialScriptHelper
+            )
         );
 
         if ($textNodes !== false) {
