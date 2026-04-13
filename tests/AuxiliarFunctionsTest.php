@@ -24,4 +24,27 @@ final class AuxiliarFunctionsTest extends TestCase
         $parser->findOne('span')->delete();
         static::assertSame('<body></body>', $parser->outerHtml());
     }
+
+    public function testRemoveMethod()
+    {
+        $html = HtmlDomParser::str_get_html(
+            <<<EOD
+<html>
+<body>
+<table>
+    <tr><th>Title</th></tr>
+    <tr><td>Row 1</td></tr>
+</table>
+</body>
+</html>
+EOD
+        );
+
+        $table = $html->find('table', 0);
+        $table->remove();
+
+        static::assertStringContainsString('<html>', (string) $html);
+        static::assertStringContainsString('<body>', (string) $html);
+        static::assertStringNotContainsString('<table>', (string) $html);
+    }
 }

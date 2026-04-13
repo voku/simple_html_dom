@@ -388,4 +388,11 @@ interface SimpleHtmlDomInterface extends \IteratorAggregate
      * @return mixed
      */
     public function delete();
+
+    /**
+     * Remove this node from the DOM (alias for delete).
+     *
+     * @return mixed
+     */
+    public function remove();
 }
