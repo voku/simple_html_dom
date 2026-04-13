@@ -45,6 +45,18 @@ class SimpleHtmlDomNodeBlank extends AbstractSimpleHtmlDomNode implements Simple
     }
 
     /**
+     * Find nodes with a CSS selector or null, if no element is found.
+     *
+     * @param string $selector
+     *
+     * @return null
+     */
+    public function findMultiOrNull(string $selector)
+    {
+        return null;
+    }
+
+    /**
      * Find one node with a CSS selector.
      *
      * @param string $selector
@@ -66,6 +78,18 @@ class SimpleHtmlDomNodeBlank extends AbstractSimpleHtmlDomNode implements Simple
     public function findOneOrFalse(string $selector)
     {
         return false;
+    }
+
+    /**
+     * Find one node with a CSS selector or null, if no element is found.
+     *
+     * @param string $selector
+     *
+     * @return null
+     */
+    public function findOneOrNull(string $selector)
+    {
+        return null;
     }
 
     /**

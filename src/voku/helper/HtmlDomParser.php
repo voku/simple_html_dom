@@ -615,6 +615,24 @@ class HtmlDomParser extends AbstractDomParser
     }
 
     /**
+     * Find nodes with a CSS selector or null, if no element is found.
+     *
+     * @param string $selector
+     *
+     * @return null|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>
+     */
+    public function findMultiOrNull(string $selector)
+    {
+        $return = $this->find($selector, null);
+
+        if ($return instanceof SimpleHtmlDomNodeBlank) {
+            return null;
+        }
+
+        return $return;
+    }
+
+    /**
      * Find one node with a CSS selector.
      *
      * @param string $selector
@@ -639,6 +657,24 @@ class HtmlDomParser extends AbstractDomParser
 
         if ($return instanceof SimpleHtmlDomBlank) {
             return false;
+        }
+
+        return $return;
+    }
+
+    /**
+     * Find one node with a CSS selector or null, if no element is found.
+     *
+     * @param string $selector
+     *
+     * @return null|SimpleHtmlDomInterface
+     */
+    public function findOneOrNull(string $selector)
+    {
+        $return = $this->find($selector, 0);
+
+        if ($return instanceof SimpleHtmlDomBlank) {
+            return null;
         }
 
         return $return;

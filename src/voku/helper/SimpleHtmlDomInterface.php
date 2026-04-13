@@ -135,6 +135,15 @@ interface SimpleHtmlDomInterface extends \IteratorAggregate
     public function findMultiOrFalse(string $selector);
 
     /**
+     * Find nodes with a CSS selector or null, if no element is found.
+     *
+     * @param string $selector
+     *
+     * @return null|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>
+     */
+    public function findMultiOrNull(string $selector);
+
+    /**
      * Find one node with a CSS selector.
      *
      * @param string $selector
@@ -151,6 +160,15 @@ interface SimpleHtmlDomInterface extends \IteratorAggregate
      * @return false|SimpleHtmlDomInterface
      */
     public function findOneOrFalse(string $selector);
+
+    /**
+     * Find one node with a CSS selector or null, if no element is found.
+     *
+     * @param string $selector
+     *
+     * @return null|SimpleHtmlDomInterface
+     */
+    public function findOneOrNull(string $selector);
 
     /**
      * Returns the first child of node.

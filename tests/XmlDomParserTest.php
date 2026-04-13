@@ -208,6 +208,37 @@ final class XmlDomParserTest extends \PHPUnit\Framework\TestCase
         static::assertSame('Closure', $classname->text());
     }
 
+    public function testXmlFindOrNullWithNamespaces()
+    {
+        $xml = <<<'EOD'
+<book xmlns:chap="http://example.org/chapter-title">
+    <chapter id="1">
+        <chap:title>Chapter 1</chap:title>
+    </chapter>
+</book>
+EOD;
+
+        $xmlParser = XmlDomParser::str_get_xml($xml);
+
+        $chapters = $xmlParser->findMultiOrNull('chapter');
+        static::assertNotNull($chapters);
+        static::assertCount(1, $chapters);
+
+        static::assertNull($xmlParser->findMultiOrNull('//chap:foo'));
+        static::assertNull($xmlParser->findOneOrNull('//chap:foo'));
+        static::assertSame('Chapter 1', $xmlParser->findOneOrNull('//chap:title')->text());
+
+        if (\PHP_VERSION_ID >= 80000) {
+            static::assertSame(
+                'Chapter 1',
+                eval('return $xmlParser->findOneOrNull("//chapter")?->findOneOrNull("//chap:title")?->text();')
+            );
+            static::assertNull(
+                eval('return $xmlParser->findOneOrNull("//chapter")?->findOneOrNull("//chap:foo")?->text();')
+            );
+        }
+    }
+
     public function testXmlFindV21()
     {
         $xmlParser = new \voku\helper\XmlDomParser();

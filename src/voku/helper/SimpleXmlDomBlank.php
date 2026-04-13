@@ -46,6 +46,30 @@ class SimpleXmlDomBlank extends AbstractSimpleXmlDom implements \IteratorAggrega
     }
 
     /**
+     * Find nodes with a CSS or xPath selector or null, if no element is found.
+     *
+     * @param string $selector
+     *
+     * @return null
+     */
+    public function findMultiOrNull(string $selector)
+    {
+        return null;
+    }
+
+    /**
+     * Find one node with a CSS or xPath selector or null, if no element is found.
+     *
+     * @param string $selector
+     *
+     * @return null
+     */
+    public function findOneOrNull(string $selector)
+    {
+        return null;
+    }
+
+    /**
      * Returns an array of attributes.
      *
      * @return null

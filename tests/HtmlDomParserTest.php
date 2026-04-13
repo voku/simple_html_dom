@@ -1591,6 +1591,32 @@ h1 {
         );
     }
 
+    public function testFindOrNullWithSvg()
+    {
+        $dom = HtmlDomParser::str_get_html('<div><svg><g><circle id="dot"></circle></g></svg></div>');
+
+        $circles = $dom->findMultiOrNull('circle');
+        static::assertInstanceOf(SimpleHtmlDomNodeInterface::class, $circles);
+        static::assertCount(1, $circles);
+
+        static::assertNull($dom->findMultiOrNull('path'));
+        static::assertNull($dom->findOneOrNull('path'));
+
+        $svg = $dom->findOneOrNull('svg');
+        static::assertInstanceOf(SimpleHtmlDomInterface::class, $svg);
+        static::assertSame('dot', $svg->findOneOrNull('circle')->getAttribute('id'));
+
+        if (\PHP_VERSION_ID >= 80000) {
+            static::assertSame(
+                'dot',
+                eval('return $dom->findOneOrNull("svg")?->findOneOrNull("circle")?->getAttribute("id");')
+            );
+            static::assertNull(
+                eval('return $dom->findOneOrNull("svg")?->findOneOrNull("path")?->getAttribute("id");')
+            );
+        }
+    }
+
     public function testNextNonWhitespaceSibling()
     {
         $txt = <<<'___'
