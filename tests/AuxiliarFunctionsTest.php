@@ -27,7 +27,8 @@ final class AuxiliarFunctionsTest extends TestCase
 
     public function testRemoveMethod()
     {
-        $html = HtmlDomParser::str_get_html(<<<EOD
+        $html = HtmlDomParser::str_get_html(
+            <<<EOD
 <html>
 <body>
 <table>
