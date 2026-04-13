@@ -42,7 +42,7 @@ final class CommentTest extends TestCase
                 '<!---->',
             ],
             'space' => [
-                '',
+                ' ',
                 '<!-- -->',
             ],
             'brackets' => [
@@ -90,5 +90,16 @@ final class CommentTest extends TestCase
 
         $this->html->load('<!---<div>Hello, World!</div>-->');
         static::assertFalse($this->html->findOneOrFalse('div'));
+    }
+
+    public function testCommentTextPreservesWhitespaceAndEntities(): void
+    {
+        $this->html = new HtmlDomParser();
+        $this->html->load('<!--  &amp; <b>Hello, World!</b>  -->');
+
+        $comment = $this->html->find('//comment()', 0);
+
+        static::assertSame('  &amp; <b>Hello, World!</b>  ', $comment->nodeValue);
+        static::assertSame($comment->nodeValue, $comment->text());
     }
 }

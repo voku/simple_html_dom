@@ -311,7 +311,7 @@ class SimpleXmlDom extends AbstractSimpleXmlDom implements \IteratorAggregate, S
      */
     public function text(): string
     {
-        if ($this->node instanceof \DOMText) {
+        if ($this->node instanceof \DOMCharacterData) {
             return XmlDomParser::putReplacedBackToPreserveHtmlEntities($this->node->nodeValue);
         }
 
