@@ -1607,12 +1607,14 @@ h1 {
         static::assertSame('dot', $svg->findOneOrNull('circle')->getAttribute('id'));
 
         if (\PHP_VERSION_ID >= 80000) {
+            require_once __DIR__ . '/fixtures/php8_nullsafe_helpers.php';
+
             static::assertSame(
                 'dot',
-                eval('return $dom->findOneOrNull("svg")?->findOneOrNull("circle")?->getAttribute("id");')
+                \Tests\Fixtures\getHtmlNullsafeCircleId($dom)
             );
             static::assertNull(
-                eval('return $dom->findOneOrNull("svg")?->findOneOrNull("path")?->getAttribute("id");')
+                \Tests\Fixtures\getHtmlNullsafeMissingId($dom)
             );
         }
     }

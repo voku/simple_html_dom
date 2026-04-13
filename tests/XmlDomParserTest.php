@@ -229,12 +229,14 @@ EOD;
         static::assertSame('Chapter 1', $xmlParser->findOneOrNull('//chap:title')->text());
 
         if (\PHP_VERSION_ID >= 80000) {
+            require_once __DIR__ . '/fixtures/php8_nullsafe_helpers.php';
+
             static::assertSame(
                 'Chapter 1',
-                eval('return $xmlParser->findOneOrNull("//chapter")?->findOneOrNull("//chap:title")?->text();')
+                \Tests\Fixtures\getXmlNullsafeTitle($xmlParser)
             );
             static::assertNull(
-                eval('return $xmlParser->findOneOrNull("//chapter")?->findOneOrNull("//chap:foo")?->text();')
+                \Tests\Fixtures\getXmlNullsafeMissingTitle($xmlParser)
             );
         }
     }
