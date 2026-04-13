@@ -241,6 +241,42 @@ EOD;
         }
     }
 
+    public function testNestedXmlDomAndBlankFindOrNullPaths()
+    {
+        $xml = <<<'EOD'
+<book xmlns:chap="http://example.org/chapter-title">
+    <chapter id="1">
+        <chap:title>Chapter 1</chap:title>
+    </chapter>
+</book>
+EOD;
+
+        $xmlParser = XmlDomParser::str_get_xml($xml);
+
+        $chapter = $xmlParser->findOne('//chapter');
+        $chapterTitles = $chapter->findMultiOrNull('//chap:title');
+        static::assertNotNull($chapterTitles);
+        static::assertCount(1, $chapterTitles);
+        static::assertSame('Chapter 1', $chapter->findOneOrNull('//chap:title')->text());
+        static::assertNull($chapter->findOneOrNull('//chap:foo'));
+
+        $chapters = $xmlParser->findMulti('chapter');
+        $titles = $chapters->findMultiOrNull('//chap:title');
+        static::assertNotNull($titles);
+        static::assertCount(1, $titles);
+        static::assertSame('Chapter 1', $chapters->findOneOrNull('//chap:title')->text());
+        static::assertNull($chapters->findMultiOrNull('//chap:foo'));
+        static::assertNull($chapters->findOneOrNull('//chap:foo'));
+
+        $blankElement = $xmlParser->findOne('//chap:foo');
+        static::assertNull($blankElement->findMultiOrNull('//chap:title'));
+        static::assertNull($blankElement->findOneOrNull('//chap:title'));
+
+        $blankList = $xmlParser->findMulti('//chap:foo');
+        static::assertNull($blankList->findMultiOrNull('//chap:title'));
+        static::assertNull($blankList->findOneOrNull('//chap:title'));
+    }
+
     public function testXmlFindV21()
     {
         $xmlParser = new \voku\helper\XmlDomParser();

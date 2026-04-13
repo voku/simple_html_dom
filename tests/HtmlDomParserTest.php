@@ -1619,6 +1619,34 @@ h1 {
         }
     }
 
+    public function testNestedHtmlDomAndBlankFindOrNullPaths()
+    {
+        $dom = HtmlDomParser::str_get_html('<div><svg><g><circle id="dot"></circle></g></svg></div>');
+
+        $svg = $dom->findOne('svg');
+        $svgCircles = $svg->findMultiOrNull('circle');
+        static::assertInstanceOf(SimpleHtmlDomNodeInterface::class, $svgCircles);
+        static::assertCount(1, $svgCircles);
+        static::assertSame('dot', $svg->findOneOrNull('circle')->getAttribute('id'));
+        static::assertNull($svg->findOneOrNull('path'));
+
+        $groups = $dom->findMulti('g');
+        $groupCircles = $groups->findMultiOrNull('circle');
+        static::assertInstanceOf(SimpleHtmlDomNodeInterface::class, $groupCircles);
+        static::assertCount(1, $groupCircles);
+        static::assertSame('dot', $groups->findOneOrNull('circle')->getAttribute('id'));
+        static::assertNull($groups->findMultiOrNull('path'));
+        static::assertNull($groups->findOneOrNull('path'));
+
+        $blankElement = $dom->findOne('path');
+        static::assertNull($blankElement->findMultiOrNull('circle'));
+        static::assertNull($blankElement->findOneOrNull('circle'));
+
+        $blankList = $dom->findMulti('path');
+        static::assertNull($blankList->findMultiOrNull('circle'));
+        static::assertNull($blankList->findOneOrNull('circle'));
+    }
+
     public function testNextNonWhitespaceSibling()
     {
         $txt = <<<'___'
