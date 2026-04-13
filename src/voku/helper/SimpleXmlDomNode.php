@@ -128,7 +128,7 @@ class SimpleXmlDomNode extends AbstractSimpleXmlDomNode implements SimpleXmlDomN
      *
      * @param string $selector
      *
-     * @return null|SimpleXmlDomNodeInterface<SimpleXmlDomInterface>
+     * @return null|SimpleXmlDomInterface
      */
     public function findOneOrNull(string $selector)
     {

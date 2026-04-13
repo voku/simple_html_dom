@@ -128,7 +128,7 @@ class SimpleHtmlDomNode extends AbstractSimpleHtmlDomNode implements SimpleHtmlD
      *
      * @param string $selector
      *
-     * @return null|SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>
+     * @return null|SimpleHtmlDomNodeInterface
      */
     public function findOneOrNull(string $selector)
     {
