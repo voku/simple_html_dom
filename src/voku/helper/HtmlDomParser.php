@@ -1426,8 +1426,8 @@ class HtmlDomParser extends AbstractDomParser
         $html = (string) \preg_replace_callback(
             '/(?<start>(<script [^>]*type=["\']?(?:' . $tags . ')+[^>]*>))(?<innerContent>.*)(?<end><\/script>)/isU',
             function ($matches) {
-                // Check for logic in special script tags, like [<% _.each(tierPrices, function(item, key) { %>],
-                // because often this looks like non-valid html in the template itself.
+                // Check for logic in special script tags containing EJS/ERB-style template syntax
+                // (e.g. <% ... %> blocks), because often this looks like non-valid html in the template itself.
                 foreach ($this->templateLogicSyntaxInSpecialScriptTags as $logicSyntaxInSpecialScriptTag) {
                     if (\strpos($matches['innerContent'], $logicSyntaxInSpecialScriptTag) !== false) {
                         // remove the html5 fallback

@@ -2014,6 +2014,27 @@ ___;
         static::assertSame(\trim($expected), \trim($html));
     }
 
+    /**
+     * Regression test: keepSpecialScriptTags must correctly handle EJS/ERB-style
+     * template syntax (e.g. "<% ... %>") inside special script tags.  A Netbeans
+     * IDE bug used to flag the "% >" sequence in a PHP comment as a syntax error,
+     * but the parser itself must work without issue.
+     */
+    public function testSpecialScriptTagWithEjsTemplateSyntax()
+    {
+        $html = '<script type="text/x-custom-template" id="my-template"><% _.each(items, function(item) { %><li><%= item.name %></li><% }); %></script>';
+
+        $dom = HtmlDomParser::str_get_html($html);
+
+        $script = $dom->findOne('script#my-template');
+        static::assertNotNull($script);
+
+        $innerHtml = $script->innerHtml();
+        static::assertStringContainsString('<% _.each(items, function(item) { %>', $innerHtml);
+        static::assertStringContainsString('<%= item.name %>', $innerHtml);
+        static::assertStringContainsString('<% }); %>', $innerHtml);
+    }
+
     public function testHtmlEmbeddedInJavaScript()
     {
         $html = '
