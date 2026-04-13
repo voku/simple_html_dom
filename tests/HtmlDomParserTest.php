@@ -1411,6 +1411,15 @@ h1 {
         );
     }
 
+    public function testTextWithCommentsInStyle()
+    {
+        $html = '<meta charset="utf-8"><style><!--</style>foobar';
+        $element = new HtmlDomParser($html);
+
+        static::assertSame('foobar', $element->text());
+        static::assertSame('foobar', $element->plaintext);
+    }
+
     public function testTextContent()
     {
         $dom = new HtmlDomParser();

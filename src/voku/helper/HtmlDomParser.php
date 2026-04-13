@@ -1129,6 +1129,38 @@ class HtmlDomParser extends AbstractDomParser
     }
 
     /**
+     * Get dom node's plain text.
+     *
+     * HTML document plaintext should exclude raw-text container contents like
+     * <script> and <style> while still preserving other text nodes in document
+     * order (e.g. <title> content).
+     *
+     * @param bool $multiDecodeNewHtmlEntity
+     *
+     * @return string
+     */
+    public function text(bool $multiDecodeNewHtmlEntity = false): string
+    {
+        $parts = [];
+
+        $xPath = new \DOMXPath($this->document);
+        $textNodes = $xPath->query(
+            \sprintf(
+                '//text()[not(ancestor::script or ancestor::style or ancestor::%s)]',
+                self::$domHtmlSpecialScriptHelper
+            )
+        );
+
+        if ($textNodes !== false) {
+            foreach ($textNodes as $textNode) {
+                $parts[] = $textNode->nodeValue;
+            }
+        }
+
+        return $this->fixHtmlOutput(\implode('', $parts), $multiDecodeNewHtmlEntity);
+    }
+
+    /**
      * Load HTML from string.
      *
      * @param string   $html
