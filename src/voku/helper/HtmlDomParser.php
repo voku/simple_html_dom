@@ -1141,7 +1141,7 @@ class HtmlDomParser extends AbstractDomParser
      */
     public function text(bool $multiDecodeNewHtmlEntity = false): string
     {
-        $text = '';
+        $parts = [];
 
         $xPath = new \DOMXPath($this->document);
         $textNodes = $xPath->query(
@@ -1153,11 +1153,11 @@ class HtmlDomParser extends AbstractDomParser
 
         if ($textNodes !== false) {
             foreach ($textNodes as $textNode) {
-                $text .= $textNode->nodeValue;
+                $parts[] = $textNode->nodeValue;
             }
         }
 
-        return $this->fixHtmlOutput($text, $multiDecodeNewHtmlEntity);
+        return $this->fixHtmlOutput(\implode('', $parts), $multiDecodeNewHtmlEntity);
     }
 
     /**
