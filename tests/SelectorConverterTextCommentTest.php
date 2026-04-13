@@ -242,4 +242,117 @@ final class SelectorConverterTextCommentTest extends TestCase
         // Both approaches must return the same text content
         static::assertSame($chainedResult->plaintext, $compoundResult->plaintext);
     }
+
+    // --- Regression tests: keyword-in-attribute selectors must NOT be treated as node tests ---
+
+    public function testAttributeValueContainingTextIsNotTreatedAsNodeTest(): void
+    {
+        $html = '<div title="some text">hello</div>';
+        $dom = HtmlDomParser::str_get_html($html);
+
+        // 'div[title="some text"]' must select the div element, not a text node
+        $result = $dom->find('div[title="some text"]', 0);
+        static::assertNotNull($result);
+        static::assertNotFalse($result);
+        static::assertSame('hello', $result->text());
+
+        // XPath must NOT contain text() — it's an attribute filter, not a node test
+        $xpath = SelectorConverter::toXPath('div[title="some text"]');
+        static::assertStringNotContainsString('text()', $xpath);
+    }
+
+    public function testAttributeValueContainingCommentIsNotTreatedAsNodeTest(): void
+    {
+        $html = '<div data-type="comment">hello</div>';
+        $dom = HtmlDomParser::str_get_html($html);
+
+        $result = $dom->find('div[data-type="comment"]', 0);
+        static::assertNotNull($result);
+        static::assertNotFalse($result);
+        static::assertSame('hello', $result->text());
+
+        $xpath = SelectorConverter::toXPath('div[data-type="comment"]');
+        static::assertStringNotContainsString('comment()', $xpath);
+    }
+
+    public function testElementNameContainingTextIsNotTreatedAsNodeTest(): void
+    {
+        // 'textarea' must NOT be treated as a 'text' node test
+        $xpath = SelectorConverter::toXPath('textarea');
+        static::assertStringNotContainsString('text()', $xpath);
+        static::assertStringContainsString('textarea', $xpath);
+    }
+
+    public function testClassNameTextIsNotTreatedAsNodeTest(): void
+    {
+        $xpath = SelectorConverter::toXPath('.text');
+        static::assertStringNotContainsString('text()', $xpath);
+        static::assertStringContainsString('text', $xpath);
+    }
+
+    public function testIdCommentIsNotTreatedAsNodeTest(): void
+    {
+        $xpath = SelectorConverter::toXPath('#comment');
+        static::assertStringNotContainsString('comment()', $xpath);
+        static::assertStringContainsString('comment', $xpath);
+    }
+
+    public function testDotTextCombinedWithElementIsNotTreatedAsNodeTest(): void
+    {
+        // 'div.text' means div with class "text", NOT div + text node
+        $xpath = SelectorConverter::toXPath('div.text');
+        static::assertStringNotContainsString('text()', $xpath);
+        static::assertStringContainsString('text', $xpath);
+    }
+
+    public function testPseudoClassContainingTextIsNotTreatedAsNodeTest(): void
+    {
+        $xpath = SelectorConverter::toXPath('div:not(.text)');
+        static::assertStringNotContainsString('text()', $xpath);
+    }
+
+    // --- Regression tests: DOMCharacterData in text() does not affect DOMElement behavior ---
+
+    public function testElementTextMethodStillUsesFixHtmlOutput(): void
+    {
+        // Element text() must still go through fixHtmlOutput (trims whitespace)
+        $html = '<p> hello world </p>';
+        $dom = HtmlDomParser::str_get_html($html);
+
+        $p = $dom->find('p', 0);
+        // fixHtmlOutput trims the text content
+        static::assertSame('hello world', $p->text());
+    }
+
+    public function testTextNodeTextMethodPreservesWhitespace(): void
+    {
+        // DOMText text() must preserve whitespace (bypasses fixHtmlOutput)
+        $html = '<p> hello world </p>';
+        $dom = HtmlDomParser::str_get_html($html);
+
+        $textNode = $dom->find('p > text', 0);
+        static::assertSame(' hello world ', $textNode->text());
+    }
+
+    public function testCommentTextMethodPreservesHtmlContent(): void
+    {
+        // DOMComment text() must preserve HTML-like content without stripping
+        $html = '<div><!-- <b>bold</b> stuff --></div>';
+        $dom = HtmlDomParser::str_get_html($html);
+
+        $comment = $dom->find('div > comment', 0);
+        static::assertStringContainsString('<b>bold</b>', $comment->text());
+        static::assertStringContainsString(' stuff ', $comment->text());
+    }
+
+    public function testTextNodeEntityPreservation(): void
+    {
+        // Entities in text nodes should be preserved as in the source HTML
+        $html = '<p>Tom &amp; Jerry</p>';
+        $dom = HtmlDomParser::str_get_html($html);
+
+        $textNode = $dom->find('p > text', 0);
+        // The library preserves HTML entities via placeholder replacement
+        static::assertSame('Tom &amp; Jerry', $textNode->text());
+    }
 }
