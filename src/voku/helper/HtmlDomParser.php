@@ -1391,10 +1391,6 @@ class HtmlDomParser extends AbstractDomParser
         $htmlTmp = \preg_replace_callback(
             $regExSpecialSvg,
             function ($svgs) {
-                if (empty($svgs['content'])) {
-                    return $svgs[0];
-                }
-
                 $content = '<svg' . $svgs['attr'] . '>' . $svgs['content'] . '</svg>';
                 $matchesHash = self::$domHtmlBrokenHtmlHelper . \crc32($content);
                 $this->registerDynamicDomBrokenReplaceHelper($content, $matchesHash);

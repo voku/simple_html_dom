@@ -1338,6 +1338,17 @@ HTML;
         static::assertSame($expected, $html);
     }
 
+    public function testSvgDataUriInsideStyleCanBeAppendedToInnerHtml()
+    {
+        $style = '<style>.icon{background-image:url("data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1 1\"></svg>")}</style>';
+
+        $dom = HtmlDomParser::str_get_html('<div></div>');
+        $div = $dom->find('div')[0];
+        $div->innerhtml .= $style;
+
+        static::assertSame($style, $div->innerHtml());
+    }
+
     public function testLoadUtf8()
     {
         $dom = new HtmlDomParser();
