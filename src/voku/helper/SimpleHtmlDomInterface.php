@@ -392,7 +392,7 @@ interface SimpleHtmlDomInterface extends \IteratorAggregate
     /**
      * Remove this node from the DOM (alias for delete).
      *
-     * @return void
+     * @return mixed
      */
     public function remove();
 }
