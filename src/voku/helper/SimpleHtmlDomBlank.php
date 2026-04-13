@@ -473,10 +473,10 @@ class SimpleHtmlDomBlank extends AbstractSimpleHtmlDom implements \IteratorAggre
     /**
      * Remove this node from the DOM (alias for delete).
      *
-     * @return void
+     * @return mixed
      */
     public function remove()
     {
-        $this->delete();
+        return $this->delete();
     }
 }

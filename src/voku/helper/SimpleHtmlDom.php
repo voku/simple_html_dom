@@ -1026,10 +1026,10 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
     /**
      * Remove this node from the DOM (alias for delete).
      *
-     * @return void
+     * @return mixed
      */
     public function remove()
     {
-        $this->delete();
+        return $this->delete();
     }
 }
