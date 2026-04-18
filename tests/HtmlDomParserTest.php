@@ -1752,6 +1752,40 @@ ___;
         );
     }
 
+    public function testBladeForeachDirectivesArePreservedAroundHtml()
+    {
+        $html = <<<'HTML'
+<div class="members">
+    @foreach ($company->members as $m)
+        @if ($m->checkbox)
+            <span class="member-checkbox">{{ $m->checkbox }}</span>
+        @else
+        
+        @endif
+    @endforeach
+</div>
+HTML;
+
+        $dom = HtmlDomParser::str_get_html($html);
+
+        static::assertSame($html, $dom->html());
+        static::assertSame('{{ $m->checkbox }}', $dom->findOne('.member-checkbox')->text());
+    }
+
+    public function testBladeForDirectiveWithLessThanOrEqualIsPreserved()
+    {
+        $html = <<<'HTML'
+@for ($i = 2; $i <= 6; $i++)
+    <div class="iteration">{{ $i }}</div>
+@endfor
+HTML;
+
+        $dom = HtmlDomParser::str_get_html($html);
+
+        static::assertSame($html, $dom->html());
+        static::assertSame('{{ $i }}', $dom->findOne('.iteration')->text());
+    }
+
     public function testEnforceEncoding()
     {
         $dom = new HtmlDomParser();
