@@ -165,6 +165,11 @@ class HtmlDomParser extends AbstractDomParser
     /**
      * @var bool
      */
+    protected $isDOMDocumentCreatedFromNode = false;
+
+    /**
+     * @var bool
+     */
     protected $keepBrokenHtml = false;
 
     /**
@@ -183,6 +188,8 @@ class HtmlDomParser extends AbstractDomParser
         }
 
         if ($element instanceof \DOMNode) {
+            $this->isDOMDocumentCreatedFromNode = true;
+
             $domNode = $this->document->importNode($element, true);
 
             if ($domNode instanceof \DOMNode) {
@@ -872,6 +879,8 @@ class HtmlDomParser extends AbstractDomParser
             $content = $this->document->saveHTML();
         } elseif ($this->usesInternalWrapperDocument()) {
             $content = $this->serializeInternalWrapperContent();
+        } elseif ($this->isDOMDocumentCreatedFromNode) {
+            $content = $this->serializeChildNodes($this->document);
         } elseif ($this->getIsDOMDocumentCreatedWithoutHtmlWrapper()) {
             $content = $this->document->saveHTML($this->document->documentElement);
         } else {
