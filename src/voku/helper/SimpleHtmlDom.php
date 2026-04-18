@@ -61,6 +61,9 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
         }
 
         $xPathQuery = SelectorConverter::toXPath($selector);
+        if (isset($xPathQuery[0]) && $xPathQuery[0] === '/') {
+            $xPathQuery = '.' . $xPathQuery;
+        }
         $xPath = new \DOMXPath($document);
         $nodesList = $xPath->query($xPathQuery, $this->node);
 
