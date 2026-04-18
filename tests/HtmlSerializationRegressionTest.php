@@ -7,7 +7,7 @@ use voku\helper\HtmlDomParser;
 
 final class HtmlSerializationRegressionTest extends TestCase
 {
-    public function testNestedElementHtmlPreservesOriginalFormatting(): void
+    public function testNestedElementHtmlPreservesWhitespaceWithoutExtraLineBreaks(): void
     {
         $html = '<div class="mydiv">
     <div class="mydiv-item">
