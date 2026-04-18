@@ -20,7 +20,7 @@ final class AuxiliarFunctionsTest extends TestCase
 
     public function testGetTag()
     {
-        $parser= HtmlDomParser::str_get_html('<body><span>Hello</span></body>');
+        $parser = HtmlDomParser::str_get_html('<body><span>Hello</span></body>');
         static::assertSame('span', $parser->findOne('span')->getTag());
     }
 
@@ -32,7 +32,7 @@ final class AuxiliarFunctionsTest extends TestCase
 
     public function testRemoveUsingDelete()
     {
-        $parser= HtmlDomParser::str_get_html("<body><span id='hello' class='hello'>Hello</span></body>");
+        $parser = HtmlDomParser::str_get_html("<body><span id='hello' class='hello'>Hello</span></body>");
         $parser->findOne('span')->delete();
         static::assertSame('<body></body>', $parser->outerHtml());
     }
