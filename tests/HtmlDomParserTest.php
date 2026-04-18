@@ -1338,6 +1338,17 @@ HTML;
         static::assertSame($expected, $html);
     }
 
+    public function testSvgDataUriInsideStyleCanBeAppendedToInnerHtml()
+    {
+        $style = '<style>.icon{background-image:url("data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1 1\"></svg>")}</style>';
+
+        $dom = HtmlDomParser::str_get_html('<div></div>');
+        $div = $dom->find('div')[0];
+        $div->innerhtml .= $style;
+
+        static::assertSame($style, $div->innerHtml());
+    }
+
     public function testLoadUtf8()
     {
         $dom = new HtmlDomParser();
@@ -1589,6 +1600,62 @@ h1 {
             '<p>Hey bro, <a href="google.com" id="78">click here</a></p>',
             $elm[0]->innerHtml
         );
+    }
+
+    public function testFindOrNullWithSvg()
+    {
+        $dom = HtmlDomParser::str_get_html('<div><svg><g><circle id="dot"></circle></g></svg></div>');
+
+        $circles = $dom->findMultiOrNull('circle');
+        static::assertInstanceOf(SimpleHtmlDomNodeInterface::class, $circles);
+        static::assertCount(1, $circles);
+
+        static::assertNull($dom->findMultiOrNull('path'));
+        static::assertNull($dom->findOneOrNull('path'));
+
+        $svg = $dom->findOneOrNull('svg');
+        static::assertInstanceOf(SimpleHtmlDomInterface::class, $svg);
+        static::assertSame('dot', $svg->findOneOrNull('circle')->getAttribute('id'));
+
+        if (\PHP_VERSION_ID >= 80000) {
+            require_once __DIR__ . '/fixtures/php8_nullsafe_helpers.php';
+
+            static::assertSame(
+                'dot',
+                \Tests\Fixtures\getHtmlNullsafeCircleId($dom)
+            );
+            static::assertNull(
+                \Tests\Fixtures\getHtmlNullsafeMissingId($dom)
+            );
+        }
+    }
+
+    public function testNestedHtmlDomAndBlankFindOrNullPaths()
+    {
+        $dom = HtmlDomParser::str_get_html('<div><svg><g><circle id="dot"></circle></g></svg></div>');
+
+        $svg = $dom->findOne('svg');
+        $svgCircles = $svg->findMultiOrNull('circle');
+        static::assertInstanceOf(SimpleHtmlDomNodeInterface::class, $svgCircles);
+        static::assertCount(1, $svgCircles);
+        static::assertSame('dot', $svg->findOneOrNull('circle')->getAttribute('id'));
+        static::assertNull($svg->findOneOrNull('path'));
+
+        $groups = $dom->findMulti('g');
+        $groupCircles = $groups->findMultiOrNull('circle');
+        static::assertInstanceOf(SimpleHtmlDomNodeInterface::class, $groupCircles);
+        static::assertCount(1, $groupCircles);
+        static::assertSame('dot', $groups->findOneOrNull('circle')->getAttribute('id'));
+        static::assertNull($groups->findMultiOrNull('path'));
+        static::assertNull($groups->findOneOrNull('path'));
+
+        $blankElement = $dom->findOne('path');
+        static::assertNull($blankElement->findMultiOrNull('circle'));
+        static::assertNull($blankElement->findOneOrNull('circle'));
+
+        $blankList = $dom->findMulti('path');
+        static::assertNull($blankList->findMultiOrNull('circle'));
+        static::assertNull($blankList->findOneOrNull('circle'));
     }
 
     public function testNextNonWhitespaceSibling()
