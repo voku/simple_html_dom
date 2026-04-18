@@ -101,7 +101,7 @@ interface SimpleHtmlDomNodeInterface extends \IteratorAggregate
      *
      * @param string $selector
      *
-     * @return null|SimpleHtmlDomNodeInterface
+     * @return null|SimpleHtmlDomInterface
      */
     public function findOneOrNull(string $selector);
 

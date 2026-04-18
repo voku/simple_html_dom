@@ -128,17 +128,11 @@ class SimpleHtmlDomNode extends AbstractSimpleHtmlDomNode implements SimpleHtmlD
      *
      * @param string $selector
      *
-     * @return null|SimpleHtmlDomNodeInterface
+     * @return null|SimpleHtmlDomInterface
      */
     public function findOneOrNull(string $selector)
     {
-        $return = $this->find($selector, 0);
-
-        if ($return instanceof SimpleHtmlDomNodeBlank) {
-            return null;
-        }
-
-        return $return;
+        return $this->find($selector, 0);
     }
 
     /**

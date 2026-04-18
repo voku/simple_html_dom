@@ -132,13 +132,7 @@ class SimpleXmlDomNode extends AbstractSimpleXmlDomNode implements SimpleXmlDomN
      */
     public function findOneOrNull(string $selector)
     {
-        $return = $this->find($selector, 0);
-
-        if ($return instanceof SimpleXmlDomNodeBlank) {
-            return null;
-        }
-
-        return $return;
+        return $this->find($selector, 0);
     }
 
     /**
