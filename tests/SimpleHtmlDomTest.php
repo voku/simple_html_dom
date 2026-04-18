@@ -208,6 +208,9 @@ final class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
             [
                 'foo',
             ],
+            [
+                '<p>bar</p>',
+            ],
         ];
     }
 
@@ -247,6 +250,22 @@ final class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
 
         static::assertSame('<div><h1>bar</h1></div>', $document->outertext);
         static::assertSame('<div><h1>bar</h1></div>', $element->outertext);
+    }
+
+    public function testReplaceNodeWithParagraphWrapper()
+    {
+        $document = new HtmlDomParser('<div><span>foo</span><span>bar</span></div>');
+
+        $elementsOrFalse = $document->findMultiOrFalse('span');
+
+        static::assertNotFalse($elementsOrFalse);
+
+        foreach ($elementsOrFalse as $element) {
+            $element->outerhtml = '<p>' . $element->innerhtml . '</p>';
+        }
+
+        static::assertSame('<div><p>foo</p><p>bar</p></div>', $document->outertext);
+        static::assertSame('foobar', $document->plaintext);
     }
 
     public function testGetDom()
