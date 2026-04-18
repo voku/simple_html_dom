@@ -7,7 +7,7 @@ use voku\helper\HtmlDomParser;
 
 final class HtmlSerializationRegressionTest extends TestCase
 {
-    public function testNestedElementHtmlDoesNotIntroduceFormattingNewlines(): void
+    public function testNestedElementHtmlPreservesOriginalFormatting(): void
     {
         $html = '<div class="mydiv">
     <div class="mydiv-item">
