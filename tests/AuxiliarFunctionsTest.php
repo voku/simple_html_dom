@@ -25,6 +25,17 @@ final class AuxiliarFunctionsTest extends TestCase
         static::assertSame('<body></body>', $parser->outerHtml());
     }
 
+    public function testRemoveUsingDeleteFromNestedFind()
+    {
+        $parser = HtmlDomParser::str_get_html('<html><body><p>before</p><img src="x.jpg"><p>after</p></body></html>');
+        $body = $parser->findOne('body');
+
+        $body->findOne('img')->delete();
+
+        static::assertSame('<html><body><p>before</p><p>after</p></body></html>', $parser->outerHtml());
+        static::assertSame('<body><p>before</p><p>after</p></body>', $body->outerHtml());
+    }
+
     public function testRemoveMethod()
     {
         $html = HtmlDomParser::str_get_html(
