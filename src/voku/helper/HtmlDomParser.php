@@ -548,6 +548,20 @@ class HtmlDomParser extends AbstractDomParser
      */
     public function find(string $selector, $idx = null)
     {
+        return $this->findInNodeContext($selector, null, $idx);
+    }
+
+    /**
+     * Find list of nodes with a CSS selector within an optional DOM context.
+     *
+     * @param string        $selector
+     * @param \DOMNode|null $contextNode
+     * @param int|null      $idx
+     *
+     * @return SimpleHtmlDomInterface|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>
+     */
+    public function findInNodeContext(string $selector, ?\DOMNode $contextNode = null, $idx = null)
+    {
         $xPathQuery = SelectorConverter::toXPath($selector);
 
         $xPath = new \DOMXPath($this->document);
@@ -556,13 +570,41 @@ class HtmlDomParser extends AbstractDomParser
             $xPathQuery = \call_user_func($this->callbackXPathBeforeQuery, $selector, $xPathQuery, $xPath, $this);
         }
 
-        $nodesList = $xPath->query($xPathQuery);
+        if ($contextNode !== null) {
+            $xPathQuery = self::scopeXPathQueryToContextNode($xPathQuery);
+        }
 
+        $nodesList = $xPath->query($xPathQuery, $contextNode);
+
+        return $this->createFindResultFromNodeList($nodesList, $idx);
+    }
+
+    /**
+     * Prefix absolute XPath segments so they stay scoped to the provided
+     * context node, including every branch of union expressions.
+     *
+     * @param string $xPathQuery
+     *
+     * @return string
+     */
+    public static function scopeXPathQueryToContextNode(string $xPathQuery): string
+    {
+        return (string) \preg_replace('#(^|\\|)(\\s*)/#', '$1$2./', $xPathQuery);
+    }
+
+    /**
+     * @param \DOMNodeList<\DOMNode>|false $nodesList
+     * @param int|null                     $idx
+     *
+     * @return SimpleHtmlDomInterface|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>
+     */
+    private function createFindResultFromNodeList($nodesList, $idx)
+    {
         $elements = new SimpleHtmlDomNode();
 
         if ($nodesList) {
             foreach ($nodesList as $node) {
-                $elements[] = new SimpleHtmlDom($node);
+                $elements[] = new SimpleHtmlDom($node, $this);
             }
         }
 
@@ -838,7 +880,7 @@ class HtmlDomParser extends AbstractDomParser
             return new SimpleHtmlDomBlank();
         }
 
-        return new SimpleHtmlDom($node);
+        return new SimpleHtmlDom($node, $this);
     }
 
     /**
@@ -869,7 +911,7 @@ class HtmlDomParser extends AbstractDomParser
         $elements = new SimpleHtmlDomNode();
 
         foreach ($nodesList as $node) {
-            $elements[] = new SimpleHtmlDom($node);
+            $elements[] = new SimpleHtmlDom($node, $this);
         }
 
         // return all elements

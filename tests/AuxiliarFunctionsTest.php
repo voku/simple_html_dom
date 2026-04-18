@@ -170,6 +170,18 @@ final class AuxiliarFunctionsTest extends TestCase
         );
     }
 
+    public function testNestedFindScopesUnionSelectors()
+    {
+        $parser = HtmlDomParser::str_get_html(
+            '<html><body>body<!--body-comment--></body><footer>footer<!--footer-comment--></footer></html>'
+        );
+
+        $nodes = $parser->findOne('body')->find('text, comment');
+
+        static::assertCount(2, $nodes);
+        static::assertSame(['body', 'body-comment'], $nodes->text());
+    }
+
     public function testRemoveMethod()
     {
         $html = HtmlDomParser::str_get_html(

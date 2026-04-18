@@ -1069,6 +1069,28 @@ HTML;
         );
     }
 
+    public function testNestedFindUsesCallbackXPathBeforeQuery()
+    {
+        $html = new HtmlDomParser();
+        $html->setCallbackXPathBeforeQuery(
+            static function (string $cssSelectorString, string $xPathString, \DOMXPath $xPath, \voku\helper\HtmlDomParser $htmlParser) {
+                return $cssSelectorString === 'scoped-image' ? '//img' : $xPathString;
+            }
+        );
+        $html->loadHtml('<html><body><img src="body.jpg"></body><footer><img src="footer.jpg"></footer></html>');
+
+        $image = $html->findOne('body')->findOne('scoped-image');
+
+        static::assertSame('body.jpg', $image->getAttribute('src'));
+
+        $image->delete();
+
+        static::assertSame(
+            '<html><body></body><footer><img src="footer.jpg"></footer></html>',
+            $html->html()
+        );
+    }
+
     public function testWithExtraXmlOptions()
     {
         $str = <<<'HTML'
