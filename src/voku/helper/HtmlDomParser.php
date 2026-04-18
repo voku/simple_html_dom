@@ -880,7 +880,9 @@ class HtmlDomParser extends AbstractDomParser
 
     /**
      * Mark a parser-generated <p>-wrapper so fixHtmlOutput() can remove only
-     * the synthetic wrapper instead of stripping all paragraph tags.
+     * the synthetic wrapper instead of stripping all paragraph tags. The
+     * wrapper is renamed to the placeholder tag that fixHtmlOutput() already
+     * strips from serialized output.
      *
      * @return void
      */
@@ -910,7 +912,15 @@ class HtmlDomParser extends AbstractDomParser
                 continue;
             }
 
-            if ($wrapper !== null || !$child instanceof \DOMElement || \strtolower($child->tagName) !== 'p') {
+            if ($wrapper !== null) {
+                return;
+            }
+
+            if (!$child instanceof \DOMElement) {
+                return;
+            }
+
+            if (\strtolower($child->tagName) !== 'p') {
                 return;
             }
 
