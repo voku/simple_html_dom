@@ -21,14 +21,14 @@ final class HtmlSerializationRegressionTest extends TestCase
 </div>';
 
         $dom = HtmlDomParser::str_get_html($html);
-
-        static::assertSame($html, $dom->find('.mydiv', 0)->html);
-        static::assertSame(
-            '<div class="mydiv-item">
+        $nestedItem = $dom->find('.mydiv-item', 1);
+        $nestedItemHtml = '<div class="mydiv-item">
         B:
         <div><span>B1</span><span>B2</span></div>
-    </div>',
-            $dom->find('.mydiv-item', 1)->html
-        );
+    </div>';
+
+        static::assertSame($html, $dom->find('.mydiv', 0)->html);
+        static::assertSame($nestedItemHtml, $nestedItem->html);
+        static::assertSame($nestedItemHtml, (new HtmlDomParser($nestedItem->getNode()))->html());
     }
 }
