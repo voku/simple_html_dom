@@ -339,6 +339,24 @@ class XmlDomParser extends AbstractDomParser
     }
 
     /**
+     * Find nodes with a CSS or xPath selector or null, if no element is found.
+     *
+     * @param string $selector
+     *
+     * @return null|SimpleXmlDomInterface[]|SimpleXmlDomNodeInterface<SimpleXmlDomInterface>
+     */
+    public function findMultiOrNull(string $selector)
+    {
+        $return = $this->find($selector, null);
+
+        if ($return instanceof SimpleXmlDomNodeBlank) {
+            return null;
+        }
+
+        return $return;
+    }
+
+    /**
      * Find one node with a CSS or xPath selector.
      *
      * @param string $selector
@@ -363,6 +381,24 @@ class XmlDomParser extends AbstractDomParser
 
         if ($return instanceof SimpleXmlDomBlank) {
             return false;
+        }
+
+        return $return;
+    }
+
+    /**
+     * Find one node with a CSS or xPath selector or null, if no element is found.
+     *
+     * @param string $selector
+     *
+     * @return null|SimpleXmlDomInterface
+     */
+    public function findOneOrNull(string $selector)
+    {
+        $return = $this->find($selector, 0);
+
+        if ($return instanceof SimpleXmlDomBlank) {
+            return null;
         }
 
         return $return;
