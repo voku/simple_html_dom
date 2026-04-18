@@ -515,7 +515,13 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
      */
     public function findMultiOrNull(string $selector)
     {
-        return $this->getHtmlDomParser()->findMultiOrNull($selector);
+        $return = $this->find($selector, null);
+
+        if ($return instanceof SimpleHtmlDomNodeBlank) {
+            return null;
+        }
+
+        return $return;
     }
 
     /**
@@ -557,7 +563,13 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
      */
     public function findOneOrNull(string $selector)
     {
-        return $this->getHtmlDomParser()->findOneOrNull($selector);
+        $return = $this->find($selector, 0);
+
+        if ($return instanceof SimpleHtmlDomBlank) {
+            return null;
+        }
+
+        return $return;
     }
 
     /**
