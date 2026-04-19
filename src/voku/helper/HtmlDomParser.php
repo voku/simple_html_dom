@@ -165,6 +165,11 @@ class HtmlDomParser extends AbstractDomParser
     /**
      * @var bool
      */
+    protected $createdFromNode = false;
+
+    /**
+     * @var bool
+     */
     protected $keepBrokenHtml = false;
 
     /**
@@ -183,6 +188,8 @@ class HtmlDomParser extends AbstractDomParser
         }
 
         if ($element instanceof \DOMNode) {
+            $this->createdFromNode = true;
+
             $domNode = $this->document->importNode($element, true);
 
             if ($domNode instanceof \DOMNode) {
@@ -1032,6 +1039,12 @@ class HtmlDomParser extends AbstractDomParser
             $content = $this->document->saveHTML();
         } elseif ($this->usesInternalWrapperDocument()) {
             $content = $this->serializeInternalWrapperContent();
+        } elseif ($this->createdFromNode) {
+            if (\PHP_VERSION_ID < 80000) {
+                $content = $this->serializeCreatedFromNodeForPhpLt8();
+            } else {
+                $content = $this->serializeChildNodes($this->document);
+            }
         } elseif ($this->getIsDOMDocumentCreatedWithoutHtmlWrapper()) {
             $content = $this->document->saveHTML($this->document->documentElement);
         } else {
@@ -1168,6 +1181,59 @@ class HtmlDomParser extends AbstractDomParser
         }
 
         return $content;
+    }
+
+    /**
+     * Serialize the single element that was imported via the node-backed
+     * constructor, for PHP < 8.0.
+     *
+     * On PHP < 8, saveHTML($node) with a node argument always injects
+     * formatting newlines between block-level child elements and a trailing
+     * "\n" after raw-text elements (script, style), even with formatOutput
+     * set to false.  saveHTML() called without a node argument respects
+     * formatOutput=false and does not inject those newlines.
+     *
+     * We call saveHTML() on the constructor document (which already has the
+     * imported element as its only child / documentElement) and strip the
+     * DOCTYPE and structural wrappers (html, body) that libxml may add around
+     * elements that are not recognised HTML root elements.
+     *
+     * @return string
+     */
+    private function serializeCreatedFromNodeForPhpLt8(): string
+    {
+        $full = $this->document->saveHTML();
+        if ($full === false) {
+            return '';
+        }
+
+        // Strip the DOCTYPE declaration that libxml always prepends.
+        $full = (string) \preg_replace('/<!DOCTYPE[^>]+>/i', '', $full);
+        $full = \trim($full);
+
+        $documentElement = $this->document->documentElement;
+        $tagName = $documentElement instanceof \DOMElement
+            ? \strtolower($documentElement->tagName)
+            : '';
+
+        // Strip the <html>...</html> wrapper added by libxml when the root
+        // element is not the HTML element itself.
+        if ($tagName !== 'html') {
+            $full = (string) \preg_replace('/^<html[^>]*>/i', '', $full);
+            $full = (string) \preg_replace('/<\/html>$/i', '', $full);
+            $full = \trim($full);
+
+            // Strip the <body>...</body> wrapper added for non-body elements.
+            if ($tagName !== 'body') {
+                $full = (string) \preg_replace('/^<body[^>]*>/i', '', $full);
+                $full = (string) \preg_replace('/<\/body>$/i', '', $full);
+                // Remove a trailing empty <body> libxml may add for <head> roots.
+                $full = \str_replace('<body></body>', '', $full);
+                $full = \trim($full);
+            }
+        }
+
+        return $full;
     }
 
     /**
