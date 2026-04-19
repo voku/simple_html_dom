@@ -14,11 +14,18 @@ namespace voku\helper;
 class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate, SimpleHtmlDomInterface
 {
     /**
-     * @param \DOMElement|\DOMNode $node
+     * @var HtmlDomParser|null
      */
-    public function __construct(\DOMNode $node)
+    private $queryHtmlDomParser;
+
+    /**
+     * @param \DOMElement|\DOMNode $node
+     * @param HtmlDomParser|null   $queryHtmlDomParser
+     */
+    public function __construct(\DOMNode $node, ?HtmlDomParser $queryHtmlDomParser = null)
     {
         $this->node = $node;
+        $this->queryHtmlDomParser = $queryHtmlDomParser;
     }
 
     /**
@@ -50,7 +57,28 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
      */
     public function find(string $selector, $idx = null)
     {
-        return $this->getHtmlDomParser()->find($selector, $idx);
+        $document = $this->node instanceof \DOMDocument ? $this->node : $this->node->ownerDocument;
+
+        if (!$document instanceof \DOMDocument) {
+            if ($idx === null) {
+                return new SimpleHtmlDomNodeBlank();
+            }
+
+            return new SimpleHtmlDomBlank();
+        }
+
+        if ($this->queryHtmlDomParser !== null) {
+            return $this->queryHtmlDomParser->findInNodeContext($selector, $this->node, $idx);
+        }
+
+        return HtmlDomParser::findInDocumentContext(
+            $selector,
+            $document,
+            $this->node,
+            $idx,
+            null,
+            null
+        );
     }
 
     public function getTag(): string
@@ -448,7 +476,7 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
      */
     public function findMulti(string $selector): SimpleHtmlDomNodeInterface
     {
-        return $this->getHtmlDomParser()->findMulti($selector);
+        return $this->find($selector, null);
     }
 
     /**
@@ -460,7 +488,13 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
      */
     public function findMultiOrFalse(string $selector)
     {
-        return $this->getHtmlDomParser()->findMultiOrFalse($selector);
+        $return = $this->find($selector, null);
+
+        if ($return instanceof SimpleHtmlDomNodeBlank) {
+            return false;
+        }
+
+        return $return;
     }
 
     /**
@@ -472,7 +506,13 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
      */
     public function findMultiOrNull(string $selector)
     {
-        return $this->getHtmlDomParser()->findMultiOrNull($selector);
+        $return = $this->find($selector, null);
+
+        if ($return instanceof SimpleHtmlDomNodeBlank) {
+            return null;
+        }
+
+        return $return;
     }
 
     /**
@@ -484,7 +524,7 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
      */
     public function findOne(string $selector): SimpleHtmlDomInterface
     {
-        return $this->getHtmlDomParser()->findOne($selector);
+        return $this->find($selector, 0);
     }
 
     /**
@@ -496,7 +536,13 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
      */
     public function findOneOrFalse(string $selector)
     {
-        return $this->getHtmlDomParser()->findOneOrFalse($selector);
+        $return = $this->find($selector, 0);
+
+        if ($return instanceof SimpleHtmlDomBlank) {
+            return false;
+        }
+
+        return $return;
     }
 
     /**
@@ -508,7 +554,13 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
      */
     public function findOneOrNull(string $selector)
     {
-        return $this->getHtmlDomParser()->findOneOrNull($selector);
+        $return = $this->find($selector, 0);
+
+        if ($return instanceof SimpleHtmlDomBlank) {
+            return null;
+        }
+
+        return $return;
     }
 
     /**
@@ -525,7 +577,7 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
             return null;
         }
 
-        return new static($node);
+        return $this->createWrapper($node);
     }
 
     /**
@@ -571,7 +623,7 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
             return new SimpleHtmlDomBlank();
         }
 
-        return new static($node);
+        return $this->createWrapper($node);
     }
 
     /**
@@ -606,7 +658,7 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
         $elements = new SimpleHtmlDomNode();
 
         foreach ($nodesList as $node) {
-            $elements[] = new static($node);
+            $elements[] = $this->createWrapper($node);
         }
 
         // return all elements
@@ -671,7 +723,7 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
             return null;
         }
 
-        return new static($node);
+        return $this->createWrapper($node);
     }
 
     /**
@@ -688,7 +740,7 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
             return null;
         }
 
-        return new static($node);
+        return $this->createWrapper($node);
     }
 
     /**
@@ -710,7 +762,7 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
             return null;
         }
 
-        return new static($node);
+        return $this->createWrapper($node);
     }
 
     /**
@@ -721,7 +773,7 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
     public function parentNode(): ?SimpleHtmlDomInterface
     {
         if ($node = $this->node->parentNode) {
-            return new static($node);
+            return $this->createWrapper($node);
         }
 
         return null;
@@ -741,7 +793,7 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
             return null;
         }
 
-        return new static($node);
+        return $this->createWrapper($node);
     }
 
     /**
@@ -763,7 +815,7 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
             return null;
         }
 
-        return new static($node);
+        return $this->createWrapper($node);
     }
 
     /**
@@ -968,11 +1020,52 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
         $elements = new SimpleHtmlDomNode();
         if ($this->node->hasChildNodes()) {
             foreach ($this->node->childNodes as $node) {
-                $elements[] = new static($node);
+                $elements[] = $this->createWrapper($node);
             }
         }
 
         return $elements;
+    }
+
+    /**
+     * @param \DOMNode $node
+     *
+     * @return static
+     */
+    private function createWrapper(\DOMNode $node)
+    {
+        return new static($node, $this->queryHtmlDomParser);
+    }
+
+    /**
+     * @param \DOMNodeList<\DOMNode>|false $nodesList
+     * @param int|null                     $idx
+     *
+     * @return SimpleHtmlDomInterface|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>
+     */
+    private function createFindResultFromNodeList($nodesList, $idx)
+    {
+        $elements = new SimpleHtmlDomNode();
+
+        if ($nodesList) {
+            foreach ($nodesList as $node) {
+                $elements[] = $this->createWrapper($node);
+            }
+        }
+
+        if ($idx === null) {
+            if (\count($elements) === 0) {
+                return new SimpleHtmlDomNodeBlank();
+            }
+
+            return $elements;
+        }
+
+        if ($idx < 0) {
+            $idx = \count($elements) + $idx;
+        }
+
+        return $elements[$idx] ?? new SimpleHtmlDomBlank();
     }
 
     /**
