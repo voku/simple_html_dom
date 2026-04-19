@@ -124,6 +124,27 @@ final class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
         static::assertSame('1', $v);
     }
 
+    public function testNestedFindOnManualWrapperScopesUnionSelectors()
+    {
+        $document = HtmlDomParser::str_get_html(
+            '<html><body>body<!--body-comment--><img src="body.jpg"></body><footer>footer<!--footer-comment--><img src="footer.jpg"></footer></html>'
+        );
+        $element = new SimpleHtmlDom($document->getDocument()->documentElement);
+
+        $body = $element->findOne('body');
+        $nodes = $body->find('text, comment');
+
+        static::assertCount(2, $nodes);
+        static::assertSame(['body', 'body-comment'], $nodes->text());
+
+        $body->findOne('img')->delete();
+
+        static::assertSame(
+            '<html><body>body<!--body-comment--></body><footer>footer<!--footer-comment--><img src="footer.jpg"></footer></html>',
+            $document->outerHtml()
+        );
+    }
+
     public function testIssue63()
     {
         $dom = (new voku\helper\HtmlDomParser())->loadHtml('<div> foo bar </div>');
@@ -208,6 +229,9 @@ final class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
             [
                 'foo',
             ],
+            [
+                '<p>bar</p>',
+            ],
         ];
     }
 
@@ -247,6 +271,66 @@ final class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
 
         static::assertSame('<div><h1>bar</h1></div>', $document->outertext);
         static::assertSame('<div><h1>bar</h1></div>', $element->outertext);
+    }
+
+    public function testReplaceNodeWithParagraphWrapper()
+    {
+        $document = new HtmlDomParser('<div><span>foo</span><span>bar</span></div>');
+
+        $elementsOrFalse = $document->findMultiOrFalse('span');
+
+        static::assertNotFalse($elementsOrFalse);
+
+        foreach ($elementsOrFalse as $element) {
+            $element->outerhtml = '<p>' . $element->innerhtml . '</p>';
+        }
+
+        static::assertSame('<div><p>foo</p><p>bar</p></div>', $document->outertext);
+        static::assertSame('foobar', $document->plaintext);
+    }
+
+    public function paragraphReplacementVariantProvider()
+    {
+        return [
+            [
+                '<p>foo</p><p>bar</p>',
+                '<div><p>foo</p><p>bar</p></div>',
+                'foobar',
+            ],
+            [
+                '<p>foo<source src="a.mp4"></p>',
+                '<div><p>foo<source src="a.mp4"></p></div>',
+                'foo',
+            ],
+            [
+                '<p>foo<wbr>bar</p>',
+                '<div><p>foo<wbr>bar</p></div>',
+                'foobar',
+            ],
+            [
+                '<P>foo</P><P>bar</P>',
+                '<div><P>foo</P><P>bar</P></div>',
+                'foobar',
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider paragraphReplacementVariantProvider
+     *
+     * @param string $replace
+     * @param string $expectedHtml
+     * @param string $expectedText
+     */
+    public function testReplaceNodeWithParagraphWrapperVariants($replace, $expectedHtml, $expectedText)
+    {
+        $document = new HtmlDomParser('<div><span>x</span></div>');
+        $element = $document->findOne('span');
+
+        $element->outerhtml = $replace;
+
+        static::assertSame($expectedHtml, $document->outertext);
+        static::assertSame($expectedText, $document->plaintext);
     }
 
     public function testGetDom()

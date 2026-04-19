@@ -20,7 +20,6 @@ final class HtmlSerializationRegressionTest extends \PHPUnit\Framework\TestCase
             $parser->html()
         );
     }
-
     public function testElementHtmlPreservesWhitespaceWithoutExtraLineBreaks()
     {
         $html = '<div class="mydiv">

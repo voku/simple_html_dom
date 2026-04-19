@@ -384,9 +384,9 @@ class HtmlDomParser extends AbstractDomParser
         }
 
         if (
-            \strpos($html, '<p ') === false
+            \stripos($html, '<p ') === false
             &&
-            \strpos($html, '<p>') === false
+            \stripos($html, '<p>') === false
         ) {
             $this->isDOMDocumentCreatedWithoutPTagWrapper = true;
         }
@@ -532,6 +532,8 @@ class HtmlDomParser extends AbstractDomParser
             }
         }
 
+        $this->markSyntheticParagraphWrapper();
+
         // set encoding
         $this->document->encoding = $this->getEncoding();
 
@@ -555,21 +557,154 @@ class HtmlDomParser extends AbstractDomParser
      */
     public function find(string $selector, $idx = null)
     {
+        return $this->findInNodeContext($selector, null, $idx);
+    }
+
+    /**
+     * Find list of nodes with a CSS selector within an optional DOM context.
+     *
+     * @param string        $selector
+     * @param \DOMNode|null $contextNode
+     * @param int|null      $idx
+     *
+     * @return SimpleHtmlDomInterface|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>
+     */
+    public function findInNodeContext(string $selector, ?\DOMNode $contextNode = null, $idx = null)
+    {
+        return self::findInDocumentContext(
+            $selector,
+            $this->document,
+            $contextNode,
+            $idx,
+            $this->callbackXPathBeforeQuery,
+            $this
+        );
+    }
+
+    /**
+     * Find list of nodes with a CSS selector within an optional DOMDocument
+     * context, optionally applying the parser callback before the XPath query.
+     *
+     * @param string        $selector
+     * @param \DOMDocument  $document
+     * @param \DOMNode|null $contextNode
+     * @param int|null      $idx
+     * @param callable|null $callbackXPathBeforeQuery
+     * @param self|null     $queryHtmlDomParser
+     *
+     * @return SimpleHtmlDomInterface|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>
+     *
+     * @phpstan-param null|callable(string, string, \DOMXPath, self): string $callbackXPathBeforeQuery
+     */
+    public static function findInDocumentContext(
+        string $selector,
+        \DOMDocument $document,
+        ?\DOMNode $contextNode = null,
+        $idx = null,
+        ?callable $callbackXPathBeforeQuery = null,
+        ?self $queryHtmlDomParser = null
+    ) {
         $xPathQuery = SelectorConverter::toXPath($selector);
 
-        $xPath = new \DOMXPath($this->document);
+        $xPath = new \DOMXPath($document);
 
-        if ($this->callbackXPathBeforeQuery) {
-            $xPathQuery = \call_user_func($this->callbackXPathBeforeQuery, $selector, $xPathQuery, $xPath, $this);
+        if ($callbackXPathBeforeQuery !== null && $queryHtmlDomParser !== null) {
+            $xPathQuery = \call_user_func($callbackXPathBeforeQuery, $selector, $xPathQuery, $xPath, $queryHtmlDomParser);
         }
 
-        $nodesList = $xPath->query($xPathQuery);
+        if ($contextNode !== null) {
+            $xPathQuery = self::scopeXPathQueryToContextNode($xPathQuery);
+        }
 
+        $nodesList = $xPath->query($xPathQuery, $contextNode);
+
+        return self::createFindResultFromNodeList($nodesList, $idx, $queryHtmlDomParser);
+    }
+
+    /**
+     * Prefix absolute XPath segments so they stay scoped to the provided
+     * context node, including every branch of union expressions.
+     *
+     * @param string $xPathQuery
+     *
+     * @return string
+     */
+    public static function scopeXPathQueryToContextNode(string $xPathQuery): string
+    {
+        $scopedXPathQuery = '';
+        $quoteCharacter = null;
+        $bracketDepth = 0;
+        $parenthesisDepth = 0;
+        $isAtBranchStart = true;
+        $length = \strlen($xPathQuery);
+
+        for ($i = 0; $i < $length; ++$i) {
+            $character = $xPathQuery[$i];
+
+            if ($quoteCharacter !== null) {
+                $scopedXPathQuery .= $character;
+
+                if ($character === $quoteCharacter) {
+                    $quoteCharacter = null;
+                }
+
+                continue;
+            }
+
+            if ($character === '"' || $character === "'") {
+                $scopedXPathQuery .= $character;
+                $quoteCharacter = $character;
+
+                continue;
+            }
+
+            if ($isAtBranchStart) {
+                if (\trim($character) === '') {
+                    $scopedXPathQuery .= $character;
+
+                    continue;
+                }
+
+                if ($character === '/') {
+                    $scopedXPathQuery .= '.';
+                }
+
+                $isAtBranchStart = false;
+            }
+
+            if ($character === '[') {
+                ++$bracketDepth;
+            } elseif ($character === ']' && $bracketDepth > 0) {
+                --$bracketDepth;
+            } elseif ($character === '(') {
+                ++$parenthesisDepth;
+            } elseif ($character === ')' && $parenthesisDepth > 0) {
+                --$parenthesisDepth;
+            }
+
+            $scopedXPathQuery .= $character;
+
+            if ($character === '|' && $bracketDepth === 0 && $parenthesisDepth === 0) {
+                $isAtBranchStart = true;
+            }
+        }
+
+        return $scopedXPathQuery;
+    }
+
+    /**
+     * @param \DOMNodeList<\DOMNode>|false $nodesList
+     * @param int|null                     $idx
+     *
+     * @return SimpleHtmlDomInterface|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>
+     */
+    private static function createFindResultFromNodeList($nodesList, $idx, ?self $queryHtmlDomParser = null)
+    {
         $elements = new SimpleHtmlDomNode();
 
         if ($nodesList) {
             foreach ($nodesList as $node) {
-                $elements[] = new SimpleHtmlDom($node);
+                $elements[] = new SimpleHtmlDom($node, $queryHtmlDomParser);
             }
         }
 
@@ -622,6 +757,24 @@ class HtmlDomParser extends AbstractDomParser
     }
 
     /**
+     * Find nodes with a CSS selector or null, if no element is found.
+     *
+     * @param string $selector
+     *
+     * @return null|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>
+     */
+    public function findMultiOrNull(string $selector)
+    {
+        $return = $this->find($selector, null);
+
+        if ($return instanceof SimpleHtmlDomNodeBlank) {
+            return null;
+        }
+
+        return $return;
+    }
+
+    /**
      * Find one node with a CSS selector.
      *
      * @param string $selector
@@ -646,6 +799,24 @@ class HtmlDomParser extends AbstractDomParser
 
         if ($return instanceof SimpleHtmlDomBlank) {
             return false;
+        }
+
+        return $return;
+    }
+
+    /**
+     * Find one node with a CSS selector or null, if no element is found.
+     *
+     * @param string $selector
+     *
+     * @return null|SimpleHtmlDomInterface
+     */
+    public function findOneOrNull(string $selector)
+    {
+        $return = $this->find($selector, 0);
+
+        if ($return instanceof SimpleHtmlDomBlank) {
+            return null;
         }
 
         return $return;
@@ -712,17 +883,6 @@ class HtmlDomParser extends AbstractDomParser
         if ($this->getIsDOMDocumentCreatedWithoutWrapper()) {
             $content = (string) \preg_replace('/^<p>/', '', $content);
             $content = (string) \preg_replace('/<\/p>/', '', $content);
-        }
-
-        if ($this->getIsDOMDocumentCreatedWithoutPTagWrapper()) {
-            $content = \str_replace(
-                [
-                    '<p>',
-                    '</p>',
-                ],
-                '',
-                $content
-            );
         }
 
         if ($this->getIsDOMDocumentCreatedWithoutHtml()) {
@@ -809,7 +969,7 @@ class HtmlDomParser extends AbstractDomParser
             return new SimpleHtmlDomBlank();
         }
 
-        return new SimpleHtmlDom($node);
+        return new SimpleHtmlDom($node, $this);
     }
 
     /**
@@ -840,7 +1000,7 @@ class HtmlDomParser extends AbstractDomParser
         $elements = new SimpleHtmlDomNode();
 
         foreach ($nodesList as $node) {
-            $elements[] = new SimpleHtmlDom($node);
+            $elements[] = new SimpleHtmlDom($node, $this);
         }
 
         // return all elements
@@ -894,6 +1054,68 @@ class HtmlDomParser extends AbstractDomParser
         $output = $this->fixHtmlOutput($content, $multiDecodeNewHtmlEntity, $putBrokenReplacedBack);
 
         return $output;
+    }
+
+    /**
+     * Mark a parser-generated <p>-wrapper so fixHtmlOutput() can remove only
+     * the synthetic wrapper instead of stripping all paragraph tags. The
+     * wrapper is renamed to the placeholder tag that fixHtmlOutput() already
+     * strips from serialized output.
+     *
+     * @return void
+     */
+    private function markSyntheticParagraphWrapper(): void
+    {
+        if (!$this->isDOMDocumentCreatedWithoutPTagWrapper) {
+            return;
+        }
+
+        $html = $this->document->documentElement;
+        if (
+            !$html instanceof \DOMElement
+            ||
+            \strtolower($html->tagName) !== 'html'
+        ) {
+            return;
+        }
+
+        $body = $this->document->getElementsByTagName('body')->item(0);
+        if (!$body instanceof \DOMElement) {
+            return;
+        }
+
+        $wrapper = null;
+        foreach ($body->childNodes as $child) {
+            if ($child instanceof \DOMText && \trim($child->nodeValue ?? '') === '') {
+                continue;
+            }
+
+            if ($wrapper !== null) {
+                return;
+            }
+
+            if (!$child instanceof \DOMElement) {
+                return;
+            }
+
+            if (\strtolower($child->tagName) !== 'p') {
+                return;
+            }
+
+            $wrapper = $child;
+        }
+
+        if (!$wrapper instanceof \DOMElement || $wrapper->parentNode === null) {
+            return;
+        }
+
+        $replacement = $this->document->createElement('simpleHtmlDomP');
+
+        while ($wrapper->firstChild !== null) {
+            $replacement->appendChild($wrapper->firstChild);
+        }
+
+        $wrapper->parentNode->replaceChild($replacement, $wrapper);
     }
 
     /**
@@ -1400,10 +1622,6 @@ class HtmlDomParser extends AbstractDomParser
         $htmlTmp = \preg_replace_callback(
             $regExSpecialSvg,
             function ($svgs) {
-                if (empty($svgs['content'])) {
-                    return $svgs[0];
-                }
-
                 $content = '<svg' . $svgs['attr'] . '>' . $svgs['content'] . '</svg>';
                 $matchesHash = self::$domHtmlBrokenHtmlHelper . \crc32($content);
                 $this->registerDynamicDomBrokenReplaceHelper($content, $matchesHash);

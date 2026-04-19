@@ -33,6 +33,15 @@ interface DomParserInterface
     public function findMultiOrFalse(string $selector);
 
     /**
+     * Find nodes with a CSS selector or null, if no element is found.
+     *
+     * @param string $selector
+     *
+     * @return mixed
+     */
+    public function findMultiOrNull(string $selector);
+
+    /**
      * Find one node with a CSS selector.
      *
      * @param string $selector
@@ -49,6 +58,15 @@ interface DomParserInterface
      * @return mixed
      */
     public function findOneOrFalse(string $selector);
+
+    /**
+     * Find one node with a CSS selector or null, if no element is found.
+     *
+     * @param string $selector
+     *
+     * @return mixed
+     */
+    public function findOneOrNull(string $selector);
 
     /**
      * @param string $content
