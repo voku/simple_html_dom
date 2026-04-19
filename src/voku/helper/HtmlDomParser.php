@@ -1140,11 +1140,13 @@ class HtmlDomParser extends AbstractDomParser
      */
     private function serializeNode(\DOMNode $node): string
     {
-        // For script/style on PHP < 8.0 use ownerDocument to avoid fresh-doc
-        // libxml injecting "\n" inside raw-text content.
+        // On PHP < 8.0 creating a fresh DOMDocument per node causes older
+        // libxml to inject "\n" between and after child elements (including
+        // inside raw-text content like script/style).  Use the ownerDocument
+        // instead and strip only the single synthetic trailing "\n" that older
+        // libxml appends when the node is a direct document child.
         $useOwnerDoc = \PHP_VERSION_ID < 80000
-            && $node instanceof \DOMElement
-            && \in_array(\strtolower($node->tagName), ['script', 'style'], true);
+            && $node instanceof \DOMElement;
 
         if (!$useOwnerDoc) {
             $document = new \DOMDocument('1.0', $this->getEncoding());
@@ -1160,13 +1162,12 @@ class HtmlDomParser extends AbstractDomParser
 
             $content = $document->saveHTML($importedNode);
         } else {
-            // PHP < 8.0 script/style: serialize from original document and
-            // strip only the trailing "\n" that older libxml appends after
-            // raw-text elements.
+            // PHP < 8.0: serialize from the ownerDocument to prevent libxml
+            // from injecting formatting newlines.  Strip only the one
+            // synthetic trailing "\n" that older libxml appends; real
+            // user-provided trailing newlines in the content are preserved.
             $ownerDoc = $node->ownerDocument;
             $content = $ownerDoc !== null ? $ownerDoc->saveHTML($node) : false;
-            // Older libxml appends exactly one synthetic trailing "\n" here;
-            // preserve any real user-provided trailing newlines in the content.
             if ($content !== false && \substr($content, -1) === "\n") {
                 $content = \substr($content, 0, -1);
             }
