@@ -1156,7 +1156,7 @@ class HtmlDomParser extends AbstractDomParser
                 $wrapDoc = new \DOMDocument('1.0', $this->getEncoding());
                 $wrapDoc->preserveWhiteSpace = true;
                 $wrapDoc->formatOutput = false;
-                $wrapEl = $wrapDoc->createElement('x-wrap');
+                $wrapEl = $wrapDoc->createElement(self::$domHtmlWrapperHelper);
                 $wrapDoc->appendChild($wrapEl);
                 $wrapped = $wrapDoc->importNode($node, true);
                 $wrapEl->appendChild($wrapped);
