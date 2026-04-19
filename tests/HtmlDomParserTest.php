@@ -216,10 +216,10 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
 
         $document = new HtmlDomParser($html);
 
-        static::assertSame(
-            1,
-            \preg_match('~^<html><body><p>one<source src="a\.mp4"></p></body></html>$~i', $document->outerhtml)
-        );
+        $match = \preg_match('~^<html><body><p>one<source src="a\.mp4"></p></body></html>$~i', $document->outerhtml);
+
+        static::assertNotFalse($match);
+        static::assertSame(1, $match);
     }
 
     public function testUppercaseParagraphTagWithWbrVoidElementKeepsParagraphWrapper()
@@ -228,10 +228,10 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
 
         $document = new HtmlDomParser($html);
 
-        static::assertSame(
-            1,
-            \preg_match('~^<html><body><p>one<wbr>two</p></body></html>$~i', $document->outerhtml)
-        );
+        $match = \preg_match('~^<html><body><p>one<wbr>two</p></body></html>$~i', $document->outerhtml);
+
+        static::assertNotFalse($match);
+        static::assertSame(1, $match);
     }
 
     public function testHrefReplacing()
