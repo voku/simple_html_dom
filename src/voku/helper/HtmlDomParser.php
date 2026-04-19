@@ -377,9 +377,9 @@ class HtmlDomParser extends AbstractDomParser
         }
 
         if (
-            \strpos($html, '<p ') === false
+            \stripos($html, '<p ') === false
             &&
-            \strpos($html, '<p>') === false
+            \stripos($html, '<p>') === false
         ) {
             $this->isDOMDocumentCreatedWithoutPTagWrapper = true;
         }
@@ -524,6 +524,8 @@ class HtmlDomParser extends AbstractDomParser
                 }
             }
         }
+
+        $this->markSyntheticParagraphWrapper();
 
         // set encoding
         $this->document->encoding = $this->getEncoding();
@@ -876,17 +878,6 @@ class HtmlDomParser extends AbstractDomParser
             $content = (string) \preg_replace('/<\/p>/', '', $content);
         }
 
-        if ($this->getIsDOMDocumentCreatedWithoutPTagWrapper()) {
-            $content = \str_replace(
-                [
-                    '<p>',
-                    '</p>',
-                ],
-                '',
-                $content
-            );
-        }
-
         if ($this->getIsDOMDocumentCreatedWithoutHtml()) {
             $content = \str_replace(
                 '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">',
@@ -1054,6 +1045,68 @@ class HtmlDomParser extends AbstractDomParser
         $output = $this->fixHtmlOutput($content, $multiDecodeNewHtmlEntity, $putBrokenReplacedBack);
 
         return $output;
+    }
+
+    /**
+     * Mark a parser-generated <p>-wrapper so fixHtmlOutput() can remove only
+     * the synthetic wrapper instead of stripping all paragraph tags. The
+     * wrapper is renamed to the placeholder tag that fixHtmlOutput() already
+     * strips from serialized output.
+     *
+     * @return void
+     */
+    private function markSyntheticParagraphWrapper(): void
+    {
+        if (!$this->isDOMDocumentCreatedWithoutPTagWrapper) {
+            return;
+        }
+
+        $html = $this->document->documentElement;
+        if (
+            !$html instanceof \DOMElement
+            ||
+            \strtolower($html->tagName) !== 'html'
+        ) {
+            return;
+        }
+
+        $body = $this->document->getElementsByTagName('body')->item(0);
+        if (!$body instanceof \DOMElement) {
+            return;
+        }
+
+        $wrapper = null;
+        foreach ($body->childNodes as $child) {
+            if ($child instanceof \DOMText && \trim($child->nodeValue ?? '') === '') {
+                continue;
+            }
+
+            if ($wrapper !== null) {
+                return;
+            }
+
+            if (!$child instanceof \DOMElement) {
+                return;
+            }
+
+            if (\strtolower($child->tagName) !== 'p') {
+                return;
+            }
+
+            $wrapper = $child;
+        }
+
+        if (!$wrapper instanceof \DOMElement || $wrapper->parentNode === null) {
+            return;
+        }
+
+        $replacement = $this->document->createElement('simpleHtmlDomP');
+
+        while ($wrapper->firstChild !== null) {
+            $replacement->appendChild($wrapper->firstChild);
+        }
+
+        $wrapper->parentNode->replaceChild($replacement, $wrapper);
     }
 
     /**

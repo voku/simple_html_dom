@@ -174,6 +174,66 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
         static::assertSame($html, $element->outertext);
     }
 
+    public function testUppercaseParagraphTagIsNotTreatedAsSyntheticWrapper()
+    {
+        $html = '<html><body><P>hello</P></body></html>';
+
+        $document = new HtmlDomParser($html);
+
+        static::assertSame($html, $document->outerhtml);
+    }
+
+    public function testUppercaseParagraphTagWithAttributesIsNotTreatedAsSyntheticWrapper()
+    {
+        $html = '<html><body><P class="x">hello</P></body></html>';
+
+        $document = new HtmlDomParser($html);
+
+        static::assertSame($html, $document->outerhtml);
+    }
+
+    public function testDuplicateUppercaseParagraphTagsAreNotTreatedAsSyntheticWrapper()
+    {
+        $html = '<html><body><P>one</P><P>two</P></body></html>';
+
+        $document = new HtmlDomParser($html);
+
+        static::assertSame($html, $document->outerhtml);
+    }
+
+    public function testUppercaseParagraphTagWithDifferentStartTagSiblingIsNotTreatedAsSyntheticWrapper()
+    {
+        $html = '<html><body><P>one</P><div>two</div></body></html>';
+
+        $document = new HtmlDomParser($html);
+
+        static::assertSame($html, $document->outerhtml);
+    }
+
+    public function testUppercaseParagraphTagWithSourceVoidElementKeepsParagraphWrapper()
+    {
+        $html = '<html><body><P>one<source src="a.mp4"></P></body></html>';
+
+        $document = new HtmlDomParser($html);
+
+        $match = \preg_match('~^<html><body><p>one<source src="a\.mp4"></p></body></html>$~i', $document->outerhtml);
+
+        static::assertNotFalse($match);
+        static::assertSame(1, $match);
+    }
+
+    public function testUppercaseParagraphTagWithWbrVoidElementKeepsParagraphWrapper()
+    {
+        $html = '<html><body><P>one<wbr>two</P></body></html>';
+
+        $document = new HtmlDomParser($html);
+
+        $match = \preg_match('~^<html><body><p>one<wbr>two</p></body></html>$~i', $document->outerhtml);
+
+        static::assertNotFalse($match);
+        static::assertSame(1, $match);
+    }
+
     public function testHrefReplacing()
     {
         $origUrl = 'https://test.com?param1=1&param2=2';
@@ -1840,6 +1900,36 @@ ___;
             '2188',
             \preg_replace('/.*<\/em>/ius', '', $innerHtml->innerHtml())
         );
+    }
+
+    public function testBladeForDirectiveWithLessThanOrEqualsRoundTrips()
+    {
+        $html = <<<'HTML'
+@for ($i = 2; $i <= 6; $i++)
+<div>添付 {{ $i }}</div>
+@endfor
+HTML;
+
+        $dom = HtmlDomParser::str_get_html($html);
+
+        static::assertSame($html, $dom->html());
+    }
+
+    public function testBladeBlocksWrappingHtmlRoundTrip()
+    {
+        $html = <<<'HTML'
+@foreach ($company->members as $m)
+@if ($m->checkbox)
+<span>{{ $m->checkbox }}</span>
+@else
+<span>{{ $m->name }}</span>
+@endif
+@endforeach
+HTML;
+
+        $dom = HtmlDomParser::str_get_html($html);
+
+        static::assertSame($html, $dom->html());
     }
 
     public function testUtf8AndBrokenHtmlEncoding()
