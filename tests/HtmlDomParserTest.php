@@ -192,6 +192,48 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
         static::assertSame($html, $document->outerhtml);
     }
 
+    public function testDuplicateUppercaseParagraphTagsAreNotTreatedAsSyntheticWrapper()
+    {
+        $html = '<html><body><P>one</P><P>two</P></body></html>';
+
+        $document = new HtmlDomParser($html);
+
+        static::assertSame($html, $document->outerhtml);
+    }
+
+    public function testUppercaseParagraphTagWithDifferentStartTagSiblingIsNotTreatedAsSyntheticWrapper()
+    {
+        $html = '<html><body><P>one</P><div>two</div></body></html>';
+
+        $document = new HtmlDomParser($html);
+
+        static::assertSame($html, $document->outerhtml);
+    }
+
+    public function testUppercaseParagraphTagWithSourceVoidElementKeepsParagraphWrapper()
+    {
+        $html = '<html><body><P>one<source src="a.mp4"></P></body></html>';
+
+        $document = new HtmlDomParser($html);
+
+        static::assertMatchesRegularExpression(
+            '~^<html><body><p>one<source src="a\.mp4"></p></body></html>$~i',
+            $document->outerhtml
+        );
+    }
+
+    public function testUppercaseParagraphTagWithWbrVoidElementKeepsParagraphWrapper()
+    {
+        $html = '<html><body><P>one<wbr>two</P></body></html>';
+
+        $document = new HtmlDomParser($html);
+
+        static::assertMatchesRegularExpression(
+            '~^<html><body><p>one<wbr>two</p></body></html>$~i',
+            $document->outerhtml
+        );
+    }
+
     public function testHrefReplacing()
     {
         $origUrl = 'https://test.com?param1=1&param2=2';

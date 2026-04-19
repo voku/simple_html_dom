@@ -268,6 +268,50 @@ final class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
         static::assertSame('foobar', $document->plaintext);
     }
 
+    public function paragraphReplacementVariantProvider()
+    {
+        return [
+            [
+                '<p>foo</p><p>bar</p>',
+                '<div><p>foo</p><p>bar</p></div>',
+                'foobar',
+            ],
+            [
+                '<p>foo<source src="a.mp4"></p>',
+                '<div><p>foo<source src="a.mp4"></p></div>',
+                'foo',
+            ],
+            [
+                '<p>foo<wbr>bar</p>',
+                '<div><p>foo<wbr>bar</p></div>',
+                'foobar',
+            ],
+            [
+                '<P>foo</P><P>bar</P>',
+                '<div><P>foo</P><P>bar</P></div>',
+                'foobar',
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider paragraphReplacementVariantProvider
+     *
+     * @param string $replace
+     * @param string $expectedHtml
+     * @param string $expectedText
+     */
+    public function testReplaceNodeWithParagraphWrapperVariants($replace, $expectedHtml, $expectedText)
+    {
+        $document = new HtmlDomParser('<div><span>x</span></div>');
+        $element = $document->findOne('span');
+
+        $element->outerhtml = $replace;
+
+        static::assertSame($expectedHtml, $document->outertext);
+        static::assertSame($expectedText, $document->plaintext);
+    }
+
     public function testGetDom()
     {
         $html = '<div><p>foo</p></div>';
