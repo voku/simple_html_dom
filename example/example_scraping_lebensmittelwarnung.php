@@ -16,9 +16,9 @@ function scraping_lebensmittelwarnung($url)
         $title = $item->getElementByTagName('title')->text();
 
         $return[$title]['Produkt'] = $title;
-        $return[$title]['DatumTime'] = date('Y-m-d H:m:s', strtotime($item->getElementByTagName('pubDate')->text()));
+        $return[$title]['DatumTime'] = date('Y-m-d H:i:s', strtotime($item->getElementByTagName('pubDate')->text()));
         $return[$title]['Link'] = $item->getElementByTagName('link')->text();
-        $return[$title]['Beschreibung'] = nl2br($item->getElementByTagName('description')->text());
+        $return[$title]['Beschreibung'] = nl2br(trim($item->getElementByTagName('description')->text()));
 
         if (strpos($return[$title]['Beschreibung'], 'Gefahr') !== false) {
             $return[$title]['Gefahr'] = '!!!!!!!!!!!!!!!';
