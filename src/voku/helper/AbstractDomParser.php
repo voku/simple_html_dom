@@ -411,7 +411,6 @@ abstract class AbstractDomParser implements DomParserInterface
                 continue;
             }
 
-            /** @noinspection UnusedFunctionResultInspection */
             $node->setAttribute('href', 'javascript:void(0);');
         }
 
