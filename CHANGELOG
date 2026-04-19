@@ -1,50 +1,163 @@
-[PHP Simple HTML Dom v4.8.x]
-0: refactor -> findOne() -> will now return always an "Blank" object if no element was found
-1: "SimpleXmlDomNodeInterface" -> fix phpdocs only
-2: "*NodeBlank" -> fix return type from "findOne()"
-3: "innerhtmlKeep" -> added for modifying html without loosing html-hacks for e.g. svg elements
-4: "HtmlDomHelper" -> added "mergeHtmlAttributes()"
-5: "HtmlDomParser" -> hack for multiple root elements
-6: "AbstractSimpleHtmlDom" -> PHP 8.1 -> try to fix php type errors
-7: "XmlDomParser" -> added workaround for DTD requests
-8: "Replace deprecated string interpolation usage" thanks @flavioheleno [Flávio Heleno]
-9: "Adding 'id' to DOMNodes with type string." thanks @devteam-emroc [Dev Team - emroc GmbH]
-   "Add symfony 7 support" thanks @GerB
-   "Fix error in parent() method if no parent node" thanks @DieterHolvoet [Dieter Holvoet]
-   "Add text/template type" thanks @all9lives [Jeremy Brennan]
-   "fix: Cannot assign null to property DOMNode::* of type string" thanks @frugan-dev [Frugan]
-10: "fix: HtmlDomHelper::mergeHtmlAttributes() with zero values"
+[PHP Simple HTML Dom v4.8.11 / upcoming]
+1: BREAKING: require PHP >= 7.1.0 and drop PHP 7.0 support
+2: supported / tested PHP versions now cover PHP 7.1 - 8.4
+3: update runtime selector support to "symfony/css-selector": ~3.0 || ~4.0 || ~5.0 || ~6.0 || ~7.0 || ~8.0
+4: update dev / CI tooling for newer runtimes, including PHPUnit 8 support, modern phpunit.xml coverage config, and refreshed GitHub Actions / Travis matrices
+5: "SelectorConverter" -> add support for leading combinators (>, +, ~) and compound text / comment selectors, and improve selector cache / validation handling
+6: "HtmlDomParser" / "AbstractDomParser" -> replace invalid helper placeholder element names and fix PHP < 8 node-backed serialization / libxml newline issues, including script placeholder handling
+7: "HtmlDomParser" -> improve plaintext extraction (exclude style-comment content, simplify XPath handling, use array + implode())
+8: add "remove()" + null-returning query helpers ("findOneOrNull()" / "findMultiOrNull()") and fix nested / blank helper behavior
+9: fix nested XPath scoping, nested delete / serialization edge cases, paragraph wrapper handling, and empty SVG data uris inside style tags
+10: add broader regression coverage for Blade directives / conditionals, XML / RSS parsing, selector edge cases, serialization, PHPUnit 8 assertions, and PHP 8.5-safe reflection usage
+11: add helper for Excel table hash-link export and simplify export usage to "findMulti() + setAttribute()"
+12: fix -> preserve attributes and support nested node renames in "SimpleHtmlDom" / "SimpleXmlDom"
 
-[PHP Simple HTML Dom v4.7.x]
+[PHP Simple HTML Dom v4.8.10]
+1: fix -> "HtmlDomHelper::mergeHtmlAttributes()" with zero values
+
+[PHP Simple HTML Dom v4.8.9]
+1: add support for "symfony/css-selector": ~7.0
+2: fix -> error in "parent()" if no parent node exists
+3: add "id" to DOM nodes with type string
+4: fix -> cannot assign null to typed string properties on DOMNode-derived objects
+
+[PHP Simple HTML Dom v4.8.8]
+1: replace deprecated string interpolation usage
+
+[PHP Simple HTML Dom v4.8.7]
+1: "XmlDomParser" -> add workaround for DTD-backed XML requests
+
+[PHP Simple HTML Dom v4.8.6]
+1: "AbstractSimpleHtmlDom" -> PHP 8.1 compatibility fixes for typed DOM properties
+2: refresh CI configuration for newer PHP runtimes
+
+[PHP Simple HTML Dom v4.8.5]
+1: "HtmlDomParser" -> add hack for multiple root elements
+
+[PHP Simple HTML Dom v4.8.4]
+1: add "HtmlDomHelper::mergeHtmlAttributes()"
+
+[PHP Simple HTML Dom v4.8.3]
+1: fix issue #81
+2: clean up "normalizeStringForComparison()"
+
+[PHP Simple HTML Dom v4.8.2]
+1: "*NodeBlank" -> fix return type from "findOne()"
+
+[PHP Simple HTML Dom v4.8.1]
+1: "SimpleXmlDomNodeInterface" -> phpdoc fixes only
+
+[PHP Simple HTML Dom v4.8.0]
+1: refactor "findOneOrBlank()" into "findOne()"
+2: "findOne()" will now always return a blank object if no element was found
+
+[PHP Simple HTML Dom v4.7.31]
+1: add "SimpleHtmlDom->delete()"
+2: add "SimpleHtmlDom->getTag()" and "removeAttributes()"
+3: add support for "symfony/css-selector": ~6.0
+
+[PHP Simple HTML Dom v4.7.30]
+1: add "previousNonWhitespaceSibling()"
+2: improve "XmlDomParser" selector handling
+3: phpstan / phpdoc fixes
+
+[PHP Simple HTML Dom v4.7.29]
+1: use GitHub Actions
+2: improve XML parser and memory-test coverage
+
+[PHP Simple HTML Dom v4.7.28]
+1: allow CSS and xPath syntax for "XmlDomParser"
+
+[PHP Simple HTML Dom v4.7.27]
+1: "XmlDomParser" -> add option for "auto-remove-xpath-namespace"
+
+[PHP Simple HTML Dom v4.7.26]
+1: fix "setAttribute()" for e.g. URLs
+2: continue "XmlDomParser" namespace-removal work
+
+[PHP Simple HTML Dom v4.7.25]
+1: add support for PHP 8
+2: update to PHPUnit 9
+
+[PHP Simple HTML Dom v4.7.24]
+1: "SimpleHtmlDom" -> normalize the html after replacing the node
+
+[PHP Simple HTML Dom v4.7.23]
+1: fix invalid html by removing content before "<!doctype.*>" and trying to repair broken html
+
+[PHP Simple HTML Dom v4.7.22]
+1: more fixes for invalid html input handling
+
+[PHP Simple HTML Dom v4.7.21]
+1: fix internal invalid self-closing tags (e.g. <wbr>)
+
+[PHP Simple HTML Dom v4.7.20]
+1: additional fixes for invalid html input
+
+[PHP Simple HTML Dom v4.7.19]
+1: fix invalid html output
+
+[PHP Simple HTML Dom v4.7.18]
+1: add support for different special script-tags
+2: small optimizations and phpstan-related fixes
+
+[PHP Simple HTML Dom v4.7.17]
+1: add missing "count()" support on node interfaces to improve tooling support
+
+[PHP Simple HTML Dom v4.7.16]
+1: add support for "text/x-handlebars-template"
+
+[PHP Simple HTML Dom v4.7.15]
+1: add "HtmlDomParser->overwriteTemplateLogicSyntaxInSpecialScriptTags()"
+
+[PHP Simple HTML Dom v4.7.14]
+1: keep html comments, including comments at the beginning of the html input
+
+[PHP Simple HTML Dom v4.7.13]
+1: "val()" will now support hidden fields
+
+[PHP Simple HTML Dom v4.7.12]
+1: fix bugs reported by phpstan
+2: expand the test suite
+
+[PHP Simple HTML Dom v4.7.11]
+1: fix "save()" so it uses "html()" instead of "innerHtml()"
+
+[PHP Simple HTML Dom v4.7.10]
+1: add support for "symfony/css-selector": ~5.0
+2: phpdoc improvements
+
+[PHP Simple HTML Dom v4.7.9]
+1: fix append / prepend element handling (#40)
+2: phpstan cleanup
+
+[PHP Simple HTML Dom v4.7.8]
+1: add "nextNonWhitespaceSibling()"
+
+[PHP Simple HTML Dom v4.7.7]
+1: improve replacement handling for lower and uppercase values
+
+[PHP Simple HTML Dom v4.7.6]
+1: add more examples
+
+[PHP Simple HTML Dom v4.7.5]
+1: fix "replaceChildWithString()"
+
+[PHP Simple HTML Dom v4.7.4]
+1: "HtmlDomParser" -> fix "createDOMDocument()"
+
+[PHP Simple HTML Dom v4.7.3]
+1: add "isDOMDocumentCreatedWithoutPTagWrapper" and test coverage
+
+[PHP Simple HTML Dom v4.7.2]
+1: merge improvements from "ivopetkov/html5-dom-document-php"
+2: improve DOM length / classList compatibility
+
+[PHP Simple HTML Dom v4.7.1]
+1: fix usage of special JavaScript template tags in the DOM
+
+[PHP Simple HTML Dom v4.7.0]
 1: add "findMultiOrFalse()" + "findOneOrFalse()"
-2: fix -> usage of e.g. "textContent"
-3: fix -> usage of special js template tags in the dom
-4: merge improvements from "ivopetkov/html5-dom-document-php -> length attribute
-5: merge improvements from "ivopetkov/html5-dom-document-php -> classList support
-6: add "nextNonWhitespaceSibling()"
-7: fix -> usage of "outerhtml"
-8: add support for "symfony/css-selector": ~5.0
-9: fix -> "save()" -> will use html() insteadof of innerHtml() now
-13: fix -> "val()" -> will now support hidden fields
-14: fix -> keep html comments, also at the beginning of the html input
-15: add "HtmlDomParser->overwriteTemplateLogicSyntaxInSpecialScriptTags()"
-16: add support for "text/x-handlebars-template"
-17: fix -> problem with auto-completion in e.g. PhpStorm
-18: small optimizations + fix phpstan reported errors
-19: add support for different special script-tags
-20: fix -> invalid html (move html that is after "</html>" before "</html>")
-21: fix -> internal invalid self-closing tags (e.g. <wbr>)
-22: fix -> invalid html (remove content before "<!doctype.*>")
-23: fix -> invalid html (remove content before "<!doctype.*>") + try to repair broken html
-24: fix -> normalize the html after replacing the node
-25: add support for PHP 8
-26: fix -> fix "setAttribute()" -> for e.g. urls
-27: fix -> "XmlDomParser" -> add option for "auto-remove-xpath-namespace"
-28: fix -> allow CSS and xPath syntax for XmlDomParser
-29: use github actions
-30: add "previousNonWhitespaceSibling()"
-31: add "SimpleHtmlDom->delete()" & "SimpleHtmlDom->getTag()" thanks @marioquartz
-    add support for "symfony/css-selector": ~6.0 thanks @dora38
 
 [PHP Simple HTML Dom v4.6.x]
 1: add an XmlDomParser Class + simple tests
