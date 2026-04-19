@@ -71,11 +71,14 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
             return $this->queryHtmlDomParser->findInNodeContext($selector, $this->node, $idx);
         }
 
-        $xPathQuery = HtmlDomParser::scopeXPathQueryToContextNode(SelectorConverter::toXPath($selector));
-        $xPath = new \DOMXPath($document);
-        $nodesList = $xPath->query($xPathQuery, $this->node);
-
-        return $this->createFindResultFromNodeList($nodesList, $idx);
+        return HtmlDomParser::findInDocumentContext(
+            $selector,
+            $document,
+            $this->node,
+            $idx,
+            null,
+            null
+        );
     }
 
     public function getTag(): string

@@ -1091,6 +1091,35 @@ HTML;
         );
     }
 
+    public function testScopeXPathQueryToContextNodeIgnoresQuotedUnionPipes()
+    {
+        $xPathQuery = '//div[@data-marker="body | //footer"]/img | //aside[@data-marker="side | //rail"]/img';
+
+        static::assertSame(
+            './/div[@data-marker="body | //footer"]/img | .//aside[@data-marker="side | //rail"]/img',
+            HtmlDomParser::scopeXPathQueryToContextNode($xPathQuery)
+        );
+    }
+
+    public function testNestedFindCallbackXPathWithQuotedPipeLiteralRemainsScoped()
+    {
+        $html = new HtmlDomParser();
+        $html->setCallbackXPathBeforeQuery(
+            static function (string $cssSelectorString, string $xPathString, \DOMXPath $xPath, \voku\helper\HtmlDomParser $htmlParser) {
+                return $cssSelectorString === 'quoted-pipe-image'
+                    ? '//img[contains("body | //footer", "body")]'
+                    : $xPathString;
+            }
+        );
+        $html->loadHtml(
+            '<html><body><img src="body.jpg"></body><footer><img src="footer.jpg"></footer></html>'
+        );
+
+        $image = $html->findOne('body')->findOne('quoted-pipe-image');
+
+        static::assertSame('body.jpg', $image->getAttribute('src'));
+    }
+
     public function testWithExtraXmlOptions()
     {
         $str = <<<'HTML'

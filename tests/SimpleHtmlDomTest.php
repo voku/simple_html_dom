@@ -124,6 +124,27 @@ final class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
         static::assertSame('1', $v);
     }
 
+    public function testNestedFindOnManualWrapperScopesUnionSelectors()
+    {
+        $document = HtmlDomParser::str_get_html(
+            '<html><body>body<!--body-comment--><img src="body.jpg"></body><footer>footer<!--footer-comment--><img src="footer.jpg"></footer></html>'
+        );
+        $element = new SimpleHtmlDom($document->getDocument()->documentElement);
+
+        $body = $element->findOne('body');
+        $nodes = $body->find('text, comment');
+
+        static::assertCount(2, $nodes);
+        static::assertSame(['body', 'body-comment'], $nodes->text());
+
+        $body->findOne('img')->delete();
+
+        static::assertSame(
+            '<html><body>body<!--body-comment--></body><footer>footer<!--footer-comment--><img src="footer.jpg"></footer></html>',
+            $document->outerHtml()
+        );
+    }
+
     public function testIssue63()
     {
         $dom = (new voku\helper\HtmlDomParser())->loadHtml('<div> foo bar </div>');

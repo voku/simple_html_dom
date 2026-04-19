@@ -562,12 +562,46 @@ class HtmlDomParser extends AbstractDomParser
      */
     public function findInNodeContext(string $selector, ?\DOMNode $contextNode = null, $idx = null)
     {
+        return self::findInDocumentContext(
+            $selector,
+            $this->document,
+            $contextNode,
+            $idx,
+            $this->callbackXPathBeforeQuery,
+            $this
+        );
+    }
+
+    /**
+     * Find list of nodes with a CSS selector within an optional DOMDocument
+     * context, optionally applying the parser callback before the XPath query.
+     *
+     * @param string        $selector
+     * @param \DOMDocument  $document
+     * @param \DOMNode|null $contextNode
+     * @param int|null      $idx
+     * @param callable|null $callbackXPathBeforeQuery
+     * @param self|null     $queryHtmlDomParser
+     *
+     * @return SimpleHtmlDomInterface|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>
+     *
+     * @phpstan-param null|callable(string, string, \DOMXPath, self): string $callbackXPathBeforeQuery
+     */
+    public static function findInDocumentContext(
+        string $selector,
+        \DOMDocument $document,
+        ?\DOMNode $contextNode = null,
+        $idx = null,
+        ?callable $callbackXPathBeforeQuery = null,
+        ?self $queryHtmlDomParser = null
+    )
+    {
         $xPathQuery = SelectorConverter::toXPath($selector);
 
-        $xPath = new \DOMXPath($this->document);
+        $xPath = new \DOMXPath($document);
 
-        if ($this->callbackXPathBeforeQuery) {
-            $xPathQuery = \call_user_func($this->callbackXPathBeforeQuery, $selector, $xPathQuery, $xPath, $this);
+        if ($callbackXPathBeforeQuery !== null && $queryHtmlDomParser !== null) {
+            $xPathQuery = \call_user_func($callbackXPathBeforeQuery, $selector, $xPathQuery, $xPath, $queryHtmlDomParser);
         }
 
         if ($contextNode !== null) {
@@ -576,7 +610,7 @@ class HtmlDomParser extends AbstractDomParser
 
         $nodesList = $xPath->query($xPathQuery, $contextNode);
 
-        return $this->createFindResultFromNodeList($nodesList, $idx);
+        return self::createFindResultFromNodeList($nodesList, $idx, $queryHtmlDomParser);
     }
 
     /**
@@ -589,7 +623,65 @@ class HtmlDomParser extends AbstractDomParser
      */
     public static function scopeXPathQueryToContextNode(string $xPathQuery): string
     {
-        return (string) \preg_replace('#(^|\\|)(\\s*)/#', '$1$2./', $xPathQuery);
+        $scopedXPathQuery = '';
+        $quoteCharacter = null;
+        $bracketDepth = 0;
+        $parenthesisDepth = 0;
+        $isAtBranchStart = true;
+        $length = \strlen($xPathQuery);
+
+        for ($i = 0; $i < $length; ++$i) {
+            $character = $xPathQuery[$i];
+
+            if ($quoteCharacter !== null) {
+                $scopedXPathQuery .= $character;
+
+                if ($character === $quoteCharacter) {
+                    $quoteCharacter = null;
+                }
+
+                continue;
+            }
+
+            if ($character === '"' || $character === "'") {
+                $scopedXPathQuery .= $character;
+                $quoteCharacter = $character;
+
+                continue;
+            }
+
+            if ($isAtBranchStart) {
+                if (\trim($character) === '') {
+                    $scopedXPathQuery .= $character;
+
+                    continue;
+                }
+
+                if ($character === '/') {
+                    $scopedXPathQuery .= '.';
+                }
+
+                $isAtBranchStart = false;
+            }
+
+            if ($character === '[') {
+                ++$bracketDepth;
+            } elseif ($character === ']' && $bracketDepth > 0) {
+                --$bracketDepth;
+            } elseif ($character === '(') {
+                ++$parenthesisDepth;
+            } elseif ($character === ')' && $parenthesisDepth > 0) {
+                --$parenthesisDepth;
+            }
+
+            $scopedXPathQuery .= $character;
+
+            if ($character === '|' && $bracketDepth === 0 && $parenthesisDepth === 0) {
+                $isAtBranchStart = true;
+            }
+        }
+
+        return $scopedXPathQuery;
     }
 
     /**
@@ -598,13 +690,13 @@ class HtmlDomParser extends AbstractDomParser
      *
      * @return SimpleHtmlDomInterface|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>
      */
-    private function createFindResultFromNodeList($nodesList, $idx)
+    private static function createFindResultFromNodeList($nodesList, $idx, ?self $queryHtmlDomParser = null)
     {
         $elements = new SimpleHtmlDomNode();
 
         if ($nodesList) {
             foreach ($nodesList as $node) {
-                $elements[] = new SimpleHtmlDom($node, $this);
+                $elements[] = new SimpleHtmlDom($node, $queryHtmlDomParser);
             }
         }
 
