@@ -9,154 +9,154 @@
 8: add "remove()" + null-returning query helpers ("findOneOrNull()" / "findMultiOrNull()") and fix nested / blank helper behavior
 9: fix nested XPath scoping, nested delete / serialization edge cases, paragraph wrapper handling, and empty SVG data uris inside style tags
 10: add broader regression coverage for Blade directives / conditionals, XML / RSS parsing, selector edge cases, serialization, PHPUnit 8 assertions, and PHP 8.5-safe reflection usage
-11: add helper for Excel table hash-link export and simplify export usage to "findMulti() + setAttribute()"
+11: simplify export usage to "findMulti() + setAttribute()"
 12: fix -> preserve attributes and support nested node renames in "SimpleHtmlDom" / "SimpleXmlDom"
 
-[PHP Simple HTML Dom v4.8.10]
+[PHP Simple HTML Dom v4.8.10 - 2024-07-03]
 1: fix -> "HtmlDomHelper::mergeHtmlAttributes()" with zero values
 
-[PHP Simple HTML Dom v4.8.9]
+[PHP Simple HTML Dom v4.8.9 - 2024-05-25]
 1: add support for "symfony/css-selector": ~7.0
 2: fix -> error in "parent()" if no parent node exists
 3: add "id" to DOM nodes with type string
 4: fix -> cannot assign null to typed string properties on DOMNode-derived objects
 
-[PHP Simple HTML Dom v4.8.8]
+[PHP Simple HTML Dom v4.8.8 - 2023-02-12]
 1: replace deprecated string interpolation usage
 
-[PHP Simple HTML Dom v4.8.7]
+[PHP Simple HTML Dom v4.8.7 - 2022-12-22]
 1: "XmlDomParser" -> add workaround for DTD-backed XML requests
 
-[PHP Simple HTML Dom v4.8.6]
+[PHP Simple HTML Dom v4.8.6 - 2022-06-09]
 1: "AbstractSimpleHtmlDom" -> PHP 8.1 compatibility fixes for typed DOM properties
 2: refresh CI configuration for newer PHP runtimes
 
-[PHP Simple HTML Dom v4.8.5]
+[PHP Simple HTML Dom v4.8.5 - 2022-03-13]
 1: "HtmlDomParser" -> add hack for multiple root elements
 
-[PHP Simple HTML Dom v4.8.4]
+[PHP Simple HTML Dom v4.8.4 - 2022-03-01]
 1: add "HtmlDomHelper::mergeHtmlAttributes()"
 
-[PHP Simple HTML Dom v4.8.3]
+[PHP Simple HTML Dom v4.8.3 - 2022-02-25]
 1: fix issue #81
 2: clean up "normalizeStringForComparison()"
 
-[PHP Simple HTML Dom v4.8.2]
+[PHP Simple HTML Dom v4.8.2 - 2022-02-15]
 1: "*NodeBlank" -> fix return type from "findOne()"
 
-[PHP Simple HTML Dom v4.8.1]
+[PHP Simple HTML Dom v4.8.1 - 2022-02-15]
 1: "SimpleXmlDomNodeInterface" -> phpdoc fixes only
 
-[PHP Simple HTML Dom v4.8.0]
+[PHP Simple HTML Dom v4.8.0 - 2022-01-28]
 1: refactor "findOneOrBlank()" into "findOne()"
 2: "findOne()" will now always return a blank object if no element was found
 
-[PHP Simple HTML Dom v4.7.31]
+[PHP Simple HTML Dom v4.7.31 - 2021-12-15]
 1: add "SimpleHtmlDom->delete()"
 2: add "SimpleHtmlDom->getTag()" and "removeAttributes()"
 3: add support for "symfony/css-selector": ~6.0
 
-[PHP Simple HTML Dom v4.7.30]
+[PHP Simple HTML Dom v4.7.30 - 2021-11-25]
 1: add "previousNonWhitespaceSibling()"
 2: improve "XmlDomParser" selector handling
 3: phpstan / phpdoc fixes
 
-[PHP Simple HTML Dom v4.7.29]
+[PHP Simple HTML Dom v4.7.29 - 2021-03-29]
 1: use GitHub Actions
 2: improve XML parser and memory-test coverage
 
-[PHP Simple HTML Dom v4.7.28]
+[PHP Simple HTML Dom v4.7.28 - 2020-11-18]
 1: allow CSS and xPath syntax for "XmlDomParser"
 
-[PHP Simple HTML Dom v4.7.27]
+[PHP Simple HTML Dom v4.7.27 - 2020-11-16]
 1: "XmlDomParser" -> add option for "auto-remove-xpath-namespace"
 
-[PHP Simple HTML Dom v4.7.26]
+[PHP Simple HTML Dom v4.7.26 - 2020-11-15]
 1: fix "setAttribute()" for e.g. URLs
 2: continue "XmlDomParser" namespace-removal work
 
-[PHP Simple HTML Dom v4.7.25]
+[PHP Simple HTML Dom v4.7.25 - 2020-11-01]
 1: add support for PHP 8
 2: update to PHPUnit 9
 
-[PHP Simple HTML Dom v4.7.24]
+[PHP Simple HTML Dom v4.7.24 - 2020-08-23]
 1: "SimpleHtmlDom" -> normalize the html after replacing the node
 
-[PHP Simple HTML Dom v4.7.23]
+[PHP Simple HTML Dom v4.7.23 - 2020-08-12]
 1: fix invalid html by removing content before "<!doctype.*>" and trying to repair broken html
 
-[PHP Simple HTML Dom v4.7.22]
+[PHP Simple HTML Dom v4.7.22 - 2020-08-11]
 1: more fixes for invalid html input handling
 
-[PHP Simple HTML Dom v4.7.21]
+[PHP Simple HTML Dom v4.7.21 - 2020-08-11]
 1: fix internal invalid self-closing tags (e.g. <wbr>)
 
-[PHP Simple HTML Dom v4.7.20]
+[PHP Simple HTML Dom v4.7.20 - 2020-08-07]
 1: additional fixes for invalid html input
 
-[PHP Simple HTML Dom v4.7.19]
+[PHP Simple HTML Dom v4.7.19 - 2020-08-06]
 1: fix invalid html output
 
-[PHP Simple HTML Dom v4.7.18]
+[PHP Simple HTML Dom v4.7.18 - 2020-08-05]
 1: add support for different special script-tags
 2: small optimizations and phpstan-related fixes
 
-[PHP Simple HTML Dom v4.7.17]
+[PHP Simple HTML Dom v4.7.17 - 2020-04-09]
 1: add missing "count()" support on node interfaces to improve tooling support
 
-[PHP Simple HTML Dom v4.7.16]
+[PHP Simple HTML Dom v4.7.16 - 2020-04-05]
 1: add support for "text/x-handlebars-template"
 
-[PHP Simple HTML Dom v4.7.15]
+[PHP Simple HTML Dom v4.7.15 - 2020-04-05]
 1: add "HtmlDomParser->overwriteTemplateLogicSyntaxInSpecialScriptTags()"
 
-[PHP Simple HTML Dom v4.7.14]
+[PHP Simple HTML Dom v4.7.14 - 2020-04-02]
 1: keep html comments, including comments at the beginning of the html input
 
-[PHP Simple HTML Dom v4.7.13]
+[PHP Simple HTML Dom v4.7.13 - 2020-02-17]
 1: "val()" will now support hidden fields
 
-[PHP Simple HTML Dom v4.7.12]
+[PHP Simple HTML Dom v4.7.12 - 2020-01-22]
 1: fix bugs reported by phpstan
 2: expand the test suite
 
-[PHP Simple HTML Dom v4.7.11]
+[PHP Simple HTML Dom v4.7.11 - 2020-01-10]
 1: fix "save()" so it uses "html()" instead of "innerHtml()"
 
-[PHP Simple HTML Dom v4.7.10]
+[PHP Simple HTML Dom v4.7.10 - 2020-01-08]
 1: add support for "symfony/css-selector": ~5.0
 2: phpdoc improvements
 
-[PHP Simple HTML Dom v4.7.9]
+[PHP Simple HTML Dom v4.7.9 - 2019-12-08]
 1: fix append / prepend element handling (#40)
 2: phpstan cleanup
 
-[PHP Simple HTML Dom v4.7.8]
+[PHP Simple HTML Dom v4.7.8 - 2019-12-03]
 1: add "nextNonWhitespaceSibling()"
 
-[PHP Simple HTML Dom v4.7.7]
+[PHP Simple HTML Dom v4.7.7 - 2019-11-09]
 1: improve replacement handling for lower and uppercase values
 
-[PHP Simple HTML Dom v4.7.6]
+[PHP Simple HTML Dom v4.7.6 - 2019-10-20]
 1: add more examples
 
-[PHP Simple HTML Dom v4.7.5]
+[PHP Simple HTML Dom v4.7.5 - 2019-09-17]
 1: fix "replaceChildWithString()"
 
-[PHP Simple HTML Dom v4.7.4]
+[PHP Simple HTML Dom v4.7.4 - 2019-09-17]
 1: "HtmlDomParser" -> fix "createDOMDocument()"
 
-[PHP Simple HTML Dom v4.7.3]
+[PHP Simple HTML Dom v4.7.3 - 2019-09-13]
 1: add "isDOMDocumentCreatedWithoutPTagWrapper" and test coverage
 
-[PHP Simple HTML Dom v4.7.2]
+[PHP Simple HTML Dom v4.7.2 - 2019-09-13]
 1: merge improvements from "ivopetkov/html5-dom-document-php"
 2: improve DOM length / classList compatibility
 
-[PHP Simple HTML Dom v4.7.1]
+[PHP Simple HTML Dom v4.7.1 - 2019-08-30]
 1: fix usage of special JavaScript template tags in the DOM
 
-[PHP Simple HTML Dom v4.7.0]
+[PHP Simple HTML Dom v4.7.0 - 2019-08-27]
 1: add "findMultiOrFalse()" + "findOneOrFalse()"
 
 [PHP Simple HTML Dom v4.6.x]
