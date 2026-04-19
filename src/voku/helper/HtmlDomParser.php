@@ -377,9 +377,9 @@ class HtmlDomParser extends AbstractDomParser
         }
 
         if (
-            \strpos($html, '<p ') === false
+            \stripos($html, '<p ') === false
             &&
-            \strpos($html, '<p>') === false
+            \stripos($html, '<p>') === false
         ) {
             $this->isDOMDocumentCreatedWithoutPTagWrapper = true;
         }

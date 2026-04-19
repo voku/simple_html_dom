@@ -174,6 +174,24 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
         static::assertSame($html, $element->outertext);
     }
 
+    public function testUppercaseParagraphTagIsNotTreatedAsSyntheticWrapper()
+    {
+        $html = '<html><body><P>hello</P></body></html>';
+
+        $document = new HtmlDomParser($html);
+
+        static::assertSame($html, $document->outerhtml);
+    }
+
+    public function testUppercaseParagraphTagWithAttributesIsNotTreatedAsSyntheticWrapper()
+    {
+        $html = '<html><body><P class="x">hello</P></body></html>';
+
+        $document = new HtmlDomParser($html);
+
+        static::assertSame($html, $document->outerhtml);
+    }
+
     public function testHrefReplacing()
     {
         $origUrl = 'https://test.com?param1=1&param2=2';
