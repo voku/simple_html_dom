@@ -30,4 +30,27 @@ final class SimpleHtmlHelperTest extends TestCase
 
         self::assertSame('<input type="checkbox" class="foo foo2" id="bar" data-foo="bar" data-lall="0" value="0">', $result);
     }
+
+    public function testMergeHtmlAttributesNoopBranches()
+    {
+        self::assertSame(
+            '<div id="bar"></div>',
+            HtmlDomHelper::mergeHtmlAttributes('<div id="bar"></div>', '', '#bar')
+        );
+
+        self::assertSame(
+            '<div id="bar"></div>',
+            HtmlDomHelper::mergeHtmlAttributes('<div id="bar"></div>', 'class="new"', '#missing')
+        );
+
+        self::assertSame(
+            '<div></div>',
+            HtmlDomHelper::mergeHtmlAttributes('<div></div>', 'class="new"', 'div')
+        );
+
+        self::assertSame(
+            '<div id="bar"></div>',
+            HtmlDomHelper::mergeHtmlAttributes('<div id="bar"></div>', ' ', '#bar')
+        );
+    }
 }

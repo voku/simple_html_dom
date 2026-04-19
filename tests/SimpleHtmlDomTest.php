@@ -714,4 +714,99 @@ final class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
         $availabilityHtml = $document->findOne('.woocommerce-variation-availability');
         static::assertSame('<p class="stock in-stock">30 in stock</p>', $availabilityHtml->innerHtml());
     }
+
+    public function testLookupValueHelpersAndRemovedNodeState()
+    {
+        $document = HtmlDomParser::str_get_html(
+            '<form>'
+            . '<input id="plain" value="alpha">'
+            . '<input id="choice" type="radio" value="yes" checked>'
+            . '<textarea id="notes">body</textarea>'
+            . '<select id="picker" checked><option value="one">One</option><option value="two">Two</option></select>'
+            . '<div id="first" class="alpha"><span>child</span></div>'
+            . '<div id="second" class="beta"></div>'
+            . '</form>'
+        );
+        $form = $document->findOne('form');
+
+        $textInput = $form->getElementById('plain');
+        $radio = $form->getElementsById('choice', 0);
+        $textarea = $form->getElementByTagName('textarea');
+        $select = $form->getElementByTagName('select');
+
+        static::assertSame('alpha', $textInput->val());
+        $textInput->val('beta');
+        static::assertSame('beta', $textInput->val());
+
+        static::assertSame('yes', $radio->val());
+        $radio->val('no');
+        static::assertFalse($radio->hasAttribute('checked'));
+        $radio->val('yes');
+        static::assertTrue($radio->hasAttribute('checked'));
+
+        static::assertSame('body', $textarea->val());
+        $textarea->val('changed');
+        static::assertSame('changed', $textarea->text());
+
+        static::assertSame(['one', 'two'], $select->val());
+        $select->val('two');
+        static::assertFalse($select->getElementsByTagName('option', 0)->hasAttribute('selected'));
+        static::assertSame('selected', $select->getElementsByTagName('option', -1)->getAttribute('selected'));
+
+        static::assertSame(['alpha'], $form->getElementByClass('alpha')->class);
+        static::assertSame('second', $form->getElementsByTagName('div', -1)->getAttribute('id'));
+        static::assertInstanceOf(\voku\helper\SimpleHtmlDomNodeBlank::class, $form->getElementsByTagName('missing'));
+        static::assertInstanceOf(\voku\helper\SimpleHtmlDomBlank::class, $form->getElementsByTagName('missing', 0));
+
+        $corrupted = new SimpleHtmlDom(new \DOMElement('free'));
+        $nodeProperty = new \ReflectionProperty(\voku\helper\AbstractSimpleHtmlDom::class, 'node');
+        $nodeProperty->setValue($corrupted, new \stdClass());
+        static::assertTrue($corrupted->isRemoved());
+
+        $renameDocument = HtmlDomParser::str_get_html('<div><span>child</span></div>');
+        $renameTarget = $renameDocument->findOne('div');
+        $renamer = new class($renameTarget->getNode()) extends SimpleHtmlDom {
+            public function renameNode(\DOMNode $node, string $name)
+            {
+                return $this->changeElementName($node, $name);
+            }
+        };
+
+        $renamed = $renamer->renameNode($renameTarget->getNode(), 'section');
+
+        static::assertInstanceOf(\DOMElement::class, $renamed);
+        static::assertSame('section', $renamed->nodeName);
+        static::assertSame('section', $renameDocument->findOne('section')->tag);
+        static::assertFalse($renamer->renameNode(new \DOMElement('free'), 'section'));
+        static::assertNull((new SimpleHtmlDom(new \DOMElement('free')))->parentNode());
+    }
+
+    public function testProtectedRenamePreservesAttributesAndSupportsNestedNodes()
+    {
+        $document = HtmlDomParser::str_get_html(
+            '<div id="first" class="alpha"><span data-role="x">child</span></div>'
+        );
+        $target = $document->findOne('div');
+        $renamer = new class($target->getNode()) extends SimpleHtmlDom {
+            public function renameNode(\DOMNode $node, string $name)
+            {
+                return $this->changeElementName($node, $name);
+            }
+        };
+
+        $renamer->renameNode($target->getNode(), 'section');
+
+        $section = $document->findOne('section');
+        static::assertSame('first', $section->getAttribute('id'));
+        static::assertSame('alpha', $section->getAttribute('class'));
+        static::assertSame('child', $section->findOne('span')->text());
+
+        $nestedNode = $document->getDocument()->getElementsByTagName('span')->item(0);
+        static::assertInstanceOf(\DOMNode::class, $nestedNode);
+        $renamer->renameNode($nestedNode, 'strong');
+
+        $strong = $document->findOne('strong');
+        static::assertSame('x', $strong->getAttribute('data-role'));
+        static::assertSame('child', $strong->text());
+    }
 }

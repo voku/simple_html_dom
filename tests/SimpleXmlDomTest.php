@@ -1,5 +1,6 @@
 <?php
 
+use voku\helper\SimpleXmlDom;
 use voku\helper\SimpleXmlDomBlank;
 use voku\helper\SimpleXmlDomNodeBlank;
 use voku\helper\XmlDomParser;
@@ -141,5 +142,128 @@ final class SimpleXmlDomTest extends \PHPUnit\Framework\TestCase
         static::assertNull($missingList->findMultiOrNull('missing'));
         static::assertFalse($missingList->findOneOrFalse('missing'));
         static::assertFalse($missingList->findMultiOrFalse('missing'));
+    }
+
+    public function testSimpleXmlDomValueHelpersAndLookupAliases()
+    {
+        $xml = XmlDomParser::str_get_xml(
+            '<root>'
+            . '<input id="plain" type="text" value="alpha"/>'
+            . '<input id="choice" type="radio" value="yes" checked="checked"/>'
+            . '<textarea id="notes">body</textarea>'
+            . '<select id="picker" checked="checked"><option value="one"/><option value="two"/></select>'
+            . '<item id="first" class="alpha"><title>First</title></item>'
+            . '<item id="second" class="beta"><title>Second</title></item>'
+            . '</root>'
+        );
+
+        $textInput = $xml->getElementById('plain');
+        $radio = $xml->getElementsById('choice', 0);
+        $textarea = $xml->getElementByTagName('textarea');
+        $select = $xml->getElementByTagName('select');
+
+        static::assertSame('alpha', $textInput->val());
+        $textInput->val('beta');
+        static::assertSame('beta', $textInput->val());
+
+        static::assertSame('yes', $radio->val());
+        $radio->val('no');
+        static::assertFalse($radio->hasAttribute('checked'));
+        $radio->val('yes');
+        static::assertTrue($radio->hasAttribute('checked'));
+
+        static::assertSame('body', $textarea->val());
+        $textarea->val('changed');
+        static::assertSame('changed', $textarea->text());
+
+        static::assertSame(['one', 'two'], $select->val());
+        $select->val('two');
+        static::assertFalse($select->getElementsByTagName('option', 0)->hasAttribute('selected'));
+        static::assertSame('selected', $select->getElementsByTagName('option', -1)->getAttribute('selected'));
+
+        static::assertStringContainsString('<option value="one"></option>', $select->innerHtml());
+        static::assertStringContainsString('<option value="two" selected', $select->innerHtml());
+        static::assertStringContainsString('<select id="picker" checked="checked">', $select->xml());
+        static::assertStringContainsString('<option value="two" selected="selected"></option>', $select->xml());
+        static::assertSame(['alpha'], $xml->getElementByClass('alpha')->class);
+        static::assertSame('second', $xml->getElementsByTagName('item', -1)->getAttribute('id'));
+        static::assertInstanceOf(SimpleXmlDomNodeBlank::class, $xml->getElementsByTagName('missing'));
+        static::assertInstanceOf(SimpleXmlDomNodeBlank::class, $xml->getElementsByTagName('missing', 0));
+
+        $textNode = new SimpleXmlDom($xml->getDocument()->createTextNode('loose'));
+        static::assertNull($textNode->getAllAttributes());
+        static::assertFalse($textNode->hasAttribute('id'));
+        static::assertSame('', $textNode->getAttribute('id'));
+    }
+
+    public function testSimpleXmlDomCollectionConvenienceMethodsAndProtectedRename()
+    {
+        $xml = XmlDomParser::str_get_xml(
+            '<root><item id="first"><title>First</title></item><item id="second"><title>Second</title></item></root>'
+        );
+        $items = $xml->getElementsByTagName('item');
+        $titles = $items('title');
+
+        static::assertCount(2, $titles);
+        static::assertSame('', (string) $titles);
+        static::assertSame(['', ''], $titles->innerHtml());
+        static::assertSame(['', ''], $titles->innertext());
+        static::assertSame(['', ''], $titles->outertext());
+        static::assertSame('First', $items->findOne('title')->text());
+        static::assertFalse($items->findOneOrFalse('missing'));
+        static::assertFalse($items->findMultiOrFalse('missing'));
+        static::assertInstanceOf(SimpleXmlDomNodeBlank::class, $items->findMulti('missing'));
+
+        $renameXml = XmlDomParser::str_get_xml('<item><title>First</title></item>');
+        $renameTarget = $renameXml->findOne('item');
+        $renamer = new class($renameTarget->getNode()) extends SimpleXmlDom {
+            public function renameNode(\DOMNode $node, string $name)
+            {
+                return $this->changeElementName($node, $name);
+            }
+        };
+
+        $renamed = $renamer->renameNode($renameTarget->getNode(), 'entry');
+
+        static::assertInstanceOf(\DOMElement::class, $renamed);
+        static::assertSame('entry', $renamed->nodeName);
+        static::assertSame('entry', $renameXml->findOne('entry')->tag);
+        static::assertFalse($renamer->renameNode(new \DOMElement('free'), 'entry'));
+    }
+
+    public function testSimpleXmlDomUnknownMethodThrows()
+    {
+        $this->expectException(\BadMethodCallException::class);
+
+        XmlDomParser::str_get_xml('<root><item/></root>')->findOne('item')->unknown_method();
+    }
+
+    public function testProtectedRenamePreservesAttributesAndSupportsNestedNodes()
+    {
+        $xml = XmlDomParser::str_get_xml(
+            '<item id="first" class="alpha"><title code="x">First</title></item>'
+        );
+        $target = $xml->findOne('item');
+        $renamer = new class($target->getNode()) extends SimpleXmlDom {
+            public function renameNode(\DOMNode $node, string $name)
+            {
+                return $this->changeElementName($node, $name);
+            }
+        };
+
+        $renamer->renameNode($target->getNode(), 'entry');
+
+        $entry = $xml->findOne('entry');
+        static::assertSame('first', $entry->getAttribute('id'));
+        static::assertSame('alpha', $entry->getAttribute('class'));
+        static::assertSame('First', $entry->findOne('title')->text());
+
+        $nestedNode = $xml->getDocument()->getElementsByTagName('title')->item(0);
+        static::assertInstanceOf(\DOMNode::class, $nestedNode);
+        $renamer->renameNode($nestedNode, 'headline');
+
+        $headline = $xml->findOne('headline');
+        static::assertSame('x', $headline->getAttribute('code'));
+        static::assertSame('First', $headline->text());
     }
 }

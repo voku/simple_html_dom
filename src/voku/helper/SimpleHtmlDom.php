@@ -436,14 +436,14 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
             $newNode->appendChild($child);
         }
 
-        foreach ($node->attributes ?? [] as $attrName => $attrNode) {
+        foreach ($node->attributes ?? [] as $attrNode) {
             /** @noinspection UnusedFunctionResultInspection */
-            $newNode->setAttribute($attrName, $attrNode);
+            $newNode->setAttribute($attrNode->nodeName, $attrNode->value);
         }
 
-        if ($newNode->ownerDocument) {
+        if ($node->parentNode) {
             /** @noinspection UnusedFunctionResultInspection */
-            $newNode->ownerDocument->replaceChild($newNode, $node);
+            $node->parentNode->replaceChild($newNode, $node);
         }
 
         return $newNode;

@@ -151,4 +151,21 @@ final class SimpleHtmlDomNodeTest extends \PHPUnit\Framework\TestCase
         static::assertSame('foo', $element->text());
         static::assertSame('foo', $element->plaintext);
     }
+
+    public function testCollectionHelperAliasesAndMissingResults()
+    {
+        $document = new HtmlDomParser('<section><article><h2>A</h2></article><article><h2>B</h2></article></section>');
+        $sections = $document->find('section');
+        $titles = $sections->findMulti('h2');
+
+        static::assertSame(['A', 'B'], $titles->text());
+        static::assertSame(['<h2>A</h2>', '<h2>B</h2>'], $titles->innertext());
+        static::assertSame(['<h2>A</h2>', '<h2>B</h2>'], $titles->outertext());
+        static::assertSame('B', $sections->find('h2', -1)->text());
+        static::assertSame('A', $sections->findOne('h2')->text());
+        static::assertFalse($sections->findOneOrFalse('h3'));
+        static::assertFalse($sections->findMultiOrFalse('h3'));
+        static::assertInstanceOf(\voku\helper\SimpleHtmlDomNodeBlank::class, $sections->findOne('h3'));
+        static::assertInstanceOf(\voku\helper\SimpleHtmlDomNodeBlank::class, $sections->findMulti('h3'));
+    }
 }

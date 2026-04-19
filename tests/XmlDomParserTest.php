@@ -7,6 +7,86 @@ use voku\helper\XmlDomParser;
  */
 final class XmlDomParserTest extends \PHPUnit\Framework\TestCase
 {
+    public function testXmlParserLoadersMagicAccessorsAndLookupHelpers()
+    {
+        $xmlFixture = __DIR__ . '/fixtures/test_xml.xml';
+
+        $parser = new XmlDomParser();
+        $parser->loadXmlFile($xmlFixture);
+
+        static::assertStringContainsString('UNOB', $parser->plaintext);
+        static::assertStringContainsString('<S_UNB>', $parser->innerHtml());
+        static::assertStringContainsString('<S_UNB>', $parser->innerXml());
+
+        $lookupParser = XmlDomParser::str_get_xml(
+            '<root><item id="foobar" class="box"><span class="itemprop">content</span></item></root>'
+        );
+
+        static::assertSame('box', $lookupParser->getElementById('foobar')->class);
+        static::assertSame('box', $lookupParser->getElementByClass('box')[0]->class);
+        static::assertSame('span', $lookupParser->getElementByTagName('span')->tag);
+        static::assertSame('foobar', $lookupParser->getElementsById('foobar', 0)->id);
+        static::assertSame('itemprop', $lookupParser->getElementsByTagName('span', -1)->getAttribute('class'));
+        static::assertInstanceOf(\voku\helper\SimpleXmlDomBlank::class, $lookupParser->getElementByTagName('missing'));
+        static::assertInstanceOf(\voku\helper\SimpleXmlDomNodeBlank::class, $lookupParser->getElementsByTagName('missing'));
+        static::assertInstanceOf(\voku\helper\SimpleXmlDomNodeBlank::class, $lookupParser->getElementsByTagName('missing', 0));
+        static::assertSame('foobar', $lookupParser('#foobar', 0)->id);
+
+        $tmpHtmlFile = \tempnam(\sys_get_temp_dir(), 'simple_html_dom_xml_html_');
+        \assert($tmpHtmlFile !== false);
+        \file_put_contents($tmpHtmlFile, '<root><item id="from-file" class="beta">loaded</item></root>');
+
+        try {
+            $htmlParser = new XmlDomParser();
+            $htmlParser->loadHtmlFile($tmpHtmlFile);
+
+            static::assertSame('loaded', $htmlParser->getElementById('from-file')->text());
+        } finally {
+            @\unlink($tmpHtmlFile);
+        }
+    }
+
+    public function testXmlParserNamespaceAutoRegistrationAndFailurePaths()
+    {
+        $xml = <<<'XML'
+<root xmlns:chap="http://example.org/chapter-title">
+    <chapter id="1" class="chapter">
+        <chap:title>Registered</chap:title>
+    </chapter>
+</root>
+XML;
+
+        $parser = (new XmlDomParser())
+            ->autoRegisterXPathNamespaces()
+            ->loadXml($xml);
+
+        static::assertSame('Registered', $parser->findOne('//chap:title')->text());
+        static::assertFalse($parser->findOneOrFalse('//chap:missing'));
+
+        $missingPath = __DIR__ . '/fixtures/does-not-exist.xml';
+
+        try {
+            (new XmlDomParser())->loadXmlFile($missingPath);
+            static::fail('Expected missing XML fixture to throw.');
+        } catch (\RuntimeException $exception) {
+            static::assertStringContainsString('not found', $exception->getMessage());
+        }
+
+        try {
+            (new XmlDomParser())->loadHtmlFile($missingPath);
+            static::fail('Expected missing HTML fixture to throw.');
+        } catch (\RuntimeException $exception) {
+            static::assertStringContainsString('not found', $exception->getMessage());
+        }
+    }
+
+    public function testXmlParserInvalidStaticMethodThrows()
+    {
+        $this->expectException(\BadMethodCallException::class);
+
+        XmlDomParser::unsupported_static_method('<root/>');
+    }
+
     public function testXml()
     {
         $filename = __DIR__ . '/fixtures/test_xml.xml';

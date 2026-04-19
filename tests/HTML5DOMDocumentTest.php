@@ -709,7 +709,6 @@ final class HTML5DOMDocumentTest extends PHPUnit\Framework\TestCase
     public function testInternalWrapperHelperNameIsNotHyphenated()
     {
         $reflection = new \ReflectionProperty(\voku\helper\AbstractDomParser::class, 'domHtmlWrapperHelper');
-        $reflection->setAccessible(true);
 
         static::assertSame('simplevokuwrapper', $reflection->getValue());
         static::assertStringNotContainsString('-', $reflection->getValue());
