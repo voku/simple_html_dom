@@ -2006,6 +2006,8 @@ HTML;
         @endfor
     </span>
 @else
+    <span class="no-state"></span>
+@endif
 HTML;
 
         $dom = HtmlDomParser::str_get_html($html);
