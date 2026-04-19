@@ -594,8 +594,7 @@ class HtmlDomParser extends AbstractDomParser
         $idx = null,
         ?callable $callbackXPathBeforeQuery = null,
         ?self $queryHtmlDomParser = null
-    )
-    {
+    ) {
         $xPathQuery = SelectorConverter::toXPath($selector);
 
         $xPath = new \DOMXPath($document);
