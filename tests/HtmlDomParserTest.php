@@ -251,6 +251,21 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
         );
     }
 
+    public function testReplaceHashLinksInTableCellsForExcelExport()
+    {
+        $document = HtmlDomParser::str_get_html(
+            '<table><tr><td><a href="#">in-td</a></td><th><a href="#">in-th</a></th></tr></table><a href="#">outside</a>'
+        );
+
+        $returnedDocument = $document->replaceHashLinksInTableCellsForExcelExport();
+
+        static::assertSame($document, $returnedDocument);
+        static::assertSame(
+            '<table><tr><td><a href="javascript:void(0);">in-td</a></td><th><a href="javascript:void(0);">in-th</a></th></tr></table><a href="#">outside</a>',
+            $document->html()
+        );
+    }
+
     public function testWebComponent()
     {
         $html = '<button is="shopping-cart">Add to cart</button>';

@@ -396,6 +396,29 @@ abstract class AbstractDomParser implements DomParserInterface
     }
 
     /**
+     * @return DomParserInterface
+     */
+    public function replaceHashLinksInTableCellsForExcelExport(): DomParserInterface
+    {
+        $xpath = new \DOMXPath($this->document);
+        $nodes = $xpath->query('//td//a[@href="#"] | //th//a[@href="#"]');
+        if ($nodes === false) {
+            return $this;
+        }
+
+        foreach ($nodes as $node) {
+            if (!$node instanceof \DOMElement) {
+                continue;
+            }
+
+            /** @noinspection UnusedFunctionResultInspection */
+            $node->setAttribute('href', 'javascript:void(0);');
+        }
+
+        return $this;
+    }
+
+    /**
      * @param callable $functionName
      *
      * @phpstan-param callable(\voku\helper\XmlDomParser|\voku\helper\HtmlDomParser): void $functionName

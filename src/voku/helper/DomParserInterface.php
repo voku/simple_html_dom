@@ -190,6 +190,13 @@ interface DomParserInterface
     public function save(string $filepath = ''): string;
 
     /**
+     * Replace hash links in table cells with "javascript:void(0);" for Excel-friendly exports.
+     *
+     * @return DomParserInterface
+     */
+    public function replaceHashLinksInTableCellsForExcelExport(): self;
+
+    /**
      * @param callable $functionName
      *
      * @return mixed
