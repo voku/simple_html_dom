@@ -1784,6 +1784,36 @@ ___;
         );
     }
 
+    public function testBladeForDirectiveWithLessThanOrEqualsRoundTrips()
+    {
+        $html = <<<'HTML'
+@for ($i = 2; $i <= 6; $i++)
+<div>添付 {{ $i }}</div>
+@endfor
+HTML;
+
+        $dom = HtmlDomParser::str_get_html($html);
+
+        static::assertSame($html, $dom->html());
+    }
+
+    public function testBladeBlocksWrappingHtmlRoundTrip()
+    {
+        $html = <<<'HTML'
+@foreach ($company->members as $m)
+@if ($m->checkbox)
+<span>{{ $m->checkbox }}</span>
+@else
+<span>{{ $m->name }}</span>
+@endif
+@endforeach
+HTML;
+
+        $dom = HtmlDomParser::str_get_html($html);
+
+        static::assertSame($html, $dom->html());
+    }
+
     public function testUtf8AndBrokenHtmlEncoding()
     {
         $dom = new HtmlDomParser();
