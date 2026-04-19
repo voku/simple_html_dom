@@ -1040,7 +1040,11 @@ class HtmlDomParser extends AbstractDomParser
         } elseif ($this->usesInternalWrapperDocument()) {
             $content = $this->serializeInternalWrapperContent();
         } elseif ($this->createdFromNode) {
-            $content = $this->serializeChildNodes($this->document);
+            if (\PHP_VERSION_ID < 80000) {
+                $content = $this->serializeCreatedFromNodeForPhpLt8();
+            } else {
+                $content = $this->serializeChildNodes($this->document);
+            }
         } elseif ($this->getIsDOMDocumentCreatedWithoutHtmlWrapper()) {
             $content = $this->document->saveHTML($this->document->documentElement);
         } else {
@@ -1121,55 +1125,32 @@ class HtmlDomParser extends AbstractDomParser
     /**
      * Serialize a single DOM node to HTML.
      *
-     * On PHP < 8.0, older libxml injects "\n" between child elements when
-     * saveHTML($node) is called and $node is the document root.  The fix is:
-     *   - If the node is NOT the document root, call saveHTML($node) on the
-     *     ownerDocument directly (no injection).
-     *   - If the node IS the document root, import it as a child of a
-     *     throw-away wrapper element in a temporary document so it is no
-     *     longer the root, then call saveHTML($wrappedNode) (no injection).
-     * In both PHP < 8 cases a single synthetic trailing "\n" is stripped.
+     * A detached DOMDocument is used so that the serialization context is
+     * independent of the internal wrapper tag name (older libxml HTML
+     * serializers treat unknown hyphenated tags as block-level and inject
+     * formatting newlines into the wrapper's children when saving the full
+     * document).
      *
-     * On PHP 8+, a fresh per-node DOMDocument avoids coupling serialization
-     * to the internal wrapper tag name (older libxml treats unknown hyphenated
-     * tags as block-level and injects formatting newlines into their children).
-     *
-     * Text and other non-element nodes always fall through to the PHP 8+ path.
+     * On PHP < 8.0, older libxml injects a trailing "\n" after raw-text
+     * elements (script, style) when they are the root of a fresh document.
+     * For those elements we fall back to serializing from the original
+     * document and strip only the single trailing "\n".  For all other
+     * element types the fresh-document approach is used to avoid libxml
+     * injecting formatting newlines inside block-level content.  Text and
+     * other non-element nodes are always serialized from the owner document
+     * without any trailing-newline stripping (they carry no injected newline).
      *
      * @param \DOMNode $node
      */
     private function serializeNode(\DOMNode $node): string
     {
-        if (\PHP_VERSION_ID < 80000 && $node instanceof \DOMElement) {
-            // PHP < 8.0 / older libxml injects "\n" between child elements
-            // when saveHTML() is called on a node that is the document root.
-            // Workaround: if the node IS the document root, import it as a
-            // child of a throw-away wrapper element so it is no longer the
-            // root before calling saveHTML().  Nodes that are already
-            // non-root children of their ownerDocument can be serialized
-            // directly via saveHTML($node) without the injection.
-            $ownerDoc = $node->ownerDocument;
-            $isDocumentRoot = $ownerDoc !== null
-                && $node->isSameNode($ownerDoc->documentElement);
+        // For script/style on PHP < 8.0 use ownerDocument to avoid fresh-doc
+        // libxml injecting "\n" inside raw-text content.
+        $useOwnerDoc = \PHP_VERSION_ID < 80000
+            && $node instanceof \DOMElement
+            && \in_array(\strtolower($node->tagName), ['script', 'style'], true);
 
-            if ($isDocumentRoot) {
-                $wrapDoc = new \DOMDocument('1.0', $this->getEncoding());
-                $wrapDoc->preserveWhiteSpace = true;
-                $wrapDoc->formatOutput = false;
-                $wrapEl = $wrapDoc->createElement(self::$domHtmlWrapperHelper);
-                $wrapDoc->appendChild($wrapEl);
-                $wrapped = $wrapDoc->importNode($node, true);
-                $wrapEl->appendChild($wrapped);
-                $content = $wrapDoc->saveHTML($wrapped);
-            } else {
-                $content = $ownerDoc !== null ? $ownerDoc->saveHTML($node) : false;
-            }
-
-            // Older libxml appends a single synthetic trailing "\n"; strip it.
-            if ($content !== false && \substr($content, -1) === "\n") {
-                $content = \substr($content, 0, -1);
-            }
-        } else {
+        if (!$useOwnerDoc) {
             $document = new \DOMDocument('1.0', $this->getEncoding());
             $document->preserveWhiteSpace = true;
             $document->formatOutput = false;
@@ -1182,6 +1163,17 @@ class HtmlDomParser extends AbstractDomParser
             $document->appendChild($importedNode);
 
             $content = $document->saveHTML($importedNode);
+        } else {
+            // PHP < 8.0 script/style: serialize from original document and
+            // strip only the trailing "\n" that older libxml appends after
+            // raw-text elements.
+            $ownerDoc = $node->ownerDocument;
+            $content = $ownerDoc !== null ? $ownerDoc->saveHTML($node) : false;
+            // Older libxml appends exactly one synthetic trailing "\n" here;
+            // preserve any real user-provided trailing newlines in the content.
+            if ($content !== false && \substr($content, -1) === "\n") {
+                $content = \substr($content, 0, -1);
+            }
         }
 
         if ($content === false) {
@@ -1189,6 +1181,59 @@ class HtmlDomParser extends AbstractDomParser
         }
 
         return $content;
+    }
+
+    /**
+     * Serialize the single element that was imported via the node-backed
+     * constructor, for PHP < 8.0.
+     *
+     * On PHP < 8, saveHTML($node) with a node argument always injects
+     * formatting newlines between block-level child elements and a trailing
+     * "\n" after raw-text elements (script, style), even with formatOutput
+     * set to false.  saveHTML() called without a node argument respects
+     * formatOutput=false and does not inject those newlines.
+     *
+     * We call saveHTML() on the constructor document (which already has the
+     * imported element as its only child / documentElement) and strip the
+     * DOCTYPE and structural wrappers (html, body) that libxml may add around
+     * elements that are not recognised HTML root elements.
+     *
+     * @return string
+     */
+    private function serializeCreatedFromNodeForPhpLt8(): string
+    {
+        $full = $this->document->saveHTML();
+        if ($full === false) {
+            return '';
+        }
+
+        // Strip the DOCTYPE declaration that libxml always prepends.
+        $full = (string) \preg_replace('/<!DOCTYPE[^>]+>/i', '', $full);
+        $full = \trim($full);
+
+        $documentElement = $this->document->documentElement;
+        $tagName = $documentElement instanceof \DOMElement
+            ? \strtolower($documentElement->tagName)
+            : '';
+
+        // Strip the <html>...</html> wrapper added by libxml when the root
+        // element is not the HTML element itself.
+        if ($tagName !== 'html') {
+            $full = (string) \preg_replace('/^<html[^>]*>/i', '', $full);
+            $full = (string) \preg_replace('/<\/html>$/i', '', $full);
+            $full = \trim($full);
+
+            // Strip the <body>...</body> wrapper added for non-body elements.
+            if ($tagName !== 'body') {
+                $full = (string) \preg_replace('/^<body[^>]*>/i', '', $full);
+                $full = (string) \preg_replace('/<\/body>$/i', '', $full);
+                // Remove a trailing empty <body> libxml may add for <head> roots.
+                $full = \str_replace('<body></body>', '', $full);
+                $full = \trim($full);
+            }
+        }
+
+        return $full;
     }
 
     /**
