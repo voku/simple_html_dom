@@ -760,6 +760,9 @@ final class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
 
         $corrupted = new SimpleHtmlDom(new \DOMElement('free'));
         $nodeProperty = new \ReflectionProperty(\voku\helper\AbstractSimpleHtmlDom::class, 'node');
+        if (\PHP_VERSION_ID < 80100) {
+            $nodeProperty->setAccessible(true);
+        }
         $nodeProperty->setValue($corrupted, new \stdClass());
         static::assertTrue($corrupted->isRemoved());
 

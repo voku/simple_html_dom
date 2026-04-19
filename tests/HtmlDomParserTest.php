@@ -100,6 +100,10 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
     {
         $property = new \ReflectionProperty(AbstractDomParser::class, 'domBrokenReplaceHelper');
         $keysProperty = new \ReflectionProperty(AbstractDomParser::class, 'dynamicDomBrokenReplaceHelperKeys');
+        if (\PHP_VERSION_ID < 80100) {
+            $property->setAccessible(true);
+            $keysProperty->setAccessible(true);
+        }
 
         $dom = new HtmlDomParser();
         // The broken-replacement map is static, so seed it explicitly to
@@ -119,6 +123,9 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
     public function testHasMultipleTopLevelNodesRestoresLibxmlState()
     {
         $method = new \ReflectionMethod(HtmlDomParser::class, 'hasMultipleTopLevelNodes');
+        if (\PHP_VERSION_ID < 80100) {
+            $method->setAccessible(true);
+        }
 
         $dom = new HtmlDomParser();
         $originalInternalErrors = \libxml_use_internal_errors(false);
