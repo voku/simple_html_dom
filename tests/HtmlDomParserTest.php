@@ -216,9 +216,9 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
 
         $document = new HtmlDomParser($html);
 
-        static::assertMatchesRegularExpression(
-            '~^<html><body><p>one<source src="a\.mp4"></p></body></html>$~i',
-            $document->outerhtml
+        static::assertSame(
+            1,
+            \preg_match('~^<html><body><p>one<source src="a\.mp4"></p></body></html>$~i', $document->outerhtml)
         );
     }
 
@@ -228,9 +228,9 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
 
         $document = new HtmlDomParser($html);
 
-        static::assertMatchesRegularExpression(
-            '~^<html><body><p>one<wbr>two</p></body></html>$~i',
-            $document->outerhtml
+        static::assertSame(
+            1,
+            \preg_match('~^<html><body><p>one<wbr>two</p></body></html>$~i', $document->outerhtml)
         );
     }
 
