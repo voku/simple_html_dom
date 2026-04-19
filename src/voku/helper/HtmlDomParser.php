@@ -1121,34 +1121,55 @@ class HtmlDomParser extends AbstractDomParser
     /**
      * Serialize a single DOM node to HTML.
      *
-     * A detached DOMDocument is used so that the serialization context is
-     * independent of the internal wrapper tag name (older libxml HTML
-     * serializers treat unknown hyphenated tags as block-level and inject
-     * formatting newlines into the wrapper's children when saving the full
-     * document).
+     * On PHP < 8.0, older libxml injects "\n" between child elements when
+     * saveHTML($node) is called and $node is the document root.  The fix is:
+     *   - If the node is NOT the document root, call saveHTML($node) on the
+     *     ownerDocument directly (no injection).
+     *   - If the node IS the document root, import it as a child of a
+     *     throw-away wrapper element in a temporary document so it is no
+     *     longer the root, then call saveHTML($wrappedNode) (no injection).
+     * In both PHP < 8 cases a single synthetic trailing "\n" is stripped.
      *
-     * On PHP < 8.0, older libxml injects a trailing "\n" after raw-text
-     * elements (script, style) when they are the root of a fresh document.
-     * For those elements we fall back to serializing from the original
-     * document and strip only the single trailing "\n".  For all other
-     * element types the fresh-document approach is used to avoid libxml
-     * injecting formatting newlines inside block-level content.  Text and
-     * other non-element nodes are always serialized from the owner document
-     * without any trailing-newline stripping (they carry no injected newline).
+     * On PHP 8+, a fresh per-node DOMDocument avoids coupling serialization
+     * to the internal wrapper tag name (older libxml treats unknown hyphenated
+     * tags as block-level and injects formatting newlines into their children).
+     *
+     * Text and other non-element nodes always fall through to the PHP 8+ path.
      *
      * @param \DOMNode $node
      */
     private function serializeNode(\DOMNode $node): string
     {
-        // On PHP < 8.0 creating a fresh DOMDocument per node causes older
-        // libxml to inject "\n" between and after child elements (including
-        // inside raw-text content like script/style).  Use the ownerDocument
-        // instead and strip only the single synthetic trailing "\n" that older
-        // libxml appends when the node is a direct document child.
-        $useOwnerDoc = \PHP_VERSION_ID < 80000
-            && $node instanceof \DOMElement;
+        if (\PHP_VERSION_ID < 80000 && $node instanceof \DOMElement) {
+            // PHP < 8.0 / older libxml injects "\n" between child elements
+            // when saveHTML() is called on a node that is the document root.
+            // Workaround: if the node IS the document root, import it as a
+            // child of a throw-away wrapper element so it is no longer the
+            // root before calling saveHTML().  Nodes that are already
+            // non-root children of their ownerDocument can be serialized
+            // directly via saveHTML($node) without the injection.
+            $ownerDoc = $node->ownerDocument;
+            $isDocumentRoot = $ownerDoc !== null
+                && $node->isSameNode($ownerDoc->documentElement);
 
-        if (!$useOwnerDoc) {
+            if ($isDocumentRoot) {
+                $wrapDoc = new \DOMDocument('1.0', $this->getEncoding());
+                $wrapDoc->preserveWhiteSpace = true;
+                $wrapDoc->formatOutput = false;
+                $wrapEl = $wrapDoc->createElement('x-wrap');
+                $wrapDoc->appendChild($wrapEl);
+                $wrapped = $wrapDoc->importNode($node, true);
+                $wrapEl->appendChild($wrapped);
+                $content = $wrapDoc->saveHTML($wrapped);
+            } else {
+                $content = $ownerDoc !== null ? $ownerDoc->saveHTML($node) : false;
+            }
+
+            // Older libxml appends a single synthetic trailing "\n"; strip it.
+            if ($content !== false && \substr($content, -1) === "\n") {
+                $content = \substr($content, 0, -1);
+            }
+        } else {
             $document = new \DOMDocument('1.0', $this->getEncoding());
             $document->preserveWhiteSpace = true;
             $document->formatOutput = false;
@@ -1161,16 +1182,6 @@ class HtmlDomParser extends AbstractDomParser
             $document->appendChild($importedNode);
 
             $content = $document->saveHTML($importedNode);
-        } else {
-            // PHP < 8.0: serialize from the ownerDocument to prevent libxml
-            // from injecting formatting newlines.  Strip only the one
-            // synthetic trailing "\n" that older libxml appends; real
-            // user-provided trailing newlines in the content are preserved.
-            $ownerDoc = $node->ownerDocument;
-            $content = $ownerDoc !== null ? $ownerDoc->saveHTML($node) : false;
-            if ($content !== false && \substr($content, -1) === "\n") {
-                $content = \substr($content, 0, -1);
-            }
         }
 
         if ($content === false) {
