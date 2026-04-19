@@ -1994,6 +1994,26 @@ HTML;
         static::assertSame('{{ $i }}', $dom->findOne('.iteration')->text());
     }
 
+    public function testBladeConditionalsWithNestedForLoopRoundTrip()
+    {
+        $html = <<<'HTML'
+@if(isset($post->state) && $post->state->status)
+    <span class="flag {{$post->state->classes}}"></span>
+@elseif(isset($post->review) && ($post->review))
+    <span class="rating stars-{{$post->review->score}}">
+        @for ( $i = 1; $i <= 5; $i++ )
+            <span class="star">★</span>
+        @endfor
+    </span>
+@else
+HTML;
+
+        $dom = HtmlDomParser::str_get_html($html);
+
+        static::assertSame($html, $dom->html());
+        static::assertSame('rating stars-{{$post->review->score}}', $dom->findOne('.rating')->getAttribute('class'));
+    }
+
     public function testEnforceEncoding()
     {
         $dom = new HtmlDomParser();
