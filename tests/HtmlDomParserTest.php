@@ -251,6 +251,23 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
         );
     }
 
+    public function testReplaceHashLinksInTableCellsForExcelExport()
+    {
+        $document = HtmlDomParser::str_get_html(
+            '<table><tr><td><a href="#">in-td</a></td><th><a href="#">in-th</a></th></tr></table><a href="#">outside</a>'
+        );
+
+        // Use the generic findMulti + setAttribute to replace "#" hrefs inside table cells only.
+        foreach ($document->findMulti('td a[href="#"], th a[href="#"]') as $a) {
+            $a->setAttribute('href', 'javascript:void(0);');
+        }
+
+        static::assertSame(
+            '<table><tr><td><a href="javascript:void(0);">in-td</a></td><th><a href="javascript:void(0);">in-th</a></th></tr></table><a href="#">outside</a>',
+            $document->html()
+        );
+    }
+
     public function testWebComponent()
     {
         $html = '<button is="shopping-cart">Add to cart</button>';
