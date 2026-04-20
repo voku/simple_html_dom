@@ -84,6 +84,9 @@ class SelectorConverter
         return $xPathQuery;
     }
 
+    /**
+     * @internal Used by tests to isolate selector cache state between cases.
+     */
     public static function clearCompiledCache(): void
     {
         self::$compiled = [];

@@ -1,16 +1,19 @@
-[PHP Simple HTML Dom v4.8.11 / upcoming]
+[PHP Simple HTML Dom - upcoming]
+
+[PHP Simple HTML Dom v5.0.0 - 2026-04-21]
 1: BREAKING: require PHP >= 7.1.0 and drop PHP 7.0 support
-2: supported / tested PHP versions now cover PHP 7.1 - 8.4
-3: update runtime selector support to "symfony/css-selector": ~3.0 || ~4.0 || ~5.0 || ~6.0 || ~7.0 || ~8.0
-4: update dev / CI tooling for newer runtimes, including PHPUnit 8 support, modern phpunit.xml coverage config, and refreshed GitHub Actions / Travis matrices
-5: "SelectorConverter" -> add support for leading combinators (>, +, ~) and compound text / comment selectors, and improve selector cache / validation handling
-6: "HtmlDomParser" / "AbstractDomParser" -> replace invalid helper placeholder element names and fix PHP < 8 node-backed serialization / libxml newline issues, including script placeholder handling
-7: "HtmlDomParser" -> improve plaintext extraction (exclude style-comment content, simplify XPath handling, use array + implode())
-8: add "remove()" + null-returning query helpers ("findOneOrNull()" / "findMultiOrNull()") and fix nested / blank helper behavior
-9: fix nested XPath scoping, nested delete / serialization edge cases, paragraph wrapper handling, and empty SVG data uris inside style tags
-10: add broader regression coverage for Blade directives / conditionals, XML / RSS parsing, selector edge cases, serialization, PHPUnit 8 assertions, and PHP 8.5-safe reflection usage
-11: simplify export usage to "findMulti() + setAttribute()"
-12: fix -> preserve attributes and support nested node renames in "SimpleHtmlDom" / "SimpleXmlDom"
+2: BREAKING / compatibility: nested "find*()" calls now return live, scoped nodes from the original DOM; mutating nested results (e.g. via "delete()" / "remove()") now changes the source document instead of a detached lookup result
+3: supported / tested PHP versions now cover PHP 7.1 - 8.4
+4: update runtime selector support to "symfony/css-selector": ~3.0 || ~4.0 || ~5.0 || ~6.0 || ~7.0 || ~8.0
+5: update dev / CI tooling for newer runtimes, including PHPUnit 8 support, modern phpunit.xml coverage config, and refreshed GitHub Actions / Travis matrices
+6: "SelectorConverter" -> add support for leading combinators (>, +, ~) and compound text / comment selectors, and improve selector cache / validation handling
+7: "HtmlDomParser" / "AbstractDomParser" -> replace invalid helper placeholder element names and fix PHP < 8 node-backed serialization / libxml newline issues, including script placeholder handling
+8: "HtmlDomParser" -> improve plaintext extraction (exclude style-comment content, simplify XPath handling, use array + implode())
+9: add "remove()" + null-returning query helpers ("findOneOrNull()" / "findMultiOrNull()") and fix nested / blank helper behavior
+10: fix nested XPath scoping, nested delete / serialization edge cases, paragraph wrapper handling, and empty SVG data uris inside style tags
+11: add broader regression coverage for Blade directives / conditionals, XML / RSS parsing, selector edge cases, serialization, PHPUnit 8 assertions, and PHP 8.5-safe reflection usage
+12: simplify export usage to "findMulti() + setAttribute()"
+13: fix -> preserve attributes and support nested node renames in "SimpleHtmlDom" / "SimpleXmlDom"
 
 [PHP Simple HTML Dom v4.8.10 - 2024-07-03]
 1: fix -> "HtmlDomHelper::mergeHtmlAttributes()" with zero values

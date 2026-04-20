@@ -568,6 +568,9 @@ class HtmlDomParser extends AbstractDomParser
      * @param int|null      $idx
      *
      * @return SimpleHtmlDomInterface|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>
+     *
+     * @internal Used by wrapped SimpleHtmlDom instances to preserve parser
+     *           callback state when scoping queries to an existing DOM node.
      */
     public function findInNodeContext(string $selector, ?\DOMNode $contextNode = null, $idx = null)
     {
@@ -595,6 +598,10 @@ class HtmlDomParser extends AbstractDomParser
      * @return SimpleHtmlDomInterface|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>
      *
      * @phpstan-param null|callable(string, string, \DOMXPath, self): string $callbackXPathBeforeQuery
+     *
+     * @internal Used by wrapped SimpleHtmlDom instances to keep queries scoped
+     *           to an existing DOMDocument while preserving parser callback
+     *           behavior.
      */
     public static function findInDocumentContext(
         string $selector,
@@ -629,7 +636,7 @@ class HtmlDomParser extends AbstractDomParser
      *
      * @return string
      */
-    public static function scopeXPathQueryToContextNode(string $xPathQuery): string
+    private static function scopeXPathQueryToContextNode(string $xPathQuery): string
     {
         $scopedXPathQuery = '';
         $quoteCharacter = null;

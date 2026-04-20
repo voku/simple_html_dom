@@ -12,10 +12,10 @@
 A HTML DOM parser written in PHP - let you manipulate HTML in a very easy way!
 This is a fork of [PHP Simple HTML DOM Parser project](http://simplehtmldom.sourceforge.net/) but instead of string manipulation we use DOMDocument and modern php classes like "Symfony CssSelector".
 
-- PHP 7.0+ & 8.0 Support
+- PHP 7.1+ & 8.x Support
 - PHP-FIG Standard
 - Composer & PSR-4 support
-- PHPUnit testing via Travis CI
+- PHPUnit testing via GitHub Actions
 - PHP-Quality testing via SensioLabsInsight
 - UTF-8 Support (more support via "voku/portable-utf8")
 - Invalid HTML Support (partly ...)

@@ -1172,13 +1172,17 @@ HTML;
         );
     }
 
-    public function testScopeXPathQueryToContextNodeIgnoresQuotedUnionPipes()
+    public function testNestedFindCallbackXPathWithQuotedUnionPipesRemainsScoped()
     {
         $xPathQuery = '//div[@data-marker="body | //footer"]/img | //aside[@data-marker="side | //rail"]/img';
+        $method = new \ReflectionMethod(HtmlDomParser::class, 'scopeXPathQueryToContextNode');
+        if (\PHP_VERSION_ID < 80100) {
+            $method->setAccessible(true);
+        }
 
         static::assertSame(
             './/div[@data-marker="body | //footer"]/img | .//aside[@data-marker="side | //rail"]/img',
-            HtmlDomParser::scopeXPathQueryToContextNode($xPathQuery)
+            $method->invoke(null, $xPathQuery)
         );
     }
 

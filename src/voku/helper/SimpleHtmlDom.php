@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace voku\helper;
 
 /**
- * @noinspection PhpHierarchyChecksInspection
- *
  * {@inheritdoc}
  *
  * @implements \IteratorAggregate<int, \DOMNode>
@@ -19,8 +17,12 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
     private $queryHtmlDomParser;
 
     /**
+     * Create a wrapper around an existing DOM node.
+     *
      * @param \DOMElement|\DOMNode $node
-     * @param HtmlDomParser|null   $queryHtmlDomParser
+     * @param HtmlDomParser|null   $queryHtmlDomParser Internal parser context
+     *                                                 used for wrappers created
+     *                                                 by HtmlDomParser.
      */
     public function __construct(\DOMNode $node, ?HtmlDomParser $queryHtmlDomParser = null)
     {
@@ -1131,7 +1133,7 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
     }
 
     /**
-     * Delete
+     * Remove this node from the DOM.
      *
      * @return void
      */
@@ -1143,10 +1145,10 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
     /**
      * Remove this node from the DOM (alias for delete).
      *
-     * @return mixed
+     * @return void
      */
     public function remove()
     {
-        return $this->delete();
+        $this->delete();
     }
 }
