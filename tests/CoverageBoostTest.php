@@ -466,7 +466,7 @@ final class CoverageBoostTest extends TestCase
         $fallbackParser->exposeHtml5FallbackForScriptTags($scriptHtml);
         static::assertSame(
             '<script src="a.js"></script><script>if (a) { document.write("<\/tag>"); }</script>',
-            $scriptHtml
+            HtmlDomParser::putReplacedBackToPreserveHtmlEntities($scriptHtml)
         );
 
         static::assertSame($fallbackParser, $fallbackParser->overwriteSpecialScriptTags(['text/x-custom', 'text/custom']));
@@ -525,8 +525,11 @@ final class CoverageBoostTest extends TestCase
         $detachedXmlElement->innertext = '<entry>new</entry>';
         $detachedXmlElement->outertext = '';
         $detachedXmlElement->plaintext = '';
-        $detachedXmlElement->setAttribute('id', 'value');
         static::assertSame('free', $detachedXmlElement->tag);
+
+        $mutableDetachedXmlElement = new SimpleXmlDom((new \DOMDocument())->createElement('free'));
+        $mutableDetachedXmlElement->setAttribute('id', 'value');
+        static::assertSame('value', $mutableDetachedXmlElement->getAttribute('id'));
 
         $xmlFile = \tempnam(\sys_get_temp_dir(), 'simple-xml-dom-xml');
         $htmlFile = \tempnam(\sys_get_temp_dir(), 'simple-xml-dom-html');
