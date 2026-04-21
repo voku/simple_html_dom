@@ -1,6 +1,6 @@
 [PHP Simple HTML Dom - upcoming]
 
-[PHP Simple HTML Dom v5.0.0 - upcoming]
+[PHP Simple HTML Dom v5.0.0 - 2026-04-21]
 1: BREAKING: require PHP >= 7.1.0 and drop PHP 7.0 support
 2: BREAKING / compatibility: nested "find*()" now returns live scoped nodes, so mutating nested results via "delete()" / "remove()" updates the original DOM
 3: add support for "symfony/css-selector": ~8.0
