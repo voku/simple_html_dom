@@ -1,19 +1,18 @@
 [PHP Simple HTML Dom - upcoming]
 
-[PHP Simple HTML Dom v5.0.0 - 2026-04-21]
+[PHP Simple HTML Dom v5.0.0 - upcoming]
 1: BREAKING: require PHP >= 7.1.0 and drop PHP 7.0 support
-2: BREAKING / compatibility: nested "find*()" calls now return live, scoped nodes from the original DOM; mutating nested results (e.g. via "delete()" / "remove()") now changes the source document instead of a detached lookup result
-3: supported / tested PHP versions now cover PHP 7.1 - 8.4
-4: update runtime selector support to "symfony/css-selector": ~3.0 || ~4.0 || ~5.0 || ~6.0 || ~7.0 || ~8.0
-5: update dev / CI tooling for newer runtimes, including PHPUnit 8 support, modern phpunit.xml coverage config, and refreshed GitHub Actions / Travis matrices
-6: "SelectorConverter" -> add support for leading combinators (>, +, ~) and compound text / comment selectors, and improve selector cache / validation handling
-7: "HtmlDomParser" / "AbstractDomParser" -> replace invalid helper placeholder element names and fix PHP < 8 node-backed serialization / libxml newline issues, including script placeholder handling
-8: "HtmlDomParser" -> improve plaintext extraction (exclude style-comment content, simplify XPath handling, use array + implode())
-9: add "remove()" + null-returning query helpers ("findOneOrNull()" / "findMultiOrNull()") and fix nested / blank helper behavior
-10: fix nested XPath scoping, nested delete / serialization edge cases, paragraph wrapper handling, and empty SVG data uris inside style tags
-11: add broader regression coverage for Blade directives / conditionals, XML / RSS parsing, selector edge cases, serialization, PHPUnit 8 assertions, and PHP 8.5-safe reflection usage
-12: simplify export usage to "findMulti() + setAttribute()"
-13: fix -> preserve attributes and support nested node renames in "SimpleHtmlDom" / "SimpleXmlDom"
+2: BREAKING / compatibility: nested "find*()" now returns live scoped nodes, so mutating nested results via "delete()" / "remove()" updates the original DOM
+3: add support for "symfony/css-selector": ~8.0
+4: add "findOneOrNull()" + "findMultiOrNull()"
+5: add "remove()" (alias) and update public API docs in "README_API.md"
+6: "SelectorConverter" -> add support for leading combinators (>, +, ~) and text / comment selectors
+7: "HtmlDomParser" -> fix PHP < 8 node serialization, script placeholder handling, plaintext extraction, paragraph wrapper handling, and empty SVG data uris inside style tags
+8: "HtmlDomParser" / "XmlDomParser" -> support "\DOMDocument" input and reject directory paths in "*load*File()"
+9: "SimpleHtmlDom" / "SimpleXmlDom" -> fix "val()" for "<select>", multi-select arrays, and checkbox / radio arrays
+10: "SimpleXmlDom" -> fix "nextNonWhitespaceSibling()" and "parentNode()" edge cases
+11: fix nested XPath scoping, nested delete / serialization, and nested node rename handling
+12: refresh CI / PHPUnit / PHPStan setup and expand regression coverage
 
 [PHP Simple HTML Dom v4.8.10 - 2024-07-03]
 1: fix -> "HtmlDomHelper::mergeHtmlAttributes()" with zero values

@@ -6,6 +6,8 @@ namespace voku\helper;
 
 /**
  * {@inheritdoc}
+ *
+ * @extends \ArrayObject<int, SimpleXmlDomInterface>
  */
 abstract class AbstractSimpleXmlDomNode extends \ArrayObject
 {
@@ -14,7 +16,7 @@ abstract class AbstractSimpleXmlDomNode extends \ArrayObject
     /**
      * @param string $name
      *
-     * @return array|int|null
+     * @return array<int, mixed>|int|null
      */
     public function __get($name)
     {
@@ -29,6 +31,7 @@ abstract class AbstractSimpleXmlDomNode extends \ArrayObject
             $return = [];
 
             foreach ($this as $node) {
+                // @phpstan-ignore instanceof.alwaysTrue (ArrayObject entries are typed as SimpleXmlDomInterface here)
                 if ($node instanceof SimpleXmlDomInterface) {
                     $return[] = $node->{$name};
                 }

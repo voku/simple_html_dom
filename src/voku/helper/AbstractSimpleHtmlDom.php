@@ -7,7 +7,7 @@ namespace voku\helper;
 abstract class AbstractSimpleHtmlDom
 {
     /**
-     * @var array
+     * @var array<string, string>
      */
     protected static $functionAliases = [
         'children'     => 'childNodes',
@@ -43,8 +43,8 @@ abstract class AbstractSimpleHtmlDom
     private $classListCache;
 
     /**
-     * @param string $name
-     * @param array  $arguments
+     * @param string       $name
+     * @param array<mixed> $arguments
      *
      * @throws \BadMethodCallException
      *
@@ -55,7 +55,9 @@ abstract class AbstractSimpleHtmlDom
         $name = \strtolower($name);
 
         if (isset(self::$functionAliases[$name])) {
-            return \call_user_func_array([$this, self::$functionAliases[$name]], $arguments);
+            $method = self::$functionAliases[$name];
+
+            return $this->{$method}(...$arguments);
         }
 
         throw new \BadMethodCallException('Method does not exist');
@@ -64,7 +66,7 @@ abstract class AbstractSimpleHtmlDom
     /**
      * @param string $name
      *
-     * @return SimpleHtmlAttributes|string|string[]|null
+     * @return array<int, string>|SimpleHtmlAttributes|string|null
      */
     public function __get($name)
     {
@@ -90,7 +92,10 @@ abstract class AbstractSimpleHtmlDom
                 return $this->getAllAttributes();
             case 'classlist':
                 if ($this->classListCache === null) {
-                    $this->classListCache = new SimpleHtmlAttributes($this->node ?? null, 'class');
+                    $this->classListCache = new SimpleHtmlAttributes(
+                        $this->node instanceof \DOMElement ? $this->node : null,
+                        'class'
+                    );
                 }
 
                 return $this->classListCache;
@@ -151,9 +156,9 @@ abstract class AbstractSimpleHtmlDom
      * @param string $name
      * @param mixed  $value
      *
-     * @return SimpleHtmlDomInterface|null
+     * @return void
      */
-    public function __set($name, $value)
+    public function __set($name, $value): void
     {
         $nameOrig = $name;
         $name = \strtolower($name);
@@ -161,14 +166,18 @@ abstract class AbstractSimpleHtmlDom
         switch ($name) {
             case 'outerhtml':
             case 'outertext':
-                return $this->replaceNodeWithString($value);
+                $this->replaceNodeWithString($value);
+                return;
             case 'innertext':
             case 'innerhtml':
-                return $this->replaceChildWithString($value);
+                $this->replaceChildWithString($value);
+                return;
             case 'innerhtmlkeep':
-                return $this->replaceChildWithString($value, false);
+                $this->replaceChildWithString($value, false);
+                return;
             case 'plaintext':
-                return $this->replaceTextWithString($value);
+                $this->replaceTextWithString($value);
+                return;
             case 'classlist':
                 $name = 'class';
                 $nameOrig = 'class';
@@ -182,12 +191,11 @@ abstract class AbstractSimpleHtmlDom
 
                     if ($value !== null) {
                         $this->node->{$nameOrig} = $value;
-
-                        return $this->node->{$nameOrig};
+                        return;
                     }
                 }
 
-                return $this->setAttribute($name, $value);
+                $this->setAttribute($name, $value);
         }
     }
 

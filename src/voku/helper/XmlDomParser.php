@@ -78,6 +78,7 @@ class XmlDomParser extends AbstractDomParser
         if ($element instanceof \DOMNode) {
             $domNode = $this->document->importNode($element, true);
 
+            // @phpstan-ignore instanceof.alwaysTrue (importNode() returns DOMNode here)
             if ($domNode instanceof \DOMNode) {
                 /** @noinspection UnusedFunctionResultInspection */
                 $this->document->appendChild($domNode);
@@ -92,8 +93,8 @@ class XmlDomParser extends AbstractDomParser
     }
 
     /**
-     * @param string $name
-     * @param array  $arguments
+     * @param string       $name
+     * @param array<mixed> $arguments
      *
      * @throws \BadMethodCallException
      * @throws \RuntimeException
@@ -107,18 +108,27 @@ class XmlDomParser extends AbstractDomParser
         $arguments1 = $arguments[1] ?? null;
 
         if ($name === 'str_get_xml') {
-            $parser = new static();
+            $parser = self::createStaticParser();
 
             return $parser->loadXml($arguments0, $arguments1);
         }
 
         if ($name === 'file_get_xml') {
-            $parser = new static();
+            $parser = self::createStaticParser();
 
             return $parser->loadXmlFile($arguments0, $arguments1);
         }
 
         throw new \BadMethodCallException('Method does not exist');
+    }
+
+    /**
+     * @return static
+     */
+    private static function createStaticParser()
+    {
+        // @phpstan-ignore new.static (factory methods intentionally preserve late static binding)
+        return new static();
     }
 
     /** @noinspection MagicMethodsValidityInspection */
@@ -191,6 +201,7 @@ class XmlDomParser extends AbstractDomParser
         $this->xPathNamespaces = []; // reset
         $matches = [];
         \preg_match_all('#xmlns:(?<namespaceKey>.*)=(["\'])(?<namespaceValue>.*)\\2#Ui', $xml, $matches);
+        // @phpstan-ignore nullCoalesce.offset (preg_match_all() initializes named match keys)
         foreach ($matches['namespaceKey'] ?? [] as $index => $key) {
             if (
                 $key
@@ -262,6 +273,7 @@ class XmlDomParser extends AbstractDomParser
         // restore lib-xml settings
         \libxml_clear_errors();
         \libxml_use_internal_errors($internalErrors);
+        // @phpstan-ignore isset.variable (only defined on PHP < 8 paths where it is used)
         if (\PHP_VERSION_ID < 80000 && isset($disableEntityLoader)) {
             \libxml_disable_entity_loader($disableEntityLoader);
         }
@@ -334,7 +346,10 @@ class XmlDomParser extends AbstractDomParser
      */
     public function findMulti(string $selector): SimpleXmlDomNodeInterface
     {
-        return $this->find($selector, null);
+        /** @var SimpleXmlDomNodeInterface<SimpleXmlDomInterface> $return */
+        $return = $this->find($selector, null);
+
+        return $return;
     }
 
     /**
@@ -346,6 +361,7 @@ class XmlDomParser extends AbstractDomParser
      */
     public function findMultiOrFalse(string $selector)
     {
+        /** @var SimpleXmlDomNodeInterface<SimpleXmlDomInterface> $return */
         $return = $this->find($selector, null);
 
         if ($return instanceof SimpleXmlDomNodeBlank) {
@@ -383,7 +399,10 @@ class XmlDomParser extends AbstractDomParser
      */
     public function findOne(string $selector): SimpleXmlDomInterface
     {
-        return $this->find($selector, 0);
+        /** @var SimpleXmlDomInterface $return */
+        $return = $this->find($selector, 0);
+
+        return $return;
     }
 
     /**
@@ -395,6 +414,7 @@ class XmlDomParser extends AbstractDomParser
      */
     public function findOneOrFalse(string $selector)
     {
+        /** @var SimpleXmlDomInterface $return */
         $return = $this->find($selector, 0);
 
         if ($return instanceof SimpleXmlDomBlank) {

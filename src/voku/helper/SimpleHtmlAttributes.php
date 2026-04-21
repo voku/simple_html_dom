@@ -118,7 +118,10 @@ class SimpleHtmlAttributes implements SimpleHtmlAttributesInterface
     {
         $this->tokenize();
 
-        return new \ArrayIterator($this->tokens);
+        /** @var \ArrayIterator<int, string> $iterator */
+        $iterator = new \ArrayIterator($this->tokens);
+
+        return $iterator;
     }
 
     public function item(int $index)

@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace voku\helper;
 
 /**
- * @noinspection PhpHierarchyChecksInspection
- *
  * {@inheritdoc}
  *
  * @implements \IteratorAggregate<int, \DOMNode>
@@ -14,8 +12,8 @@ namespace voku\helper;
 class SimpleHtmlDomBlank extends AbstractSimpleHtmlDom implements \IteratorAggregate, SimpleHtmlDomInterface
 {
     /**
-     * @param string $name
-     * @param array  $arguments
+     * @param string       $name
+     * @param array<mixed> $arguments
      *
      * @throws \BadMethodCallException
      *
@@ -26,7 +24,9 @@ class SimpleHtmlDomBlank extends AbstractSimpleHtmlDom implements \IteratorAggre
         $name = \strtolower($name);
 
         if (isset(self::$functionAliases[$name])) {
-            return \call_user_func_array([$this, self::$functionAliases[$name]], $arguments);
+            $method = self::$functionAliases[$name];
+
+            return $this->{$method}(...$arguments);
         }
 
         throw new \BadMethodCallException('Method does not exist');
@@ -171,7 +171,7 @@ class SimpleHtmlDomBlank extends AbstractSimpleHtmlDom implements \IteratorAggre
      */
     protected function replaceChildWithString(string $string, bool $putBrokenReplacedBack = true): SimpleHtmlDomInterface
     {
-        return new static();
+        return $this->blankInstance();
     }
 
     /**
@@ -181,7 +181,7 @@ class SimpleHtmlDomBlank extends AbstractSimpleHtmlDom implements \IteratorAggre
      */
     protected function replaceNodeWithString(string $string): SimpleHtmlDomInterface
     {
-        return new static();
+        return $this->blankInstance();
     }
 
     /**
@@ -191,7 +191,7 @@ class SimpleHtmlDomBlank extends AbstractSimpleHtmlDom implements \IteratorAggre
      */
     protected function replaceTextWithString($string): SimpleHtmlDomInterface
     {
-        return new static();
+        return $this->blankInstance();
     }
 
     /**
@@ -266,7 +266,7 @@ class SimpleHtmlDomBlank extends AbstractSimpleHtmlDom implements \IteratorAggre
      */
     public function findOne(string $selector): SimpleHtmlDomInterface
     {
-        return new static();
+        return $this->blankInstance();
     }
 
     /**
@@ -312,7 +312,7 @@ class SimpleHtmlDomBlank extends AbstractSimpleHtmlDom implements \IteratorAggre
      */
     public function getElementById(string $id): SimpleHtmlDomInterface
     {
-        return new static();
+        return $this->blankInstance();
     }
 
     /**
@@ -324,7 +324,7 @@ class SimpleHtmlDomBlank extends AbstractSimpleHtmlDom implements \IteratorAggre
      */
     public function getElementByTagName(string $name): SimpleHtmlDomInterface
     {
-        return new static();
+        return $this->blankInstance();
     }
 
     /**
@@ -430,7 +430,7 @@ class SimpleHtmlDomBlank extends AbstractSimpleHtmlDom implements \IteratorAggre
      */
     public function parentNode(): ?SimpleHtmlDomInterface
     {
-        return new static();
+        return $this->blankInstance();
     }
 
     /**
@@ -470,6 +470,12 @@ class SimpleHtmlDomBlank extends AbstractSimpleHtmlDom implements \IteratorAggre
     public function getIterator(): SimpleHtmlDomNodeInterface
     {
         return new SimpleHtmlDomNodeBlank();
+    }
+
+    private function blankInstance(): self
+    {
+        // @phpstan-ignore new.static (blank wrappers intentionally preserve late static binding)
+        return new static();
     }
 
     /**

@@ -3,29 +3,3 @@ parameters:
     level: 8
     paths:
         - %currentWorkingDirectory%/src/
-    ignoreErrors:
-        ## todo?
-        - '#type specified in iterable type#'
-        - '#Unsafe usage of new static#'
-        - '#extends generic class#'
-        - '#return type with generic#'
-        - '#DOMNode\|null#'
-        - '#function call_user_func_array expects callable#'
-        ## old stuff
-        - '#Method voku\\helper\\HtmlDomParser::findOne\(\) should return#'
-        - '#Method voku\\helper\\HtmlDomParser::findMulti\(\) should return#'
-        - '#Method voku\\helper\\HtmlDomParser::findOneOrFalse\(\) should return#'
-        - '#Method voku\\helper\\HtmlDomParser::findMultiOrFalse\(\) should return#'
-        - '#Method voku\\helper\\SimpleHtmlDomNode::findOne\(\) should return#'
-        - '#Method voku\\helper\\SimpleHtmlDomNode::findMulti\(\) should return#'
-        - '#Method voku\\helper\\SimpleHtmlDomNode::findOneOrFalse\(\) should return#'
-        - '#Method voku\\helper\\SimpleHtmlDomNode::findMultiOrFalse\(\) should return#'
-        - '#Method voku\\helper\\XmlDomParser::findOne\(\) should return#'
-        - '#Method voku\\helper\\XmlDomParser::findMulti\(\) should return#'
-        - '#Method voku\\helper\\XmlDomParser::findOneOrFalse\(\) should return#'
-        - '#Method voku\\helper\\XmlDomParser::findMultiOrFalse\(\) should return#'
-        - '#Method voku\\helper\\SimpleXmlDomNode::findOne\(\) should return#'
-        - '#Method voku\\helper\\SimpleXmlDomNode::findMulti\(\) should return#'
-        - '#Method voku\\helper\\SimpleXmlDomNode::findOneOrFalse\(\) should return#'
-        - '#Method voku\\helper\\SimpleXmlDomNode::findMultiOrFalse\(\) should return#'
-        - '#method voku\\helper\\SimpleHtmlDomNodeBlank::findOne\(\) should be compatible with return type#'

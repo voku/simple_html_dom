@@ -20,10 +20,9 @@ class SimpleXmlDomNode extends AbstractSimpleXmlDomNode implements SimpleXmlDomN
     public function find(string $selector, $idx = null)
     {
         // init
-        $elements = new static();
+        $elements = $this->createNodeList();
 
         foreach ($this as $node) {
-            \assert($node instanceof SimpleXmlDomInterface);
             /** @var SimpleXmlDomNodeInterface<SimpleXmlDomInterface> $matches */
             $matches = $node->find($selector);
 
@@ -59,7 +58,10 @@ class SimpleXmlDomNode extends AbstractSimpleXmlDomNode implements SimpleXmlDomN
      */
     public function findMulti(string $selector): SimpleXmlDomNodeInterface
     {
-        return $this->find($selector, null);
+        /** @var SimpleXmlDomNodeInterface<SimpleXmlDomInterface> $return */
+        $return = $this->find($selector, null);
+
+        return $return;
     }
 
     /**
@@ -71,6 +73,7 @@ class SimpleXmlDomNode extends AbstractSimpleXmlDomNode implements SimpleXmlDomN
      */
     public function findMultiOrFalse(string $selector)
     {
+        /** @var SimpleXmlDomNodeInterface<SimpleXmlDomInterface> $return */
         $return = $this->find($selector, null);
 
         if ($return instanceof SimpleXmlDomNodeBlank) {
@@ -122,6 +125,7 @@ class SimpleXmlDomNode extends AbstractSimpleXmlDomNode implements SimpleXmlDomN
      */
     public function findOneOrFalse(string $selector)
     {
+        /** @var SimpleXmlDomInterface|null $return */
         $return = $this->find($selector, 0);
 
         return $return ?? false;
@@ -194,5 +198,11 @@ class SimpleXmlDomNode extends AbstractSimpleXmlDomNode implements SimpleXmlDomN
         }
 
         return $text;
+    }
+
+    private function createNodeList(): self
+    {
+        // @phpstan-ignore new.static (node list wrappers intentionally preserve late static binding)
+        return new static();
     }
 }

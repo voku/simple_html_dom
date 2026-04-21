@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace voku\helper;
 
 /**
- * @noinspection PhpHierarchyChecksInspection
- *
  * {@inheritdoc}
  *
  * @implements \IteratorAggregate<int, \DOMNode>
@@ -14,8 +12,8 @@ namespace voku\helper;
 class SimpleXmlDomBlank extends AbstractSimpleXmlDom implements \IteratorAggregate, SimpleXmlDomInterface
 {
     /**
-     * @param string $name
-     * @param array  $arguments
+     * @param string       $name
+     * @param array<mixed> $arguments
      *
      * @throws \BadMethodCallException
      *
@@ -26,7 +24,9 @@ class SimpleXmlDomBlank extends AbstractSimpleXmlDom implements \IteratorAggrega
         $name = \strtolower($name);
 
         if (isset(self::$functionAliases[$name])) {
-            return \call_user_func_array([$this, self::$functionAliases[$name]], $arguments);
+            $method = self::$functionAliases[$name];
+
+            return $this->{$method}(...$arguments);
         }
 
         throw new \BadMethodCallException('Method does not exist');
@@ -143,7 +143,7 @@ class SimpleXmlDomBlank extends AbstractSimpleXmlDom implements \IteratorAggrega
      */
     protected function replaceChildWithString(string $string, bool $putBrokenReplacedBack = true): SimpleXmlDomInterface
     {
-        return new static();
+        return $this->blankInstance();
     }
 
     /**
@@ -153,7 +153,7 @@ class SimpleXmlDomBlank extends AbstractSimpleXmlDom implements \IteratorAggrega
      */
     protected function replaceNodeWithString(string $string): SimpleXmlDomInterface
     {
-        return new static();
+        return $this->blankInstance();
     }
 
     /**
@@ -163,7 +163,7 @@ class SimpleXmlDomBlank extends AbstractSimpleXmlDom implements \IteratorAggrega
      */
     protected function replaceTextWithString($string): SimpleXmlDomInterface
     {
-        return new static();
+        return $this->blankInstance();
     }
 
     /**
@@ -250,7 +250,7 @@ class SimpleXmlDomBlank extends AbstractSimpleXmlDom implements \IteratorAggrega
      */
     public function findOne(string $selector): SimpleXmlDomInterface
     {
-        return new static();
+        return $this->blankInstance();
     }
 
     /**
@@ -296,7 +296,7 @@ class SimpleXmlDomBlank extends AbstractSimpleXmlDom implements \IteratorAggrega
      */
     public function getElementById(string $id): SimpleXmlDomInterface
     {
-        return new static();
+        return $this->blankInstance();
     }
 
     /**
@@ -308,7 +308,7 @@ class SimpleXmlDomBlank extends AbstractSimpleXmlDom implements \IteratorAggrega
      */
     public function getElementByTagName(string $name): SimpleXmlDomInterface
     {
-        return new static();
+        return $this->blankInstance();
     }
 
     /**
@@ -417,7 +417,7 @@ class SimpleXmlDomBlank extends AbstractSimpleXmlDom implements \IteratorAggrega
      */
     public function parentNode(): SimpleXmlDomInterface
     {
-        return new static();
+        return $this->blankInstance();
     }
 
     /**
@@ -467,5 +467,11 @@ class SimpleXmlDomBlank extends AbstractSimpleXmlDom implements \IteratorAggrega
     public function getIterator(): SimpleXmlDomNodeInterface
     {
         return new SimpleXmlDomNodeBlank();
+    }
+
+    private function blankInstance(): self
+    {
+        // @phpstan-ignore new.static (blank wrappers intentionally preserve late static binding)
+        return new static();
     }
 }

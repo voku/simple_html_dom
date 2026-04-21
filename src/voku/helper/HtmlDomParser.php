@@ -201,6 +201,7 @@ class HtmlDomParser extends AbstractDomParser
 
             $domNode = $this->document->importNode($element, true);
 
+            // @phpstan-ignore instanceof.alwaysTrue (importNode() returns DOMNode here)
             if ($domNode instanceof \DOMNode) {
                 $this->document->appendChild($domNode);
             }
@@ -214,8 +215,8 @@ class HtmlDomParser extends AbstractDomParser
     }
 
     /**
-     * @param string $name
-     * @param array  $arguments
+     * @param string       $name
+     * @param array<mixed> $arguments
      *
      * @return bool|mixed
      */
@@ -224,15 +225,17 @@ class HtmlDomParser extends AbstractDomParser
         $name = \strtolower($name);
 
         if (isset(self::$functionAliases[$name])) {
-            return \call_user_func_array([$this, self::$functionAliases[$name]], $arguments);
+            $method = self::$functionAliases[$name];
+
+            return $this->{$method}(...$arguments);
         }
 
         throw new \BadMethodCallException('Method does not exist: ' . $name);
     }
 
     /**
-     * @param string $name
-     * @param array  $arguments
+     * @param string       $name
+     * @param array<mixed> $arguments
      *
      * @throws \BadMethodCallException
      * @throws \RuntimeException
@@ -246,18 +249,27 @@ class HtmlDomParser extends AbstractDomParser
         $arguments1 = $arguments[1] ?? null;
 
         if ($name === 'str_get_html') {
-            $parser = new static();
+            $parser = self::createStaticParser();
 
             return $parser->loadHtml($arguments0, $arguments1);
         }
 
         if ($name === 'file_get_html') {
-            $parser = new static();
+            $parser = self::createStaticParser();
 
             return $parser->loadHtmlFile($arguments0, $arguments1);
         }
 
         throw new \BadMethodCallException('Method does not exist');
+    }
+
+    /**
+     * @return static
+     */
+    private static function createStaticParser()
+    {
+        // @phpstan-ignore new.static (factory methods intentionally preserve late static binding)
+        return new static();
     }
 
     /** @noinspection MagicMethodsValidityInspection */
@@ -549,6 +561,7 @@ class HtmlDomParser extends AbstractDomParser
         // restore lib-xml settings
         \libxml_clear_errors();
         \libxml_use_internal_errors($internalErrors);
+        // @phpstan-ignore isset.variable (only defined on PHP < 8 paths where it is used)
         if (\PHP_VERSION_ID < 80000 && isset($disableEntityLoader)) {
             \libxml_disable_entity_loader($disableEntityLoader);
         }
@@ -755,7 +768,10 @@ class HtmlDomParser extends AbstractDomParser
      */
     public function findMulti(string $selector): SimpleHtmlDomNodeInterface
     {
-        return $this->find($selector, null);
+        /** @var SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface> $return */
+        $return = $this->find($selector, null);
+
+        return $return;
     }
 
     /**
@@ -767,6 +783,7 @@ class HtmlDomParser extends AbstractDomParser
      */
     public function findMultiOrFalse(string $selector)
     {
+        /** @var SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface> $return */
         $return = $this->find($selector, null);
 
         if ($return instanceof SimpleHtmlDomNodeBlank) {
@@ -804,7 +821,10 @@ class HtmlDomParser extends AbstractDomParser
      */
     public function findOne(string $selector): SimpleHtmlDomInterface
     {
-        return $this->find($selector, 0);
+        /** @var SimpleHtmlDomInterface $return */
+        $return = $this->find($selector, 0);
+
+        return $return;
     }
 
     /**
@@ -816,6 +836,7 @@ class HtmlDomParser extends AbstractDomParser
      */
     public function findOneOrFalse(string $selector)
     {
+        /** @var SimpleHtmlDomInterface $return */
         $return = $this->find($selector, 0);
 
         if ($return instanceof SimpleHtmlDomBlank) {
@@ -1178,6 +1199,7 @@ class HtmlDomParser extends AbstractDomParser
             $document->formatOutput = false;
 
             $importedNode = $document->importNode($node, true);
+            // @phpstan-ignore instanceof.alwaysTrue (importNode() returns DOMNode here)
             if (!$importedNode instanceof \DOMNode) {
                 return '';
             }
@@ -1787,6 +1809,7 @@ class HtmlDomParser extends AbstractDomParser
     public function overwriteTemplateLogicSyntaxInSpecialScriptTags(array $templateLogicSyntaxInSpecialScriptTags): DomParserInterface
     {
         foreach ($templateLogicSyntaxInSpecialScriptTags as $tmp) {
+            // @phpstan-ignore function.alreadyNarrowedType (runtime guard kept for public API validation)
             if (!\is_string($tmp)) {
                 throw new \InvalidArgumentException('setTemplateLogicSyntaxInSpecialScriptTags only allows string[]');
             }
@@ -1805,6 +1828,7 @@ class HtmlDomParser extends AbstractDomParser
     public function overwriteSpecialScriptTags(array $specialScriptTags): DomParserInterface
     {
         foreach ($specialScriptTags as $tag) {
+            // @phpstan-ignore function.alreadyNarrowedType (runtime guard kept for public API validation)
             if (!\is_string($tag)) {
                 throw new \InvalidArgumentException('SpecialScriptTags only allows string[]');
             }

@@ -17,7 +17,7 @@ interface SimpleXmlDomNodeInterface extends \IteratorAggregate
     /**
      * @param string $name
      *
-     * @return array|null
+     * @return array<int, mixed>|null
      */
     public function __get($name);
 

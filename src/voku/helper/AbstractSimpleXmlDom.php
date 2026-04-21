@@ -7,7 +7,7 @@ namespace voku\helper;
 abstract class AbstractSimpleXmlDom
 {
     /**
-     * @var array
+     * @var array<string, string>
      */
     protected static $functionAliases = [
         'children'     => 'childNodes',
@@ -24,8 +24,8 @@ abstract class AbstractSimpleXmlDom
     protected $node;
 
     /**
-     * @param string $name
-     * @param array  $arguments
+     * @param string       $name
+     * @param array<mixed> $arguments
      *
      * @throws \BadMethodCallException
      *
@@ -36,7 +36,9 @@ abstract class AbstractSimpleXmlDom
         $name = \strtolower($name);
 
         if (isset(self::$functionAliases[$name])) {
-            return \call_user_func_array([$this, self::$functionAliases[$name]], $arguments);
+            $method = self::$functionAliases[$name];
+
+            return $this->{$method}(...$arguments);
         }
 
         throw new \BadMethodCallException('Method does not exist');
@@ -45,7 +47,7 @@ abstract class AbstractSimpleXmlDom
     /**
      * @param string $name
      *
-     * @return array|string|null
+     * @return array<int, string>|string|null
      */
     public function __get($name)
     {
@@ -114,9 +116,9 @@ abstract class AbstractSimpleXmlDom
      * @param string $name
      * @param mixed  $value
      *
-     * @return SimpleXmlDomInterface|null
+     * @return void
      */
-    public function __set($name, $value)
+    public function __set($name, $value): void
     {
         $nameOrig = $name;
         $name = \strtolower($name);
@@ -124,20 +126,25 @@ abstract class AbstractSimpleXmlDom
         switch ($name) {
             case 'outerhtml':
             case 'outertext':
-                return $this->replaceNodeWithString($value);
+                $this->replaceNodeWithString($value);
+                return;
             case 'innertext':
             case 'innerhtml':
-                return $this->replaceChildWithString($value);
+                $this->replaceChildWithString($value);
+                return;
             case 'innerhtmlkeep':
-                return $this->replaceChildWithString($value, false);
+                $this->replaceChildWithString($value, false);
+                return;
             case 'plaintext':
-                return $this->replaceTextWithString($value);
+                $this->replaceTextWithString($value);
+                return;
             default:
                 if ($this->node && \property_exists($this->node, $nameOrig)) {
-                    return $this->node->{$nameOrig} = $value;
+                    $this->node->{$nameOrig} = $value;
+                    return;
                 }
 
-                return $this->setAttribute($name, $value);
+                $this->setAttribute($name, $value);
         }
     }
 

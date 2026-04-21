@@ -24,7 +24,7 @@ abstract class AbstractDomParser implements DomParserInterface
     protected static $domHtmlSpecialScriptHelper = 'simplevokuspecialscript';
 
     /**
-     * @var array
+     * @var array<string, array<int, string>>
      */
     protected static $domBrokenReplaceHelper = [];
 
@@ -59,7 +59,7 @@ abstract class AbstractDomParser implements DomParserInterface
     /**
      * @var callable|null
      *
-     * @phpstan-var null|callable(\voku\helper\XmlDomParser|\voku\helper\HtmlDomParser): void
+     * @phpstan-var null|callable(array{0: \voku\helper\XmlDomParser|\voku\helper\HtmlDomParser}): void
      */
     protected static $callback;
 
@@ -125,8 +125,8 @@ abstract class AbstractDomParser implements DomParserInterface
     protected $encoding = 'UTF-8';
 
     /**
-     * @param string $name
-     * @param array  $arguments
+     * @param string       $name
+     * @param array<mixed> $arguments
      *
      * @return bool|mixed
      */
@@ -135,15 +135,17 @@ abstract class AbstractDomParser implements DomParserInterface
         $name = \strtolower($name);
 
         if (isset(self::$functionAliases[$name])) {
-            return \call_user_func_array([$this, self::$functionAliases[$name]], $arguments);
+            $method = self::$functionAliases[$name];
+
+            return $this->{$method}(...$arguments);
         }
 
         throw new \BadMethodCallException('Method does not exist: ' . $name);
     }
 
     /**
-     * @param string $name
-     * @param array  $arguments
+     * @param string       $name
+     * @param array<mixed> $arguments
      *
      * @throws \BadMethodCallException
      * @throws \RuntimeException
@@ -398,7 +400,7 @@ abstract class AbstractDomParser implements DomParserInterface
     /**
      * @param callable $functionName
      *
-     * @phpstan-param callable(\voku\helper\XmlDomParser|\voku\helper\HtmlDomParser): void $functionName
+     * @phpstan-param callable(array{0: \voku\helper\XmlDomParser|\voku\helper\HtmlDomParser}): void $functionName
      *
      * @return void
      */

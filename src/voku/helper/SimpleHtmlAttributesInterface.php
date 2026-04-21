@@ -32,7 +32,7 @@ interface SimpleHtmlAttributesInterface
     /**
      * Returns an iterator allowing you to go through all tokens contained in the list.
      *
-     * @return \ArrayIterator
+     * @return \ArrayIterator<int, string>
      */
     public function entries(): \ArrayIterator;
 

@@ -12,10 +12,11 @@
 A HTML DOM parser written in PHP - let you manipulate HTML in a very easy way!
 This is a fork of [PHP Simple HTML DOM Parser project](http://simplehtmldom.sourceforge.net/) but instead of string manipulation we use DOMDocument and modern php classes like "Symfony CssSelector".
 
-- PHP 7.1+ & 8.x Support
+- PHP 7.1+ runtime support, tested on PHP 7.1 - 8.4
 - PHP-FIG Standard
 - Composer & PSR-4 support
 - PHPUnit testing via GitHub Actions
+- PHPStan-clean source tree on the current release branch
 - PHP-Quality testing via SensioLabsInsight
 - UTF-8 Support (more support via "voku/portable-utf8")
 - Invalid HTML Support (partly ...)
@@ -29,6 +30,12 @@ This is a fork of [PHP Simple HTML DOM Parser project](http://simplehtmldom.sour
 composer require voku/simple_html_dom
 composer require voku/portable-utf8 # if you need e.g. UTF-8 fixed output
 ```
+
+### Upgrade notes for v5.0.0
+
+- PHP 7.0 is no longer supported; the package now requires PHP 7.1 or newer.
+- Nested `find*()` calls now return live nodes scoped to the original DOM, so mutating nested results updates the source document.
+- See the [CHANGELOG](https://github.com/voku/simple_html_dom/blob/master/CHANGELOG) for the full release notes.
 
 ### Quick Start
 

@@ -54,8 +54,8 @@ namespace voku\helper;
 interface SimpleHtmlDomInterface extends \IteratorAggregate
 {
     /**
-     * @param string $name
-     * @param array  $arguments
+     * @param string       $name
+     * @param array<mixed> $arguments
      *
      * @throws \BadMethodCallException
      *
@@ -66,7 +66,7 @@ interface SimpleHtmlDomInterface extends \IteratorAggregate
     /**
      * @param string $name
      *
-     * @return array|string|null
+     * @return array<int, string>|SimpleHtmlAttributes|string|null
      */
     public function __get($name);
 

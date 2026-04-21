@@ -20,10 +20,9 @@ class SimpleHtmlDomNode extends AbstractSimpleHtmlDomNode implements SimpleHtmlD
     public function find(string $selector, $idx = null)
     {
         // init
-        $elements = new static();
+        $elements = $this->createNodeList();
 
         foreach ($this as $node) {
-            \assert($node instanceof SimpleHtmlDomInterface);
             /** @var SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface> $matches */
             $matches = $node->find($selector);
 
@@ -59,7 +58,10 @@ class SimpleHtmlDomNode extends AbstractSimpleHtmlDomNode implements SimpleHtmlD
      */
     public function findMulti(string $selector): SimpleHtmlDomNodeInterface
     {
-        return $this->find($selector, null);
+        /** @var SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface> $return */
+        $return = $this->find($selector, null);
+
+        return $return;
     }
 
     /**
@@ -71,6 +73,7 @@ class SimpleHtmlDomNode extends AbstractSimpleHtmlDomNode implements SimpleHtmlD
      */
     public function findMultiOrFalse(string $selector)
     {
+        /** @var SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface> $return */
         $return = $this->find($selector, null);
 
         if ($return instanceof SimpleHtmlDomNodeBlank) {
@@ -122,6 +125,7 @@ class SimpleHtmlDomNode extends AbstractSimpleHtmlDomNode implements SimpleHtmlD
      */
     public function findOneOrFalse(string $selector)
     {
+        /** @var SimpleHtmlDomInterface|null $return */
         $return = $this->find($selector, 0);
 
         return $return ?? false;
@@ -194,5 +198,11 @@ class SimpleHtmlDomNode extends AbstractSimpleHtmlDomNode implements SimpleHtmlD
         }
 
         return $text;
+    }
+
+    private function createNodeList(): self
+    {
+        // @phpstan-ignore new.static (node list wrappers intentionally preserve late static binding)
+        return new static();
     }
 }
