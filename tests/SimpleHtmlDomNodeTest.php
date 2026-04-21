@@ -161,6 +161,7 @@ final class SimpleHtmlDomNodeTest extends \PHPUnit\Framework\TestCase
         static::assertSame(['A', 'B'], $titles->text());
         static::assertSame(['<h2>A</h2>', '<h2>B</h2>'], $titles->innertext());
         static::assertSame(['<h2>A</h2>', '<h2>B</h2>'], $titles->outertext());
+        static::assertSame('A', $sections('h2', 0)->text());
         static::assertSame('B', $sections->find('h2', -1)->text());
         static::assertSame('A', $sections->findOne('h2')->text());
         static::assertFalse($sections->findOneOrFalse('h3'));

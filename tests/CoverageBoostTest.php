@@ -2,6 +2,7 @@
 
 use PHPUnit\Framework\TestCase;
 use voku\helper\AbstractDomParser;
+use voku\helper\AbstractSimpleHtmlDom;
 use voku\helper\AbstractSimpleXmlDom;
 use voku\helper\HtmlDomHelper;
 use voku\helper\HtmlDomParser;
@@ -553,5 +554,378 @@ final class CoverageBoostTest extends TestCase
                 \unlink($htmlFile);
             }
         }
+    }
+
+    public function testAbstractSimpleHtmlDomMagicCoveragePaths()
+    {
+        $wrapper = new class() extends AbstractSimpleHtmlDom {
+            public $calls = [];
+            public $attributes = [
+                'data-extra' => 'attr:data-extra',
+            ];
+
+            public function __construct()
+            {
+                $this->node = new \stdClass();
+                $this->node->nodeName = 'article';
+                $this->node->foo = 'bar';
+                $this->node->count = 7;
+                $this->node->nullable = null;
+                $this->node->content = '';
+                $this->node->{'class'} = 'alpha beta';
+            }
+
+            public function getTag(): string
+            {
+                return (string) $this->node->nodeName;
+            }
+
+            public function childNodes(int $idx = -1)
+            {
+                $this->calls[] = ['childNodes', $idx];
+
+                return $idx;
+            }
+
+            public function firstChild()
+            {
+                return 'first';
+            }
+
+            public function lastChild()
+            {
+                return 'last';
+            }
+
+            public function nextSibling()
+            {
+                return 'next';
+            }
+
+            public function previousSibling()
+            {
+                return 'prev';
+            }
+
+            public function parentNode()
+            {
+                return 'parent';
+            }
+
+            public function innerHtmlKeep(): string
+            {
+                return '<inner-keep-method>';
+            }
+
+            public function find(string $selector, $idx = null)
+            {
+                $this->calls[] = ['find', $selector, $idx];
+
+                return $selector . ':' . (string) $idx;
+            }
+
+            public function getAllAttributes()
+            {
+                return $this->attributes;
+            }
+
+            public function getAttribute(string $name): string
+            {
+                return $this->attributes[$name] ?? '';
+            }
+
+            public function hasAttribute(string $name): bool
+            {
+                return isset($this->attributes[$name]);
+            }
+
+            public function html(bool $multiDecodeNewHtmlEntity = false): string
+            {
+                $this->calls[] = ['html', $multiDecodeNewHtmlEntity];
+
+                return '<html>';
+            }
+
+            public function innerHtml(bool $multiDecodeNewHtmlEntity = false, bool $putBrokenReplacedBack = true): string
+            {
+                $this->calls[] = ['innerHtml', $multiDecodeNewHtmlEntity, $putBrokenReplacedBack];
+
+                return $putBrokenReplacedBack ? '<inner>' : '<inner-keep>';
+            }
+
+            public function removeAttribute(string $name): \voku\helper\SimpleHtmlDomInterface
+            {
+                $this->calls[] = ['removeAttribute', $name];
+                unset($this->attributes[$name]);
+
+                return new SimpleHtmlDomBlank();
+            }
+
+            protected function replaceChildWithString(string $string, bool $putBrokenReplacedBack = true): \voku\helper\SimpleHtmlDomInterface
+            {
+                $this->calls[] = ['replaceChildWithString', $string, $putBrokenReplacedBack];
+
+                return new SimpleHtmlDomBlank();
+            }
+
+            protected function replaceNodeWithString(string $string): \voku\helper\SimpleHtmlDomInterface
+            {
+                $this->calls[] = ['replaceNodeWithString', $string];
+
+                return new SimpleHtmlDomBlank();
+            }
+
+            protected function replaceTextWithString($string): \voku\helper\SimpleHtmlDomInterface
+            {
+                $this->calls[] = ['replaceTextWithString', $string];
+
+                return new SimpleHtmlDomBlank();
+            }
+
+            public function setAttribute(string $name, $value = null, bool $strictEmptyValueCheck = false): \voku\helper\SimpleHtmlDomInterface
+            {
+                $this->calls[] = ['setAttribute', $name, $value, $strictEmptyValueCheck];
+                $this->attributes[$name] = (string) $value;
+
+                return new SimpleHtmlDomBlank();
+            }
+
+            public function text(): string
+            {
+                return 'plain';
+            }
+        };
+
+        static::assertSame(2, $wrapper->children(2));
+        static::assertSame('first', $wrapper->first_child());
+        static::assertSame('last', $wrapper->last_child());
+        static::assertSame('next', $wrapper->next_sibling());
+        static::assertSame('prev', $wrapper->prev_sibling());
+        static::assertSame('parent', $wrapper->parent());
+        static::assertSame('<html>', $wrapper->outertext());
+        static::assertSame('<inner>', $wrapper->innertext());
+        static::assertSame('<inner-keep-method>', $wrapper->innerhtmlkeep());
+        static::assertSame('span:3', $wrapper('span', 3));
+        static::assertSame('article', $wrapper->tag);
+        static::assertSame('bar', $wrapper->foo);
+        static::assertSame(7, $wrapper->count);
+        static::assertSame('attr:data-extra', $wrapper->{'data-extra'});
+        static::assertInstanceOf(\voku\helper\SimpleHtmlAttributes::class, $wrapper->classlist);
+        static::assertTrue(isset($wrapper->outertext));
+        static::assertTrue(isset($wrapper->foo));
+        static::assertFalse(isset($wrapper->nullable));
+        static::assertTrue(isset($wrapper->{'data-extra'}));
+
+        $wrapper->outertext = '<section>node</section>';
+        $wrapper->innertext = '<em>child</em>';
+        $wrapper->innerhtmlkeep = '<em>keep</em>';
+        $wrapper->plaintext = 'plain text';
+        $wrapper->content = 123;
+        $wrapper->classlist = 'gamma';
+        $wrapper->title = 'headline';
+        unset($wrapper->{'data-extra'});
+
+        static::assertSame('123', $wrapper->content);
+        static::assertSame('gamma', $wrapper->class);
+        static::assertFalse(isset($wrapper->{'data-extra'}));
+        static::assertSame('<html>', (string) $wrapper);
+        static::assertContains(['replaceNodeWithString', '<section>node</section>'], $wrapper->calls);
+        static::assertContains(['replaceChildWithString', '<em>child</em>', true], $wrapper->calls);
+        static::assertContains(['replaceChildWithString', '<em>keep</em>', false], $wrapper->calls);
+        static::assertContains(['replaceTextWithString', 'plain text'], $wrapper->calls);
+        static::assertContains(['setAttribute', 'title', 'headline', false], $wrapper->calls);
+        static::assertContains(['removeAttribute', 'data-extra'], $wrapper->calls);
+
+        try {
+            $wrapper->missingMethod();
+            static::fail('Expected BadMethodCallException for missing HTML alias method.');
+        } catch (\BadMethodCallException $e) {
+            static::assertSame('Method does not exist', $e->getMessage());
+        }
+    }
+
+    public function testAbstractSimpleXmlDomMagicCoveragePaths()
+    {
+        $wrapper = new class() extends AbstractSimpleXmlDom {
+            public $calls = [];
+            public $attributes = [
+                'data-extra' => 'attr:data-extra',
+            ];
+
+            public function __construct()
+            {
+                $this->node = new \stdClass();
+                $this->node->nodeName = 'entry';
+                $this->node->foo = 'bar';
+                $this->node->count = 7;
+                $this->node->nullable = null;
+            }
+
+            public function childNodes(int $idx = -1)
+            {
+                $this->calls[] = ['childNodes', $idx];
+
+                return $idx;
+            }
+
+            public function firstChild()
+            {
+                return 'first';
+            }
+
+            public function lastChild()
+            {
+                return 'last';
+            }
+
+            public function nextSibling()
+            {
+                return 'next';
+            }
+
+            public function previousSibling()
+            {
+                return 'prev';
+            }
+
+            public function parentNode()
+            {
+                return 'parent';
+            }
+
+            public function find(string $selector, $idx = null)
+            {
+                $this->calls[] = ['find', $selector, $idx];
+
+                return $selector . ':' . (string) $idx;
+            }
+
+            public function getAllAttributes()
+            {
+                return $this->attributes;
+            }
+
+            public function getAttribute(string $name): string
+            {
+                return $this->attributes[$name] ?? '';
+            }
+
+            public function hasAttribute(string $name): bool
+            {
+                return isset($this->attributes[$name]);
+            }
+
+            public function innerXml(bool $multiDecodeNewHtmlEntity = false): string
+            {
+                return '<inner-xml>';
+            }
+
+            public function removeAttribute(string $name): \voku\helper\SimpleXmlDomInterface
+            {
+                $this->calls[] = ['removeAttribute', $name];
+                unset($this->attributes[$name]);
+
+                return new SimpleXmlDomBlank();
+            }
+
+            protected function replaceChildWithString(string $string, bool $putBrokenReplacedBack = true): \voku\helper\SimpleXmlDomInterface
+            {
+                $this->calls[] = ['replaceChildWithString', $string, $putBrokenReplacedBack];
+
+                return new SimpleXmlDomBlank();
+            }
+
+            protected function replaceNodeWithString(string $string): \voku\helper\SimpleXmlDomInterface
+            {
+                $this->calls[] = ['replaceNodeWithString', $string];
+
+                return new SimpleXmlDomBlank();
+            }
+
+            protected function replaceTextWithString($string): \voku\helper\SimpleXmlDomInterface
+            {
+                $this->calls[] = ['replaceTextWithString', $string];
+
+                return new SimpleXmlDomBlank();
+            }
+
+            public function setAttribute(string $name, $value = null, bool $strictEmptyValueCheck = false): \voku\helper\SimpleXmlDomInterface
+            {
+                $this->calls[] = ['setAttribute', $name, $value, $strictEmptyValueCheck];
+                $this->attributes[$name] = (string) $value;
+
+                return new SimpleXmlDomBlank();
+            }
+
+            public function text(): string
+            {
+                return 'plain';
+            }
+
+            public function xml(bool $multiDecodeNewHtmlEntity = false): string
+            {
+                $this->calls[] = ['xml', $multiDecodeNewHtmlEntity];
+
+                return '<xml />';
+            }
+        };
+
+        static::assertSame(1, $wrapper->children(1));
+        static::assertSame('first', $wrapper->first_child());
+        static::assertSame('last', $wrapper->last_child());
+        static::assertSame('next', $wrapper->next_sibling());
+        static::assertSame('prev', $wrapper->prev_sibling());
+        static::assertSame('parent', $wrapper->parent());
+        static::assertSame('item:4', $wrapper('item', 4));
+        static::assertSame('<xml />', $wrapper->xml);
+        static::assertSame('plain', $wrapper->plaintext);
+        static::assertSame('entry', $wrapper->tag);
+        static::assertSame('bar', $wrapper->foo);
+        static::assertSame(7, $wrapper->count);
+        static::assertSame('attr:data-extra', $wrapper->{'data-extra'});
+        static::assertTrue(isset($wrapper->outertext));
+        static::assertTrue(isset($wrapper->foo));
+        static::assertFalse(isset($wrapper->nullable));
+        static::assertTrue(isset($wrapper->{'data-extra'}));
+
+        $wrapper->outertext = '<node />';
+        $wrapper->innertext = '<child />';
+        $wrapper->innerhtmlkeep = '<keep />';
+        $wrapper->plaintext = 'plain text';
+        $wrapper->foo = 'baz';
+        $wrapper->title = 'headline';
+        unset($wrapper->{'data-extra'});
+
+        static::assertSame('baz', $wrapper->foo);
+        static::assertFalse(isset($wrapper->{'data-extra'}));
+        static::assertSame('<xml />', (string) $wrapper);
+        static::assertContains(['replaceNodeWithString', '<node />'], $wrapper->calls);
+        static::assertContains(['replaceChildWithString', '<child />', true], $wrapper->calls);
+        static::assertContains(['replaceChildWithString', '<keep />', false], $wrapper->calls);
+        static::assertContains(['replaceTextWithString', 'plain text'], $wrapper->calls);
+        static::assertContains(['setAttribute', 'title', 'headline', false], $wrapper->calls);
+        static::assertContains(['removeAttribute', 'data-extra'], $wrapper->calls);
+
+        try {
+            $wrapper->missingMethod();
+            static::fail('Expected BadMethodCallException for missing XML alias method.');
+        } catch (\BadMethodCallException $e) {
+            static::assertSame('Method does not exist', $e->getMessage());
+        }
+    }
+
+    public function testAbstractSimpleDomNodeEmptyCollectionCoveragePaths()
+    {
+        $emptyHtmlNodes = new \voku\helper\SimpleHtmlDomNode();
+        static::assertSame(0, $emptyHtmlNodes->length);
+        static::assertSame([], $emptyHtmlNodes->outertext);
+        static::assertNull($emptyHtmlNodes->missing);
+        static::assertSame('', (string) $emptyHtmlNodes);
+
+        $emptyXmlNodes = new \voku\helper\SimpleXmlDomNode();
+        static::assertSame(0, $emptyXmlNodes->length);
+        static::assertSame([], $emptyXmlNodes->outertext);
+        static::assertNull($emptyXmlNodes->missing);
+        static::assertSame('', (string) $emptyXmlNodes);
     }
 }
