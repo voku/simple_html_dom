@@ -15,7 +15,7 @@ class SimpleXmlDomNode extends AbstractSimpleXmlDomNode implements SimpleXmlDomN
      * @param string   $selector
      * @param int|null $idx
      *
-     * @return SimpleXmlDomNodeInterface<SimpleXmlDomInterface>|SimpleXmlDomNodeInterface[]|null
+     * @return SimpleXmlDomInterface|SimpleXmlDomNodeInterface<SimpleXmlDomInterface>|null
      */
     public function find(string $selector, $idx = null)
     {
@@ -24,7 +24,10 @@ class SimpleXmlDomNode extends AbstractSimpleXmlDomNode implements SimpleXmlDomN
 
         foreach ($this as $node) {
             \assert($node instanceof SimpleXmlDomInterface);
-            foreach ($node->find($selector) as $res) {
+            /** @var SimpleXmlDomNodeInterface<SimpleXmlDomInterface> $matches */
+            $matches = $node->find($selector);
+
+            foreach ($matches as $res) {
                 $elements->append($res);
             }
         }
@@ -86,6 +89,7 @@ class SimpleXmlDomNode extends AbstractSimpleXmlDomNode implements SimpleXmlDomN
      */
     public function findMultiOrNull(string $selector)
     {
+        /** @var SimpleXmlDomNodeInterface<SimpleXmlDomInterface> $return */
         $return = $this->find($selector, null);
 
         if ($return instanceof SimpleXmlDomNodeBlank) {
@@ -100,7 +104,7 @@ class SimpleXmlDomNode extends AbstractSimpleXmlDomNode implements SimpleXmlDomN
      *
      * @param string $selector
      *
-     * @return SimpleXmlDomNodeInterface<SimpleXmlDomInterface>
+     * @return SimpleXmlDomInterface|SimpleXmlDomNodeInterface<SimpleXmlDomInterface>
      */
     public function findOne(string $selector)
     {
@@ -114,7 +118,7 @@ class SimpleXmlDomNode extends AbstractSimpleXmlDomNode implements SimpleXmlDomN
      *
      * @param string $selector
      *
-     * @return false|SimpleXmlDomNodeInterface<SimpleXmlDomInterface>
+     * @return false|SimpleXmlDomInterface
      */
     public function findOneOrFalse(string $selector)
     {
@@ -132,7 +136,10 @@ class SimpleXmlDomNode extends AbstractSimpleXmlDomNode implements SimpleXmlDomN
      */
     public function findOneOrNull(string $selector)
     {
-        return $this->find($selector, 0);
+        /** @var SimpleXmlDomInterface|null $return */
+        $return = $this->find($selector, 0);
+
+        return $return;
     }
 
     /**

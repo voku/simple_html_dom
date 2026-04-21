@@ -401,16 +401,16 @@ interface SimpleHtmlDomInterface extends \IteratorAggregate
     public function val($value = null);
 
     /**
-     * Delete
+     * Remove this node from the DOM.
      *
-     * @return mixed
+     * @return void
      */
     public function delete();
 
     /**
      * Remove this node from the DOM (alias for delete).
      *
-     * @return mixed
+     * @return void
      */
     public function remove();
 }

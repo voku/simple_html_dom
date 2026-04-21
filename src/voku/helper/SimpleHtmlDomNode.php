@@ -15,7 +15,7 @@ class SimpleHtmlDomNode extends AbstractSimpleHtmlDomNode implements SimpleHtmlD
      * @param string   $selector
      * @param int|null $idx
      *
-     * @return SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>|SimpleHtmlDomNodeInterface[]|null
+     * @return SimpleHtmlDomInterface|SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>|null
      */
     public function find(string $selector, $idx = null)
     {
@@ -24,7 +24,10 @@ class SimpleHtmlDomNode extends AbstractSimpleHtmlDomNode implements SimpleHtmlD
 
         foreach ($this as $node) {
             \assert($node instanceof SimpleHtmlDomInterface);
-            foreach ($node->find($selector) as $res) {
+            /** @var SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface> $matches */
+            $matches = $node->find($selector);
+
+            foreach ($matches as $res) {
                 $elements[] = $res;
             }
         }
@@ -86,6 +89,7 @@ class SimpleHtmlDomNode extends AbstractSimpleHtmlDomNode implements SimpleHtmlD
      */
     public function findMultiOrNull(string $selector)
     {
+        /** @var SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface> $return */
         $return = $this->find($selector, null);
 
         if ($return instanceof SimpleHtmlDomNodeBlank) {
@@ -100,7 +104,7 @@ class SimpleHtmlDomNode extends AbstractSimpleHtmlDomNode implements SimpleHtmlD
      *
      * @param string $selector
      *
-     * @return SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>
+     * @return SimpleHtmlDomInterface|SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>
      */
     public function findOne(string $selector)
     {
@@ -114,7 +118,7 @@ class SimpleHtmlDomNode extends AbstractSimpleHtmlDomNode implements SimpleHtmlD
      *
      * @param string $selector
      *
-     * @return false|SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>
+     * @return false|SimpleHtmlDomInterface
      */
     public function findOneOrFalse(string $selector)
     {
@@ -132,7 +136,10 @@ class SimpleHtmlDomNode extends AbstractSimpleHtmlDomNode implements SimpleHtmlD
      */
     public function findOneOrNull(string $selector)
     {
-        return $this->find($selector, 0);
+        /** @var SimpleHtmlDomInterface|null $return */
+        $return = $this->find($selector, 0);
+
+        return $return;
     }
 
     /**

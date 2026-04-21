@@ -485,7 +485,7 @@ class SimpleHtmlDomBlank extends AbstractSimpleHtmlDom implements \IteratorAggre
     }
 
     /**
-     * Delete
+     * Remove this node from the DOM
      *
      * @return void
      */
@@ -497,10 +497,10 @@ class SimpleHtmlDomBlank extends AbstractSimpleHtmlDom implements \IteratorAggre
     /**
      * Remove this node from the DOM (alias for delete).
      *
-     * @return mixed
+     * @return void
      */
     public function remove()
     {
-        return $this->delete();
+        $this->delete();
     }
 }

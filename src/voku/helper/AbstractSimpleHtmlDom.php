@@ -176,12 +176,14 @@ abstract class AbstractSimpleHtmlDom
             default:
                 if ($this->node && \property_exists($this->node, $nameOrig)) {
                     // INFO: Cannot assign null to property DOMNode::* of type string
-                    if (in_array($nameOrig, self::$stringDomNodes)) {
-                        $value = (string)$value;
+                    if (\in_array($nameOrig, self::$stringDomNodes)) {
+                        $value = (string) $value;
                     }
 
-                    if (!is_null($value)) {
-                        return $this->node->{$nameOrig} = $value;
+                    if ($value !== null) {
+                        $this->node->{$nameOrig} = $value;
+
+                        return $this->node->{$nameOrig};
                     }
                 }
 

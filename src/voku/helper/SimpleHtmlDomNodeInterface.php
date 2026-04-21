@@ -25,7 +25,7 @@ interface SimpleHtmlDomNodeInterface extends \IteratorAggregate
      * @param string $selector
      * @param int    $idx
      *
-     * @return SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>|SimpleHtmlDomNodeInterface[]|null
+     * @return SimpleHtmlDomInterface|SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>|null
      */
     public function __invoke($selector, $idx = null);
 
@@ -47,7 +47,7 @@ interface SimpleHtmlDomNodeInterface extends \IteratorAggregate
      * @param string $selector
      * @param int    $idx
      *
-     * @return SimpleHtmlDomNode|SimpleHtmlDomNode[]|null
+     * @return SimpleHtmlDomInterface|SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>|null
      */
     public function find(string $selector, $idx = null);
 
@@ -83,7 +83,7 @@ interface SimpleHtmlDomNodeInterface extends \IteratorAggregate
      *
      * @param string $selector
      *
-     * @return SimpleHtmlDomNodeInterface
+     * @return SimpleHtmlDomInterface|SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>
      */
     public function findOne(string $selector);
 
@@ -92,7 +92,7 @@ interface SimpleHtmlDomNodeInterface extends \IteratorAggregate
      *
      * @param string $selector
      *
-     * @return false|SimpleHtmlDomNodeInterface
+     * @return false|SimpleHtmlDomInterface
      */
     public function findOneOrFalse(string $selector);
 

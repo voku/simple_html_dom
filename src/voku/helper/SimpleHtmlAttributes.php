@@ -170,7 +170,9 @@ class SimpleHtmlAttributes implements SimpleHtmlAttributesInterface
         if ($i !== false) {
             $j = \array_search($new, $this->tokens, true);
             if ($j === false) {
-                $this->tokens[$i] = $new;
+                $tokens = $this->tokens;
+                $tokens[$i] = $new;
+                $this->tokens = \array_values($tokens);
             } else {
                 \array_splice($this->tokens, $i, 1);
             }
