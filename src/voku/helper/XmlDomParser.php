@@ -66,6 +66,15 @@ class XmlDomParser extends AbstractDomParser
             $element = $element->getNode();
         }
 
+        if ($element instanceof \DOMDocument) {
+            $xml = $element->saveXML();
+            if ($xml !== false) {
+                $this->loadXml($xml);
+            }
+
+            return;
+        }
+
         if ($element instanceof \DOMNode) {
             $domNode = $this->document->importNode($element, true);
 
@@ -183,7 +192,11 @@ class XmlDomParser extends AbstractDomParser
         $matches = [];
         \preg_match_all('#xmlns:(?<namespaceKey>.*)=(["\'])(?<namespaceValue>.*)\\2#Ui', $xml, $matches);
         foreach ($matches['namespaceKey'] ?? [] as $index => $key) {
-            if ($key) {
+            if (
+                $key
+                &&
+                isset($matches['namespaceValue'][$index])
+            ) {
                 $this->xPathNamespaces[\trim($key, ':')] = $matches['namespaceValue'][$index];
             }
         }
@@ -286,6 +299,10 @@ class XmlDomParser extends AbstractDomParser
 
         if ($nodesList) {
             foreach ($nodesList as $node) {
+                if (!$node instanceof \DOMNode) {
+                    continue;
+                }
+
                 $elements[] = new SimpleXmlDom($node);
             }
         }
@@ -347,6 +364,7 @@ class XmlDomParser extends AbstractDomParser
      */
     public function findMultiOrNull(string $selector)
     {
+        /** @var SimpleXmlDomNodeInterface<SimpleXmlDomInterface> $return */
         $return = $this->find($selector, null);
 
         if ($return instanceof SimpleXmlDomNodeBlank) {
@@ -395,6 +413,7 @@ class XmlDomParser extends AbstractDomParser
      */
     public function findOneOrNull(string $selector)
     {
+        /** @var SimpleXmlDomInterface $return */
         $return = $this->find($selector, 0);
 
         if ($return instanceof SimpleXmlDomBlank) {
@@ -562,12 +581,14 @@ class XmlDomParser extends AbstractDomParser
      */
     public function loadHtmlFile(string $filePath, $libXMLExtraOptions = null): DomParserInterface
     {
-        if (
-            !\preg_match("/^https?:\/\//i", $filePath)
-            &&
-            !\file_exists($filePath)
-        ) {
-            throw new \RuntimeException("File {$filePath} not found");
+        if (!\preg_match("/^https?:\/\//i", $filePath)) {
+            if (!\file_exists($filePath)) {
+                throw new \RuntimeException("File {$filePath} not found");
+            }
+
+            if (!\is_file($filePath)) {
+                throw new \RuntimeException("Could not load file {$filePath}");
+            }
         }
 
         try {
@@ -641,12 +662,14 @@ class XmlDomParser extends AbstractDomParser
      */
     public function loadXmlFile(string $filePath, $libXMLExtraOptions = null, $useDefaultLibXMLOptions = true): self
     {
-        if (
-            !\preg_match("/^https?:\/\//i", $filePath)
-            &&
-            !\file_exists($filePath)
-        ) {
-            throw new \RuntimeException("File {$filePath} not found");
+        if (!\preg_match("/^https?:\/\//i", $filePath)) {
+            if (!\file_exists($filePath)) {
+                throw new \RuntimeException("File {$filePath} not found");
+            }
+
+            if (!\is_file($filePath)) {
+                throw new \RuntimeException("Could not load file {$filePath}");
+            }
         }
 
         try {

@@ -312,7 +312,7 @@ class SimpleXmlDom extends AbstractSimpleXmlDom implements \IteratorAggregate, S
     public function text(): string
     {
         if ($this->node instanceof \DOMCharacterData) {
-            return XmlDomParser::putReplacedBackToPreserveHtmlEntities($this->node->nodeValue);
+            return XmlDomParser::putReplacedBackToPreserveHtmlEntities($this->node->nodeValue ?? '');
         }
 
         return $this->getXmlDomParser()->fixHtmlOutput($this->node->textContent);
@@ -669,6 +669,10 @@ class SimpleXmlDom extends AbstractSimpleXmlDom implements \IteratorAggregate, S
             $node = $node->nextSibling;
         }
 
+        if ($node === null) {
+            return null;
+        }
+
         return new static($node);
     }
 
@@ -679,7 +683,16 @@ class SimpleXmlDom extends AbstractSimpleXmlDom implements \IteratorAggregate, S
      */
     public function parentNode(): SimpleXmlDomInterface
     {
-        return new static($this->node->parentNode);
+        $parentNode = $this->node->parentNode;
+        if (
+            $parentNode === null
+            ||
+            $parentNode instanceof \DOMDocument
+        ) {
+            return new SimpleXmlDomBlank();
+        }
+
+        return new static($parentNode);
     }
 
     /**
@@ -759,7 +772,7 @@ class SimpleXmlDom extends AbstractSimpleXmlDom implements \IteratorAggregate, S
                 $options = $this->getElementsByTagName('option');
                 if ($options instanceof SimpleXmlDomNode) {
                     foreach ($options as $option) {
-                        if ($this->hasAttribute('checked')) {
+                        if ($option->hasAttribute('selected')) {
                             $valuesFromDom[] = (string) $option->getAttribute('value');
                         }
                     }
@@ -778,7 +791,8 @@ class SimpleXmlDom extends AbstractSimpleXmlDom implements \IteratorAggregate, S
         } else {
             /** @noinspection NestedPositiveIfStatementsInspection */
             if (\in_array($this->getAttribute('type'), ['checkbox', 'radio'], true)) {
-                if ($value === $this->getAttribute('value')) {
+                $selectedValues = \is_array($value) ? $value : [$value];
+                if (\in_array($this->getAttribute('value'), $selectedValues, true)) {
                     /** @noinspection UnusedFunctionResultInspection */
                     $this->setAttribute('checked', 'checked');
                 } else {
@@ -786,9 +800,10 @@ class SimpleXmlDom extends AbstractSimpleXmlDom implements \IteratorAggregate, S
                     $this->removeAttribute('checked');
                 }
             } elseif ($this->node instanceof \DOMElement && $this->node->nodeName === 'select') {
+                $selectedValues = \is_array($value) ? $value : [$value];
                 foreach ($this->node->getElementsByTagName('option') as $option) {
                     /** @var \DOMElement $option */
-                    if ($value === $option->getAttribute('value')) {
+                    if (\in_array($option->getAttribute('value'), $selectedValues, true)) {
                         /** @noinspection UnusedFunctionResultInspection */
                         $option->setAttribute('selected', 'selected');
                     } else {

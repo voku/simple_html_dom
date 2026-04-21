@@ -82,6 +82,25 @@ final class HtmlDomParserTest extends \PHPUnit\Framework\TestCase
         $document->loadHtmlFile('http://fobar');
     }
 
+    public function testLoadHtmlFileRejectsDirectoryPath()
+    {
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Could not load file');
+
+        $document = new HtmlDomParser();
+        $document->loadHtmlFile(__DIR__);
+    }
+
+    public function testConstructFromDomDocumentPreservesHtmlDocument()
+    {
+        $source = HtmlDomParser::str_get_html('<html><body><div id="x">ok</div></body></html>');
+
+        $document = new HtmlDomParser($source->getDocument());
+
+        static::assertSame('<html><body><div id="x">ok</div></body></html>', $document->html());
+        static::assertSame('ok', $document->getElementById('x')->text());
+    }
+
     public function testLoadHtmlUrl()
     {
         $dom = HtmlDomParser::file_get_html(__DIR__ . '/fixtures/test_template_js.html');

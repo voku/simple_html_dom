@@ -187,6 +187,15 @@ class HtmlDomParser extends AbstractDomParser
             $element = $element->getNode();
         }
 
+        if ($element instanceof \DOMDocument) {
+            $html = $element->saveHTML();
+            if ($html !== false) {
+                $this->loadHtml($html);
+            }
+
+            return;
+        }
+
         if ($element instanceof \DOMNode) {
             $this->createdFromNode = true;
 
@@ -700,8 +709,8 @@ class HtmlDomParser extends AbstractDomParser
     }
 
     /**
-     * @param \DOMNodeList<\DOMNode>|false $nodesList
-     * @param int|null                     $idx
+     * @param \DOMNodeList<\DOMNameSpaceNode|\DOMNode>|false $nodesList
+     * @param int|null                                       $idx
      *
      * @return SimpleHtmlDomInterface|SimpleHtmlDomInterface[]|SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface>
      */
@@ -711,6 +720,10 @@ class HtmlDomParser extends AbstractDomParser
 
         if ($nodesList) {
             foreach ($nodesList as $node) {
+                if (!$node instanceof \DOMNode) {
+                    continue;
+                }
+
                 $elements[] = new SimpleHtmlDom($node, $queryHtmlDomParser);
             }
         }
@@ -772,6 +785,7 @@ class HtmlDomParser extends AbstractDomParser
      */
     public function findMultiOrNull(string $selector)
     {
+        /** @var SimpleHtmlDomNodeInterface<SimpleHtmlDomInterface> $return */
         $return = $this->find($selector, null);
 
         if ($return instanceof SimpleHtmlDomNodeBlank) {
@@ -820,6 +834,7 @@ class HtmlDomParser extends AbstractDomParser
      */
     public function findOneOrNull(string $selector)
     {
+        /** @var SimpleHtmlDomInterface $return */
         $return = $this->find($selector, 0);
 
         if ($return instanceof SimpleHtmlDomBlank) {
@@ -1330,6 +1345,10 @@ class HtmlDomParser extends AbstractDomParser
      */
     private function serializeInternalWrapperContent(): string
     {
+        if ($this->document->documentElement === null) {
+            return '';
+        }
+
         $wrapperTag = self::$domHtmlWrapperHelper;
 
         return '<' . $wrapperTag . '>'
@@ -1418,6 +1437,10 @@ class HtmlDomParser extends AbstractDomParser
             }
         }
 
+        if ($text === false) {
+            $text = '';
+        }
+
         $output = $this->fixHtmlOutput($text, $multiDecodeNewHtmlEntity, $putBrokenReplacedBack);
 
         return $output;
@@ -1484,12 +1507,14 @@ class HtmlDomParser extends AbstractDomParser
      */
     public function loadHtmlFile(string $filePath, $libXMLExtraOptions = null, $useDefaultLibXMLOptions = true): DomParserInterface
     {
-        if (
-            !\preg_match("/^https?:\/\//i", $filePath)
-            &&
-            !\file_exists($filePath)
-        ) {
-            throw new \RuntimeException('File ' . $filePath . ' not found');
+        if (!\preg_match("/^https?:\/\//i", $filePath)) {
+            if (!\file_exists($filePath)) {
+                throw new \RuntimeException('File ' . $filePath . ' not found');
+            }
+
+            if (!\is_file($filePath)) {
+                throw new \RuntimeException('Could not load file ' . $filePath);
+            }
         }
 
         try {

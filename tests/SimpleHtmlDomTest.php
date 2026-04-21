@@ -603,6 +603,13 @@ final class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
         static::assertSame('div', $element->parent()->tag);
     }
 
+    public function testRootElementHasNoWrappedDocumentParent()
+    {
+        $document = HtmlDomParser::str_get_html('<html><body><div>ok</div></body></html>');
+
+        static::assertNull($document->getElementByTagName('html')->parentNode());
+    }
+
     public function testHtml()
     {
         $html = '<div>foo</div>';
@@ -722,7 +729,7 @@ final class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
             . '<input id="plain" value="alpha">'
             . '<input id="choice" type="radio" value="yes" checked>'
             . '<textarea id="notes">body</textarea>'
-            . '<select id="picker" checked><option value="one">One</option><option value="two">Two</option></select>'
+            . '<select id="picker"><option value="one">One</option><option value="two" selected>Two</option></select>'
             . '<div id="first" class="alpha"><span>child</span></div>'
             . '<div id="second" class="beta"></div>'
             . '</form>'
@@ -748,7 +755,7 @@ final class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
         $textarea->val('changed');
         static::assertSame('changed', $textarea->text());
 
-        static::assertSame(['one', 'two'], $select->val());
+        static::assertSame(['two'], $select->val());
         $select->val('two');
         static::assertFalse($select->getElementsByTagName('option', 0)->hasAttribute('selected'));
         static::assertSame('selected', $select->getElementsByTagName('option', -1)->getAttribute('selected'));
@@ -782,6 +789,49 @@ final class SimpleHtmlDomTest extends \PHPUnit\Framework\TestCase
         static::assertSame('section', $renameDocument->findOne('section')->tag);
         static::assertFalse($renamer->renameNode(new \DOMElement('free'), 'section'));
         static::assertNull((new SimpleHtmlDom(new \DOMElement('free')))->parentNode());
+    }
+
+    public function testSelectValReturnsNullWithoutSelectedOption()
+    {
+        $document = HtmlDomParser::str_get_html(
+            '<form><select id="picker"><option value="one">One</option><option value="two">Two</option></select></form>'
+        );
+
+        static::assertNull($document->getElementById('picker')->val());
+    }
+
+    public function testSelectValSetterSupportsMultipleSelectedValues()
+    {
+        $document = HtmlDomParser::str_get_html(
+            '<form><select id="picker" multiple><option value="one">One</option><option value="two">Two</option><option value="three">Three</option></select></form>'
+        );
+
+        $select = $document->getElementById('picker');
+        $select->val(['one', 'three']);
+
+        static::assertSame(['one', 'three'], $select->val());
+        static::assertSame('selected', $select->getElementsByTagName('option', 0)->getAttribute('selected'));
+        static::assertFalse($select->getElementsByTagName('option', 1)->hasAttribute('selected'));
+        static::assertSame('selected', $select->getElementsByTagName('option', 2)->getAttribute('selected'));
+    }
+
+    public function testCheckboxAndRadioValSetterSupportArrayValues()
+    {
+        $document = HtmlDomParser::str_get_html(
+            '<form>'
+            . '<input id="checkbox" type="checkbox" value="one">'
+            . '<input id="radio" type="radio" value="two" checked>'
+            . '</form>'
+        );
+
+        $checkbox = $document->getElementById('checkbox');
+        $radio = $document->getElementById('radio');
+
+        $checkbox->val(['one', 'three']);
+        $radio->val(['one', 'three']);
+
+        static::assertTrue($checkbox->hasAttribute('checked'));
+        static::assertFalse($radio->hasAttribute('checked'));
     }
 
     public function testProtectedRenamePreservesAttributesAndSupportsNestedNodes()

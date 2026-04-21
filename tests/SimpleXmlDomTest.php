@@ -59,6 +59,28 @@ final class SimpleXmlDomTest extends \PHPUnit\Framework\TestCase
         static::assertSame('pubDate', $link->previousNonWhitespaceSibling()->tag);
     }
 
+    public function testNextNonWhitespaceSiblingReturnsNullAfterTrailingWhitespace()
+    {
+        $xml = XmlDomParser::str_get_xml(
+            "<root><item>\n  <first/>\n  \n</item></root>"
+        );
+
+        static::assertNull($xml->findOne('first')->nextNonWhitespaceSibling());
+    }
+
+    public function testParentNodeReturnsBlankForXmlRootAndDetachedNodes()
+    {
+        $xml = XmlDomParser::str_get_xml('<root><child/></root>');
+        $rootParent = $xml->findOne('root')->parentNode();
+
+        static::assertInstanceOf(SimpleXmlDomBlank::class, $rootParent);
+        static::assertSame('', $rootParent->xml());
+
+        $detachedParent = (new SimpleXmlDom(new \DOMElement('free')))->parentNode();
+        static::assertInstanceOf(SimpleXmlDomBlank::class, $detachedParent);
+        static::assertSame('', $detachedParent->xml());
+    }
+
     public function testSimpleXmlDomMutatorsUpdateXmlOutput()
     {
         $xml = XmlDomParser::str_get_xml('<root><item foo="bar"><title>Old</title></item></root>');
@@ -151,7 +173,7 @@ final class SimpleXmlDomTest extends \PHPUnit\Framework\TestCase
             . '<input id="plain" type="text" value="alpha"/>'
             . '<input id="choice" type="radio" value="yes" checked="checked"/>'
             . '<textarea id="notes">body</textarea>'
-            . '<select id="picker" checked="checked"><option value="one"/><option value="two"/></select>'
+            . '<select id="picker"><option value="one"/><option value="two" selected="selected"/></select>'
             . '<item id="first" class="alpha"><title>First</title></item>'
             . '<item id="second" class="beta"><title>Second</title></item>'
             . '</root>'
@@ -176,14 +198,14 @@ final class SimpleXmlDomTest extends \PHPUnit\Framework\TestCase
         $textarea->val('changed');
         static::assertSame('changed', $textarea->text());
 
-        static::assertSame(['one', 'two'], $select->val());
+        static::assertSame(['two'], $select->val());
         $select->val('two');
         static::assertFalse($select->getElementsByTagName('option', 0)->hasAttribute('selected'));
         static::assertSame('selected', $select->getElementsByTagName('option', -1)->getAttribute('selected'));
 
         static::assertStringContainsString('<option value="one"></option>', $select->innerHtml());
         static::assertStringContainsString('<option value="two" selected', $select->innerHtml());
-        static::assertStringContainsString('<select id="picker" checked="checked">', $select->xml());
+        static::assertStringContainsString('<select id="picker">', $select->xml());
         static::assertStringContainsString('<option value="two" selected="selected"></option>', $select->xml());
         static::assertSame(['alpha'], $xml->getElementByClass('alpha')->class);
         static::assertSame('second', $xml->getElementsByTagName('item', -1)->getAttribute('id'));
@@ -194,6 +216,49 @@ final class SimpleXmlDomTest extends \PHPUnit\Framework\TestCase
         static::assertNull($textNode->getAllAttributes());
         static::assertFalse($textNode->hasAttribute('id'));
         static::assertSame('', $textNode->getAttribute('id'));
+    }
+
+    public function testSelectValReturnsNullWithoutSelectedOption()
+    {
+        $xml = XmlDomParser::str_get_xml(
+            '<root><select id="picker"><option value="one"/><option value="two"/></select></root>'
+        );
+
+        static::assertNull($xml->getElementById('picker')->val());
+    }
+
+    public function testSelectValSetterSupportsMultipleSelectedValues()
+    {
+        $xml = XmlDomParser::str_get_xml(
+            '<root><select id="picker" multiple="multiple"><option value="one"/><option value="two"/><option value="three"/></select></root>'
+        );
+
+        $select = $xml->getElementById('picker');
+        $select->val(['one', 'three']);
+
+        static::assertSame(['one', 'three'], $select->val());
+        static::assertSame('selected', $select->getElementsByTagName('option', 0)->getAttribute('selected'));
+        static::assertFalse($select->getElementsByTagName('option', 1)->hasAttribute('selected'));
+        static::assertSame('selected', $select->getElementsByTagName('option', 2)->getAttribute('selected'));
+    }
+
+    public function testCheckboxAndRadioValSetterSupportArrayValues()
+    {
+        $xml = XmlDomParser::str_get_xml(
+            '<root>'
+            . '<input id="checkbox" type="checkbox" value="one"/>'
+            . '<input id="radio" type="radio" value="two" checked="checked"/>'
+            . '</root>'
+        );
+
+        $checkbox = $xml->getElementById('checkbox');
+        $radio = $xml->getElementById('radio');
+
+        $checkbox->val(['one', 'three']);
+        $radio->val(['one', 'three']);
+
+        static::assertTrue($checkbox->hasAttribute('checked'));
+        static::assertFalse($radio->hasAttribute('checked'));
     }
 
     public function testSimpleXmlDomCollectionConvenienceMethodsAndProtectedRename()

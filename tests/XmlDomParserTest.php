@@ -78,6 +78,20 @@ XML;
         } catch (\RuntimeException $exception) {
             static::assertStringContainsString('not found', $exception->getMessage());
         }
+
+        try {
+            (new XmlDomParser())->loadXmlFile(__DIR__);
+            static::fail('Expected directory XML path to throw.');
+        } catch (\RuntimeException $exception) {
+            static::assertStringContainsString('Could not load file', $exception->getMessage());
+        }
+
+        try {
+            (new XmlDomParser())->loadHtmlFile(__DIR__);
+            static::fail('Expected directory HTML path to throw.');
+        } catch (\RuntimeException $exception) {
+            static::assertStringContainsString('Could not load file', $exception->getMessage());
+        }
     }
 
     public function testXmlParserInvalidStaticMethodThrows()
@@ -85,6 +99,16 @@ XML;
         $this->expectException(\BadMethodCallException::class);
 
         XmlDomParser::unsupported_static_method('<root/>');
+    }
+
+    public function testConstructFromDomDocumentPreservesXmlDocument()
+    {
+        $source = XmlDomParser::str_get_xml('<root><child id="x">ok</child></root>');
+
+        $xml = new XmlDomParser($source->getDocument());
+
+        static::assertStringContainsString('<root><child id="x">ok</child></root>', \trim($xml->xml()));
+        static::assertSame('ok', $xml->getElementById('x')->text());
     }
 
     public function testXml()
