@@ -726,6 +726,98 @@ final class HTML5DOMDocumentTest extends PHPUnit\Framework\TestCase
         static::assertSame($content, $dom->html());
     }
 
+    public function testTemplateElementRoundTripsWithNestedSemanticMarkup()
+    {
+        $content = '<html><body><template id="card"><section><h2>Title</h2><p>Body</p></section></template><main>After</main></body></html>';
+        $dom = new HtmlDomParser();
+        $dom->loadHtml($content);
+
+        static::assertSame($content, $dom->html());
+        static::assertSame('card', $dom->findOne('template')->getAttribute('id'));
+        static::assertSame('<section><h2>Title</h2><p>Body</p></section>', $dom->findOne('template')->innerHTML);
+        static::assertSame('After', $dom->findOne('main')->innerHTML);
+    }
+
+    public function testPictureElementRoundTripsWithSourceAndImgChildren()
+    {
+        $content = '<html><body><picture><source media="(min-width: 640px)" srcset="hero.webp"><img src="hero.jpg" alt="Hero"></picture><main>After</main></body></html>';
+        $dom = new HtmlDomParser();
+        $dom->loadHtml($content);
+
+        static::assertSame($content, $dom->html());
+        static::assertSame(1, $dom->findMulti('picture')->length);
+        static::assertSame(1, $dom->findMulti('picture source')->length);
+        static::assertSame('hero.webp', $dom->findOne('picture source')->getAttribute('srcset'));
+        static::assertSame('hero.jpg', $dom->findOne('picture img')->getAttribute('src'));
+        static::assertSame('After', $dom->findOne('main')->innerHTML);
+    }
+
+    public function testVideoAndAudioElementsRoundTripWithHtml5MediaChildren()
+    {
+        $content = '<html><body><video controls><source src="movie.mp4" type="video/mp4"><track kind="captions" src="captions.vtt" srclang="en"></video><audio controls><source src="sound.mp3" type="audio/mpeg"></audio></body></html>';
+        $dom = new HtmlDomParser();
+        $dom->loadHtml($content);
+
+        static::assertSame($content, $dom->html());
+        static::assertSame(2, $dom->findMulti('source')->length);
+        static::assertSame('movie.mp4', $dom->findOne('video source')->getAttribute('src'));
+        static::assertSame('captions', $dom->findOne('track')->getAttribute('kind'));
+        static::assertSame('sound.mp3', $dom->findOne('audio source')->getAttribute('src'));
+    }
+
+    public function testDetailsAndDialogElementsRoundTripWithNestedMarkup()
+    {
+        $content = '<html><body><details open><summary>More</summary><section><p>Body</p></section></details><dialog open>Hi</dialog></body></html>';
+        $dom = new HtmlDomParser();
+        $dom->loadHtml($content);
+        $detailsAttributes = $dom->findOne('details')->getAllAttributes();
+
+        static::assertSame($content, $dom->html());
+        static::assertSame('More', $dom->findOne('summary')->innerHTML);
+        static::assertSame('Body', $dom->findOne('details section p')->innerHTML);
+        static::assertArrayHasKey('open', $detailsAttributes);
+        static::assertSame('', $detailsAttributes['open']);
+        static::assertSame('Hi', $dom->findOne('dialog')->innerHTML);
+    }
+
+    public function testIframeSrcdocRoundTripsWithEmbeddedMarkup()
+    {
+        $content = '<html><body><iframe srcdoc="<p>Frame &amp; test</p>" loading="lazy"></iframe><main>After</main></body></html>';
+        $dom = new HtmlDomParser();
+        $dom->loadHtml($content);
+
+        static::assertSame($content, $dom->html());
+        static::assertSame('<p>Frame &amp; test</p>', $dom->findOne('iframe')->getAttribute('srcdoc'));
+        static::assertSame('lazy', $dom->findOne('iframe')->getAttribute('loading'));
+        static::assertSame('After', $dom->findOne('main')->innerHTML);
+    }
+
+    public function testProgressMeterAndTimeElementsRoundTripWithAttributes()
+    {
+        $content = '<html><body><progress max="10" value="7">7/10</progress><meter min="0" max="100" value="65">65%</meter><time datetime="2026-04-29">29 Apr</time></body></html>';
+        $dom = new HtmlDomParser();
+        $dom->loadHtml($content);
+
+        static::assertSame($content, $dom->html());
+        static::assertSame('7', $dom->findOne('progress')->getAttribute('value'));
+        static::assertSame('7/10', $dom->findOne('progress')->innerHTML);
+        static::assertSame('65', $dom->findOne('meter')->getAttribute('value'));
+        static::assertSame('29 Apr', $dom->findOne('time')->innerHTML);
+        static::assertSame('2026-04-29', $dom->findOne('time')->getAttribute('datetime'));
+    }
+
+    public function testFigureAndFigcaptionRoundTripWithNestedMarkup()
+    {
+        $content = '<html><body><figure><img src="chart.svg" alt="Chart"><figcaption><strong>Caption</strong></figcaption></figure></body></html>';
+        $dom = new HtmlDomParser();
+        $dom->loadHtml($content);
+
+        static::assertSame($content, $dom->html());
+        static::assertSame('chart.svg', $dom->findOne('figure img')->getAttribute('src'));
+        static::assertSame('Chart', $dom->findOne('figure img')->getAttribute('alt'));
+        static::assertSame('<strong>Caption</strong>', $dom->findOne('figcaption')->innerHTML);
+    }
+
     public function testNbspAndWhiteSpace()
     {
         $bodyContent = '<div> &nbsp; &nbsp; &nbsp; </div>'
