@@ -81,15 +81,17 @@ final class HtmlSerializationRegressionTest extends \PHPUnit\Framework\TestCase
         $serializeElementNodeForPhpLt8 = new \ReflectionMethod(HtmlDomParser::class, 'serializeElementNodeForPhpLt8');
         if (\PHP_VERSION_ID < 80100) {
             // This version check is only for Reflection behavior: private method
-            // access still needs setAccessible() before PHP 8.1.
+            // access still needs setAccessible() on PHP 8.0 and earlier.
             $serializeElementNodeForPhpLt8->setAccessible(true);
         }
 
+        $spanHtml = $serializeElementNodeForPhpLt8->invoke($document, $document->getElementByTagName('span')->getNode());
+        $brHtml = $serializeElementNodeForPhpLt8->invoke($document, $document->getElementByTagName('br')->getNode());
+        $pHtml = $serializeElementNodeForPhpLt8->invoke($document, $document->getElementByTagName('p')->getNode());
+
         static::assertSame(
             '<span>one</span><br><p>two</p>',
-            $serializeElementNodeForPhpLt8->invoke($document, $document->getElementByTagName('span')->getNode())
-            . $serializeElementNodeForPhpLt8->invoke($document, $document->getElementByTagName('br')->getNode())
-            . $serializeElementNodeForPhpLt8->invoke($document, $document->getElementByTagName('p')->getNode())
+            $spanHtml . $brHtml . $pHtml
         );
         static::assertSame(
             '<template id="card"><section><h2>Title</h2><p>Body</p></section></template>',
