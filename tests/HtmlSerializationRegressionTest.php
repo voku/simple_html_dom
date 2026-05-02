@@ -72,6 +72,29 @@ final class HtmlSerializationRegressionTest extends \PHPUnit\Framework\TestCase
         static::assertSame('before<span>middle</span><strong>after</strong>', $parser->innerHtml());
     }
 
+    public function testPhpLt8ElementSerializationHelperDoesNotAppendSyntheticTrailingNewlines()
+    {
+        $document = HtmlDomParser::str_get_html(
+            '<div><span>one</span><br><p>two</p><template id="card"><section><h2>Title</h2><p>Body</p></section></template></div>'
+        );
+
+        $serializeElementNodeForPhpLt8 = new \ReflectionMethod(HtmlDomParser::class, 'serializeElementNodeForPhpLt8');
+        if (\PHP_VERSION_ID < 80100) {
+            $serializeElementNodeForPhpLt8->setAccessible(true);
+        }
+
+        static::assertSame(
+            '<span>one</span><br><p>two</p>',
+            $serializeElementNodeForPhpLt8->invoke($document, $document->getElementByTagName('span')->getNode())
+            . $serializeElementNodeForPhpLt8->invoke($document, $document->getElementByTagName('br')->getNode())
+            . $serializeElementNodeForPhpLt8->invoke($document, $document->getElementByTagName('p')->getNode())
+        );
+        static::assertSame(
+            '<template id="card"><section><h2>Title</h2><p>Body</p></section></template>',
+            $serializeElementNodeForPhpLt8->invoke($document, $document->findOne('template')->getNode())
+        );
+    }
+
     public function testNodeBackedTextNodeHtmlPreservesTextVerbatim()
     {
         $document = HtmlDomParser::str_get_html('<div>before<span>middle</span>after</div>');
