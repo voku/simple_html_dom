@@ -1253,6 +1253,10 @@ class HtmlDomParser extends AbstractDomParser
             }
         }
 
+        if (\substr($content, -1) === "\n") {
+            $content = \substr($content, 0, -1);
+        }
+
         return $content;
     }
 
