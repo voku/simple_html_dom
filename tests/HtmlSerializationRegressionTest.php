@@ -72,7 +72,7 @@ final class HtmlSerializationRegressionTest extends \PHPUnit\Framework\TestCase
         static::assertSame('before<span>middle</span><strong>after</strong>', $parser->innerHtml());
     }
 
-    public function testElementSerializationHelperDoesNotAppendSyntheticTrailingNewlinesForPhpBelow8Behavior()
+    public function testSerializeElementNodeForPhpLt8DoesNotAppendTrailingNewlines()
     {
         $document = HtmlDomParser::str_get_html(
             '<div><span>one</span><br><p>two</p><template id="card"><section><h2>Title</h2><p>Body</p></section></template></div>'
