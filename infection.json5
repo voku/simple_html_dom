@@ -1,0 +1,21 @@
+{
+  "$schema": "vendor/infection/infection/resources/schema.json",
+  "source": {
+    "directories": [
+      "src"
+    ]
+  },
+  "phpUnit": {
+    "configDir": "."
+  },
+  "phpStan": {
+    "configDir": "."
+  },
+  "staticAnalysisTool": "phpstan",
+  "threads": "max",
+  "minMsi": 0,
+  "minCoveredMsi": 0,
+  "logs": {
+    "text": "build/logs/infection.log"
+  }
+}

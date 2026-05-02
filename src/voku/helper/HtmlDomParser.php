@@ -1187,41 +1187,74 @@ class HtmlDomParser extends AbstractDomParser
      */
     private function serializeNode(\DOMNode $node): string
     {
-        // For script/style on PHP < 8.0 use ownerDocument to avoid fresh-doc
-        // libxml injecting "\n" inside raw-text content.
-        $useOwnerDoc = \PHP_VERSION_ID < 80000
-            && $node instanceof \DOMElement
-            && \in_array(\strtolower($node->tagName), ['script', 'style'], true);
-
-        if (!$useOwnerDoc) {
-            $document = new \DOMDocument('1.0', $this->getEncoding());
-            $document->preserveWhiteSpace = true;
-            $document->formatOutput = false;
-
-            $importedNode = $document->importNode($node, true);
-            // @phpstan-ignore instanceof.alwaysTrue (importNode() returns DOMNode here)
-            if (!$importedNode instanceof \DOMNode) {
-                return '';
-            }
-
-            $document->appendChild($importedNode);
-
-            $content = $document->saveHTML($importedNode);
-        } else {
-            // PHP < 8.0 script/style: serialize from original document and
-            // strip only the trailing "\n" that older libxml appends after
-            // raw-text elements.
-            $ownerDoc = $node->ownerDocument;
-            $content = $ownerDoc !== null ? $ownerDoc->saveHTML($node) : false;
-            // Older libxml appends exactly one synthetic trailing "\n" here;
-            // preserve any real user-provided trailing newlines in the content.
-            if ($content !== false && \substr($content, -1) === "\n") {
-                $content = \substr($content, 0, -1);
-            }
+        if (\PHP_VERSION_ID < 80000 && $node instanceof \DOMElement) {
+            return $this->serializeElementNodeForPhpLt8($node);
         }
+
+        $document = new \DOMDocument('1.0', $this->getEncoding());
+        $document->preserveWhiteSpace = true;
+        $document->formatOutput = false;
+
+        $importedNode = $document->importNode($node, true);
+        // @phpstan-ignore instanceof.alwaysTrue (importNode() returns DOMNode here)
+        if (!$importedNode instanceof \DOMNode) {
+            return '';
+        }
+
+        $document->appendChild($importedNode);
+
+        $content = $document->saveHTML($importedNode);
 
         if ($content === false) {
             return '';
+        }
+
+        return $content;
+    }
+
+    /**
+     * On PHP < 8.0, saveHTML($node) injects formatting newlines for detached
+     * block-level elements, so serialize a temporary whole document instead.
+     *
+     * @param \DOMElement $node
+     *
+     * @return string
+     */
+    private function serializeElementNodeForPhpLt8(\DOMElement $node): string
+    {
+        $document = new \DOMDocument('1.0', $this->getEncoding());
+        $document->preserveWhiteSpace = true;
+        $document->formatOutput = false;
+
+        $importedNode = $document->importNode($node, true);
+        // @phpstan-ignore instanceof.alwaysTrue (importNode() returns DOMNode here)
+        if (!$importedNode instanceof \DOMElement) {
+            return '';
+        }
+
+        $document->appendChild($importedNode);
+
+        $content = $document->saveHTML();
+        if ($content === false) {
+            return '';
+        }
+
+        $content = (string) \preg_replace('/^<!DOCTYPE[^>]+>\s*/i', '', $content);
+
+        $tagName = \strtolower($importedNode->tagName);
+        if ($tagName !== 'html') {
+            $content = (string) \preg_replace('/^<html[^>]*>/i', '', $content);
+            $content = (string) \preg_replace('/<\/html>\s*$/i', '', $content);
+
+            if ($tagName !== 'body') {
+                $content = (string) \preg_replace('/^<body[^>]*>/i', '', $content);
+                $content = (string) \preg_replace('/<\/body>\s*$/i', '', $content);
+                $content = \str_replace('<body></body>', '', $content);
+            }
+        }
+
+        if (\substr($content, -1) === "\n") {
+            $content = \substr($content, 0, -1);
         }
 
         return $content;
