@@ -72,7 +72,7 @@ final class HtmlSerializationRegressionTest extends \PHPUnit\Framework\TestCase
         static::assertSame('before<span>middle</span><strong>after</strong>', $parser->innerHtml());
     }
 
-    public function testSerializeElementNodeForPhpLt8DoesNotAppendTrailingNewlines()
+    public function testSerializeElementNodeDoesNotAppendTrailingNewlines()
     {
         $document = HtmlDomParser::str_get_html(
             '<div><span>one</span><br><p>two</p><template id="card"><section><h2>Title</h2><p>Body</p></section></template></div>'
@@ -80,8 +80,8 @@ final class HtmlSerializationRegressionTest extends \PHPUnit\Framework\TestCase
 
         $serializeElementNodeForPhpLt8 = new \ReflectionMethod(HtmlDomParser::class, 'serializeElementNodeForPhpLt8');
         if (\PHP_VERSION_ID < 80100) {
-            // Reflection-based private method access only needs setAccessible()
-            // on PHP versions below 8.1.
+            // This version check is only for Reflection behavior: private method
+            // access still needs setAccessible() before PHP 8.1.
             $serializeElementNodeForPhpLt8->setAccessible(true);
         }
 
