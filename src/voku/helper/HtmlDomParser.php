@@ -1215,6 +1215,10 @@ class HtmlDomParser extends AbstractDomParser
     /**
      * On PHP < 8.0, saveHTML($node) injects formatting newlines for detached
      * block-level elements, so serialize a temporary whole document instead.
+     *
+     * @param \DOMElement $node
+     *
+     * @return string
      */
     private function serializeElementNodeForPhpLt8(\DOMElement $node): string
     {
