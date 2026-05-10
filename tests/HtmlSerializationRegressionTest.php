@@ -7,6 +7,115 @@ use voku\helper\HtmlDomParser;
  */
 final class HtmlSerializationRegressionTest extends \PHPUnit\Framework\TestCase
 {
+    /**
+     * @return array<string, array{string, string}>
+     */
+    public function provideEdgeCaseDocumentHtml(): array
+    {
+        return [
+            'custom non-html tag' => [
+                '<custom-tag data-x="1"><span>A</span></custom-tag>',
+                '<custom-tag data-x="1"><span>A</span></custom-tag>',
+            ],
+            'invalid html is normalized' => [
+                '<div><span>alpha</div>',
+                '<div><span>alpha</span></div>',
+            ],
+            'html5 implicit paragraph closing' => [
+                '<p>one<p>two',
+                '<p>one</p><p>two</p>',
+            ],
+            'chained paragraph roots' => [
+                '<p>one</p><p>two</p><p>three</p>',
+                '<p>one</p><p>two</p><p>three</p>',
+            ],
+        ];
+    }
+
+    /**
+     * @return array<string, array{string, string, int, string, string}>
+     */
+    public function provideNodeBackedEdgeCases(): array
+    {
+        return [
+            'custom non-html tag' => [
+                '<custom-tag data-x="1"><span>A</span></custom-tag>',
+                'custom-tag',
+                0,
+                '<custom-tag data-x="1"><span>A</span></custom-tag>',
+                '<span>A</span>',
+            ],
+            'only p tag root' => [
+                '<p>alpha</p>',
+                'p',
+                0,
+                '<p>alpha</p>',
+                'alpha',
+            ],
+            'only div tag root' => [
+                '<div>alpha</div>',
+                'div',
+                0,
+                '<div>alpha</div>',
+                'alpha',
+            ],
+            'invalid html normalized div' => [
+                '<div><span>alpha</div>',
+                'div',
+                0,
+                '<div><span>alpha</span></div>',
+                '<span>alpha</span>',
+            ],
+            'html5 implicit paragraph closing first p' => [
+                '<p>one<p>two',
+                'p',
+                0,
+                '<p>one</p>',
+                'one',
+            ],
+            'html5 implicit paragraph closing second p' => [
+                '<p>one<p>two',
+                'p',
+                1,
+                '<p>two</p>',
+                'two',
+            ],
+            'chained paragraph middle root' => [
+                '<p>one</p><p>two</p><p>three</p>',
+                'p',
+                1,
+                '<p>two</p>',
+                'two',
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider provideEdgeCaseDocumentHtml
+     */
+    public function testDocumentHtmlRoundTripsSerializationEdgeCases(string $html, string $expectedHtml)
+    {
+        static::assertSame($expectedHtml, HtmlDomParser::str_get_html($html)->html());
+    }
+
+    /**
+     * @dataProvider provideNodeBackedEdgeCases
+     */
+    public function testNodeBackedHtmlHandlesSerializationEdgeCases(
+        string $html,
+        string $selector,
+        int $index,
+        string $expectedHtml,
+        string $expectedInnerHtml
+    ) {
+        $document = HtmlDomParser::str_get_html($html);
+        $element = $document->find($selector, $index);
+        $parser = new HtmlDomParser($element->getNode());
+
+        static::assertSame($expectedHtml, $parser->html());
+        static::assertSame($expectedInnerHtml, $parser->innerHtml());
+    }
+
     public function testHtmlDomParserConstructedFromExistingNodePreservesNestedMarkupWithoutInjectedNewlines()
     {
         $html = '<div class="mydiv"><div class="mydiv-item">A1</div><div class="mydiv-item"><span>B1</span><span>B2</span></div></div>';
