@@ -1174,14 +1174,11 @@ class HtmlDomParser extends AbstractDomParser
      * formatting newlines into the wrapper's children when saving the full
      * document).
      *
-     * On PHP < 8.0, older libxml injects a trailing "\n" after raw-text
-     * elements (script, style) when they are the root of a fresh document.
-     * For those elements we fall back to serializing from the original
-     * document and strip only the single trailing "\n".  For all other
-     * element types the fresh-document approach is used to avoid libxml
-     * injecting formatting newlines inside block-level content.  Text and
-     * other non-element nodes are always serialized from the owner document
-     * without any trailing-newline stripping (they carry no injected newline).
+     * On PHP < 8.0, DOMElement instances are serialized through
+     * serializeElementNodeForPhpLt8() so older libxml cannot inject formatting
+     * newlines when saveHTML($node) is used on detached block-level elements.
+     * Text and other non-element nodes still use the fresh-document approach
+     * directly because they do not need the extra wrapper stripping.
      *
      * @param \DOMNode $node
      */
@@ -1239,19 +1236,7 @@ class HtmlDomParser extends AbstractDomParser
             return '';
         }
 
-        $content = (string) \preg_replace('/^<!DOCTYPE[^>]+>\s*/i', '', $content);
-
-        $tagName = \strtolower($importedNode->tagName);
-        if ($tagName !== 'html') {
-            $content = (string) \preg_replace('/^<html[^>]*>/i', '', $content);
-            $content = (string) \preg_replace('/<\/html>\s*$/i', '', $content);
-
-            if ($tagName !== 'body') {
-                $content = (string) \preg_replace('/^<body[^>]*>/i', '', $content);
-                $content = (string) \preg_replace('/<\/body>\s*$/i', '', $content);
-                $content = \str_replace('<body></body>', '', $content);
-            }
-        }
+        $content = $this->stripLibxmlDocumentWrappers($content, \strtolower($importedNode->tagName));
 
         if (\substr($content, -1) === "\n") {
             $content = \substr($content, 0, -1);
@@ -1284,33 +1269,45 @@ class HtmlDomParser extends AbstractDomParser
             return '';
         }
 
-        // Strip the DOCTYPE declaration that libxml always prepends.
-        $full = (string) \preg_replace('/<!DOCTYPE[^>]+>/i', '', $full);
-        $full = \trim($full);
-
         $documentElement = $this->document->documentElement;
         $tagName = $documentElement instanceof \DOMElement
             ? \strtolower($documentElement->tagName)
             : '';
 
-        // Strip the <html>...</html> wrapper added by libxml when the root
-        // element is not the HTML element itself.
-        if ($tagName !== 'html') {
-            $full = (string) \preg_replace('/^<html[^>]*>/i', '', $full);
-            $full = (string) \preg_replace('/<\/html>$/i', '', $full);
-            $full = \trim($full);
+        $full = $this->stripLibxmlDocumentWrappers($full, $tagName, true);
 
-            // Strip the <body>...</body> wrapper added for non-body elements.
+        return $full;
+    }
+
+    /**
+     * Strip the synthetic wrappers libxml adds when serializing a whole
+     * document around a non-root HTML element on PHP < 8.
+     */
+    private function stripLibxmlDocumentWrappers(string $content, string $tagName, bool $trim = false): string
+    {
+        $content = (string) \preg_replace('/^<!DOCTYPE[^>]+>\s*/i', '', $content);
+        if ($trim) {
+            $content = \trim($content);
+        }
+
+        if ($tagName !== 'html') {
+            $content = (string) \preg_replace('/^<html[^>]*>/i', '', $content);
+            $content = (string) \preg_replace('/<\/html>\s*$/i', '', $content);
+            if ($trim) {
+                $content = \trim($content);
+            }
+
             if ($tagName !== 'body') {
-                $full = (string) \preg_replace('/^<body[^>]*>/i', '', $full);
-                $full = (string) \preg_replace('/<\/body>$/i', '', $full);
-                // Remove a trailing empty <body> libxml may add for <head> roots.
-                $full = \str_replace('<body></body>', '', $full);
-                $full = \trim($full);
+                $content = (string) \preg_replace('/^<body[^>]*>/i', '', $content);
+                $content = (string) \preg_replace('/<\/body>\s*$/i', '', $content);
+                $content = \str_replace('<body></body>', '', $content);
+                if ($trim) {
+                    $content = \trim($content);
+                }
             }
         }
 
-        return $full;
+        return $content;
     }
 
     /**

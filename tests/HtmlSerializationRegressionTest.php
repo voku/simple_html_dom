@@ -74,6 +74,10 @@ final class HtmlSerializationRegressionTest extends \PHPUnit\Framework\TestCase
 
     public function testSerializeElementNodeDoesNotAppendTrailingNewline()
     {
+        if (\PHP_VERSION_ID >= 80000) {
+            static::markTestSkipped('serializeElementNodeForPhpLt8() is only used on PHP < 8.0.');
+        }
+
         $document = HtmlDomParser::str_get_html(
             '<div><span>one</span><br><p>two</p><template id="card"><section><h2>Title</h2><p>Body</p></section></template></div>'
         );
