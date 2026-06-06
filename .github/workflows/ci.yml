@@ -28,7 +28,7 @@ jobs:
             8.4
         ]
         composer: [basic]
-    timeout-minutes: 10
+    timeout-minutes: 30
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -55,7 +55,8 @@ jobs:
       - name: Install dependencies
         run: |
           if [[ "${{ matrix.php }}" == "8.3" ]]; then
-            composer require phpstan/phpstan --no-update
+            composer config allow-plugins.infection/extension-installer true
+            composer require phpstan/phpstan:^2.1 infection/infection:^0.32.7 --dev --no-update --no-interaction
           fi;
 
           if [[ "${{ matrix.composer }}" == "lowest" ]]; then
@@ -77,6 +78,12 @@ jobs:
         if: ${{ matrix.php == '8.3' }}
         run: |
           php vendor/bin/phpstan analyse -c phpstan.neon --no-progress
+
+      - name: Run infection with phpstan integration
+        if: ${{ matrix.php == '8.3' }}
+        run: |
+          mkdir -p build/logs
+          XDEBUG_MODE=coverage php vendor/bin/infection run --configuration=infection.json5
 
       - name: Upload coverage results to Coveralls
         continue-on-error: true
