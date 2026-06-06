@@ -564,7 +564,7 @@ class HtmlDomParser extends AbstractDomParser
             && \method_exists($modernHtmlDocumentClass, 'createFromString');
     }
 
-    private function createLegacyDocumentFromModernParser(string $html, int $optionsXml): \DOMDocument
+    protected function createLegacyDocumentFromModernParser(string $html, int $optionsXml): \DOMDocument
     {
         $modernHtmlDocumentClass = 'Dom\\HTMLDocument';
 
@@ -577,7 +577,7 @@ class HtmlDomParser extends AbstractDomParser
         return $this->projectModernDocumentToLegacyDocument($modernDocument);
     }
 
-    private function createLegacyDocumentWithLibxml(string $html, int $optionsXml): \DOMDocument
+    protected function createLegacyDocumentWithLibxml(string $html, int $optionsXml): \DOMDocument
     {
         $document = new \DOMDocument('1.0', $this->getEncoding());
         $document->preserveWhiteSpace = true;
@@ -835,6 +835,18 @@ class HtmlDomParser extends AbstractDomParser
 
         $nodesList = $xPath->query($xPathQuery, $contextNode);
 
+        if (
+            $nodesList !== false
+            &&
+            $nodesList->length === 0
+        ) {
+            $namespaceAgnosticXPathQuery = self::createNamespaceAgnosticXPathQuery($xPathQuery);
+
+            if ($namespaceAgnosticXPathQuery !== $xPathQuery) {
+                $nodesList = $xPath->query($namespaceAgnosticXPathQuery, $contextNode);
+            }
+        }
+
         return self::createFindResultFromNodeList($nodesList, $idx, $queryHtmlDomParser);
     }
 
@@ -907,6 +919,20 @@ class HtmlDomParser extends AbstractDomParser
         }
 
         return $scopedXPathQuery;
+    }
+
+    private static function createNamespaceAgnosticXPathQuery(string $xPathQuery): string
+    {
+        $search = [
+            '/(?<=::)(?!\*|text\(|comment\(|node\(|processing-instruction\()([a-zA-Z_][a-zA-Z0-9_-]*)(?=(?:\\[|\\/|\\||\\s|$))/u',
+            '/(?<=\\/)(?!\\/|\\*|text\(|comment\(|node\(|processing-instruction\()([a-zA-Z_][a-zA-Z0-9_-]*)(?=(?:\\[|\\/|\\||\\s|$))/u',
+        ];
+
+        return (string) \preg_replace(
+            $search,
+            '*[local-name() = \'$1\']',
+            $xPathQuery
+        );
     }
 
     /**

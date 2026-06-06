@@ -64,13 +64,14 @@ final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\Test
         static::assertNotFalse($filePath);
 
         $html = '<!DOCTYPE html><html><body><template id="card"><section><h2>Title</h2><p>Body</p></section></template><main>After</main></body></html>';
+        $expectedHtml = '<!DOCTYPE html>' . "\n" . '<html><body><template id="card"><section><h2>Title</h2><p>Body</p></section></template><main>After</main></body></html>';
         \file_put_contents($filePath, $html);
 
         try {
             $dom = new $parserClass();
             $dom->loadHtmlFile($filePath);
 
-            static::assertSame($html, $dom->html());
+            static::assertSame($expectedHtml, $dom->html());
             static::assertSame('card', $dom->findOne('template')->getAttribute('id'));
             static::assertSame('<section><h2>Title</h2><p>Body</p></section>', $dom->findOne('template')->innerHTML);
             static::assertSame('After', $dom->findOne('main')->innerHTML);
@@ -79,22 +80,14 @@ final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\Test
         }
     }
 
-    public function testLegacyParserStillDropsSvgNamespacedAttributeAccess(): void
+    /**
+     * @dataProvider provideParserClasses
+     *
+     * @param class-string<HtmlDomParser> $parserClass
+     */
+    public function testParserPathPreservesSvgNamespacedAttributeAccess(string $parserClass): void
     {
-        $dom = ForcedLegacyHtmlDomParser::str_get_html(
-            '<div><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><use xlink:href="#icon"></use></svg></div>'
-        );
-
-        static::assertSame('', $dom->findOne('use')->getAttribute('xlink:href'));
-    }
-
-    public function testModernParserPreservesSvgNamespacedAttributeAccess(): void
-    {
-        if (!ForcedModernHtmlDomParser::supportsModernPath()) {
-            static::markTestSkipped('Dom\\HTMLDocument is not available on this runtime.');
-        }
-
-        $dom = ForcedModernHtmlDomParser::str_get_html(
+        $dom = $parserClass::str_get_html(
             '<div><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><use xlink:href="#icon"></use></svg></div>'
         );
 
@@ -103,6 +96,19 @@ final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\Test
             '<div><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><use xlink:href="#icon"></use></svg></div>',
             $dom->html()
         );
+    }
+
+    public function testModernPathInvokesModernDocumentCreationWhenAvailable(): void
+    {
+        if (!TrackingModernHtmlDomParser::supportsModernPath()) {
+            static::markTestSkipped('Dom\\HTMLDocument is not available on this runtime.');
+        }
+
+        TrackingModernHtmlDomParser::$modernCreateCalls = 0;
+
+        TrackingModernHtmlDomParser::str_get_html('<div><template><p>ok</p></template></div>');
+
+        static::assertSame(1, TrackingModernHtmlDomParser::$modernCreateCalls);
     }
 }
 
@@ -125,5 +131,20 @@ class ForcedModernHtmlDomParser extends HtmlDomParser
     protected function shouldUseModernHtmlDocument(int $optionsXml): bool
     {
         return self::supportsModernPath();
+    }
+}
+
+class TrackingModernHtmlDomParser extends ForcedModernHtmlDomParser
+{
+    /**
+     * @var int
+     */
+    public static $modernCreateCalls = 0;
+
+    protected function createLegacyDocumentFromModernParser(string $html, int $optionsXml): \DOMDocument
+    {
+        ++self::$modernCreateCalls;
+
+        return parent::createLegacyDocumentFromModernParser($html, $optionsXml);
     }
 }
