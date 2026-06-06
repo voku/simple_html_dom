@@ -112,10 +112,10 @@ foreach ($cases as $scenario => $config) {
         );
 
         echo $scenario, "\t",
-            $label, "\t",
-            $result['parse_ms'], "\t",
-            $result['selector_ms'], "\t",
-            $result['serialize_ms'], "\t",
-            $result['peak_bytes'], "\n";
+        $label, "\t",
+        $result['parse_ms'], "\t",
+        $result['selector_ms'], "\t",
+        $result['serialize_ms'], "\t",
+        $result['peak_bytes'], "\n";
     }
 }
