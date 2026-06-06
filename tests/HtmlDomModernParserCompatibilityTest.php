@@ -137,7 +137,9 @@ final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\Test
     {
         $normalizedHtml = \preg_replace('/>\s+</', '><', \trim($html));
 
-        return $normalizedHtml !== null ? $normalizedHtml : \trim($html);
+        static::assertNotNull($normalizedHtml);
+
+        return $normalizedHtml;
     }
 
     /**
@@ -500,6 +502,8 @@ final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\Test
         $this->requireModernPath();
 
         $dom = StrictModernHtmlDomParser::str_get_html(
+            // Start with an unmatched closing paragraph tag so the real HTML5 parser
+            // must recover browser-style markup before projection into DOMDocument.
             '</p><div><template id="card"><section><p>Template content</p></section></template><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><use xlink:href="#icon"></use></svg></div>'
         );
 

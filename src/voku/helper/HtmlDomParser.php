@@ -724,11 +724,7 @@ class HtmlDomParser extends AbstractDomParser
             foreach ($attributes as $modernAttribute) {
                 $attributeName = $this->getProjectedNodeName($modernAttribute);
                 $attributeValue = (string) $this->getOptionalModernNodeProperty($modernAttribute, 'nodeValue', '');
-                $attributeNamespaceUri = (string) $this->getOptionalModernNodeProperty(
-                    $modernAttribute,
-                    'namespaceURI',
-                    ''
-                );
+                $attributeNamespaceUri = (string) $this->getOptionalModernNodeProperty($modernAttribute, 'namespaceURI', '');
 
                 if ($attributeNamespaceUri !== '') {
                     $element->setAttributeNS($attributeNamespaceUri, $attributeName, $attributeValue);
