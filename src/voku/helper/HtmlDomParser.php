@@ -33,6 +33,8 @@ namespace voku\helper;
  */
 class HtmlDomParser extends AbstractDomParser
 {
+    private const MODERN_HTML_DOCUMENT_CLASS = 'Dom\\HTMLDocument';
+
     /**
      * @var callable|null
      *
@@ -560,21 +562,17 @@ class HtmlDomParser extends AbstractDomParser
 
     protected function supportsModernHtmlDocument(): bool
     {
-        $modernHtmlDocumentClass = 'Dom\\HTMLDocument';
-
-        if (!\class_exists($modernHtmlDocumentClass)) {
+        if (!\class_exists(self::MODERN_HTML_DOCUMENT_CLASS)) {
             return false;
         }
 
         // @phpstan-ignore function.impossibleType (runtime guard for PHP 8.4+ only)
-        return \method_exists($modernHtmlDocumentClass, 'createFromString');
+        return \method_exists(self::MODERN_HTML_DOCUMENT_CLASS, 'createFromString');
     }
 
     protected function createLegacyDocumentFromModernParser(string $html, int $optionsXml): \DOMDocument
     {
-        $modernHtmlDocumentClass = 'Dom\\HTMLDocument';
-
-        $modernDocument = $modernHtmlDocumentClass::createFromString(
+        $modernDocument = self::MODERN_HTML_DOCUMENT_CLASS::createFromString(
             $html,
             $optionsXml,
             $this->getEncoding()
@@ -795,7 +793,9 @@ class HtmlDomParser extends AbstractDomParser
     private function getRequiredModernNodeProperty($modernNode, string $property)
     {
         if (!$this->hasModernNodeProperty($modernNode, $property)) {
-            throw new \RuntimeException('Unsupported modern DOM node property: ' . $property);
+            throw new \RuntimeException(
+                'Unsupported modern DOM node property "' . $property . '" on ' . \get_class($modernNode)
+            );
         }
 
         return $modernNode->{$property};
@@ -988,7 +988,11 @@ class HtmlDomParser extends AbstractDomParser
         // keep matching foreign-content nodes (e.g. SVG / MathML) even when the
         // underlying DOM stores those elements in namespaces.
         $search = [
+            // Match unprefixed node tests that follow an XPath axis, e.g.
+            // "descendant-or-self::svg" -> "descendant-or-self::*[local-name()='svg']".
             '/(?<=::)(?!\*|text\(|comment\(|node\(|processing-instruction\()([a-zA-Z_][a-zA-Z0-9_-]*)(?=(?:\\[|\\/|\\||\\s|$))/u',
+            // Match unprefixed child steps, e.g. "/svg" -> "/*[local-name()='svg']",
+            // while leaving axis steps like "/following-sibling::" untouched.
             '/(?<=\\/)(?!\\/|\\*|text\(|comment\(|node\(|processing-instruction\()([a-zA-Z_][a-zA-Z0-9_-]*)(?=(?:\\[|\\/|\\||\\s|$))/u',
         ];
 

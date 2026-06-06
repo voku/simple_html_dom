@@ -65,7 +65,7 @@ final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\Test
         \chmod($filePath, 0600);
 
         $html = '<!DOCTYPE html><html><body><template id="card"><section><h2>Title</h2><p>Body</p></section></template><main>After</main></body></html>';
-        $expectedHtml = '<!DOCTYPE html>' . "\n" . '<html><body><template id="card"><section><h2>Title</h2><p>Body</p></section></template><main>After</main></body></html>';
+        $expectedHtml = \str_replace('<!DOCTYPE html>', '<!DOCTYPE html>' . "\n", $html);
         \file_put_contents($filePath, $html);
 
         try {
