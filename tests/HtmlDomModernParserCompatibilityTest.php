@@ -113,6 +113,9 @@ final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\Test
     }
 }
 
+/**
+ * @internal Test double that forces the legacy libxml parser path.
+ */
 class ForcedLegacyHtmlDomParser extends HtmlDomParser
 {
     protected function shouldUseModernHtmlDocument(int $optionsXml): bool
@@ -121,6 +124,9 @@ class ForcedLegacyHtmlDomParser extends HtmlDomParser
     }
 }
 
+/**
+ * @internal Test double that forces the PHP 8.4+ modern parser path when available.
+ */
 class ForcedModernHtmlDomParser extends HtmlDomParser
 {
     public static function supportsModernPath(): bool
@@ -135,6 +141,9 @@ class ForcedModernHtmlDomParser extends HtmlDomParser
     }
 }
 
+/**
+ * @internal Test double that records modern parser invocations.
+ */
 class TrackingModernHtmlDomParser extends ForcedModernHtmlDomParser
 {
     /**

@@ -988,11 +988,11 @@ class HtmlDomParser extends AbstractDomParser
         // keep matching foreign-content nodes (e.g. SVG / MathML) even when the
         // underlying DOM stores those elements in namespaces.
         $search = [
-            // Match unprefixed node tests that follow an XPath axis, e.g.
-            // "descendant-or-self::svg" -> "descendant-or-self::*[local-name()='svg']".
+            // Match unprefixed element names that appear immediately after an
+            // XPath axis operator, e.g. "descendant-or-self::svg".
             '/(?<=::)(?!\*|text\(|comment\(|node\(|processing-instruction\()([a-zA-Z_][a-zA-Z0-9_-]*)(?=(?:\\[|\\/|\\||\\s|$))/u',
-            // Match unprefixed child steps, e.g. "/svg" -> "/*[local-name()='svg']",
-            // while leaving axis steps like "/following-sibling::" untouched.
+            // Match unprefixed element names in child-step segments, e.g.
+            // "/svg", while leaving axis steps like "/following-sibling::".
             '/(?<=\\/)(?!\\/|\\*|text\(|comment\(|node\(|processing-instruction\()([a-zA-Z_][a-zA-Z0-9_-]*)(?=(?:\\[|\\/|\\||\\s|$))/u',
         ];
 
