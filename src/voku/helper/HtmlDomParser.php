@@ -562,6 +562,10 @@ class HtmlDomParser extends AbstractDomParser
 
     protected function supportsModernHtmlDocument(): bool
     {
+        if (\PHP_VERSION_ID < 80400) {
+            return false;
+        }
+
         if (!\class_exists(self::MODERN_HTML_DOCUMENT_CLASS)) {
             return false;
         }
@@ -572,13 +576,23 @@ class HtmlDomParser extends AbstractDomParser
 
     protected function createLegacyDocumentFromModernParser(string $html, int $optionsXml): \DOMDocument
     {
-        $modernDocument = self::MODERN_HTML_DOCUMENT_CLASS::createFromString(
+        $modernDocument = $this->createModernHtmlDocument($html, $optionsXml);
+
+        return $this->projectModernDocumentToLegacyDocument($modernDocument);
+    }
+
+    /**
+     * @return object
+     */
+    protected function createModernHtmlDocument(string $html, int $optionsXml)
+    {
+        $modernHtmlDocumentClass = self::MODERN_HTML_DOCUMENT_CLASS;
+
+        return $modernHtmlDocumentClass::createFromString(
             $html,
             $optionsXml,
             $this->getEncoding()
         );
-
-        return $this->projectModernDocumentToLegacyDocument($modernDocument);
     }
 
     protected function createLegacyDocumentWithLibxml(string $html, int $optionsXml): \DOMDocument
