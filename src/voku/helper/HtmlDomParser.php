@@ -544,6 +544,8 @@ class HtmlDomParser extends AbstractDomParser
             try {
                 return $this->createLegacyDocumentFromModernParser($html, $optionsXml);
             } catch (\Throwable $throwable) {
+                // Preserve legacy compatibility if the optional PHP 8.4+ parser
+                // is unavailable for a specific input or option combination.
                 return $this->createLegacyDocumentWithLibxml($html, $optionsXml);
             }
         }
@@ -560,8 +562,12 @@ class HtmlDomParser extends AbstractDomParser
     {
         $modernHtmlDocumentClass = 'Dom\\HTMLDocument';
 
-        return \class_exists($modernHtmlDocumentClass)
-            && \method_exists($modernHtmlDocumentClass, 'createFromString');
+        if (!\class_exists($modernHtmlDocumentClass)) {
+            return false;
+        }
+
+        // @phpstan-ignore function.impossibleType (runtime guard for PHP 8.4+ only)
+        return \method_exists($modernHtmlDocumentClass, 'createFromString');
     }
 
     protected function createLegacyDocumentFromModernParser(string $html, int $optionsXml): \DOMDocument
@@ -631,7 +637,7 @@ class HtmlDomParser extends AbstractDomParser
         $document->preserveWhiteSpace = true;
         $document->formatOutput = false;
 
-        foreach ($modernDocument->childNodes as $modernChildNode) {
+        foreach ($this->getRequiredModernNodeProperty($modernDocument, 'childNodes') as $modernChildNode) {
             $legacyNode = $this->projectModernNodeToLegacyNode($modernChildNode, $document);
             if ($legacyNode instanceof \DOMNode) {
                 $document->appendChild($legacyNode);
@@ -649,25 +655,31 @@ class HtmlDomParser extends AbstractDomParser
      */
     private function projectModernNodeToLegacyNode($modernNode, \DOMDocument $document)
     {
-        switch ($modernNode->nodeType) {
+        $nodeType = $this->getRequiredModernNodeProperty($modernNode, 'nodeType');
+
+        switch ($nodeType) {
             case \XML_ELEMENT_NODE:
                 return $this->projectModernElementToLegacyNode($modernNode, $document);
             case \XML_TEXT_NODE:
-                return $document->createTextNode((string) ($modernNode->nodeValue ?? ''));
+                return $document->createTextNode((string) $this->getOptionalModernNodeProperty($modernNode, 'nodeValue', ''));
             case \XML_CDATA_SECTION_NODE:
-                return $document->createCDATASection((string) ($modernNode->nodeValue ?? ''));
+                return $document->createCDATASection((string) $this->getOptionalModernNodeProperty($modernNode, 'nodeValue', ''));
             case \XML_COMMENT_NODE:
-                return $document->createComment((string) ($modernNode->nodeValue ?? ''));
+                return $document->createComment((string) $this->getOptionalModernNodeProperty($modernNode, 'nodeValue', ''));
             case \XML_DOCUMENT_TYPE_NODE:
                 return $document->implementation->createDocumentType(
-                    (string) ($modernNode->name ?? $modernNode->nodeName),
-                    (string) ($modernNode->publicId ?? ''),
-                    (string) ($modernNode->systemId ?? '')
+                    (string) $this->getOptionalModernNodeProperty(
+                        $modernNode,
+                        'name',
+                        $this->getOptionalModernNodeProperty($modernNode, 'nodeName', '')
+                    ),
+                    (string) $this->getOptionalModernNodeProperty($modernNode, 'publicId', ''),
+                    (string) $this->getOptionalModernNodeProperty($modernNode, 'systemId', '')
                 );
             case \XML_PI_NODE:
                 return $document->createProcessingInstruction(
-                    (string) ($modernNode->nodeName ?? ''),
-                    (string) ($modernNode->nodeValue ?? '')
+                    (string) $this->getOptionalModernNodeProperty($modernNode, 'nodeName', ''),
+                    (string) $this->getOptionalModernNodeProperty($modernNode, 'nodeValue', '')
                 );
             case \XML_DOCUMENT_FRAG_NODE:
                 $fragment = $document->createDocumentFragment();
@@ -687,11 +699,12 @@ class HtmlDomParser extends AbstractDomParser
     {
         $element = $document->createElement($this->getProjectedNodeName($modernElement));
 
-        if (isset($modernElement->attributes)) {
-            foreach ($modernElement->attributes as $modernAttribute) {
+        $attributes = $this->getOptionalModernNodeProperty($modernElement, 'attributes');
+        if ($attributes !== null) {
+            foreach ($attributes as $modernAttribute) {
                 $element->setAttribute(
                     $this->getProjectedNodeName($modernAttribute),
-                    (string) ($modernAttribute->nodeValue ?? '')
+                    (string) $this->getOptionalModernNodeProperty($modernAttribute, 'nodeValue', '')
                 );
             }
         }
@@ -725,21 +738,26 @@ class HtmlDomParser extends AbstractDomParser
      */
     private function getProjectedModernChildNodes($modernNode): iterable
     {
+        $localName = $this->getOptionalModernNodeProperty($modernNode, 'localName');
+
         if (
-            isset($modernNode->localName)
+            $localName !== null
             &&
-            \strtolower((string) $modernNode->localName) === 'template'
+            \strtolower((string) $localName) === 'template'
             &&
-            \property_exists($modernNode, 'content')
-            &&
-            $modernNode->content !== null
-            &&
-            isset($modernNode->content->childNodes)
+            $this->hasModernNodeProperty($modernNode, 'content')
         ) {
-            return $modernNode->content->childNodes;
+            $templateContent = $this->getOptionalModernNodeProperty($modernNode, 'content');
+            if (
+                $templateContent !== null
+                &&
+                $this->hasModernNodeProperty($templateContent, 'childNodes')
+            ) {
+                return $this->getRequiredModernNodeProperty($templateContent, 'childNodes');
+            }
         }
 
-        return $modernNode->childNodes;
+        return $this->getRequiredModernNodeProperty($modernNode, 'childNodes');
     }
 
     /**
@@ -747,14 +765,57 @@ class HtmlDomParser extends AbstractDomParser
      */
     private function getProjectedNodeName($modernNode): string
     {
-        $localName = (string) ($modernNode->localName ?? $modernNode->nodeName ?? '');
-        $prefix = (string) ($modernNode->prefix ?? '');
+        $localName = (string) $this->getOptionalModernNodeProperty(
+            $modernNode,
+            'localName',
+            $this->getOptionalModernNodeProperty($modernNode, 'nodeName', '')
+        );
+        $prefix = (string) $this->getOptionalModernNodeProperty($modernNode, 'prefix', '');
 
         if ($prefix !== '') {
             return $prefix . ':' . $localName;
         }
 
         return $localName;
+    }
+
+    /**
+     * @param object $modernNode
+     */
+    private function hasModernNodeProperty($modernNode, string $property): bool
+    {
+        return \property_exists($modernNode, $property);
+    }
+
+    /**
+     * @param object $modernNode
+     *
+     * @return mixed
+     */
+    private function getRequiredModernNodeProperty($modernNode, string $property)
+    {
+        if (!$this->hasModernNodeProperty($modernNode, $property)) {
+            throw new \RuntimeException('Unsupported modern DOM node property: ' . $property);
+        }
+
+        return $modernNode->{$property};
+    }
+
+    /**
+     * @param object $modernNode
+     * @param mixed  $default
+     *
+     * @return mixed
+     */
+    private function getOptionalModernNodeProperty($modernNode, string $property, $default = null)
+    {
+        if (!$this->hasModernNodeProperty($modernNode, $property)) {
+            return $default;
+        }
+
+        $value = $modernNode->{$property};
+
+        return $value !== null ? $value : $default;
     }
 
     /**
@@ -923,6 +984,9 @@ class HtmlDomParser extends AbstractDomParser
 
     private static function createNamespaceAgnosticXPathQuery(string $xPathQuery): string
     {
+        // Rewrite only element name tests ("axis::tag" and "/tag") so selectors
+        // keep matching foreign-content nodes (e.g. SVG / MathML) even when the
+        // underlying DOM stores those elements in namespaces.
         $search = [
             '/(?<=::)(?!\*|text\(|comment\(|node\(|processing-instruction\()([a-zA-Z_][a-zA-Z0-9_-]*)(?=(?:\\[|\\/|\\||\\s|$))/u',
             '/(?<=\\/)(?!\\/|\\*|text\(|comment\(|node\(|processing-instruction\()([a-zA-Z_][a-zA-Z0-9_-]*)(?=(?:\\[|\\/|\\||\\s|$))/u',

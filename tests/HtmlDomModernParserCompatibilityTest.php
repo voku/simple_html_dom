@@ -62,6 +62,7 @@ final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\Test
     {
         $filePath = \tempnam(\sys_get_temp_dir(), 'simple-html-dom-modern-');
         static::assertNotFalse($filePath);
+        \chmod($filePath, 0600);
 
         $html = '<!DOCTYPE html><html><body><template id="card"><section><h2>Title</h2><p>Body</p></section></template><main>After</main></body></html>';
         $expectedHtml = '<!DOCTYPE html>' . "\n" . '<html><body><template id="card"><section><h2>Title</h2><p>Body</p></section></template><main>After</main></body></html>';
