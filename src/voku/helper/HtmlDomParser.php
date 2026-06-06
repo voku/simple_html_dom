@@ -34,6 +34,7 @@ namespace voku\helper;
 class HtmlDomParser extends AbstractDomParser
 {
     private const MODERN_HTML_DOCUMENT_CLASS = 'Dom\\HTMLDocument';
+    private const XHTML_NAMESPACE_URI = 'http://www.w3.org/1999/xhtml';
 
     /**
      * @var callable|null
@@ -709,15 +710,33 @@ class HtmlDomParser extends AbstractDomParser
      */
     private function projectModernElementToLegacyNode($modernElement, \DOMDocument $document): \DOMElement
     {
-        $element = $document->createElement($this->getProjectedNodeName($modernElement));
+        $elementName = $this->getProjectedNodeName($modernElement);
+        $elementNamespaceUri = (string) $this->getOptionalModernNodeProperty($modernElement, 'namespaceURI', '');
+
+        if ($elementNamespaceUri !== '' && $elementNamespaceUri !== self::XHTML_NAMESPACE_URI) {
+            $element = $document->createElementNS($elementNamespaceUri, $elementName);
+        } else {
+            $element = $document->createElement($elementName);
+        }
 
         $attributes = $this->getOptionalModernNodeProperty($modernElement, 'attributes');
         if ($attributes !== null) {
             foreach ($attributes as $modernAttribute) {
-                $element->setAttribute(
-                    $this->getProjectedNodeName($modernAttribute),
-                    (string) $this->getOptionalModernNodeProperty($modernAttribute, 'nodeValue', '')
+                $attributeName = $this->getProjectedNodeName($modernAttribute);
+                $attributeValue = (string) $this->getOptionalModernNodeProperty($modernAttribute, 'nodeValue', '');
+                $attributeNamespaceUri = (string) $this->getOptionalModernNodeProperty(
+                    $modernAttribute,
+                    'namespaceURI',
+                    ''
                 );
+
+                if ($attributeNamespaceUri !== '') {
+                    $element->setAttributeNS($attributeNamespaceUri, $attributeName, $attributeValue);
+
+                    continue;
+                }
+
+                $element->setAttribute($attributeName, $attributeValue);
             }
         }
 

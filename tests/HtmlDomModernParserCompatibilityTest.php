@@ -7,6 +7,18 @@ use voku\helper\HtmlDomParser;
  */
 final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\TestCase
 {
+    protected function setUp(): void
+    {
+        StrictModernHtmlDomParser::reset();
+        ThrowingModernHtmlDomParser::reset();
+        ProjectingModernHtmlDomParser::$modernDocumentFactory = null;
+    }
+
+    protected function tearDown(): void
+    {
+        ProjectingModernHtmlDomParser::$modernDocumentFactory = null;
+    }
+
     /**
      * @param array<string, mixed> $properties
      */
@@ -32,11 +44,116 @@ final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\Test
             'legacy parser path' => [ForcedLegacyHtmlDomParser::class],
         ];
 
-        if (ForcedModernHtmlDomParser::supportsModernPath()) {
-            $parserClasses['modern parser path'] = [ForcedModernHtmlDomParser::class];
+        if (StrictModernHtmlDomParser::supportsModernPath()) {
+            $parserClasses['strict modern parser path'] = [StrictModernHtmlDomParser::class];
         }
 
         return $parserClasses;
+    }
+
+    private function requireModernPath(): void
+    {
+        if (!StrictModernHtmlDomParser::supportsModernPath()) {
+            static::markTestSkipped('Dom\\HTMLDocument is not available on this runtime.');
+        }
+    }
+
+    /**
+     * @param mixed $modernNode
+     *
+     * @return object|null
+     */
+    private function findFirstModernNodeByLocalName($modernNode, string $localName)
+    {
+        if (!\is_object($modernNode)) {
+            return null;
+        }
+
+        if (
+            \property_exists($modernNode, 'localName')
+            &&
+            \strtolower((string) $modernNode->localName) === \strtolower($localName)
+        ) {
+            return $modernNode;
+        }
+
+        if (\property_exists($modernNode, 'content') && \is_object($modernNode->content)) {
+            $match = $this->findFirstModernNodeByLocalName($modernNode->content, $localName);
+            if ($match !== null) {
+                return $match;
+            }
+        }
+
+        if (!\property_exists($modernNode, 'childNodes')) {
+            return null;
+        }
+
+        foreach ($modernNode->childNodes as $modernChildNode) {
+            $match = $this->findFirstModernNodeByLocalName($modernChildNode, $localName);
+            if ($match !== null) {
+                return $match;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param object $modernNode
+     *
+     * @return object|null
+     */
+    private function findModernAttributeByNodeName($modernNode, string $nodeName)
+    {
+        if (!\property_exists($modernNode, 'attributes')) {
+            return null;
+        }
+
+        foreach ($modernNode->attributes as $modernAttribute) {
+            if (
+                \property_exists($modernAttribute, 'nodeName')
+                &&
+                (string) $modernAttribute->nodeName === $nodeName
+            ) {
+                return $modernAttribute;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param object $modernNode
+     */
+    private function assertModernNodePropertyExists($modernNode, string $property): void
+    {
+        static::assertTrue(
+            \property_exists($modernNode, $property),
+            'Expected property "' . $property . '" on ' . \get_class($modernNode)
+        );
+    }
+
+    private function normalizeHtmlFragment(string $html): string
+    {
+        $normalizedHtml = \preg_replace('/>\s+</', '><', \trim($html));
+
+        return $normalizedHtml !== null ? $normalizedHtml : \trim($html);
+    }
+
+    /**
+     * @param object $modernNode
+     *
+     * @return object|null
+     */
+    private function getFirstModernChildNode($modernNode)
+    {
+        $this->assertModernNodePropertyExists($modernNode, 'childNodes');
+
+        foreach ($modernNode->childNodes as $modernChildNode) {
+            return $modernChildNode;
+        }
+
+        return null;
     }
 
     /**
@@ -67,6 +184,11 @@ final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\Test
             '<p class="message" data-state="done"><strong>new</strong></p>',
             $dom->html()
         );
+
+        if ($parserClass === StrictModernHtmlDomParser::class) {
+            static::assertSame(1, StrictModernHtmlDomParser::$successfulModernProjectionCalls);
+            static::assertSame(0, StrictModernHtmlDomParser::$legacyFallbackCalls);
+        }
     }
 
     /**
@@ -115,17 +237,29 @@ final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\Test
         );
     }
 
-    public function testModernPathInvokesModernDocumentCreationWhenAvailable(): void
+    public function testRealModernParserPreservesBrowserStyleScriptWithoutLegacyFallback(): void
     {
-        if (!TrackingModernHtmlDomParser::supportsModernPath()) {
-            static::markTestSkipped('Dom\\HTMLDocument is not available on this runtime.');
-        }
+        $this->requireModernPath();
 
-        TrackingModernHtmlDomParser::$modernCreateCalls = 0;
+        $html = '<p>Paragraph 1</p><script>console.log("</html>inside script");</script><p>Paragraph 2</p>';
+        $dom = StrictModernHtmlDomParser::str_get_html($html);
 
-        TrackingModernHtmlDomParser::str_get_html('<div><template><p>ok</p></template></div>');
+        $paragraphs = $dom->findMulti('p');
 
-        static::assertSame(1, TrackingModernHtmlDomParser::$modernCreateCalls);
+        static::assertInstanceOf(\DOMDocument::class, $dom->getDocument());
+        static::assertCount(2, $paragraphs);
+        static::assertSame('Paragraph 1', $paragraphs[0]->text());
+        static::assertSame('Paragraph 2', $paragraphs[1]->text());
+        static::assertSame('console.log("</html>inside script");', $dom->findOne('script')->innerHTML);
+        static::assertStringContainsString('<p>Paragraph 1</p>', $dom->html());
+        static::assertStringContainsString('<p>Paragraph 2</p>', $dom->html());
+        static::assertLessThan(
+            \strpos($dom->html(), '<p>Paragraph 2</p>'),
+            \strpos($dom->html(), '</script>')
+        );
+        static::assertSame(1, StrictModernHtmlDomParser::$modernCreateCalls);
+        static::assertSame(1, StrictModernHtmlDomParser::$successfulModernProjectionCalls);
+        static::assertSame(0, StrictModernHtmlDomParser::$legacyFallbackCalls);
     }
 
     public function testModernSupportGuardRequiresPhp84Runtime(): void
@@ -351,11 +485,108 @@ final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\Test
 
     public function testModernParserFallbackStillUsesLegacyParsingWhenModernCreationFails(): void
     {
+        ThrowingModernHtmlDomParser::$legacyFallbackCalls = 0;
+
         $dom = ThrowingModernHtmlDomParser::str_get_html('<main><p class="message">old</p></main>');
 
         static::assertInstanceOf(\DOMDocument::class, $dom->getDocument());
         static::assertSame('old', $dom->findOne('.message')->text());
         static::assertStringContainsString('<p class="message">old</p>', $dom->html());
+        static::assertSame(1, ThrowingModernHtmlDomParser::$legacyFallbackCalls);
+    }
+
+    public function testRealModernProjectionPreservesTemplateAndSvgNamespaces(): void
+    {
+        $this->requireModernPath();
+
+        $dom = StrictModernHtmlDomParser::str_get_html(
+            '</p><div><template id="card"><section><p>Template content</p></section></template><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><use xlink:href="#icon"></use></svg></div>'
+        );
+
+        $modernDocument = StrictModernHtmlDomParser::$lastModernDocument;
+        static::assertNotNull($modernDocument);
+        $this->assertModernNodePropertyExists($modernDocument, 'nodeType');
+        $this->assertModernNodePropertyExists($modernDocument, 'childNodes');
+        static::assertSame(\XML_DOCUMENT_NODE, $modernDocument->nodeType);
+
+        $templateNode = $this->findFirstModernNodeByLocalName($modernDocument, 'template');
+        static::assertNotNull($templateNode);
+        $this->assertModernNodePropertyExists($templateNode, 'nodeName');
+        $this->assertModernNodePropertyExists($templateNode, 'localName');
+        $this->assertModernNodePropertyExists($templateNode, 'namespaceURI');
+        $this->assertModernNodePropertyExists($templateNode, 'attributes');
+        $this->assertModernNodePropertyExists($templateNode, 'content');
+        static::assertSame('template', \strtolower((string) $templateNode->nodeName));
+        static::assertSame('template', \strtolower((string) $templateNode->localName));
+        static::assertSame('http://www.w3.org/1999/xhtml', (string) $templateNode->namespaceURI);
+
+        $templateIdAttribute = $this->findModernAttributeByNodeName($templateNode, 'id');
+        static::assertNotNull($templateIdAttribute);
+        $this->assertModernNodePropertyExists($templateIdAttribute, 'nodeValue');
+        static::assertSame('card', (string) $templateIdAttribute->nodeValue);
+
+        $templateParagraphNode = $this->findFirstModernNodeByLocalName($templateNode->content, 'p');
+        static::assertNotNull($templateParagraphNode);
+        $templateTextNode = $this->getFirstModernChildNode($templateParagraphNode);
+        static::assertNotNull($templateTextNode);
+        $this->assertModernNodePropertyExists($templateTextNode, 'nodeValue');
+        static::assertSame('Template content', (string) $templateTextNode->nodeValue);
+
+        $useNode = $this->findFirstModernNodeByLocalName($modernDocument, 'use');
+        static::assertNotNull($useNode);
+        $this->assertModernNodePropertyExists($useNode, 'nodeType');
+        $this->assertModernNodePropertyExists($useNode, 'nodeName');
+        $this->assertModernNodePropertyExists($useNode, 'localName');
+        $this->assertModernNodePropertyExists($useNode, 'prefix');
+        $this->assertModernNodePropertyExists($useNode, 'namespaceURI');
+        $this->assertModernNodePropertyExists($useNode, 'attributes');
+        static::assertSame(\XML_ELEMENT_NODE, $useNode->nodeType);
+        static::assertSame('use', (string) $useNode->nodeName);
+        static::assertSame('use', (string) $useNode->localName);
+        static::assertSame('', (string) $useNode->prefix);
+        static::assertSame('http://www.w3.org/2000/svg', (string) $useNode->namespaceURI);
+
+        $xlinkHrefAttribute = $this->findModernAttributeByNodeName($useNode, 'xlink:href');
+        static::assertNotNull($xlinkHrefAttribute);
+        $this->assertModernNodePropertyExists($xlinkHrefAttribute, 'nodeType');
+        $this->assertModernNodePropertyExists($xlinkHrefAttribute, 'nodeName');
+        $this->assertModernNodePropertyExists($xlinkHrefAttribute, 'localName');
+        $this->assertModernNodePropertyExists($xlinkHrefAttribute, 'prefix');
+        $this->assertModernNodePropertyExists($xlinkHrefAttribute, 'namespaceURI');
+        $this->assertModernNodePropertyExists($xlinkHrefAttribute, 'nodeValue');
+        static::assertSame(\XML_ATTRIBUTE_NODE, $xlinkHrefAttribute->nodeType);
+        static::assertSame('xlink:href', (string) $xlinkHrefAttribute->nodeName);
+        static::assertSame('href', (string) $xlinkHrefAttribute->localName);
+        static::assertSame('xlink', (string) $xlinkHrefAttribute->prefix);
+        static::assertSame('http://www.w3.org/1999/xlink', (string) $xlinkHrefAttribute->namespaceURI);
+        static::assertSame('#icon', (string) $xlinkHrefAttribute->nodeValue);
+
+        $template = $dom->findOne('template#card');
+        static::assertSame(
+            '<section><p>Template content</p></section>',
+            $this->normalizeHtmlFragment($template->innerHTML)
+        );
+
+        $use = $dom->findOne('use');
+        static::assertSame('#icon', $use->getAttribute('xlink:href'));
+        static::assertStringContainsString(
+            '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><use xlink:href="#icon"></use></svg>',
+            $this->normalizeHtmlFragment($dom->html())
+        );
+
+        $legacyUseNode = $use->getNode();
+        static::assertInstanceOf(\DOMElement::class, $legacyUseNode);
+        static::assertSame('http://www.w3.org/2000/svg', $legacyUseNode->namespaceURI);
+
+        $legacyXlinkHrefAttribute = $legacyUseNode->getAttributeNodeNS('http://www.w3.org/1999/xlink', 'href');
+        static::assertInstanceOf(\DOMAttr::class, $legacyXlinkHrefAttribute);
+        static::assertSame('#icon', $legacyXlinkHrefAttribute->value);
+        static::assertSame('xlink:href', $legacyXlinkHrefAttribute->nodeName);
+        static::assertSame('href', $legacyXlinkHrefAttribute->localName);
+        static::assertSame('xlink', $legacyXlinkHrefAttribute->prefix);
+        static::assertSame('http://www.w3.org/1999/xlink', $legacyXlinkHrefAttribute->namespaceURI);
+        static::assertSame(1, StrictModernHtmlDomParser::$successfulModernProjectionCalls);
+        static::assertSame(0, StrictModernHtmlDomParser::$legacyFallbackCalls);
     }
 }
 
@@ -371,37 +602,75 @@ class ForcedLegacyHtmlDomParser extends HtmlDomParser
 }
 
 /**
- * @internal Test double that forces the PHP 8.4+ modern parser path when available.
+ * @internal Test double that forces the PHP 8.4+ modern parser path and rejects fallback.
  */
-class ForcedModernHtmlDomParser extends HtmlDomParser
+class StrictModernHtmlDomParser extends HtmlDomParser
 {
+    /**
+     * @var int
+     */
+    public static $legacyFallbackCalls = 0;
+
+    /**
+     * @var int
+     */
+    public static $successfulModernProjectionCalls = 0;
+
+    /**
+     * @var int
+     */
+    public static $modernCreateCalls = 0;
+
+    /**
+     * @var object|null
+     */
+    public static $lastModernDocument;
+
     public static function supportsModernPath(): bool
     {
         return \class_exists('Dom\\HTMLDocument')
             && \method_exists('Dom\\HTMLDocument', 'createFromString');
     }
 
+    public static function reset(): void
+    {
+        self::$legacyFallbackCalls = 0;
+        self::$successfulModernProjectionCalls = 0;
+        self::$modernCreateCalls = 0;
+        self::$lastModernDocument = null;
+    }
+
     protected function shouldUseModernHtmlDocument(int $optionsXml): bool
     {
         return self::supportsModernPath();
     }
-}
 
-/**
- * @internal Test double that records modern parser invocations.
- */
-class TrackingModernHtmlDomParser extends ForcedModernHtmlDomParser
-{
     /**
-     * @var int
+     * @return object
      */
-    public static $modernCreateCalls = 0;
-
-    protected function createLegacyDocumentFromModernParser(string $html, int $optionsXml): \DOMDocument
+    protected function createModernHtmlDocument(string $html, int $optionsXml)
     {
         ++self::$modernCreateCalls;
 
-        return parent::createLegacyDocumentFromModernParser($html, $optionsXml);
+        self::$lastModernDocument = parent::createModernHtmlDocument($html, $optionsXml);
+
+        return self::$lastModernDocument;
+    }
+
+    protected function createLegacyDocumentFromModernParser(string $html, int $optionsXml): \DOMDocument
+    {
+        $document = parent::createLegacyDocumentFromModernParser($html, $optionsXml);
+
+        ++self::$successfulModernProjectionCalls;
+
+        return $document;
+    }
+
+    protected function createLegacyDocumentWithLibxml(string $html, int $optionsXml): \DOMDocument
+    {
+        ++self::$legacyFallbackCalls;
+
+        throw new \RuntimeException('Legacy fallback must not be used by this test.');
     }
 }
 
@@ -449,6 +718,16 @@ class ProjectingModernHtmlDomParser extends HtmlDomParser
  */
 class ThrowingModernHtmlDomParser extends HtmlDomParser
 {
+    /**
+     * @var int
+     */
+    public static $legacyFallbackCalls = 0;
+
+    public static function reset(): void
+    {
+        self::$legacyFallbackCalls = 0;
+    }
+
     protected function shouldUseModernHtmlDocument(int $optionsXml): bool
     {
         return true;
@@ -457,5 +736,12 @@ class ThrowingModernHtmlDomParser extends HtmlDomParser
     protected function createLegacyDocumentFromModernParser(string $html, int $optionsXml): \DOMDocument
     {
         throw new \RuntimeException('boom');
+    }
+
+    protected function createLegacyDocumentWithLibxml(string $html, int $optionsXml): \DOMDocument
+    {
+        ++self::$legacyFallbackCalls;
+
+        return parent::createLegacyDocumentWithLibxml($html, $optionsXml);
     }
 }
