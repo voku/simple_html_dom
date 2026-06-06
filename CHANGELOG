@@ -1,5 +1,8 @@
 [PHP Simple HTML Dom - upcoming]
 
+1: "HtmlDomParser" -> use "Dom\HTMLDocument" on PHP 8.4+ when available, then project the parsed tree into the canonical legacy "\DOMDocument" so public APIs and live "\DOMNode" mutations stay compatible
+2: add legacy/modern parser compatibility tests and a reproducible parser benchmark
+
 [PHP Simple HTML Dom v5.0.0 - 2026-04-21]
 1: BREAKING: require PHP >= 7.1.0 and drop PHP 7.0 support
 2: BREAKING / compatibility: nested "find*()" now returns live scoped nodes, so mutating nested results via "delete()" / "remove()" updates the original DOM

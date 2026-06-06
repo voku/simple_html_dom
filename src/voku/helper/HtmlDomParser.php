@@ -519,13 +519,79 @@ class HtmlDomParser extends AbstractDomParser
 
         $html = self::replaceToPreserveHtmlEntities($html);
 
+        try {
+            $this->document = $this->createCompatibleDocument($html, $optionsXml);
+            $this->markSyntheticParagraphWrapper();
+
+            // set encoding
+            $this->document->encoding = $this->getEncoding();
+
+            return $this->document;
+        } finally {
+            // restore lib-xml settings
+            \libxml_clear_errors();
+            \libxml_use_internal_errors($internalErrors);
+            // @phpstan-ignore isset.variable (only defined on PHP < 8 paths where it is used)
+            if (\PHP_VERSION_ID < 80000 && isset($disableEntityLoader)) {
+                \libxml_disable_entity_loader($disableEntityLoader);
+            }
+        }
+    }
+
+    private function createCompatibleDocument(string $html, int $optionsXml): \DOMDocument
+    {
+        if ($this->shouldUseModernHtmlDocument($optionsXml)) {
+            try {
+                return $this->createLegacyDocumentFromModernParser($html, $optionsXml);
+            } catch (\Throwable $throwable) {
+                return $this->createLegacyDocumentWithLibxml($html, $optionsXml);
+            }
+        }
+
+        return $this->createLegacyDocumentWithLibxml($html, $optionsXml);
+    }
+
+    protected function shouldUseModernHtmlDocument(int $optionsXml): bool
+    {
+        return $this->supportsModernHtmlDocument();
+    }
+
+    protected function supportsModernHtmlDocument(): bool
+    {
+        $modernHtmlDocumentClass = 'Dom\\HTMLDocument';
+
+        return \class_exists($modernHtmlDocumentClass)
+            && \method_exists($modernHtmlDocumentClass, 'createFromString');
+    }
+
+    private function createLegacyDocumentFromModernParser(string $html, int $optionsXml): \DOMDocument
+    {
+        $modernHtmlDocumentClass = 'Dom\\HTMLDocument';
+
+        $modernDocument = $modernHtmlDocumentClass::createFromString(
+            $html,
+            $optionsXml,
+            $this->getEncoding()
+        );
+
+        return $this->projectModernDocumentToLegacyDocument($modernDocument);
+    }
+
+    private function createLegacyDocumentWithLibxml(string $html, int $optionsXml): \DOMDocument
+    {
+        $document = new \DOMDocument('1.0', $this->getEncoding());
+        $document->preserveWhiteSpace = true;
+        $document->formatOutput = false;
+
         $documentFound = false;
         $sxe = \simplexml_load_string($html, \SimpleXMLElement::class, $optionsXml);
         if ($sxe !== false && \count(\libxml_get_errors()) === 0) {
             $domElementTmp = \dom_import_simplexml($sxe);
             if ($domElementTmp->ownerDocument instanceof \DOMDocument) {
                 $documentFound = true;
-                $this->document = $domElementTmp->ownerDocument;
+                $document = $domElementTmp->ownerDocument;
+                $document->preserveWhiteSpace = true;
+                $document->formatOutput = false;
             }
         }
 
@@ -538,14 +604,14 @@ class HtmlDomParser extends AbstractDomParser
             }
 
             if ($html !== '') {
-                $this->document->loadHTML($html, $optionsXml);
+                $document->loadHTML($html, $optionsXml);
             }
 
             // remove the "xml-encoding" hack
             if ($xmlHackUsed) {
-                foreach ($this->document->childNodes as $child) {
+                foreach ($document->childNodes as $child) {
                     if ($child->nodeType === \XML_PI_NODE) {
-                        $this->document->removeChild($child);
+                        $document->removeChild($child);
 
                         break;
                     }
@@ -553,20 +619,142 @@ class HtmlDomParser extends AbstractDomParser
             }
         }
 
-        $this->markSyntheticParagraphWrapper();
+        return $document;
+    }
 
-        // set encoding
-        $this->document->encoding = $this->getEncoding();
+    /**
+     * @param object $modernDocument
+     */
+    private function projectModernDocumentToLegacyDocument($modernDocument): \DOMDocument
+    {
+        $document = new \DOMDocument('1.0', $this->getEncoding());
+        $document->preserveWhiteSpace = true;
+        $document->formatOutput = false;
 
-        // restore lib-xml settings
-        \libxml_clear_errors();
-        \libxml_use_internal_errors($internalErrors);
-        // @phpstan-ignore isset.variable (only defined on PHP < 8 paths where it is used)
-        if (\PHP_VERSION_ID < 80000 && isset($disableEntityLoader)) {
-            \libxml_disable_entity_loader($disableEntityLoader);
+        foreach ($modernDocument->childNodes as $modernChildNode) {
+            $legacyNode = $this->projectModernNodeToLegacyNode($modernChildNode, $document);
+            if ($legacyNode instanceof \DOMNode) {
+                $document->appendChild($legacyNode);
+            }
         }
 
-        return $this->document;
+        return $document;
+    }
+
+    /**
+     * @param object       $modernNode
+     * @param \DOMDocument $document
+     *
+     * @return \DOMNode|null
+     */
+    private function projectModernNodeToLegacyNode($modernNode, \DOMDocument $document)
+    {
+        switch ($modernNode->nodeType) {
+            case \XML_ELEMENT_NODE:
+                return $this->projectModernElementToLegacyNode($modernNode, $document);
+            case \XML_TEXT_NODE:
+                return $document->createTextNode((string) ($modernNode->nodeValue ?? ''));
+            case \XML_CDATA_SECTION_NODE:
+                return $document->createCDATASection((string) ($modernNode->nodeValue ?? ''));
+            case \XML_COMMENT_NODE:
+                return $document->createComment((string) ($modernNode->nodeValue ?? ''));
+            case \XML_DOCUMENT_TYPE_NODE:
+                return $document->implementation->createDocumentType(
+                    (string) ($modernNode->name ?? $modernNode->nodeName),
+                    (string) ($modernNode->publicId ?? ''),
+                    (string) ($modernNode->systemId ?? '')
+                );
+            case \XML_PI_NODE:
+                return $document->createProcessingInstruction(
+                    (string) ($modernNode->nodeName ?? ''),
+                    (string) ($modernNode->nodeValue ?? '')
+                );
+            case \XML_DOCUMENT_FRAG_NODE:
+                $fragment = $document->createDocumentFragment();
+                $this->appendProjectedModernChildren($modernNode, $fragment, $document);
+
+                return $fragment;
+            default:
+                return null;
+        }
+    }
+
+    /**
+     * @param object       $modernElement
+     * @param \DOMDocument $document
+     */
+    private function projectModernElementToLegacyNode($modernElement, \DOMDocument $document): \DOMElement
+    {
+        $element = $document->createElement($this->getProjectedNodeName($modernElement));
+
+        if (isset($modernElement->attributes)) {
+            foreach ($modernElement->attributes as $modernAttribute) {
+                $element->setAttribute(
+                    $this->getProjectedNodeName($modernAttribute),
+                    (string) ($modernAttribute->nodeValue ?? '')
+                );
+            }
+        }
+
+        $this->appendProjectedModernChildren($modernElement, $element, $document);
+
+        return $element;
+    }
+
+    /**
+     * @param object       $modernParentNode
+     * @param \DOMNode     $legacyParentNode
+     * @param \DOMDocument $document
+     *
+     * @return void
+     */
+    private function appendProjectedModernChildren($modernParentNode, \DOMNode $legacyParentNode, \DOMDocument $document): void
+    {
+        foreach ($this->getProjectedModernChildNodes($modernParentNode) as $modernChildNode) {
+            $legacyChildNode = $this->projectModernNodeToLegacyNode($modernChildNode, $document);
+            if ($legacyChildNode instanceof \DOMNode) {
+                $legacyParentNode->appendChild($legacyChildNode);
+            }
+        }
+    }
+
+    /**
+     * @param object $modernNode
+     *
+     * @return iterable<mixed>
+     */
+    private function getProjectedModernChildNodes($modernNode): iterable
+    {
+        if (
+            isset($modernNode->localName)
+            &&
+            \strtolower((string) $modernNode->localName) === 'template'
+            &&
+            \property_exists($modernNode, 'content')
+            &&
+            $modernNode->content !== null
+            &&
+            isset($modernNode->content->childNodes)
+        ) {
+            return $modernNode->content->childNodes;
+        }
+
+        return $modernNode->childNodes;
+    }
+
+    /**
+     * @param object $modernNode
+     */
+    private function getProjectedNodeName($modernNode): string
+    {
+        $localName = (string) ($modernNode->localName ?? $modernNode->nodeName ?? '');
+        $prefix = (string) ($modernNode->prefix ?? '');
+
+        if ($prefix !== '') {
+            return $prefix . ':' . $localName;
+        }
+
+        return $localName;
     }
 
     /**
