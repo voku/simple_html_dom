@@ -546,15 +546,12 @@ final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\Test
 
             static::assertInstanceOf(\DOMDocument::class, $dom->getDocument());
 
-            $expectedOptions = \LIBXML_NOERROR;
-            if (\defined('LIBXML_COMPACT')) {
-                $expectedOptions |= \LIBXML_COMPACT;
-            }
+            $expectedOptions = $options & (\LIBXML_NOERROR | (\defined('LIBXML_COMPACT') ? \LIBXML_COMPACT : 0));
             if (\defined('LIBXML_HTML_NOIMPLIED')) {
-                $expectedOptions |= \LIBXML_HTML_NOIMPLIED;
+                $expectedOptions |= $options & \LIBXML_HTML_NOIMPLIED;
             }
             if (\defined('Dom\\HTML_NO_DEFAULT_NS')) {
-                $expectedOptions |= \constant('Dom\\HTML_NO_DEFAULT_NS');
+                $expectedOptions |= $options & \constant('Dom\\HTML_NO_DEFAULT_NS');
             }
 
             static::assertSame($expectedOptions, ProjectingModernHtmlDomParser::$lastOptionsXml);
