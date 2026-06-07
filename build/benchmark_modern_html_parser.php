@@ -8,14 +8,89 @@ require_once dirname(__DIR__) . '/vendor/autoload.php';
 
 final class BenchmarkLegacyHtmlDomParser extends HtmlDomParser
 {
+    /**
+     * @var array<string, float>
+     */
+    private static $instrumentation = [
+        'backend_ms' => 0.0,
+    ];
+
+    public static function resetInstrumentation(): void
+    {
+        self::$instrumentation = [
+            'backend_ms' => 0.0,
+        ];
+    }
+
+    /**
+     * @return array<string, float>
+     */
+    public static function getInstrumentation(): array
+    {
+        return self::$instrumentation;
+    }
+
     protected function shouldUseModernHtmlDocument(int $optionsXml): bool
     {
         return false;
+    }
+
+    protected function createLegacyDocumentWithLibxml(string $html, int $optionsXml): \DOMDocument
+    {
+        $start = \microtime(true);
+
+        try {
+            return parent::createLegacyDocumentWithLibxml($html, $optionsXml);
+        } finally {
+            self::$instrumentation['backend_ms'] += (\microtime(true) - $start) * 1000;
+        }
     }
 }
 
 final class BenchmarkModernHtmlDomParser extends HtmlDomParser
 {
+    /**
+     * @var array<string, float>
+     */
+    private static $instrumentation = [
+        'backend_ms' => 0.0,
+        'modern_create_ms' => 0.0,
+        'projection_ms' => 0.0,
+    ];
+
+    /**
+     * @var bool
+     */
+    private static $rejectLegacyFallback = false;
+
+    /**
+     * @var bool
+     */
+    private static $modernParseAttempted = false;
+
+    public static function resetInstrumentation(): void
+    {
+        self::$instrumentation = [
+            'backend_ms' => 0.0,
+            'modern_create_ms' => 0.0,
+            'projection_ms' => 0.0,
+        ];
+        self::$modernParseAttempted = false;
+    }
+
+    /**
+     * @return array<string, float>
+     */
+    public static function getInstrumentation(): array
+    {
+        return self::$instrumentation;
+    }
+
+    public static function rejectLegacyFallback(bool $rejectLegacyFallback): void
+    {
+        self::$rejectLegacyFallback = $rejectLegacyFallback;
+    }
+
     public static function supportsModernPath(): bool
     {
         return \class_exists('Dom\\HTMLDocument')
@@ -26,6 +101,54 @@ final class BenchmarkModernHtmlDomParser extends HtmlDomParser
     {
         return self::supportsModernPath();
     }
+
+    protected function createLegacyDocumentFromModernParser(string $html, int $optionsXml): \DOMDocument
+    {
+        self::$modernParseAttempted = true;
+
+        $backendStart = \microtime(true);
+
+        $modernCreateStart = \microtime(true);
+        $modernDocument = $this->createModernHtmlDocument(
+            $html,
+            $this->filterModernHtmlDocumentOptions($optionsXml)
+        );
+        self::$instrumentation['modern_create_ms'] += (\microtime(true) - $modernCreateStart) * 1000;
+
+        $projectionStart = \microtime(true);
+        $legacyDocument = $this->projectModernDocumentForBenchmark($modernDocument);
+        self::$instrumentation['projection_ms'] += (\microtime(true) - $projectionStart) * 1000;
+
+        self::$instrumentation['backend_ms'] += (\microtime(true) - $backendStart) * 1000;
+
+        return $legacyDocument;
+    }
+
+    protected function createLegacyDocumentWithLibxml(string $html, int $optionsXml): \DOMDocument
+    {
+        if (self::$rejectLegacyFallback && self::$modernParseAttempted) {
+            throw new \RuntimeException('BenchmarkModernHtmlDomParser unexpectedly fell back to the legacy parser.');
+        }
+
+        return parent::createLegacyDocumentWithLibxml($html, $optionsXml);
+    }
+
+    /**
+     * @param object $modernDocument
+     */
+    private function projectModernDocumentForBenchmark($modernDocument): \DOMDocument
+    {
+        /** @var \Closure(object): \DOMDocument $projectModernDocument */
+        $projectModernDocument = \Closure::bind(
+            function ($modernDocument): \DOMDocument {
+                return $this->projectModernDocumentToLegacyDocument($modernDocument);
+            },
+            $this,
+            HtmlDomParser::class
+        );
+
+        return $projectModernDocument($modernDocument);
+    }
 }
 
 /**
@@ -33,8 +156,12 @@ final class BenchmarkModernHtmlDomParser extends HtmlDomParser
  *
  * @return array<string, float|int|string>
  */
-function runBenchmark(string $parserClass, string $html, string $selector, int $iterations, int $optionsXml): array
+function runBenchmarkOnce(string $parserClass, string $html, string $selector, int $iterations, int $optionsXml): array
 {
+    if (\method_exists($parserClass, 'resetInstrumentation')) {
+        $parserClass::resetInstrumentation();
+    }
+
     if (\function_exists('memory_reset_peak_usage')) {
         \memory_reset_peak_usage();
     }
@@ -60,6 +187,12 @@ function runBenchmark(string $parserClass, string $html, string $selector, int $
     }
     $serializationTime = \microtime(true) - $serializationStart;
 
+    $instrumentation = [];
+    if (\method_exists($parserClass, 'getInstrumentation')) {
+        /** @var array<string, float> $instrumentation */
+        $instrumentation = $parserClass::getInstrumentation();
+    }
+
     return [
         'parser' => $parserClass,
         'parse_ms' => \round($parseTime * 1000, 3),
@@ -67,7 +200,94 @@ function runBenchmark(string $parserClass, string $html, string $selector, int $
         'serialize_ms' => \round($serializationTime * 1000, 3),
         'total_ms' => \round(($parseTime + $selectorTime + $serializationTime) * 1000, 3),
         'peak_bytes' => \memory_get_peak_usage(true),
+        'backend_ms' => \round($instrumentation['backend_ms'] ?? 0.0, 3),
+        'modern_create_ms' => \round($instrumentation['modern_create_ms'] ?? 0.0, 3),
+        'projection_ms' => \round($instrumentation['projection_ms'] ?? 0.0, 3),
     ];
+}
+
+/**
+ * @param array<string, class-string<HtmlDomParser>> $parserClasses
+ *
+ * @return array<string, array<string, float|int|string>>
+ */
+function runScenarioBenchmarks(array $parserClasses, string $html, string $selector, int $iterations, int $optionsXml, int $samples = 5, int $warmupRuns = 1): array
+{
+    $resultsByLabel = [];
+
+    for ($sampleIndex = 0; $sampleIndex < ($samples + $warmupRuns); ++$sampleIndex) {
+        $orderedParsers = $sampleIndex % 2 === 0
+            ? $parserClasses
+            : \array_reverse($parserClasses, true);
+
+        foreach ($orderedParsers as $label => $parserClass) {
+            $result = runBenchmarkOnce($parserClass, $html, $selector, $iterations, $optionsXml);
+
+            if ($sampleIndex < $warmupRuns) {
+                continue;
+            }
+
+            $resultsByLabel[$label][] = $result;
+        }
+    }
+
+    $aggregatedResults = [];
+    foreach ($parserClasses as $label => $parserClass) {
+        $aggregatedResults[$label] = aggregateBenchmarkSamples($resultsByLabel[$label] ?? [], $parserClass);
+    }
+
+    return $aggregatedResults;
+}
+
+/**
+ * @param array<int, array<string, float|int|string>> $samples
+ * @param class-string<HtmlDomParser>                 $parserClass
+ *
+ * @return array<string, float|int|string>
+ */
+function aggregateBenchmarkSamples(array $samples, string $parserClass): array
+{
+    if ($samples === []) {
+        throw new \RuntimeException('No benchmark samples collected for parser "' . $parserClass . '".');
+    }
+
+    $metrics = [
+        'parse_ms',
+        'selector_ms',
+        'serialize_ms',
+        'total_ms',
+        'peak_bytes',
+        'backend_ms',
+        'modern_create_ms',
+        'projection_ms',
+    ];
+
+    $aggregated = [
+        'parser' => $parserClass,
+    ];
+
+    foreach ($metrics as $metric) {
+        $values = [];
+
+        foreach ($samples as $sample) {
+            $values[] = (float) $sample[$metric];
+        }
+
+        \sort($values);
+        $middleIndex = (int) \floor(\count($values) / 2);
+
+        if (\count($values) % 2 === 0) {
+            $median = ($values[$middleIndex - 1] + $values[$middleIndex]) / 2;
+        } else {
+            $median = $values[$middleIndex];
+        }
+
+        $aggregated[$metric] = $metric === 'peak_bytes'
+            ? (int) \round($median)
+            : \round($median, 3);
+    }
+
+    return $aggregated;
 }
 
 /**
@@ -104,6 +324,79 @@ function formatMemoryComparison(array $baseline, array $result): string
     $direction = $delta <= 0 ? 'lower' : 'higher';
 
     return \sprintf('%+dB/%+.1f%%-%s', $delta, $percent, $direction);
+}
+
+/**
+ * @param array<string, float|int|string> $result
+ */
+function formatComponentShare(array $result, string $componentMetric, string $totalMetric): string
+{
+    $componentValue = (float) $result[$componentMetric];
+    $totalValue = (float) $result[$totalMetric];
+
+    if ($componentValue <= 0.0 || $totalValue <= 0.0) {
+        return 'n/a';
+    }
+
+    return \sprintf('%.1f%%', ($componentValue / $totalValue) * 100);
+}
+
+/**
+ * @param class-string<HtmlDomParser> $parserClass
+ *
+ * @return array<string, mixed>
+ */
+function createScenarioSignature(string $parserClass, string $html, string $selector, int $optionsXml): array
+{
+    $dom = $parserClass::str_get_html($html, $optionsXml);
+
+    return [
+        'html' => $dom->html(),
+        'selector_count' => \count($dom->findMulti($selector)),
+    ];
+}
+
+/**
+ * @param array<string, class-string<HtmlDomParser>> $parserClasses
+ *
+ * @return array{0: array<string, class-string<HtmlDomParser>>, 1: array<string, string>}
+ */
+function getComparableScenarioParsers(array $parserClasses, string $html, string $selector, int $optionsXml): array
+{
+    if (!isset($parserClasses['legacy'])) {
+        return [$parserClasses, []];
+    }
+
+    $legacySignature = createScenarioSignature($parserClasses['legacy'], $html, $selector, $optionsXml);
+
+    $comparableParsers = [
+        'legacy' => $parserClasses['legacy'],
+    ];
+    $invalidReasons = [];
+
+    foreach ($parserClasses as $label => $parserClass) {
+        if ($label === 'legacy') {
+            continue;
+        }
+
+        $signature = createScenarioSignature($parserClass, $html, $selector, $optionsXml);
+
+        if ($signature['selector_count'] !== $legacySignature['selector_count']) {
+            $invalidReasons[$label] = 'selector-count-mismatch';
+
+            continue;
+        }
+
+        if ($signature['html'] !== $legacySignature['html']) {
+            $invalidReasons[$label] = 'serialization-mismatch';
+
+            continue;
+        }
+
+        $comparableParsers[$label] = $parserClass;
+    }
+
+    return [$comparableParsers, $invalidReasons];
 }
 
 function getLibxmlOptionMask(): int
@@ -188,35 +481,70 @@ $parserClasses = [
 ];
 
 if (BenchmarkModernHtmlDomParser::supportsModernPath()) {
+    BenchmarkModernHtmlDomParser::rejectLegacyFallback(true);
     $parserClasses['modern+projection'] = BenchmarkModernHtmlDomParser::class;
 }
 
-echo "scenario\tparser\tparse_ms\tparse_vs_legacy\tselector_ms\tselector_vs_legacy\tserialize_ms\tserialize_vs_legacy\ttotal_ms\ttotal_vs_legacy\tpeak_bytes\tpeak_vs_legacy\n";
+echo "scenario\tparser\tcomparison_status\tparse_ms\tparse_vs_legacy\tselector_ms\tselector_vs_legacy\tserialize_ms\tserialize_vs_legacy\ttotal_ms\ttotal_vs_legacy\tpeak_bytes\tpeak_vs_legacy\tbackend_ms\tbackend_vs_legacy\tbackend_vs_parse\tmodern_create_ms\tprojection_ms\tprojection_vs_backend\n";
 
 foreach ($cases as $scenario => $config) {
-    $baseline = null;
+    list($comparableParsers, $invalidReasons) = getComparableScenarioParsers(
+        $parserClasses,
+        $config['html'],
+        $config['selector'],
+        $config['options_xml']
+    );
+
+    $results = runScenarioBenchmarks(
+        $comparableParsers,
+        $config['html'],
+        $config['selector'],
+        $config['iterations'],
+        $config['options_xml']
+    );
+    $baseline = $results['legacy'];
 
     foreach ($parserClasses as $label => $parserClass) {
-        $result = runBenchmark(
-            $parserClass,
-            $config['html'],
-            $config['selector'],
-            $config['iterations'],
-            $config['options_xml']
-        );
+        if (isset($invalidReasons[$label])) {
+            echo $scenario, "\t",
+            $label, "\t",
+            $invalidReasons[$label], "\t",
+            "n/a\t",
+            "n/a\t",
+            "n/a\t",
+            "n/a\t",
+            "n/a\t",
+            "n/a\t",
+            "n/a\t",
+            "n/a\t",
+            "n/a\t",
+            "n/a\t",
+            "n/a\t",
+            "n/a\t",
+            "n/a\t",
+            "n/a\t",
+            "n/a\t",
+            "n/a\n";
 
-        if ($baseline === null) {
-            $baseline = $result;
+            continue;
         }
 
+        $result = $results[$label];
+        $comparisonStatus = $label === 'legacy' ? 'baseline' : 'comparable';
         $parseComparison = $label === 'legacy' ? 'baseline' : formatTimeComparison($baseline, $result, 'parse_ms');
         $selectorComparison = $label === 'legacy' ? 'baseline' : formatTimeComparison($baseline, $result, 'selector_ms');
         $serializeComparison = $label === 'legacy' ? 'baseline' : formatTimeComparison($baseline, $result, 'serialize_ms');
         $totalComparison = $label === 'legacy' ? 'baseline' : formatTimeComparison($baseline, $result, 'total_ms');
         $memoryComparison = $label === 'legacy' ? 'baseline' : formatMemoryComparison($baseline, $result);
+        $backendComparison = $label === 'legacy' ? 'baseline' : formatTimeComparison($baseline, $result, 'backend_ms');
+        $backendShare = formatComponentShare($result, 'backend_ms', 'parse_ms');
+        $projectionShare = formatComponentShare($result, 'projection_ms', 'backend_ms');
+        $modernCreate = (float) $result['modern_create_ms'] > 0.0 ? (string) $result['modern_create_ms'] : 'n/a';
+        $projection = (float) $result['projection_ms'] > 0.0 ? (string) $result['projection_ms'] : 'n/a';
 
         echo $scenario, "\t",
         $label, "\t",
+        $comparisonStatus, "\t",
         $result['parse_ms'], "\t",
         $parseComparison, "\t",
         $result['selector_ms'], "\t",
@@ -226,6 +554,12 @@ foreach ($cases as $scenario => $config) {
         $result['total_ms'], "\t",
         $totalComparison, "\t",
         $result['peak_bytes'], "\t",
-        $memoryComparison, "\n";
+        $memoryComparison, "\t",
+        $result['backend_ms'], "\t",
+        $backendComparison, "\t",
+        $backendShare, "\t",
+        $modernCreate, "\t",
+        $projection, "\t",
+        $projectionShare, "\n";
     }
 }
