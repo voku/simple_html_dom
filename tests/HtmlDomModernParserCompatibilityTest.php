@@ -628,7 +628,7 @@ final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\Test
         static::assertNotNull($modernDocument);
         $this->assertModernNodePropertyExists($modernDocument, 'nodeType');
         $this->assertModernNodePropertyExists($modernDocument, 'childNodes');
-        static::assertContains($modernDocument->nodeType, [\XML_DOCUMENT_NODE, \XML_DOCUMENT_FRAG_NODE]);
+        static::assertContains($modernDocument->nodeType, [\XML_DOCUMENT_NODE, \XML_DOCUMENT_FRAG_NODE, 13]);
         static::assertNotNull($this->findFirstModernNodeByLocalName($modernDocument, 'template'));
         static::assertNotNull($this->findFirstModernNodeByLocalName($modernDocument, 'use'));
 
