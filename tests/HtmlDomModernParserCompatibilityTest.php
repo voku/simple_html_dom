@@ -222,7 +222,7 @@ final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\Test
         );
     }
 
-    public function testStrictModernParserUsesModernPathWithoutFallback(): void
+    public function testModernParserUsesModernPathWithoutFallback(): void
     {
         $this->requireModernPath();
 
@@ -612,7 +612,7 @@ final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\Test
         }
     }
 
-    public function testStrictModernParserProcessesComplexHtmlWithoutFallback(): void
+    public function testModernParserProcessesComplexHtmlWithoutFallback(): void
     {
         $this->requireModernPath();
 
