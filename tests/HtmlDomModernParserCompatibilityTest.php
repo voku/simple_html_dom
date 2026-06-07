@@ -7,6 +7,8 @@ use voku\helper\HtmlDomParser;
  */
 final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\TestCase
 {
+    private const XML_HTML_DOCUMENT_NODE = 13;
+
     protected function setUp(): void
     {
         StrictModernHtmlDomParser::reset();
@@ -229,6 +231,7 @@ final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\Test
         $dom = StrictModernHtmlDomParser::str_get_html('<div><p>Paragraph</p></div>');
 
         static::assertInstanceOf(\DOMDocument::class, $dom->getDocument());
+        static::assertSame('Paragraph', $dom->findOne('p')->text());
         static::assertSame(1, StrictModernHtmlDomParser::$modernCreateCalls);
         static::assertSame(1, StrictModernHtmlDomParser::$successfulModernProjectionCalls);
         static::assertSame(0, StrictModernHtmlDomParser::$legacyFallbackCalls);
@@ -628,7 +631,10 @@ final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\Test
         static::assertNotNull($modernDocument);
         $this->assertModernNodePropertyExists($modernDocument, 'nodeType');
         $this->assertModernNodePropertyExists($modernDocument, 'childNodes');
-        static::assertContains($modernDocument->nodeType, [\XML_DOCUMENT_NODE, \XML_DOCUMENT_FRAG_NODE, 13]);
+        static::assertContains(
+            $modernDocument->nodeType,
+            [\XML_DOCUMENT_NODE, \XML_DOCUMENT_FRAG_NODE, self::XML_HTML_DOCUMENT_NODE]
+        );
         static::assertNotNull($this->findFirstModernNodeByLocalName($modernDocument, 'template'));
         static::assertNotNull($this->findFirstModernNodeByLocalName($modernDocument, 'use'));
 
