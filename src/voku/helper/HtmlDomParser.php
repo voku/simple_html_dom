@@ -611,7 +611,7 @@ class HtmlDomParser extends AbstractDomParser
         return \preg_match(
             '/<\s*\/?\s*(?:svg|math)\b|<[^>]+\sxmlns(?::|=)|<\s*\/?\s*[a-z][a-z0-9._-]*:[a-z0-9._-]+|<[^>]+\s[a-z][a-z0-9._-]*:[a-z0-9._-]+\s*=/iu',
             $html
-        ) !== 1;
+        ) === 0;
     }
 
     protected function createLegacyDocumentViaXmlBridge($modernDocument): \DOMDocument
@@ -783,11 +783,11 @@ class HtmlDomParser extends AbstractDomParser
      */
     private function getModernHtmlDocumentXml($modernDocument): ?string
     {
-        if (!\is_object($modernDocument) || !\method_exists($modernDocument, 'saveXml')) {
+        if (!\is_object($modernDocument) || !\method_exists($modernDocument, 'saveXML')) {
             return null;
         }
 
-        $xml = $modernDocument->saveXml();
+        $xml = $modernDocument->saveXML();
 
         if (!\is_string($xml) || $xml === '') {
             return null;
