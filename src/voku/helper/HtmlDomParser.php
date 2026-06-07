@@ -608,18 +608,38 @@ class HtmlDomParser extends AbstractDomParser
             return false;
         }
 
+        if (
+            \stripos($html, '<svg') === false
+            &&
+            \stripos($html, '<math') === false
+            &&
+            \stripos($html, 'xmlns') === false
+            &&
+            \strpos($html, ':') === false
+        ) {
+            return true;
+        }
+
         return \preg_match(
             '/<\s*\/?\s*(?:svg|math)\b|<[^>]+\sxmlns(?::|=)|<\s*\/?\s*[a-z][a-z0-9._-]*:[a-z0-9._-]+|<[^>]+\s[a-z][a-z0-9._-]*:[a-z0-9._-]+\s*=/iu',
             $html
         ) === 0;
     }
 
+    /**
+     * @param mixed $modernDocument
+     */
     protected function createLegacyDocumentViaXmlBridge($modernDocument): \DOMDocument
     {
         $xml = $this->getModernHtmlDocumentXml($modernDocument);
 
         if ($xml === null) {
             throw new \RuntimeException('Modern DOM document could not be serialized as XML.');
+        }
+
+        $simpleXmlDocument = $this->createLegacyDocumentViaSimpleXmlBridge($xml);
+        if ($simpleXmlDocument instanceof \DOMDocument) {
+            return $simpleXmlDocument;
         }
 
         $document = new \DOMDocument('1.0', $this->getEncoding());
@@ -684,6 +704,10 @@ class HtmlDomParser extends AbstractDomParser
 
     protected function createModernXmlBridgeOptions(int $optionsXml): int
     {
+        if (\defined('LIBXML_NOERROR')) {
+            $optionsXml |= \LIBXML_NOERROR;
+        }
+
         if (\defined('Dom\\HTML_NO_DEFAULT_NS')) {
             /** @var int $domHtmlNoDefaultNs */
             $domHtmlNoDefaultNs = \constant('Dom\\HTML_NO_DEFAULT_NS');
@@ -779,7 +803,7 @@ class HtmlDomParser extends AbstractDomParser
     }
 
     /**
-     * @param object $modernDocument
+     * @param mixed $modernDocument
      */
     private function getModernHtmlDocumentXml($modernDocument): ?string
     {
@@ -794,6 +818,37 @@ class HtmlDomParser extends AbstractDomParser
         }
 
         return $xml;
+    }
+
+    private function createLegacyDocumentViaSimpleXmlBridge(string $xml): ?\DOMDocument
+    {
+        $internalErrors = \libxml_use_internal_errors(true);
+        try {
+            \libxml_clear_errors();
+
+            $simpleXml = \simplexml_load_string(
+                $xml,
+                \SimpleXMLElement::class,
+                \LIBXML_NONET | \LIBXML_NOERROR | \LIBXML_NOWARNING
+            );
+            if ($simpleXml === false || \count(\libxml_get_errors()) > 0) {
+                return null;
+            }
+
+            $legacyNode = \dom_import_simplexml($simpleXml);
+            if (!$legacyNode->ownerDocument instanceof \DOMDocument) {
+                return null;
+            }
+
+            $document = $legacyNode->ownerDocument;
+            $document->preserveWhiteSpace = true;
+            $document->formatOutput = false;
+
+            return $document;
+        } finally {
+            \libxml_clear_errors();
+            \libxml_use_internal_errors($internalErrors);
+        }
     }
 
     /**

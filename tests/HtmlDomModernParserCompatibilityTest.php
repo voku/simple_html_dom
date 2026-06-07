@@ -515,7 +515,7 @@ final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\Test
             return $fakeDocument;
         };
 
-        $options = \LIBXML_DTDLOAD | \LIBXML_DTDATTR | \LIBXML_NONET | \LIBXML_NOERROR;
+        $options = \LIBXML_DTDLOAD | \LIBXML_DTDATTR | \LIBXML_NONET;
         if (\defined('LIBXML_BIGLINES')) {
             $options |= \LIBXML_BIGLINES;
         }
@@ -534,11 +534,14 @@ final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\Test
             // Intentionally mirror PHP 8.4's public Dom\HTMLDocument flag
             // contract here so the test fails if unsupported flags start
             // leaking back into the modern parser path.
-            $expectedOptions = $options & (\LIBXML_NOERROR | (\defined('LIBXML_COMPACT') ? \LIBXML_COMPACT : 0));
+            $expectedOptions = $options & (\defined('LIBXML_COMPACT') ? \LIBXML_COMPACT : 0);
             if (\defined('LIBXML_HTML_NOIMPLIED')) {
                 $expectedOptions |= $options & \LIBXML_HTML_NOIMPLIED;
             }
             if (\defined('Dom\\HTML_NO_DEFAULT_NS')) {
+                if (\defined('LIBXML_NOERROR')) {
+                    $expectedOptions |= \LIBXML_NOERROR;
+                }
                 $expectedOptions |= \constant('Dom\\HTML_NO_DEFAULT_NS');
             }
 
