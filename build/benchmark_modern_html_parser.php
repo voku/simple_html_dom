@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use voku\helper\HtmlDomParser;
 
-require dirname(__DIR__) . '/vendor/autoload.php';
+require_once dirname(__DIR__) . '/vendor/autoload.php';
 
 final class BenchmarkLegacyHtmlDomParser extends HtmlDomParser
 {
