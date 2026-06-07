@@ -222,7 +222,7 @@ final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\Test
         );
     }
 
-    public function testRealModernParserCanBeInvokedWithoutLegacyFallback(): void
+    public function testStrictModernParserUsesModernPathWithoutFallback(): void
     {
         $this->requireModernPath();
 
@@ -611,7 +611,7 @@ final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\Test
         }
     }
 
-    public function testRealModernParserExposesTemplateAndSvgNodes(): void
+    public function testStrictModernParserProcessesComplexHtmlWithoutFallback(): void
     {
         $this->requireModernPath();
 
@@ -626,6 +626,8 @@ final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\Test
         $this->assertModernNodePropertyExists($modernDocument, 'nodeType');
         $this->assertModernNodePropertyExists($modernDocument, 'childNodes');
         static::assertContains($modernDocument->nodeType, [\XML_DOCUMENT_NODE, \XML_DOCUMENT_FRAG_NODE]);
+        static::assertNotNull($this->findFirstModernNodeByLocalName($modernDocument, 'template'));
+        static::assertNotNull($this->findFirstModernNodeByLocalName($modernDocument, 'use'));
 
         static::assertSame(1, StrictModernHtmlDomParser::$modernCreateCalls);
         static::assertSame(1, StrictModernHtmlDomParser::$successfulModernProjectionCalls);
