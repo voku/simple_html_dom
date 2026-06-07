@@ -18,12 +18,16 @@ final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\Test
         ThrowingModernHtmlDomParser::reset();
         ProjectingModernHtmlDomParser::$modernDocumentFactory = null;
         ProjectingModernHtmlDomParser::$lastOptionsXml = null;
+        ProjectingModernHtmlDomParser::$bridgeCalls = 0;
+        ProjectingModernHtmlDomParser::$projectionCalls = 0;
     }
 
     protected function tearDown(): void
     {
         ProjectingModernHtmlDomParser::$modernDocumentFactory = null;
         ProjectingModernHtmlDomParser::$lastOptionsXml = null;
+        ProjectingModernHtmlDomParser::$bridgeCalls = 0;
+        ProjectingModernHtmlDomParser::$projectionCalls = 0;
     }
 
     /**
@@ -236,7 +240,10 @@ final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\Test
         static::assertSame('Paragraph', $dom->findOne('p')->text());
         static::assertSame(1, StrictModernHtmlDomParser::$modernCreateCalls);
         static::assertSame(1, StrictModernHtmlDomParser::$successfulModernProjectionCalls);
+        static::assertSame(1, StrictModernHtmlDomParser::$xmlBridgeCalls);
+        static::assertSame(0, StrictModernHtmlDomParser::$compatibilityProjectionCalls);
         static::assertSame(0, StrictModernHtmlDomParser::$legacyFallbackCalls);
+        static::assertNull($dom->getDocument()->documentElement->namespaceURI);
     }
 
     public function testModernSupportGuardRequiresPhp84Runtime(): void
@@ -447,6 +454,11 @@ final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\Test
             static::assertSame('card', $dom->findOne('template')->getAttribute('id'));
             static::assertSame('<section><h2>Title</h2><p>Body</p></section>', $dom->findOne('template')->innerHTML);
             static::assertSame('#icon', $dom->findOne('use')->getAttribute('xlink:href'));
+            static::assertSame(
+                \defined('Dom\\HTML_NO_DEFAULT_NS') ? 1 : 0,
+                ProjectingModernHtmlDomParser::$bridgeCalls
+            );
+            static::assertSame(1, ProjectingModernHtmlDomParser::$projectionCalls);
 
             $paragraph = $dom->findOne('.message');
             $paragraph->innerhtml = '<strong>new</strong>';
@@ -527,7 +539,7 @@ final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\Test
                 $expectedOptions |= $options & \LIBXML_HTML_NOIMPLIED;
             }
             if (\defined('Dom\\HTML_NO_DEFAULT_NS')) {
-                $expectedOptions |= $options & \constant('Dom\\HTML_NO_DEFAULT_NS');
+                $expectedOptions |= \constant('Dom\\HTML_NO_DEFAULT_NS');
             }
 
             static::assertSame($expectedOptions, ProjectingModernHtmlDomParser::$lastOptionsXml);
@@ -642,6 +654,8 @@ final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\Test
 
         static::assertSame(1, StrictModernHtmlDomParser::$modernCreateCalls);
         static::assertSame(1, StrictModernHtmlDomParser::$successfulModernProjectionCalls);
+        static::assertSame(0, StrictModernHtmlDomParser::$xmlBridgeCalls);
+        static::assertSame(1, StrictModernHtmlDomParser::$compatibilityProjectionCalls);
         static::assertSame(0, StrictModernHtmlDomParser::$legacyFallbackCalls);
     }
 }
@@ -682,6 +696,16 @@ final class StrictModernHtmlDomParser extends HtmlDomParser
      */
     public static $lastModernDocument;
 
+    /**
+     * @var int
+     */
+    public static $xmlBridgeCalls = 0;
+
+    /**
+     * @var int
+     */
+    public static $compatibilityProjectionCalls = 0;
+
     public static function supportsModernPath(): bool
     {
         return \class_exists('Dom\\HTMLDocument')
@@ -694,6 +718,8 @@ final class StrictModernHtmlDomParser extends HtmlDomParser
         self::$successfulModernProjectionCalls = 0;
         self::$modernCreateCalls = 0;
         self::$lastModernDocument = null;
+        self::$xmlBridgeCalls = 0;
+        self::$compatibilityProjectionCalls = 0;
     }
 
     protected function shouldUseModernHtmlDocument(int $optionsXml): bool
@@ -728,6 +754,20 @@ final class StrictModernHtmlDomParser extends HtmlDomParser
 
         throw new \RuntimeException('Legacy fallback must not be used by this test.');
     }
+
+    protected function createLegacyDocumentViaXmlBridge($modernDocument): \DOMDocument
+    {
+        ++self::$xmlBridgeCalls;
+
+        return parent::createLegacyDocumentViaXmlBridge($modernDocument);
+    }
+
+    protected function projectModernDocumentToLegacyDocument($modernDocument): \DOMDocument
+    {
+        ++self::$compatibilityProjectionCalls;
+
+        return parent::projectModernDocumentToLegacyDocument($modernDocument);
+    }
 }
 
 /**
@@ -756,6 +796,16 @@ final class ProjectingModernHtmlDomParser extends HtmlDomParser
      */
     public static $lastOptionsXml;
 
+    /**
+     * @var int
+     */
+    public static $bridgeCalls = 0;
+
+    /**
+     * @var int
+     */
+    public static $projectionCalls = 0;
+
     protected function shouldUseModernHtmlDocument(int $optionsXml): bool
     {
         return true;
@@ -773,6 +823,20 @@ final class ProjectingModernHtmlDomParser extends HtmlDomParser
         }
 
         return \call_user_func(self::$modernDocumentFactory, $html, $optionsXml, $this->getEncoding());
+    }
+
+    protected function createLegacyDocumentViaXmlBridge($modernDocument): \DOMDocument
+    {
+        ++self::$bridgeCalls;
+
+        return parent::createLegacyDocumentViaXmlBridge($modernDocument);
+    }
+
+    protected function projectModernDocumentToLegacyDocument($modernDocument): \DOMDocument
+    {
+        ++self::$projectionCalls;
+
+        return parent::projectModernDocumentToLegacyDocument($modernDocument);
     }
 }
 

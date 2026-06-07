@@ -579,12 +579,63 @@ class HtmlDomParser extends AbstractDomParser
 
     protected function createLegacyDocumentFromModernParser(string $html, int $optionsXml): \DOMDocument
     {
+        $modernDocumentOptions = $this->filterModernHtmlDocumentOptions($optionsXml);
+
+        if ($this->canUseModernXmlBridge($html)) {
+            $modernDocument = $this->createModernHtmlDocument(
+                $html,
+                $this->createModernXmlBridgeOptions($modernDocumentOptions)
+            );
+
+            try {
+                return $this->createLegacyDocumentViaXmlBridge($modernDocument);
+            } catch (\Throwable $throwable) {
+                return $this->projectModernDocumentToLegacyDocument($modernDocument);
+            }
+        }
+
         $modernDocument = $this->createModernHtmlDocument(
             $html,
-            $this->filterModernHtmlDocumentOptions($optionsXml)
+            $this->stripModernXmlBridgeOptions($modernDocumentOptions)
         );
 
         return $this->projectModernDocumentToLegacyDocument($modernDocument);
+    }
+
+    protected function canUseModernXmlBridge(string $html): bool
+    {
+        if (!\defined('Dom\\HTML_NO_DEFAULT_NS')) {
+            return false;
+        }
+
+        return \preg_match(
+            '/<\s*\/?\s*(?:svg|math)\b|<[^>]+\sxmlns(?::|=)|<\s*\/?\s*[a-z][a-z0-9._-]*:[a-z0-9._-]+|<[^>]+\s[a-z][a-z0-9._-]*:[a-z0-9._-]+\s*=/iu',
+            $html
+        ) !== 1;
+    }
+
+    protected function createLegacyDocumentViaXmlBridge($modernDocument): \DOMDocument
+    {
+        $xml = $this->getModernHtmlDocumentXml($modernDocument);
+
+        if ($xml === null) {
+            throw new \RuntimeException('Modern DOM document could not be serialized as XML.');
+        }
+
+        $document = new \DOMDocument('1.0', $this->getEncoding());
+        $document->preserveWhiteSpace = true;
+        $document->formatOutput = false;
+
+        $loaded = $document->loadXML(
+            $xml,
+            \LIBXML_NONET | \LIBXML_NOERROR | \LIBXML_NOWARNING
+        );
+
+        if ($loaded !== true) {
+            throw new \RuntimeException('Modern DOM XML projection could not be loaded.');
+        }
+
+        return $document;
     }
 
     /**
@@ -629,6 +680,30 @@ class HtmlDomParser extends AbstractDomParser
             $optionsXml,
             $this->getEncoding()
         );
+    }
+
+    protected function createModernXmlBridgeOptions(int $optionsXml): int
+    {
+        if (\defined('Dom\\HTML_NO_DEFAULT_NS')) {
+            /** @var int $domHtmlNoDefaultNs */
+            $domHtmlNoDefaultNs = \constant('Dom\\HTML_NO_DEFAULT_NS');
+
+            return $optionsXml | $domHtmlNoDefaultNs;
+        }
+
+        return $optionsXml;
+    }
+
+    protected function stripModernXmlBridgeOptions(int $optionsXml): int
+    {
+        if (\defined('Dom\\HTML_NO_DEFAULT_NS')) {
+            /** @var int $domHtmlNoDefaultNs */
+            $domHtmlNoDefaultNs = \constant('Dom\\HTML_NO_DEFAULT_NS');
+
+            return $optionsXml & ~$domHtmlNoDefaultNs;
+        }
+
+        return $optionsXml;
     }
 
     protected function createLegacyDocumentWithLibxml(string $html, int $optionsXml): \DOMDocument
@@ -679,7 +754,7 @@ class HtmlDomParser extends AbstractDomParser
     /**
      * @param object $modernDocument
      */
-    private function projectModernDocumentToLegacyDocument($modernDocument): \DOMDocument
+    protected function projectModernDocumentToLegacyDocument($modernDocument): \DOMDocument
     {
         $document = new \DOMDocument('1.0', $this->getEncoding());
         $document->preserveWhiteSpace = true;
@@ -693,6 +768,24 @@ class HtmlDomParser extends AbstractDomParser
         }
 
         return $document;
+    }
+
+    /**
+     * @param object $modernDocument
+     */
+    private function getModernHtmlDocumentXml($modernDocument): ?string
+    {
+        if (!\is_object($modernDocument) || !\method_exists($modernDocument, 'saveXml')) {
+            return null;
+        }
+
+        $xml = $modernDocument->saveXml();
+
+        if (!\is_string($xml) || $xml === '') {
+            return null;
+        }
+
+        return $xml;
     }
 
     /**

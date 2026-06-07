@@ -55,6 +55,7 @@ final class BenchmarkModernHtmlDomParser extends HtmlDomParser
     private static $instrumentation = [
         'backend_ms' => 0.0,
         'modern_create_ms' => 0.0,
+        'bridge_ms' => 0.0,
         'projection_ms' => 0.0,
     ];
 
@@ -73,6 +74,7 @@ final class BenchmarkModernHtmlDomParser extends HtmlDomParser
         self::$instrumentation = [
             'backend_ms' => 0.0,
             'modern_create_ms' => 0.0,
+            'bridge_ms' => 0.0,
             'projection_ms' => 0.0,
         ];
         self::$modernParseAttempted = false;
@@ -108,20 +110,22 @@ final class BenchmarkModernHtmlDomParser extends HtmlDomParser
 
         $backendStart = \microtime(true);
 
-        $modernCreateStart = \microtime(true);
-        $modernDocument = $this->createModernHtmlDocument(
-            $html,
-            $this->filterModernHtmlDocumentOptions($optionsXml)
-        );
-        self::$instrumentation['modern_create_ms'] += (\microtime(true) - $modernCreateStart) * 1000;
+        try {
+            return parent::createLegacyDocumentFromModernParser($html, $optionsXml);
+        } finally {
+            self::$instrumentation['backend_ms'] += (\microtime(true) - $backendStart) * 1000;
+        }
+    }
 
-        $projectionStart = \microtime(true);
-        $legacyDocument = $this->projectModernDocumentForBenchmark($modernDocument);
-        self::$instrumentation['projection_ms'] += (\microtime(true) - $projectionStart) * 1000;
+    protected function createLegacyDocumentViaXmlBridge($modernDocument): \DOMDocument
+    {
+        $bridgeStart = \microtime(true);
 
-        self::$instrumentation['backend_ms'] += (\microtime(true) - $backendStart) * 1000;
-
-        return $legacyDocument;
+        try {
+            return parent::createLegacyDocumentViaXmlBridge($modernDocument);
+        } finally {
+            self::$instrumentation['bridge_ms'] += (\microtime(true) - $bridgeStart) * 1000;
+        }
     }
 
     protected function createLegacyDocumentWithLibxml(string $html, int $optionsXml): \DOMDocument
@@ -133,21 +137,29 @@ final class BenchmarkModernHtmlDomParser extends HtmlDomParser
         return parent::createLegacyDocumentWithLibxml($html, $optionsXml);
     }
 
-    /**
-     * @param object $modernDocument
-     */
-    private function projectModernDocumentForBenchmark($modernDocument): \DOMDocument
+    protected function projectModernDocumentToLegacyDocument($modernDocument): \DOMDocument
     {
-        /** @var \Closure(object): \DOMDocument $projectModernDocument */
-        $projectModernDocument = \Closure::bind(
-            function ($modernDocument): \DOMDocument {
-                return $this->projectModernDocumentToLegacyDocument($modernDocument);
-            },
-            $this,
-            HtmlDomParser::class
-        );
+        $projectionStart = \microtime(true);
 
-        return $projectModernDocument($modernDocument);
+        try {
+            return parent::projectModernDocumentToLegacyDocument($modernDocument);
+        } finally {
+            self::$instrumentation['projection_ms'] += (\microtime(true) - $projectionStart) * 1000;
+        }
+    }
+
+    /**
+     * @return object
+     */
+    protected function createModernHtmlDocument(string $html, int $optionsXml)
+    {
+        $modernCreateStart = \microtime(true);
+
+        try {
+            return parent::createModernHtmlDocument($html, $optionsXml);
+        } finally {
+            self::$instrumentation['modern_create_ms'] += (\microtime(true) - $modernCreateStart) * 1000;
+        }
     }
 }
 
@@ -202,6 +214,7 @@ function runBenchmarkOnce(string $parserClass, string $html, string $selector, i
         'peak_bytes' => \memory_get_peak_usage(true),
         'backend_ms' => \round($instrumentation['backend_ms'] ?? 0.0, 3),
         'modern_create_ms' => \round($instrumentation['modern_create_ms'] ?? 0.0, 3),
+        'bridge_ms' => \round($instrumentation['bridge_ms'] ?? 0.0, 3),
         'projection_ms' => \round($instrumentation['projection_ms'] ?? 0.0, 3),
     ];
 }
@@ -259,6 +272,7 @@ function aggregateBenchmarkSamples(array $samples, string $parserClass): array
         'peak_bytes',
         'backend_ms',
         'modern_create_ms',
+        'bridge_ms',
         'projection_ms',
     ];
 
@@ -482,10 +496,10 @@ $parserClasses = [
 
 if (BenchmarkModernHtmlDomParser::supportsModernPath()) {
     BenchmarkModernHtmlDomParser::rejectLegacyFallback(true);
-    $parserClasses['modern+projection'] = BenchmarkModernHtmlDomParser::class;
+    $parserClasses['modern+bridge'] = BenchmarkModernHtmlDomParser::class;
 }
 
-echo "scenario\tparser\tcomparison_status\tparse_ms\tparse_vs_legacy\tselector_ms\tselector_vs_legacy\tserialize_ms\tserialize_vs_legacy\ttotal_ms\ttotal_vs_legacy\tpeak_bytes\tpeak_vs_legacy\tbackend_ms\tbackend_vs_legacy\tbackend_vs_parse\tmodern_create_ms\tprojection_ms\tprojection_vs_backend\n";
+echo "scenario\tparser\tcomparison_status\tparse_ms\tparse_vs_legacy\tselector_ms\tselector_vs_legacy\tserialize_ms\tserialize_vs_legacy\ttotal_ms\ttotal_vs_legacy\tpeak_bytes\tpeak_vs_legacy\tbackend_ms\tbackend_vs_legacy\tbackend_vs_parse\tmodern_create_ms\tbridge_ms\tbridge_vs_backend\tprojection_ms\tprojection_vs_backend\n";
 
 foreach ($cases as $scenario => $config) {
     list($comparableParsers, $invalidReasons) = getComparableScenarioParsers(
@@ -524,6 +538,7 @@ foreach ($cases as $scenario => $config) {
             "n/a\t",
             "n/a\t",
             "n/a\t",
+            "n/a\t",
             "n/a\n";
 
             continue;
@@ -538,8 +553,10 @@ foreach ($cases as $scenario => $config) {
         $memoryComparison = $label === 'legacy' ? 'baseline' : formatMemoryComparison($baseline, $result);
         $backendComparison = $label === 'legacy' ? 'baseline' : formatTimeComparison($baseline, $result, 'backend_ms');
         $backendShare = formatComponentShare($result, 'backend_ms', 'parse_ms');
+        $bridgeShare = formatComponentShare($result, 'bridge_ms', 'backend_ms');
         $projectionShare = formatComponentShare($result, 'projection_ms', 'backend_ms');
         $modernCreate = (float) $result['modern_create_ms'] > 0.0 ? (string) $result['modern_create_ms'] : 'n/a';
+        $bridge = (float) $result['bridge_ms'] > 0.0 ? (string) $result['bridge_ms'] : 'n/a';
         $projection = (float) $result['projection_ms'] > 0.0 ? (string) $result['projection_ms'] : 'n/a';
 
         echo $scenario, "\t",
@@ -559,6 +576,8 @@ foreach ($cases as $scenario => $config) {
         $backendComparison, "\t",
         $backendShare, "\t",
         $modernCreate, "\t",
+        $bridge, "\t",
+        $bridgeShare, "\t",
         $projection, "\t",
         $projectionShare, "\n";
     }
