@@ -178,7 +178,6 @@ final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\Test
             '<p class="message" data-state="done"><strong>new</strong></p>',
             $dom->html()
         );
-
     }
 
     /**
@@ -252,15 +251,15 @@ final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\Test
         $templateSection = $this->createModernNode(
             \XML_ELEMENT_NODE,
             [
-                'localName' => 'section',
-                'nodeName' => 'section',
+                'localName'  => 'section',
+                'nodeName'   => 'section',
                 'attributes' => [],
                 'childNodes' => [
                     $this->createModernNode(
                         \XML_ELEMENT_NODE,
                         [
-                            'localName' => 'h2',
-                            'nodeName' => 'h2',
+                            'localName'  => 'h2',
+                            'nodeName'   => 'h2',
                             'attributes' => [],
                             'childNodes' => [
                                 $this->createModernNode(\XML_TEXT_NODE, ['nodeValue' => 'Title']),
@@ -270,8 +269,8 @@ final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\Test
                     $this->createModernNode(
                         \XML_ELEMENT_NODE,
                         [
-                            'localName' => 'p',
-                            'nodeName' => 'p',
+                            'localName'  => 'p',
+                            'nodeName'   => 'p',
                             'attributes' => [],
                             'childNodes' => [
                                 $this->createModernNode(\XML_TEXT_NODE, ['nodeValue' => 'Body']),
@@ -289,7 +288,7 @@ final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\Test
                     $this->createModernNode(
                         \XML_DOCUMENT_TYPE_NODE,
                         [
-                            'name' => 'html',
+                            'name'     => 'html',
                             'nodeName' => 'html',
                             'publicId' => '',
                             'systemId' => '',
@@ -298,35 +297,35 @@ final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\Test
                     $this->createModernNode(
                         \XML_ELEMENT_NODE,
                         [
-                            'localName' => 'html',
-                            'nodeName' => 'html',
+                            'localName'  => 'html',
+                            'nodeName'   => 'html',
                             'attributes' => [],
                             'childNodes' => [
                                 $this->createModernNode(
                                     \XML_ELEMENT_NODE,
                                     [
-                                        'localName' => 'body',
-                                        'nodeName' => 'body',
+                                        'localName'  => 'body',
+                                        'nodeName'   => 'body',
                                         'attributes' => [],
                                         'childNodes' => [
                                             $this->createModernNode(
                                                 \XML_ELEMENT_NODE,
                                                 [
-                                                    'localName' => 'main',
-                                                    'nodeName' => 'main',
+                                                    'localName'  => 'main',
+                                                    'nodeName'   => 'main',
                                                     'attributes' => [],
                                                     'childNodes' => [
                                                         $this->createModernNode(
                                                             \XML_ELEMENT_NODE,
                                                             [
-                                                                'localName' => 'p',
-                                                                'nodeName' => 'p',
+                                                                'localName'  => 'p',
+                                                                'nodeName'   => 'p',
                                                                 'attributes' => [
                                                                     $this->createModernNode(
                                                                         \XML_ATTRIBUTE_NODE,
                                                                         [
                                                                             'localName' => 'class',
-                                                                            'nodeName' => 'class',
+                                                                            'nodeName'  => 'class',
                                                                             'nodeValue' => 'message',
                                                                         ]
                                                                     ),
@@ -346,7 +345,7 @@ final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\Test
                                                                     $this->createModernNode(
                                                                         \XML_PI_NODE,
                                                                         [
-                                                                            'nodeName' => 'process',
+                                                                            'nodeName'  => 'process',
                                                                             'nodeValue' => 'instruction',
                                                                         ]
                                                                     ),
@@ -356,20 +355,20 @@ final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\Test
                                                         $this->createModernNode(
                                                             \XML_ELEMENT_NODE,
                                                             [
-                                                                'localName' => 'template',
-                                                                'nodeName' => 'template',
+                                                                'localName'  => 'template',
+                                                                'nodeName'   => 'template',
                                                                 'attributes' => [
                                                                     $this->createModernNode(
                                                                         \XML_ATTRIBUTE_NODE,
                                                                         [
                                                                             'localName' => 'id',
-                                                                            'nodeName' => 'id',
+                                                                            'nodeName'  => 'id',
                                                                             'nodeValue' => 'card',
                                                                         ]
                                                                     ),
                                                                 ],
                                                                 'childNodes' => [],
-                                                                'content' => $this->createModernNode(
+                                                                'content'    => $this->createModernNode(
                                                                     \XML_DOCUMENT_FRAG_NODE,
                                                                     ['childNodes' => [$templateSection]]
                                                                 ),
@@ -378,14 +377,14 @@ final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\Test
                                                         $this->createModernNode(
                                                             \XML_ELEMENT_NODE,
                                                             [
-                                                                'localName' => 'svg',
-                                                                'nodeName' => 'svg',
+                                                                'localName'  => 'svg',
+                                                                'nodeName'   => 'svg',
                                                                 'attributes' => [
                                                                     $this->createModernNode(
                                                                         \XML_ATTRIBUTE_NODE,
                                                                         [
                                                                             'localName' => 'xmlns',
-                                                                            'nodeName' => 'xmlns',
+                                                                            'nodeName'  => 'xmlns',
                                                                             'nodeValue' => 'http://www.w3.org/2000/svg',
                                                                         ]
                                                                     ),
@@ -393,8 +392,8 @@ final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\Test
                                                                         \XML_ATTRIBUTE_NODE,
                                                                         [
                                                                             'localName' => 'xlink',
-                                                                            'nodeName' => 'xmlns:xlink',
-                                                                            'prefix' => 'xmlns',
+                                                                            'nodeName'  => 'xmlns:xlink',
+                                                                            'prefix'    => 'xmlns',
                                                                             'nodeValue' => 'http://www.w3.org/1999/xlink',
                                                                         ]
                                                                     ),
@@ -403,15 +402,15 @@ final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\Test
                                                                     $this->createModernNode(
                                                                         \XML_ELEMENT_NODE,
                                                                         [
-                                                                            'localName' => 'use',
-                                                                            'nodeName' => 'use',
+                                                                            'localName'  => 'use',
+                                                                            'nodeName'   => 'use',
                                                                             'attributes' => [
                                                                                 $this->createModernNode(
                                                                                     \XML_ATTRIBUTE_NODE,
                                                                                     [
                                                                                         'localName' => 'href',
-                                                                                        'nodeName' => 'xlink:href',
-                                                                                        'prefix' => 'xlink',
+                                                                                        'nodeName'  => 'xlink:href',
+                                                                                        'prefix'    => 'xlink',
                                                                                         'nodeValue' => '#icon',
                                                                                     ]
                                                                                 ),
@@ -470,22 +469,22 @@ final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\Test
                     $this->createModernNode(
                         \XML_ELEMENT_NODE,
                         [
-                            'localName' => 'html',
-                            'nodeName' => 'html',
+                            'localName'  => 'html',
+                            'nodeName'   => 'html',
                             'attributes' => [],
                             'childNodes' => [
                                 $this->createModernNode(
                                     \XML_ELEMENT_NODE,
                                     [
-                                        'localName' => 'body',
-                                        'nodeName' => 'body',
+                                        'localName'  => 'body',
+                                        'nodeName'   => 'body',
                                         'attributes' => [],
                                         'childNodes' => [
                                             $this->createModernNode(
                                                 \XML_ELEMENT_NODE,
                                                 [
-                                                    'localName' => 'main',
-                                                    'nodeName' => 'main',
+                                                    'localName'  => 'main',
+                                                    'nodeName'   => 'main',
                                                     'attributes' => [],
                                                     'childNodes' => [],
                                                 ]
@@ -559,18 +558,18 @@ final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\Test
                     $this->createModernNode(
                         \XML_ELEMENT_NODE,
                         [
-                            'localName' => 'svg',
-                            'nodeName' => 'svg',
+                            'localName'    => 'svg',
+                            'nodeName'     => 'svg',
                             'namespaceURI' => 'http://www.w3.org/2000/svg',
-                            'attributes' => [
+                            'attributes'   => [
                                 $this->createModernNode(
                                     \XML_ATTRIBUTE_NODE,
                                     [
-                                        'localName' => 'href',
-                                        'nodeName' => 'xlink:href',
-                                        'prefix' => 'xlink',
+                                        'localName'    => 'href',
+                                        'nodeName'     => 'xlink:href',
+                                        'prefix'       => 'xlink',
                                         'namespaceURI' => 'http://www.w3.org/1999/xlink',
-                                        'nodeValue' => '#icon',
+                                        'nodeValue'    => '#icon',
                                     ]
                                 ),
                             ],
@@ -648,9 +647,9 @@ final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\Test
 }
 
 /**
- * @internal Test double that forces the legacy libxml parser path.
+ * @internal test double that forces the legacy libxml parser path
  */
-class ForcedLegacyHtmlDomParser extends HtmlDomParser
+final class ForcedLegacyHtmlDomParser extends HtmlDomParser
 {
     protected function shouldUseModernHtmlDocument(int $optionsXml): bool
     {
@@ -661,7 +660,7 @@ class ForcedLegacyHtmlDomParser extends HtmlDomParser
 /**
  * @internal Test double that forces the PHP 8.4+ modern parser path and rejects fallback.
  */
-class StrictModernHtmlDomParser extends HtmlDomParser
+final class StrictModernHtmlDomParser extends HtmlDomParser
 {
     /**
      * @var int
@@ -732,9 +731,9 @@ class StrictModernHtmlDomParser extends HtmlDomParser
 }
 
 /**
- * @internal Test double that exposes the runtime guard around Dom\HTMLDocument support.
+ * @internal test double that exposes the runtime guard around Dom\HTMLDocument support
  */
-class SupportAwareHtmlDomParser extends HtmlDomParser
+final class SupportAwareHtmlDomParser extends HtmlDomParser
 {
     public function supportsModernRuntimeGuard(): bool
     {
@@ -745,7 +744,7 @@ class SupportAwareHtmlDomParser extends HtmlDomParser
 /**
  * @internal Test double that injects a fake modern DOM document on runtimes without PHP 8.4.
  */
-class ProjectingModernHtmlDomParser extends HtmlDomParser
+final class ProjectingModernHtmlDomParser extends HtmlDomParser
 {
     /**
      * @var callable|null
@@ -778,9 +777,9 @@ class ProjectingModernHtmlDomParser extends HtmlDomParser
 }
 
 /**
- * @internal Test double that forces the legacy fallback when modern document creation fails.
+ * @internal test double that forces the legacy fallback when modern document creation fails
  */
-class ThrowingModernHtmlDomParser extends HtmlDomParser
+final class ThrowingModernHtmlDomParser extends HtmlDomParser
 {
     /**
      * @var int
