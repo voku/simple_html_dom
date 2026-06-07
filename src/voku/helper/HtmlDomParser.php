@@ -590,7 +590,7 @@ class HtmlDomParser extends AbstractDomParser
             try {
                 return $this->createLegacyDocumentViaXmlBridge($modernDocument);
             } catch (\Throwable $throwable) {
-                return $this->projectModernDocumentToLegacyDocument($modernDocument);
+                return $this->createLegacyDocumentViaCompatibilityProjection($modernDocument);
             }
         }
 
@@ -599,7 +599,7 @@ class HtmlDomParser extends AbstractDomParser
             $this->stripModernXmlBridgeOptions($modernDocumentOptions)
         );
 
-        return $this->projectModernDocumentToLegacyDocument($modernDocument);
+        return $this->createLegacyDocumentViaCompatibilityProjection($modernDocument);
     }
 
     protected function canUseModernXmlBridge(string $html): bool
@@ -754,7 +754,15 @@ class HtmlDomParser extends AbstractDomParser
     /**
      * @param object $modernDocument
      */
-    protected function projectModernDocumentToLegacyDocument($modernDocument): \DOMDocument
+    protected function createLegacyDocumentViaCompatibilityProjection($modernDocument): \DOMDocument
+    {
+        return $this->projectModernDocumentToLegacyDocument($modernDocument);
+    }
+
+    /**
+     * @param object $modernDocument
+     */
+    private function projectModernDocumentToLegacyDocument($modernDocument): \DOMDocument
     {
         $document = new \DOMDocument('1.0', $this->getEncoding());
         $document->preserveWhiteSpace = true;

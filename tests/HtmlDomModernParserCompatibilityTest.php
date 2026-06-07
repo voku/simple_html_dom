@@ -762,11 +762,11 @@ final class StrictModernHtmlDomParser extends HtmlDomParser
         return parent::createLegacyDocumentViaXmlBridge($modernDocument);
     }
 
-    protected function projectModernDocumentToLegacyDocument($modernDocument): \DOMDocument
+    protected function createLegacyDocumentViaCompatibilityProjection($modernDocument): \DOMDocument
     {
         ++self::$compatibilityProjectionCalls;
 
-        return parent::projectModernDocumentToLegacyDocument($modernDocument);
+        return parent::createLegacyDocumentViaCompatibilityProjection($modernDocument);
     }
 }
 
@@ -832,11 +832,11 @@ final class ProjectingModernHtmlDomParser extends HtmlDomParser
         return parent::createLegacyDocumentViaXmlBridge($modernDocument);
     }
 
-    protected function projectModernDocumentToLegacyDocument($modernDocument): \DOMDocument
+    protected function createLegacyDocumentViaCompatibilityProjection($modernDocument): \DOMDocument
     {
         ++self::$projectionCalls;
 
-        return parent::projectModernDocumentToLegacyDocument($modernDocument);
+        return parent::createLegacyDocumentViaCompatibilityProjection($modernDocument);
     }
 }
 

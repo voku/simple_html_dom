@@ -137,12 +137,12 @@ final class BenchmarkModernHtmlDomParser extends HtmlDomParser
         return parent::createLegacyDocumentWithLibxml($html, $optionsXml);
     }
 
-    protected function projectModernDocumentToLegacyDocument($modernDocument): \DOMDocument
+    protected function createLegacyDocumentViaCompatibilityProjection($modernDocument): \DOMDocument
     {
         $projectionStart = \microtime(true);
 
         try {
-            return parent::projectModernDocumentToLegacyDocument($modernDocument);
+            return parent::createLegacyDocumentViaCompatibilityProjection($modernDocument);
         } finally {
             self::$instrumentation['projection_ms'] += (\microtime(true) - $projectionStart) * 1000;
         }
