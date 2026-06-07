@@ -7,6 +7,9 @@ use voku\helper\HtmlDomParser;
  */
 final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\TestCase
 {
+    /**
+     * PHP 8.4's Dom\HTMLDocument reports this nodeType for the document root.
+     */
     private const XML_HTML_DOCUMENT_NODE = 13;
 
     protected function setUp(): void
