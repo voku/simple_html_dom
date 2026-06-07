@@ -65,8 +65,45 @@ function runBenchmark(string $parserClass, string $html, string $selector, int $
         'parse_ms' => \round($parseTime * 1000, 3),
         'selector_ms' => \round($selectorTime * 1000, 3),
         'serialize_ms' => \round($serializationTime * 1000, 3),
+        'total_ms' => \round(($parseTime + $selectorTime + $serializationTime) * 1000, 3),
         'peak_bytes' => \memory_get_peak_usage(true),
     ];
+}
+
+/**
+ * @param array<string, float|int|string> $baseline
+ * @param array<string, float|int|string> $result
+ */
+function formatTimeComparison(array $baseline, array $result, string $metric): string
+{
+    $baselineValue = (float) $baseline[$metric];
+    if ($baselineValue === 0.0) {
+        return 'n/a';
+    }
+
+    $delta = (float) $result[$metric] - $baselineValue;
+    $percent = ($delta / $baselineValue) * 100;
+    $direction = $delta <= 0.0 ? 'faster' : 'slower';
+
+    return \sprintf('%+.3fms/%+.1f%%-%s', $delta, $percent, $direction);
+}
+
+/**
+ * @param array<string, float|int|string> $baseline
+ * @param array<string, float|int|string> $result
+ */
+function formatMemoryComparison(array $baseline, array $result): string
+{
+    $baselineValue = (int) $baseline['peak_bytes'];
+    if ($baselineValue === 0) {
+        return 'n/a';
+    }
+
+    $delta = (int) $result['peak_bytes'] - $baselineValue;
+    $percent = ($delta / $baselineValue) * 100;
+    $direction = $delta <= 0 ? 'lower' : 'higher';
+
+    return \sprintf('%+dB/%+.1f%%-%s', $delta, $percent, $direction);
 }
 
 function getLibxmlOptionMask(): int
@@ -154,9 +191,11 @@ if (BenchmarkModernHtmlDomParser::supportsModernPath()) {
     $parserClasses['modern+projection'] = BenchmarkModernHtmlDomParser::class;
 }
 
-echo "scenario\tparser\tparse_ms\tselector_ms\tserialize_ms\tpeak_bytes\n";
+echo "scenario\tparser\tparse_ms\tparse_vs_legacy\tselector_ms\tselector_vs_legacy\tserialize_ms\tserialize_vs_legacy\ttotal_ms\ttotal_vs_legacy\tpeak_bytes\tpeak_vs_legacy\n";
 
 foreach ($cases as $scenario => $config) {
+    $baseline = null;
+
     foreach ($parserClasses as $label => $parserClass) {
         $result = runBenchmark(
             $parserClass,
@@ -166,11 +205,27 @@ foreach ($cases as $scenario => $config) {
             $config['options_xml']
         );
 
+        if ($baseline === null) {
+            $baseline = $result;
+        }
+
+        $parseComparison = $label === 'legacy' ? 'baseline' : formatTimeComparison($baseline, $result, 'parse_ms');
+        $selectorComparison = $label === 'legacy' ? 'baseline' : formatTimeComparison($baseline, $result, 'selector_ms');
+        $serializeComparison = $label === 'legacy' ? 'baseline' : formatTimeComparison($baseline, $result, 'serialize_ms');
+        $totalComparison = $label === 'legacy' ? 'baseline' : formatTimeComparison($baseline, $result, 'total_ms');
+        $memoryComparison = $label === 'legacy' ? 'baseline' : formatMemoryComparison($baseline, $result);
+
         echo $scenario, "\t",
         $label, "\t",
         $result['parse_ms'], "\t",
+        $parseComparison, "\t",
         $result['selector_ms'], "\t",
+        $selectorComparison, "\t",
         $result['serialize_ms'], "\t",
-        $result['peak_bytes'], "\n";
+        $serializeComparison, "\t",
+        $result['total_ms'], "\t",
+        $totalComparison, "\t",
+        $result['peak_bytes'], "\t",
+        $memoryComparison, "\n";
     }
 }
