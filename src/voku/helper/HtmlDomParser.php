@@ -577,9 +577,37 @@ class HtmlDomParser extends AbstractDomParser
 
     protected function createLegacyDocumentFromModernParser(string $html, int $optionsXml): \DOMDocument
     {
-        $modernDocument = $this->createModernHtmlDocument($html, $optionsXml);
+        $modernDocument = $this->createModernHtmlDocument(
+            $html,
+            $this->filterModernHtmlDocumentOptions($optionsXml)
+        );
 
         return $this->projectModernDocumentToLegacyDocument($modernDocument);
+    }
+
+    protected function filterModernHtmlDocumentOptions(int $optionsXml): int
+    {
+        $allowedOptions = 0;
+
+        if (\defined('LIBXML_NOERROR')) {
+            $allowedOptions |= \LIBXML_NOERROR;
+        }
+
+        if (\defined('LIBXML_COMPACT')) {
+            $allowedOptions |= \LIBXML_COMPACT;
+        }
+
+        if (\defined('LIBXML_HTML_NOIMPLIED')) {
+            $allowedOptions |= \LIBXML_HTML_NOIMPLIED;
+        }
+
+        if (\defined('Dom\\HTML_NO_DEFAULT_NS')) {
+            /** @var int $domHtmlNoDefaultNs */
+            $domHtmlNoDefaultNs = \constant('Dom\\HTML_NO_DEFAULT_NS');
+            $allowedOptions |= $domHtmlNoDefaultNs;
+        }
+
+        return $optionsXml & $allowedOptions;
     }
 
     /**

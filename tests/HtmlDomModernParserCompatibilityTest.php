@@ -12,11 +12,13 @@ final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\Test
         StrictModernHtmlDomParser::reset();
         ThrowingModernHtmlDomParser::reset();
         ProjectingModernHtmlDomParser::$modernDocumentFactory = null;
+        ProjectingModernHtmlDomParser::$lastOptionsXml = null;
     }
 
     protected function tearDown(): void
     {
         ProjectingModernHtmlDomParser::$modernDocumentFactory = null;
+        ProjectingModernHtmlDomParser::$lastOptionsXml = null;
     }
 
     /**
@@ -485,6 +487,83 @@ final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\Test
         }
     }
 
+    public function testModernParserFiltersUnsupportedModernHtmlDocumentOptions(): void
+    {
+        $fakeDocument = $this->createModernNode(
+            \XML_DOCUMENT_NODE,
+            [
+                'childNodes' => [
+                    $this->createModernNode(
+                        \XML_ELEMENT_NODE,
+                        [
+                            'localName' => 'html',
+                            'nodeName' => 'html',
+                            'attributes' => [],
+                            'childNodes' => [
+                                $this->createModernNode(
+                                    \XML_ELEMENT_NODE,
+                                    [
+                                        'localName' => 'body',
+                                        'nodeName' => 'body',
+                                        'attributes' => [],
+                                        'childNodes' => [
+                                            $this->createModernNode(
+                                                \XML_ELEMENT_NODE,
+                                                [
+                                                    'localName' => 'main',
+                                                    'nodeName' => 'main',
+                                                    'attributes' => [],
+                                                    'childNodes' => [],
+                                                ]
+                                            ),
+                                        ],
+                                    ]
+                                ),
+                            ],
+                        ]
+                    ),
+                ],
+            ]
+        );
+
+        ProjectingModernHtmlDomParser::$modernDocumentFactory = static function () use ($fakeDocument) {
+            return $fakeDocument;
+        };
+
+        $options = \LIBXML_DTDLOAD | \LIBXML_DTDATTR | \LIBXML_NONET | \LIBXML_NOERROR;
+        if (\defined('LIBXML_BIGLINES')) {
+            $options |= \LIBXML_BIGLINES;
+        }
+        if (\defined('LIBXML_COMPACT')) {
+            $options |= \LIBXML_COMPACT;
+        }
+        if (\defined('LIBXML_HTML_NODEFDTD')) {
+            $options |= \LIBXML_HTML_NODEFDTD;
+        }
+
+        try {
+            $dom = ProjectingModernHtmlDomParser::str_get_html('<main></main>', $options);
+
+            static::assertInstanceOf(\DOMDocument::class, $dom->getDocument());
+
+            $expectedOptions = \LIBXML_NOERROR;
+            if (\defined('LIBXML_COMPACT')) {
+                $expectedOptions |= \LIBXML_COMPACT;
+            }
+            if (\defined('LIBXML_HTML_NOIMPLIED')) {
+                $expectedOptions |= \LIBXML_HTML_NOIMPLIED;
+            }
+            if (\defined('Dom\\HTML_NO_DEFAULT_NS')) {
+                $expectedOptions |= \constant('Dom\\HTML_NO_DEFAULT_NS');
+            }
+
+            static::assertSame($expectedOptions, ProjectingModernHtmlDomParser::$lastOptionsXml);
+        } finally {
+            ProjectingModernHtmlDomParser::$modernDocumentFactory = null;
+            ProjectingModernHtmlDomParser::$lastOptionsXml = null;
+        }
+    }
+
     public function testModernParserFallbackStillUsesLegacyParsingWhenModernCreationFails(): void
     {
         ThrowingModernHtmlDomParser::$legacyFallbackCalls = 0;
@@ -699,6 +778,11 @@ class ProjectingModernHtmlDomParser extends HtmlDomParser
      */
     public static $modernDocumentFactory;
 
+    /**
+     * @var int|null
+     */
+    public static $lastOptionsXml;
+
     protected function shouldUseModernHtmlDocument(int $optionsXml): bool
     {
         return true;
@@ -709,6 +793,8 @@ class ProjectingModernHtmlDomParser extends HtmlDomParser
      */
     protected function createModernHtmlDocument(string $html, int $optionsXml)
     {
+        self::$lastOptionsXml = $optionsXml;
+
         if (self::$modernDocumentFactory === null) {
             throw new \RuntimeException('No projected modern document configured.');
         }
