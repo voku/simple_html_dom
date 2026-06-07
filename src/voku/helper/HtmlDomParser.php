@@ -615,7 +615,7 @@ class HtmlDomParser extends AbstractDomParser
             &&
             \stripos($html, 'xmlns') === false
             &&
-            \strpos($html, ':') === false
+            !$this->containsPotentialNamespacedMarkup($html)
         ) {
             return true;
         }
@@ -627,7 +627,7 @@ class HtmlDomParser extends AbstractDomParser
     }
 
     /**
-     * @param mixed $modernDocument
+     * @param object $modernDocument
      */
     protected function createLegacyDocumentViaXmlBridge($modernDocument): \DOMDocument
     {
@@ -831,7 +831,7 @@ class HtmlDomParser extends AbstractDomParser
                 \SimpleXMLElement::class,
                 \LIBXML_NONET | \LIBXML_NOERROR | \LIBXML_NOWARNING
             );
-            if ($simpleXml === false || \count(\libxml_get_errors()) > 0) {
+            if ($simpleXml === false) {
                 return null;
             }
 
@@ -849,6 +849,55 @@ class HtmlDomParser extends AbstractDomParser
             \libxml_clear_errors();
             \libxml_use_internal_errors($internalErrors);
         }
+    }
+
+    private function containsPotentialNamespacedMarkup(string $html): bool
+    {
+        if (\strpos($html, ':') === false) {
+            return false;
+        }
+
+        $insideTag = false;
+        $quote = '';
+        $length = \strlen($html);
+
+        for ($i = 0; $i < $length; ++$i) {
+            $character = $html[$i];
+
+            if ($insideTag === false) {
+                if ($character === '<') {
+                    $insideTag = true;
+                }
+
+                continue;
+            }
+
+            if ($quote !== '') {
+                if ($character === $quote) {
+                    $quote = '';
+                }
+
+                continue;
+            }
+
+            if ($character === '"' || $character === '\'') {
+                $quote = $character;
+
+                continue;
+            }
+
+            if ($character === '>') {
+                $insideTag = false;
+
+                continue;
+            }
+
+            if ($character === ':') {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
