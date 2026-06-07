@@ -546,6 +546,9 @@ final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\Test
 
             static::assertInstanceOf(\DOMDocument::class, $dom->getDocument());
 
+            // Intentionally mirror PHP 8.4's public Dom\HTMLDocument flag
+            // contract here so the test fails if unsupported flags start
+            // leaking back into the modern parser path.
             $expectedOptions = $options & (\LIBXML_NOERROR | (\defined('LIBXML_COMPACT') ? \LIBXML_COMPACT : 0));
             if (\defined('LIBXML_HTML_NOIMPLIED')) {
                 $expectedOptions |= $options & \LIBXML_HTML_NOIMPLIED;

@@ -585,6 +585,11 @@ class HtmlDomParser extends AbstractDomParser
         return $this->projectModernDocumentToLegacyDocument($modernDocument);
     }
 
+    /**
+     * Dom\HTMLDocument::createFromString() accepts only a narrow flag whitelist
+     * on PHP 8.4+, so strip legacy libxml flags here to avoid turning every
+     * modern-parse attempt into an immediate fallback to libxml parsing.
+     */
     protected function filterModernHtmlDocumentOptions(int $optionsXml): int
     {
         $allowedOptions = 0;
