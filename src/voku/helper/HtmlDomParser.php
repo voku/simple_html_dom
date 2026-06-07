@@ -558,7 +558,7 @@ class HtmlDomParser extends AbstractDomParser
 
     protected function shouldUseModernHtmlDocument(int $optionsXml): bool
     {
-        return $this->supportsModernHtmlDocument();
+        return false;
     }
 
     protected function supportsModernHtmlDocument(): bool
