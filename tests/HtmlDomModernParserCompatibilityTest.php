@@ -226,8 +226,9 @@ final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\Test
     {
         $this->requireModernPath();
 
-        StrictModernHtmlDomParser::str_get_html('<div><p>Paragraph</p></div>');
+        $dom = StrictModernHtmlDomParser::str_get_html('<div><p>Paragraph</p></div>');
 
+        static::assertInstanceOf(\DOMDocument::class, $dom->getDocument());
         static::assertSame(1, StrictModernHtmlDomParser::$modernCreateCalls);
         static::assertSame(1, StrictModernHtmlDomParser::$successfulModernProjectionCalls);
         static::assertSame(0, StrictModernHtmlDomParser::$legacyFallbackCalls);
@@ -615,11 +616,13 @@ final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\Test
     {
         $this->requireModernPath();
 
-        StrictModernHtmlDomParser::str_get_html(
+        $dom = StrictModernHtmlDomParser::str_get_html(
             // Start with an unmatched closing paragraph tag so the real HTML5 parser
             // must recover browser-style markup before projection into DOMDocument.
             '</p><div><template id="card"><section><p>Template content</p></section></template><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><use xlink:href="#icon"></use></svg></div>'
         );
+
+        static::assertInstanceOf(\DOMDocument::class, $dom->getDocument());
 
         $modernDocument = StrictModernHtmlDomParser::$lastModernDocument;
         static::assertNotNull($modernDocument);
