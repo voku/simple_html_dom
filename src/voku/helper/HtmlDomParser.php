@@ -568,6 +568,9 @@ class HtmlDomParser extends AbstractDomParser
 
     protected function shouldUseModernHtmlDocument(int $optionsXml): bool
     {
+        // Keep the legacy parser as the production default until the real
+        // Dom\HTMLDocument::createFromString() bridge path is a net win over
+        // the existing implementation for comparable inputs.
         return false;
     }
 
