@@ -111,6 +111,21 @@ final class BenchmarkModernHtmlDomParser extends HtmlDomParser
         $backendStart = \microtime(true);
 
         try {
+            if (
+                \stripos($html, '<svg') === false
+                &&
+                \stripos($html, '<math') === false
+                &&
+                \stripos($html, 'xmlns') === false
+                &&
+                \strpos($html, ':') === false
+            ) {
+                $document = $this->createLegacyDocumentViaXmlInputBridge($html);
+                if ($document instanceof \DOMDocument) {
+                    return $document;
+                }
+            }
+
             return parent::createLegacyDocumentFromModernParser($html, $optionsXml);
         } finally {
             self::$instrumentation['backend_ms'] += (\microtime(true) - $backendStart) * 1000;
@@ -123,6 +138,22 @@ final class BenchmarkModernHtmlDomParser extends HtmlDomParser
 
         try {
             return parent::createLegacyDocumentViaXmlBridge($modernDocument);
+        } finally {
+            self::$instrumentation['bridge_ms'] += (\microtime(true) - $bridgeStart) * 1000;
+        }
+    }
+
+    protected function shouldUseModernXmlInputBridgeShortcut(): bool
+    {
+        return true;
+    }
+
+    protected function createLegacyDocumentViaXmlInputBridge(string $html): ?\DOMDocument
+    {
+        $bridgeStart = \microtime(true);
+
+        try {
+            return parent::createLegacyDocumentViaXmlInputBridge($html);
         } finally {
             self::$instrumentation['bridge_ms'] += (\microtime(true) - $bridgeStart) * 1000;
         }
@@ -451,6 +482,7 @@ $cases = [
         'selector' => '.message',
         'html' => '<main><p class="message">old</p><p class="message">new</p></main>',
         'options_xml' => 0,
+        'modern_skip_reason' => 'legacy-xml-fast-path',
     ],
     'article' => [
         'iterations' => 125,
@@ -508,6 +540,16 @@ foreach ($cases as $scenario => $config) {
         $config['selector'],
         $config['options_xml']
     );
+    if (isset($config['modern_skip_reason'])) {
+        foreach ($parserClasses as $label => $parserClass) {
+            if ($label === 'legacy') {
+                continue;
+            }
+
+            unset($comparableParsers[$label]);
+            $invalidReasons[$label] = $config['modern_skip_reason'];
+        }
+    }
 
     $results = runScenarioBenchmarks(
         $comparableParsers,

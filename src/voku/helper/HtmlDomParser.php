@@ -581,6 +581,13 @@ class HtmlDomParser extends AbstractDomParser
     {
         $modernDocumentOptions = $this->filterModernHtmlDocumentOptions($optionsXml);
 
+        if ($this->canUseModernXmlInputBridge($html)) {
+            $document = $this->createLegacyDocumentViaXmlInputBridge($html);
+            if ($document instanceof \DOMDocument) {
+                return $document;
+            }
+        }
+
         if ($this->canUseModernXmlBridge($html)) {
             $modernDocument = $this->createModernHtmlDocument(
                 $html,
@@ -624,6 +631,29 @@ class HtmlDomParser extends AbstractDomParser
             '/<\s*\/?\s*(?:svg|math)\b|<[^>]+\sxmlns(?::|=)|<\s*\/?\s*[a-z][a-z0-9._-]*:[a-z0-9._-]+|<[^>]+\s[a-z][a-z0-9._-]*:[a-z0-9._-]+\s*=/iu',
             $html
         ) === 0;
+    }
+
+    protected function shouldUseModernXmlInputBridgeShortcut(): bool
+    {
+        return \get_class($this) === self::class;
+    }
+
+    protected function canUseModernXmlInputBridge(string $html): bool
+    {
+        return $this->shouldUseModernXmlInputBridgeShortcut()
+            && $this->canUseModernXmlBridge($html);
+    }
+
+    protected function createLegacyDocumentViaXmlInputBridge(string $html): ?\DOMDocument
+    {
+        $document = $this->createLegacyDocumentViaSimpleXmlBridge($html);
+        if ($document instanceof \DOMDocument) {
+            return $document;
+        }
+
+        return $this->createLegacyDocumentViaSimpleXmlBridge(
+            $this->prepareHtmlForXmlInputBridge($html)
+        );
     }
 
     /**
@@ -898,6 +928,28 @@ class HtmlDomParser extends AbstractDomParser
         }
 
         return false;
+    }
+
+    private function prepareHtmlForXmlInputBridge(string $html): string
+    {
+        $preparedHtml = \preg_replace_callback(
+            '/<((?:area|base|br|col|command|embed|hr|img|input|keygen|link|meta|param|source|track|wbr)\b[^<>]*?)(\s*)>/iu',
+            static function (array $matches): string {
+                $tag = \rtrim($matches[1]);
+                if (\substr($tag, -1) === '/') {
+                    return '<' . $tag . '>';
+                }
+
+                return '<' . $tag . '/>';
+            },
+            $html
+        );
+
+        if (!\is_string($preparedHtml)) {
+            return $html;
+        }
+
+        return $preparedHtml;
     }
 
     /**

@@ -20,6 +20,7 @@ final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\Test
         ProjectingModernHtmlDomParser::$lastOptionsXml = null;
         ProjectingModernHtmlDomParser::$bridgeCalls = 0;
         ProjectingModernHtmlDomParser::$projectionCalls = 0;
+        DirectXmlBridgeModernHtmlDomParser::reset();
     }
 
     protected function tearDown(): void
@@ -28,6 +29,7 @@ final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\Test
         ProjectingModernHtmlDomParser::$lastOptionsXml = null;
         ProjectingModernHtmlDomParser::$bridgeCalls = 0;
         ProjectingModernHtmlDomParser::$projectionCalls = 0;
+        DirectXmlBridgeModernHtmlDomParser::reset();
     }
 
     /**
@@ -243,6 +245,24 @@ final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\Test
         static::assertSame(1, StrictModernHtmlDomParser::$xmlBridgeCalls);
         static::assertSame(0, StrictModernHtmlDomParser::$compatibilityProjectionCalls);
         static::assertSame(0, StrictModernHtmlDomParser::$legacyFallbackCalls);
+        static::assertNull($dom->getDocument()->documentElement->namespaceURI);
+    }
+
+    public function testModernParserUsesXmlInputBridgeForSafeXmlCompatibleHtml(): void
+    {
+        $this->requireModernPath();
+
+        $dom = DirectXmlBridgeModernHtmlDomParser::str_get_html(
+            '<main><p class="message">old</p><p class="message">new</p></main>'
+        );
+
+        static::assertSame('<main><p class="message">old</p><p class="message">new</p></main>', $dom->html());
+        static::assertSame(2, \count($dom->findMulti('.message')));
+        static::assertSame(1, DirectXmlBridgeModernHtmlDomParser::$xmlInputBridgeCalls);
+        static::assertSame(0, DirectXmlBridgeModernHtmlDomParser::$modernCreateCalls);
+        static::assertSame(0, DirectXmlBridgeModernHtmlDomParser::$xmlBridgeCalls);
+        static::assertSame(0, DirectXmlBridgeModernHtmlDomParser::$compatibilityProjectionCalls);
+        static::assertSame(0, DirectXmlBridgeModernHtmlDomParser::$legacyFallbackCalls);
         static::assertNull($dom->getDocument()->documentElement->namespaceURI);
     }
 
@@ -781,6 +801,94 @@ final class SupportAwareHtmlDomParser extends HtmlDomParser
     public function supportsModernRuntimeGuard(): bool
     {
         return parent::supportsModernHtmlDocument();
+    }
+}
+
+/**
+ * @internal Test double that enables the XML-input shortcut used by the PHP 8.4 benchmark.
+ */
+final class DirectXmlBridgeModernHtmlDomParser extends HtmlDomParser
+{
+    /**
+     * @var int
+     */
+    public static $legacyFallbackCalls = 0;
+
+    /**
+     * @var int
+     */
+    public static $modernCreateCalls = 0;
+
+    /**
+     * @var int
+     */
+    public static $xmlInputBridgeCalls = 0;
+
+    /**
+     * @var int
+     */
+    public static $xmlBridgeCalls = 0;
+
+    /**
+     * @var int
+     */
+    public static $compatibilityProjectionCalls = 0;
+
+    public static function reset(): void
+    {
+        self::$legacyFallbackCalls = 0;
+        self::$modernCreateCalls = 0;
+        self::$xmlInputBridgeCalls = 0;
+        self::$xmlBridgeCalls = 0;
+        self::$compatibilityProjectionCalls = 0;
+    }
+
+    protected function shouldUseModernHtmlDocument(int $optionsXml): bool
+    {
+        return StrictModernHtmlDomParser::supportsModernPath();
+    }
+
+    protected function shouldUseModernXmlInputBridgeShortcut(): bool
+    {
+        return true;
+    }
+
+    protected function createLegacyDocumentViaXmlInputBridge(string $html): ?\DOMDocument
+    {
+        ++self::$xmlInputBridgeCalls;
+
+        return parent::createLegacyDocumentViaXmlInputBridge($html);
+    }
+
+    /**
+     * @return object
+     */
+    protected function createModernHtmlDocument(string $html, int $optionsXml)
+    {
+        ++self::$modernCreateCalls;
+
+        return parent::createModernHtmlDocument($html, $optionsXml);
+    }
+
+    protected function createLegacyDocumentViaXmlBridge($modernDocument): \DOMDocument
+    {
+        ++self::$xmlBridgeCalls;
+
+        return parent::createLegacyDocumentViaXmlBridge($modernDocument);
+    }
+
+    protected function createLegacyDocumentViaCompatibilityProjection($modernDocument): \DOMDocument
+    {
+        ++self::$compatibilityProjectionCalls;
+
+        return parent::createLegacyDocumentViaCompatibilityProjection($modernDocument);
+    }
+
+    protected function createLegacyDocumentWithLibxml(string $html, int $optionsXml): \DOMDocument
+    {
+        ++self::$legacyFallbackCalls;
+
+        throw new \RuntimeException('Legacy fallback must not be used by this test.');
     }
 }
 
