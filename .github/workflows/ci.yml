@@ -108,6 +108,8 @@ jobs:
 
   modern-parser-benchmarks:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -149,6 +151,7 @@ jobs:
       - name: Publish benchmark summary
         env:
           BENCHMARK_FILE: build/logs/benchmark-php-${{ matrix.php }}.tsv
+          BENCHMARK_MODERN_PARSER_LABEL: modern+bridge
           PHP_VERSION_LABEL: ${{ matrix.php }}
         run: |
           python3 - <<'PY'
@@ -156,13 +159,14 @@ jobs:
           import os
 
           benchmark_file = os.environ['BENCHMARK_FILE']
+          benchmark_parser = os.environ['BENCHMARK_MODERN_PARSER_LABEL']
           php_version = os.environ['PHP_VERSION_LABEL']
           summary_file = os.environ['GITHUB_STEP_SUMMARY']
 
           with open(benchmark_file, newline='') as handle:
               rows = list(csv.DictReader(handle, delimiter='\t'))
 
-          modern_rows = [row for row in rows if row['parser'] == 'modern+bridge']
+          modern_rows = [row for row in rows if row['parser'] == benchmark_parser]
 
           with open(summary_file, 'a') as summary:
               summary.write('## Modern parser benchmark (PHP ' + php_version + ')\n\n')
