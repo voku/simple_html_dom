@@ -170,15 +170,16 @@ jobs:
 
           with open(summary_file, 'a') as summary:
               summary.write('## Modern parser benchmark (PHP ' + php_version + ')\n\n')
-              summary.write('| Scenario | Status | Total vs legacy | Parse vs legacy | Selector vs legacy | Serialize vs legacy |\n')
-              summary.write('| --- | --- | --- | --- | --- | --- |\n')
+              summary.write('| Scenario | Status | Total vs legacy | Total vs modern+projection | Parse vs legacy | Selector vs legacy | Serialize vs legacy |\n')
+              summary.write('| --- | --- | --- | --- | --- | --- | --- |\n')
 
               for row in modern_rows:
                   summary.write(
-                      '| {scenario} | {status} | {total} | {parse} | {selector} | {serialize} |\n'.format(
+                      '| {scenario} | {status} | {total} | {projection_total} | {parse} | {selector} | {serialize} |\n'.format(
                           scenario=row['scenario'],
                           status=row['comparison_status'],
                           total=row['total_vs_legacy'],
+                          projection_total=row['total_vs_modern_projection'],
                           parse=row['parse_vs_legacy'],
                           selector=row['selector_vs_legacy'],
                           serialize=row['serialize_vs_legacy'],

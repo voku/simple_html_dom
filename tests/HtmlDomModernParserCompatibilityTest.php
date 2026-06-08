@@ -273,24 +273,13 @@ final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\Test
         static::assertSame(\PHP_VERSION_ID >= 80400, $parser->supportsModernRuntimeGuard());
     }
 
-    public function testDefaultParserPathTracksModernRuntimeSupport(): void
+    public function testDefaultParserPathKeepsLegacyBehaviorUntilModernPathIsExplicitlyEnabled(): void
     {
         RuntimeAwareHtmlDomParser::reset();
 
         $dom = RuntimeAwareHtmlDomParser::str_get_html('<main><p class="message">old</p><p class="message">new</p></main>');
 
         static::assertSame(2, \count($dom->findMulti('.message')));
-
-        if (\PHP_VERSION_ID >= 80400) {
-            static::assertSame(1, RuntimeAwareHtmlDomParser::$modernProjectionCalls);
-            static::assertSame(0, RuntimeAwareHtmlDomParser::$legacyFallbackCalls);
-            static::assertSame(1, RuntimeAwareHtmlDomParser::$xmlInputBridgeCalls);
-            static::assertSame(0, RuntimeAwareHtmlDomParser::$modernCreateCalls);
-            static::assertSame(0, RuntimeAwareHtmlDomParser::$xmlBridgeCalls);
-            static::assertSame(0, RuntimeAwareHtmlDomParser::$compatibilityProjectionCalls);
-
-            return;
-        }
 
         static::assertSame(0, RuntimeAwareHtmlDomParser::$modernProjectionCalls);
         static::assertSame(1, RuntimeAwareHtmlDomParser::$legacyFallbackCalls);
@@ -777,6 +766,11 @@ final class StrictModernHtmlDomParser extends HtmlDomParser
         return self::supportsModernPath();
     }
 
+    protected function shouldUseModernXmlInputBridgeShortcut(): bool
+    {
+        return false;
+    }
+
     /**
      * @return object
      */
@@ -1038,6 +1032,11 @@ final class ProjectingModernHtmlDomParser extends HtmlDomParser
     protected function shouldUseModernHtmlDocument(int $optionsXml): bool
     {
         return true;
+    }
+
+    protected function shouldUseModernXmlInputBridgeShortcut(): bool
+    {
+        return false;
     }
 
     /**

@@ -47,7 +47,7 @@ final class BenchmarkLegacyHtmlDomParser extends HtmlDomParser
     }
 }
 
-final class BenchmarkModernHtmlDomParser extends HtmlDomParser
+class BenchmarkModernHtmlDomParser extends HtmlDomParser
 {
     /**
      * @var array<string, float>
@@ -111,21 +111,6 @@ final class BenchmarkModernHtmlDomParser extends HtmlDomParser
         $backendStart = \microtime(true);
 
         try {
-            if (
-                \stripos($html, '<svg') === false
-                &&
-                \stripos($html, '<math') === false
-                &&
-                \stripos($html, 'xmlns') === false
-                &&
-                \strpos($html, ':') === false
-            ) {
-                $document = $this->createLegacyDocumentViaXmlInputBridge($html);
-                if ($document instanceof \DOMDocument) {
-                    return $document;
-                }
-            }
-
             return parent::createLegacyDocumentFromModernParser($html, $optionsXml);
         } finally {
             self::$instrumentation['backend_ms'] += (\microtime(true) - $backendStart) * 1000;
@@ -145,7 +130,7 @@ final class BenchmarkModernHtmlDomParser extends HtmlDomParser
 
     protected function shouldUseModernXmlInputBridgeShortcut(): bool
     {
-        return true;
+        return false;
     }
 
     protected function createLegacyDocumentViaXmlInputBridge(string $html): ?\DOMDocument
@@ -191,6 +176,14 @@ final class BenchmarkModernHtmlDomParser extends HtmlDomParser
         } finally {
             self::$instrumentation['modern_create_ms'] += (\microtime(true) - $modernCreateStart) * 1000;
         }
+    }
+}
+
+final class BenchmarkProjectedModernHtmlDomParser extends BenchmarkModernHtmlDomParser
+{
+    protected function canUseModernXmlBridge(string $html): bool
+    {
+        return false;
     }
 }
 
@@ -482,7 +475,6 @@ $cases = [
         'selector' => '.message',
         'html' => '<main><p class="message">old</p><p class="message">new</p></main>',
         'options_xml' => 0,
-        'modern_skip_reason' => 'legacy-xml-fast-path',
     ],
     'article' => [
         'iterations' => 125,
@@ -528,10 +520,12 @@ $parserClasses = [
 
 if (BenchmarkModernHtmlDomParser::supportsModernPath()) {
     BenchmarkModernHtmlDomParser::rejectLegacyFallback(true);
+    BenchmarkProjectedModernHtmlDomParser::rejectLegacyFallback(true);
+    $parserClasses['modern+projection'] = BenchmarkProjectedModernHtmlDomParser::class;
     $parserClasses['modern+bridge'] = BenchmarkModernHtmlDomParser::class;
 }
 
-echo "scenario\tparser\tcomparison_status\tparse_ms\tparse_vs_legacy\tselector_ms\tselector_vs_legacy\tserialize_ms\tserialize_vs_legacy\ttotal_ms\ttotal_vs_legacy\tpeak_bytes\tpeak_vs_legacy\tbackend_ms\tbackend_vs_legacy\tbackend_vs_parse\tmodern_create_ms\tbridge_ms\tbridge_vs_backend\tprojection_ms\tprojection_vs_backend\n";
+echo "scenario\tparser\tcomparison_status\tparse_ms\tparse_vs_legacy\tselector_ms\tselector_vs_legacy\tserialize_ms\tserialize_vs_legacy\ttotal_ms\ttotal_vs_legacy\ttotal_vs_modern_projection\tpeak_bytes\tpeak_vs_legacy\tbackend_ms\tbackend_vs_legacy\tbackend_vs_modern_projection\tbackend_vs_parse\tmodern_create_ms\tbridge_ms\tbridge_vs_backend\tprojection_ms\tprojection_vs_backend\n";
 
 foreach ($cases as $scenario => $config) {
     list($comparableParsers, $invalidReasons) = getComparableScenarioParsers(
@@ -581,6 +575,7 @@ foreach ($cases as $scenario => $config) {
             "n/a\t",
             "n/a\t",
             "n/a\t",
+            "n/a\t",
             "n/a\n";
 
             continue;
@@ -592,8 +587,24 @@ foreach ($cases as $scenario => $config) {
         $selectorComparison = $label === 'legacy' ? 'baseline' : formatTimeComparison($baseline, $result, 'selector_ms');
         $serializeComparison = $label === 'legacy' ? 'baseline' : formatTimeComparison($baseline, $result, 'serialize_ms');
         $totalComparison = $label === 'legacy' ? 'baseline' : formatTimeComparison($baseline, $result, 'total_ms');
+        $projectionTotalComparison = 'n/a';
+        if (isset($results['modern+projection'])) {
+            if ($label === 'modern+projection') {
+                $projectionTotalComparison = 'baseline';
+            } elseif ($label !== 'legacy') {
+                $projectionTotalComparison = formatTimeComparison($results['modern+projection'], $result, 'total_ms');
+            }
+        }
         $memoryComparison = $label === 'legacy' ? 'baseline' : formatMemoryComparison($baseline, $result);
         $backendComparison = $label === 'legacy' ? 'baseline' : formatTimeComparison($baseline, $result, 'backend_ms');
+        $projectionBackendComparison = 'n/a';
+        if (isset($results['modern+projection'])) {
+            if ($label === 'modern+projection') {
+                $projectionBackendComparison = 'baseline';
+            } elseif ($label !== 'legacy') {
+                $projectionBackendComparison = formatTimeComparison($results['modern+projection'], $result, 'backend_ms');
+            }
+        }
         $backendShare = formatComponentShare($result, 'backend_ms', 'parse_ms');
         $bridgeShare = formatComponentShare($result, 'bridge_ms', 'backend_ms');
         $projectionShare = formatComponentShare($result, 'projection_ms', 'backend_ms');
@@ -612,10 +623,12 @@ foreach ($cases as $scenario => $config) {
         $serializeComparison, "\t",
         $result['total_ms'], "\t",
         $totalComparison, "\t",
+        $projectionTotalComparison, "\t",
         $result['peak_bytes'], "\t",
         $memoryComparison, "\t",
         $result['backend_ms'], "\t",
         $backendComparison, "\t",
+        $projectionBackendComparison, "\t",
         $backendShare, "\t",
         $modernCreate, "\t",
         $bridge, "\t",
