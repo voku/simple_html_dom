@@ -118,7 +118,7 @@ class HtmlDomParser extends AbstractDomParser
     /**
      * @var string|null
      */
-    private $selfClosingTagsPattern;
+    private $selfClosingTagsRegex;
 
     /**
      * @var bool
@@ -651,7 +651,7 @@ class HtmlDomParser extends AbstractDomParser
 
     protected function createLegacyDocumentViaXmlInputBridge(string $html): ?\DOMDocument
     {
-        // Keep the common XML-compatible path free from self-closing tag processing.
+        // Try XML-compatible input first, then add self-closing slashes only if needed.
         $document = $this->createLegacyDocumentViaSimpleXmlBridge($html);
         if ($document instanceof \DOMDocument) {
             return $document;
@@ -939,7 +939,7 @@ class HtmlDomParser extends AbstractDomParser
     private function prepareHtmlForXmlInputBridge(string $html): string
     {
         $preparedHtml = \preg_replace_callback(
-            '/<((?:' . $this->getSelfClosingTagsPattern() . ')\b[^<>]*?)(\s*)>/iu',
+            $this->getSelfClosingTagsRegex(),
             static function (array $matches): string {
                 $tag = \rtrim($matches[1]);
                 if (\substr($tag, -1) === '/') {
@@ -958,18 +958,20 @@ class HtmlDomParser extends AbstractDomParser
         return $preparedHtml;
     }
 
-    private function getSelfClosingTagsPattern(): string
+    private function getSelfClosingTagsRegex(): string
     {
-        if ($this->selfClosingTagsPattern === null) {
-            $this->selfClosingTagsPattern = \implode('|', \array_map(
+        if ($this->selfClosingTagsRegex === null) {
+            $selfClosingTagsPattern = \implode('|', \array_map(
                 static function (string $tag): string {
                     return \preg_quote($tag, '/');
                 },
                 $this->selfClosingTags
             ));
+
+            $this->selfClosingTagsRegex = '/<((?:' . $selfClosingTagsPattern . ')\b[^<>]*?)(\s*)>/iu';
         }
 
-        return $this->selfClosingTagsPattern;
+        return $this->selfClosingTagsRegex;
     }
 
     /**
