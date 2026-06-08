@@ -273,6 +273,33 @@ final class HtmlDomModernParserCompatibilityTest extends \PHPUnit\Framework\Test
         static::assertSame(\PHP_VERSION_ID >= 80400, $parser->supportsModernRuntimeGuard());
     }
 
+    public function testDefaultParserPathTracksModernRuntimeSupport(): void
+    {
+        RuntimeAwareHtmlDomParser::reset();
+
+        $dom = RuntimeAwareHtmlDomParser::str_get_html('<main><p class="message">old</p><p class="message">new</p></main>');
+
+        static::assertSame(2, \count($dom->findMulti('.message')));
+
+        if (\PHP_VERSION_ID >= 80400) {
+            static::assertSame(1, RuntimeAwareHtmlDomParser::$modernProjectionCalls);
+            static::assertSame(0, RuntimeAwareHtmlDomParser::$legacyFallbackCalls);
+            static::assertSame(1, RuntimeAwareHtmlDomParser::$xmlInputBridgeCalls);
+            static::assertSame(0, RuntimeAwareHtmlDomParser::$modernCreateCalls);
+            static::assertSame(0, RuntimeAwareHtmlDomParser::$xmlBridgeCalls);
+            static::assertSame(0, RuntimeAwareHtmlDomParser::$compatibilityProjectionCalls);
+
+            return;
+        }
+
+        static::assertSame(0, RuntimeAwareHtmlDomParser::$modernProjectionCalls);
+        static::assertSame(1, RuntimeAwareHtmlDomParser::$legacyFallbackCalls);
+        static::assertSame(0, RuntimeAwareHtmlDomParser::$xmlInputBridgeCalls);
+        static::assertSame(0, RuntimeAwareHtmlDomParser::$modernCreateCalls);
+        static::assertSame(0, RuntimeAwareHtmlDomParser::$xmlBridgeCalls);
+        static::assertSame(0, RuntimeAwareHtmlDomParser::$compatibilityProjectionCalls);
+    }
+
     public function testInjectedModernDocumentProjectsLegacyNodesAndPreservesCompatibility(): void
     {
         $templateSection = $this->createModernNode(
@@ -801,6 +828,97 @@ final class SupportAwareHtmlDomParser extends HtmlDomParser
     public function supportsModernRuntimeGuard(): bool
     {
         return parent::supportsModernHtmlDocument();
+    }
+}
+
+/**
+ * @internal test double that uses the public runtime-selected parser path while exposing counters
+ */
+final class RuntimeAwareHtmlDomParser extends HtmlDomParser
+{
+    /**
+     * @var int
+     */
+    public static $legacyFallbackCalls = 0;
+
+    /**
+     * @var int
+     */
+    public static $modernProjectionCalls = 0;
+
+    /**
+     * @var int
+     */
+    public static $modernCreateCalls = 0;
+
+    /**
+     * @var int
+     */
+    public static $xmlInputBridgeCalls = 0;
+
+    /**
+     * @var int
+     */
+    public static $xmlBridgeCalls = 0;
+
+    /**
+     * @var int
+     */
+    public static $compatibilityProjectionCalls = 0;
+
+    public static function reset(): void
+    {
+        self::$legacyFallbackCalls = 0;
+        self::$modernProjectionCalls = 0;
+        self::$modernCreateCalls = 0;
+        self::$xmlInputBridgeCalls = 0;
+        self::$xmlBridgeCalls = 0;
+        self::$compatibilityProjectionCalls = 0;
+    }
+
+    protected function createLegacyDocumentFromModernParser(string $html, int $optionsXml): \DOMDocument
+    {
+        ++self::$modernProjectionCalls;
+
+        return parent::createLegacyDocumentFromModernParser($html, $optionsXml);
+    }
+
+    protected function createLegacyDocumentWithLibxml(string $html, int $optionsXml): \DOMDocument
+    {
+        ++self::$legacyFallbackCalls;
+
+        return parent::createLegacyDocumentWithLibxml($html, $optionsXml);
+    }
+
+    protected function createLegacyDocumentViaXmlInputBridge(string $html): ?\DOMDocument
+    {
+        ++self::$xmlInputBridgeCalls;
+
+        return parent::createLegacyDocumentViaXmlInputBridge($html);
+    }
+
+    /**
+     * @return object
+     */
+    protected function createModernHtmlDocument(string $html, int $optionsXml)
+    {
+        ++self::$modernCreateCalls;
+
+        return parent::createModernHtmlDocument($html, $optionsXml);
+    }
+
+    protected function createLegacyDocumentViaXmlBridge($modernDocument): \DOMDocument
+    {
+        ++self::$xmlBridgeCalls;
+
+        return parent::createLegacyDocumentViaXmlBridge($modernDocument);
+    }
+
+    protected function createLegacyDocumentViaCompatibilityProjection($modernDocument): \DOMDocument
+    {
+        ++self::$compatibilityProjectionCalls;
+
+        return parent::createLegacyDocumentViaCompatibilityProjection($modernDocument);
     }
 }
 

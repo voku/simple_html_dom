@@ -563,9 +563,7 @@ class HtmlDomParser extends AbstractDomParser
 
     protected function shouldUseModernHtmlDocument(int $optionsXml): bool
     {
-        // Keep the public parser on the legacy-compatible path until the PHP 8.4
-        // modern projection matches the existing serialization and mutation API.
-        return false;
+        return $this->supportsModernHtmlDocument();
     }
 
     protected function supportsModernHtmlDocument(): bool
@@ -640,7 +638,7 @@ class HtmlDomParser extends AbstractDomParser
 
     protected function shouldUseModernXmlInputBridgeShortcut(): bool
     {
-        return false;
+        return $this->supportsModernHtmlDocument();
     }
 
     protected function canUseModernXmlInputBridge(string $html): bool
