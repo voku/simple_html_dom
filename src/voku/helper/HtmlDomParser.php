@@ -116,6 +116,11 @@ class HtmlDomParser extends AbstractDomParser
     ];
 
     /**
+     * @var string|null
+     */
+    private $selfClosingTagsPattern;
+
+    /**
      * @var bool
      */
     protected $isDOMDocumentCreatedWithoutHtml = false;
@@ -635,9 +640,7 @@ class HtmlDomParser extends AbstractDomParser
 
     protected function shouldUseModernXmlInputBridgeShortcut(): bool
     {
-        // Subclasses that force the modern parser can opt in after preserving
-        // their own fallback and instrumentation expectations.
-        return \get_class($this) === self::class;
+        return false;
     }
 
     protected function canUseModernXmlInputBridge(string $html): bool
@@ -935,9 +938,8 @@ class HtmlDomParser extends AbstractDomParser
 
     private function prepareHtmlForXmlInputBridge(string $html): string
     {
-        $selfClosingTagsPattern = \implode('|', \array_map('preg_quote', $this->selfClosingTags));
         $preparedHtml = \preg_replace_callback(
-            '/<((?:' . $selfClosingTagsPattern . ')\b[^<>]*?)(\s*)>/iu',
+            '/<((?:' . $this->getSelfClosingTagsPattern() . ')\b[^<>]*?)(\s*)>/iu',
             static function (array $matches): string {
                 $tag = \rtrim($matches[1]);
                 if (\substr($tag, -1) === '/') {
@@ -954,6 +956,15 @@ class HtmlDomParser extends AbstractDomParser
         }
 
         return $preparedHtml;
+    }
+
+    private function getSelfClosingTagsPattern(): string
+    {
+        if ($this->selfClosingTagsPattern === null) {
+            $this->selfClosingTagsPattern = \implode('|', \array_map('preg_quote', $this->selfClosingTags));
+        }
+
+        return $this->selfClosingTagsPattern;
     }
 
     /**
