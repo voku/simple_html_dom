@@ -121,6 +121,11 @@ class HtmlDomParser extends AbstractDomParser
     private $selfClosingTagsRegex;
 
     /**
+     * @var string[]|null
+     */
+    private $selfClosingTagClosers;
+
+    /**
      * @var bool
      */
     protected $isDOMDocumentCreatedWithoutHtml = false;
@@ -973,6 +978,24 @@ class HtmlDomParser extends AbstractDomParser
     }
 
     /**
+     * @return string[]
+     */
+    private function getSelfClosingTagClosers(): array
+    {
+        if ($this->selfClosingTagClosers === null) {
+            $selfClosingTagClosers = [];
+
+            foreach ($this->selfClosingTags as $tag) {
+                $selfClosingTagClosers[] = '</' . $tag . '>';
+            }
+
+            $this->selfClosingTagClosers = $selfClosingTagClosers;
+        }
+
+        return $this->selfClosingTagClosers;
+    }
+
+    /**
      * @param object       $modernNode
      * @param \DOMDocument $document
      *
@@ -1503,7 +1526,11 @@ class HtmlDomParser extends AbstractDomParser
         // INFO: DOMDocument will encapsulate plaintext into a e.g. paragraph tag (<p>),
         //          so we try to remove it here again ...
 
-        if ($this->getIsDOMDocumentCreatedWithoutHtmlWrapper()) {
+        if (
+            $this->getIsDOMDocumentCreatedWithoutHtmlWrapper()
+            &&
+            \strpos($content, '<html>') !== false
+        ) {
             /** @noinspection HtmlRequiredLangAttribute */
             $content = \str_replace(
                 [
@@ -1515,7 +1542,11 @@ class HtmlDomParser extends AbstractDomParser
             );
         }
 
-        if ($this->getIsDOMDocumentCreatedWithoutHeadWrapper()) {
+        if (
+            $this->getIsDOMDocumentCreatedWithoutHeadWrapper()
+            &&
+            \strpos($content, '<head>') !== false
+        ) {
             /** @noinspection HtmlRequiredTitleElement */
             $content = \str_replace(
                 [
@@ -1527,7 +1558,11 @@ class HtmlDomParser extends AbstractDomParser
             );
         }
 
-        if ($this->getIsDOMDocumentCreatedWithoutBodyWrapper()) {
+        if (
+            $this->getIsDOMDocumentCreatedWithoutBodyWrapper()
+            &&
+            \strpos($content, '<body>') !== false
+        ) {
             $content = \str_replace(
                 [
                     '<body>',
@@ -1538,7 +1573,11 @@ class HtmlDomParser extends AbstractDomParser
             );
         }
 
-        if ($this->getIsDOMDocumentCreatedWithFakeEndScript()) {
+        if (
+            $this->getIsDOMDocumentCreatedWithFakeEndScript()
+            &&
+            \strpos($content, '</script>') !== false
+        ) {
             $content = \str_replace(
                 '</script>',
                 '',
@@ -1547,11 +1586,19 @@ class HtmlDomParser extends AbstractDomParser
         }
 
         if ($this->getIsDOMDocumentCreatedWithoutWrapper()) {
-            $content = (string) \preg_replace('/^<p>/', '', $content);
-            $content = (string) \preg_replace('/<\/p>/', '', $content);
+            if (\strpos($content, '<p>') === 0) {
+                $content = (string) \preg_replace('/^<p>/', '', $content);
+            }
+            if (\strpos($content, '</p>') !== false) {
+                $content = (string) \preg_replace('/<\/p>/', '', $content);
+            }
         }
 
-        if ($this->getIsDOMDocumentCreatedWithoutHtml()) {
+        if (
+            $this->getIsDOMDocumentCreatedWithoutHtml()
+            &&
+            \strpos($content, '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"') !== false
+        ) {
             $content = \str_replace(
                 '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">',
                 '',
@@ -1560,24 +1607,30 @@ class HtmlDomParser extends AbstractDomParser
         }
 
         // https://bugs.php.net/bug.php?id=73175
-        $content = \str_replace(
-            \array_map(static function ($e) {
-                return '</' . $e . '>';
-            }, $this->selfClosingTags),
-            '',
-            $content
-        );
+        if (\strpos($content, '</') !== false) {
+            $content = \str_replace(
+                $this->getSelfClosingTagClosers(),
+                '',
+                $content
+            );
+        }
 
         /** @noinspection HtmlRequiredTitleElement */
-        $content = \trim(
-            \str_replace(
+        if (
+            \strpos($content, 'simpleHtmlDom') !== false
+            ||
+            \strpos($content, '<head><head>') !== false
+            ||
+            \strpos($content, '</head></head>') !== false
+        ) {
+            $content = \str_replace(
                 [
-                    '<simpleHtmlDomHtml>',
-                    '</simpleHtmlDomHtml>',
-                    '<simpleHtmlDomP>',
-                    '</simpleHtmlDomP>',
-                    '<head><head>',
-                    '</head></head>',
+                    '<simpleHtmlDomHtml>' => '',
+                    '</simpleHtmlDomHtml>' => '',
+                    '<simpleHtmlDomP>' => '',
+                    '</simpleHtmlDomP>' => '',
+                    '<head><head>' => '<head>',
+                    '</head></head>' => '</head>',
                 ],
                 [
                     '',
@@ -1588,8 +1641,10 @@ class HtmlDomParser extends AbstractDomParser
                     '</head>',
                 ],
                 $content
-            )
-        );
+            );
+        }
+
+        $content = \trim($content);
 
         $content = $this->decodeHtmlEntity($content, $multiDecodeNewHtmlEntity);
 
