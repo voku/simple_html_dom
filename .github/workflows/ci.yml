@@ -151,7 +151,7 @@ jobs:
       - name: Publish benchmark summary
         env:
           BENCHMARK_FILE: build/logs/benchmark-php-${{ matrix.php }}.tsv
-          BENCHMARK_MODERN_PARSER_LABEL: modern+bridge
+          BENCHMARK_PARSER_FILTER: modern+bridge
           PHP_VERSION_LABEL: ${{ matrix.php }}
         run: |
           python3 - <<'PY'
@@ -159,7 +159,7 @@ jobs:
           import os
 
           benchmark_file = os.environ['BENCHMARK_FILE']
-          benchmark_parser = os.environ['BENCHMARK_MODERN_PARSER_LABEL']
+          benchmark_parser = os.environ['BENCHMARK_PARSER_FILTER']
           php_version = os.environ['PHP_VERSION_LABEL']
           summary_file = os.environ['GITHUB_STEP_SUMMARY']
 
