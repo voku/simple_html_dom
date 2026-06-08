@@ -961,7 +961,12 @@ class HtmlDomParser extends AbstractDomParser
     private function getSelfClosingTagsPattern(): string
     {
         if ($this->selfClosingTagsPattern === null) {
-            $this->selfClosingTagsPattern = \implode('|', \array_map('preg_quote', $this->selfClosingTags));
+            $this->selfClosingTagsPattern = \implode('|', \array_map(
+                static function (string $tag): string {
+                    return \preg_quote($tag, '/');
+                },
+                $this->selfClosingTags
+            ));
         }
 
         return $this->selfClosingTagsPattern;
