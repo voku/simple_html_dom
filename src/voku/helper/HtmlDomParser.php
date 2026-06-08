@@ -646,6 +646,7 @@ class HtmlDomParser extends AbstractDomParser
 
     protected function createLegacyDocumentViaXmlInputBridge(string $html): ?\DOMDocument
     {
+        // Keep the common XML-compatible path free from the void-tag regex.
         $document = $this->createLegacyDocumentViaSimpleXmlBridge($html);
         if ($document instanceof \DOMDocument) {
             return $document;
@@ -932,8 +933,9 @@ class HtmlDomParser extends AbstractDomParser
 
     private function prepareHtmlForXmlInputBridge(string $html): string
     {
+        $selfClosingTagsPattern = \implode('|', \array_map('preg_quote', $this->selfClosingTags));
         $preparedHtml = \preg_replace_callback(
-            '/<((?:area|base|br|col|command|embed|hr|img|input|keygen|link|meta|param|source|track|wbr)\b[^<>]*?)(\s*)>/iu',
+            '/<((?:' . $selfClosingTagsPattern . ')\b[^<>]*?)(\s*)>/iu',
             static function (array $matches): string {
                 $tag = \rtrim($matches[1]);
                 if (\substr($tag, -1) === '/') {
