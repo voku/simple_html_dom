@@ -805,7 +805,7 @@ final class SupportAwareHtmlDomParser extends HtmlDomParser
 }
 
 /**
- * @internal Test double that enables the XML-input shortcut used by the PHP 8.4 benchmark.
+ * @internal Test double that enables the XML-input shortcut instrumented in build/benchmark_modern_html_parser.php.
  */
 final class DirectXmlBridgeModernHtmlDomParser extends HtmlDomParser
 {

@@ -635,6 +635,8 @@ class HtmlDomParser extends AbstractDomParser
 
     protected function shouldUseModernXmlInputBridgeShortcut(): bool
     {
+        // Subclasses that force the modern parser can opt in after preserving
+        // their own fallback and instrumentation expectations.
         return \get_class($this) === self::class;
     }
 
@@ -646,7 +648,7 @@ class HtmlDomParser extends AbstractDomParser
 
     protected function createLegacyDocumentViaXmlInputBridge(string $html): ?\DOMDocument
     {
-        // Keep the common XML-compatible path free from the void-tag regex.
+        // Keep the common XML-compatible path free from self-closing tag processing.
         $document = $this->createLegacyDocumentViaSimpleXmlBridge($html);
         if ($document instanceof \DOMDocument) {
             return $document;
