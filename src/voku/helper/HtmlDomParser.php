@@ -1625,12 +1625,12 @@ class HtmlDomParser extends AbstractDomParser
         ) {
             $content = \str_replace(
                 [
-                    '<simpleHtmlDomHtml>' => '',
-                    '</simpleHtmlDomHtml>' => '',
-                    '<simpleHtmlDomP>' => '',
-                    '</simpleHtmlDomP>' => '',
-                    '<head><head>' => '<head>',
-                    '</head></head>' => '</head>',
+                    '<simpleHtmlDomHtml>',
+                    '</simpleHtmlDomHtml>',
+                    '<simpleHtmlDomP>',
+                    '</simpleHtmlDomP>',
+                    '<head><head>',
+                    '</head></head>',
                 ],
                 [
                     '',
