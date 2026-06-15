@@ -17,15 +17,15 @@ jobs:
       fail-fast: false
       matrix:
         php: [
-            '7.1',
-            '7.2',
-            '7.3',
-            '7.4',
-            '8.0',
-            '8.1',
-            '8.2',
-            '8.3',
-            '8.4'
+            7.1,
+            7.2,
+            7.3,
+            7.4,
+            8.0,
+            8.1,
+            8.2,
+            8.3,
+            8.4
         ]
         composer: [basic]
     timeout-minutes: 30
@@ -105,90 +105,3 @@ jobs:
           name: logs_composer-${{ matrix.composer }}_php-${{ matrix.php }}
           path: |
             build/logs
-
-  modern-parser-benchmarks:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    strategy:
-      fail-fast: false
-      matrix:
-        php: ['8.4', '8.5']
-    timeout-minutes: 30
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: ${{ matrix.php }}
-          coverage: none
-          extensions: zip
-          tools: composer
-
-      - name: Determine composer cache directory
-        id: composer-cache
-        run: echo "directory=$(composer config cache-dir)" >> "$GITHUB_OUTPUT"
-
-      - name: Cache composer dependencies
-        uses: actions/cache@v4
-        with:
-          path: ${{ steps.composer-cache.outputs.directory }}
-          key: benchmark-${{ matrix.php }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: benchmark-${{ matrix.php }}-composer-
-
-      - name: Install dependencies
-        run: |
-          composer update --prefer-dist --no-interaction
-          composer dump-autoload -o
-
-      - name: Run modern parser benchmarks
-        run: |
-          mkdir -p build/logs
-          php build/benchmark_modern_html_parser.php | tee build/logs/benchmark-php-${{ matrix.php }}.tsv
-
-      - name: Publish benchmark summary
-        env:
-          BENCHMARK_FILE: build/logs/benchmark-php-${{ matrix.php }}.tsv
-          BENCHMARK_PARSER_FILTER: modern+bridge
-          PHP_VERSION_LABEL: ${{ matrix.php }}
-        run: |
-          python3 - <<'PY'
-          import csv
-          import os
-
-          benchmark_file = os.environ['BENCHMARK_FILE']
-          benchmark_parser = os.environ['BENCHMARK_PARSER_FILTER']
-          php_version = os.environ['PHP_VERSION_LABEL']
-          summary_file = os.environ['GITHUB_STEP_SUMMARY']
-
-          with open(benchmark_file, newline='') as handle:
-              rows = list(csv.DictReader(handle, delimiter='\t'))
-
-          modern_rows = [row for row in rows if row['parser'] == benchmark_parser]
-
-          with open(summary_file, 'a') as summary:
-              summary.write('## Modern parser benchmark (PHP ' + php_version + ')\n\n')
-              summary.write('| Scenario | Status | Total vs legacy | Total vs modern+projection | Parse vs legacy | Selector vs legacy | Serialize vs legacy |\n')
-              summary.write('| --- | --- | --- | --- | --- | --- | --- |\n')
-
-              for row in modern_rows:
-                  summary.write(
-                      '| {scenario} | {status} | {total} | {projection_total} | {parse} | {selector} | {serialize} |\n'.format(
-                          scenario=row['scenario'],
-                          status=row['comparison_status'],
-                          total=row['total_vs_legacy'],
-                          projection_total=row['total_vs_modern_projection'],
-                          parse=row['parse_vs_legacy'],
-                          selector=row['selector_vs_legacy'],
-                          serialize=row['serialize_vs_legacy'],
-                      )
-                  )
-          PY
-
-      - name: Archive benchmark artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: modern-parser-benchmark-php-${{ matrix.php }}
-          path: build/logs/benchmark-php-${{ matrix.php }}.tsv

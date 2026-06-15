@@ -33,9 +33,6 @@ namespace voku\helper;
  */
 class HtmlDomParser extends AbstractDomParser
 {
-    private const MODERN_HTML_DOCUMENT_CLASS = 'Dom\\HTMLDocument';
-    private const XHTML_NAMESPACE_URI = 'http://www.w3.org/1999/xhtml';
-
     /**
      * @var callable|null
      *
@@ -114,16 +111,6 @@ class HtmlDomParser extends AbstractDomParser
         'track',
         'wbr',
     ];
-
-    /**
-     * @var string|null
-     */
-    private $selfClosingTagsRegex;
-
-    /**
-     * @var string[]|null
-     */
-    private $selfClosingTagClosers;
 
     /**
      * @var bool
@@ -532,261 +519,13 @@ class HtmlDomParser extends AbstractDomParser
 
         $html = self::replaceToPreserveHtmlEntities($html);
 
-        try {
-            $this->document = $this->createCompatibleDocument($html, $optionsXml);
-            $this->markSyntheticParagraphWrapper();
-
-            // set encoding
-            $this->document->encoding = $this->getEncoding();
-
-            return $this->document;
-        } finally {
-            // restore lib-xml settings
-            \libxml_clear_errors();
-            \libxml_use_internal_errors($internalErrors);
-            // @phpstan-ignore isset.variable (only defined on PHP < 8 paths where it is used)
-            if (\PHP_VERSION_ID < 80000 && isset($disableEntityLoader)) {
-                \libxml_disable_entity_loader($disableEntityLoader);
-            }
-        }
-    }
-
-    private function createCompatibleDocument(string $html, int $optionsXml): \DOMDocument
-    {
-        if ($this->shouldUseModernHtmlDocument($optionsXml)) {
-            try {
-                return $this->createLegacyDocumentFromModernParser($html, $optionsXml);
-            } catch (\Throwable $throwable) {
-                // Preserve legacy compatibility if the optional PHP 8.4+ parser
-                // is unavailable for a specific input or option combination.
-                return $this->createLegacyDocumentWithLibxml($html, $optionsXml);
-            }
-        }
-
-        return $this->createLegacyDocumentWithLibxml($html, $optionsXml);
-    }
-
-    protected function shouldUseModernHtmlDocument(int $optionsXml): bool
-    {
-        // Keep the legacy parser as the production default until the real
-        // Dom\HTMLDocument::createFromString() bridge path is a net win over
-        // the existing implementation for comparable inputs.
-        return false;
-    }
-
-    protected function supportsModernHtmlDocument(): bool
-    {
-        if (\PHP_VERSION_ID < 80400) {
-            return false;
-        }
-
-        if (!\class_exists(self::MODERN_HTML_DOCUMENT_CLASS)) {
-            return false;
-        }
-
-        // @phpstan-ignore function.impossibleType (runtime guard for PHP 8.4+ only)
-        return \method_exists(self::MODERN_HTML_DOCUMENT_CLASS, 'createFromString');
-    }
-
-    protected function createLegacyDocumentFromModernParser(string $html, int $optionsXml): \DOMDocument
-    {
-        $modernDocumentOptions = $this->filterModernHtmlDocumentOptions($optionsXml);
-
-        if ($this->canUseModernXmlInputBridge($html)) {
-            $document = $this->createLegacyDocumentViaXmlInputBridge($html);
-            if ($document instanceof \DOMDocument) {
-                return $document;
-            }
-        }
-
-        if ($this->canUseModernXmlBridge($html)) {
-            $modernDocument = $this->createModernHtmlDocument(
-                $html,
-                $this->createModernXmlBridgeOptions($modernDocumentOptions)
-            );
-
-            try {
-                return $this->createLegacyDocumentViaXmlBridge($modernDocument);
-            } catch (\Throwable $throwable) {
-                return $this->createLegacyDocumentViaCompatibilityProjection($modernDocument);
-            }
-        }
-
-        $modernDocument = $this->createModernHtmlDocument(
-            $html,
-            $this->stripModernXmlBridgeOptions($modernDocumentOptions)
-        );
-
-        return $this->createLegacyDocumentViaCompatibilityProjection($modernDocument);
-    }
-
-    protected function canUseModernXmlBridge(string $html): bool
-    {
-        if (!\defined('Dom\\HTML_NO_DEFAULT_NS')) {
-            return false;
-        }
-
-        if (
-            \stripos($html, '<svg') === false
-            &&
-            \stripos($html, '<math') === false
-            &&
-            \stripos($html, 'xmlns') === false
-            &&
-            !$this->containsPotentialNamespacedMarkup($html)
-        ) {
-            return true;
-        }
-
-        return \preg_match(
-            '/<\s*\/?\s*(?:svg|math)\b|<[^>]+\sxmlns(?::|=)|<\s*\/?\s*[a-z][a-z0-9._-]*:[a-z0-9._-]+|<[^>]+\s[a-z][a-z0-9._-]*:[a-z0-9._-]+\s*=/iu',
-            $html
-        ) === 0;
-    }
-
-    protected function shouldUseModernXmlInputBridgeShortcut(): bool
-    {
-        return $this->supportsModernHtmlDocument();
-    }
-
-    protected function canUseModernXmlInputBridge(string $html): bool
-    {
-        return $this->shouldUseModernXmlInputBridgeShortcut()
-            && $this->canUseModernXmlBridge($html);
-    }
-
-    protected function createLegacyDocumentViaXmlInputBridge(string $html): ?\DOMDocument
-    {
-        // Try XML-compatible input first, then add self-closing slashes only if needed.
-        $document = $this->createLegacyDocumentViaSimpleXmlBridge($html);
-        if ($document instanceof \DOMDocument) {
-            return $document;
-        }
-
-        return $this->createLegacyDocumentViaSimpleXmlBridge(
-            $this->prepareHtmlForXmlInputBridge($html)
-        );
-    }
-
-    /**
-     * @param object $modernDocument
-     */
-    protected function createLegacyDocumentViaXmlBridge($modernDocument): \DOMDocument
-    {
-        $xml = $this->getModernHtmlDocumentXml($modernDocument);
-
-        if ($xml === null) {
-            throw new \RuntimeException('Modern DOM document could not be serialized as XML.');
-        }
-
-        $simpleXmlDocument = $this->createLegacyDocumentViaSimpleXmlBridge($xml);
-        if ($simpleXmlDocument instanceof \DOMDocument) {
-            return $simpleXmlDocument;
-        }
-
-        $document = new \DOMDocument('1.0', $this->getEncoding());
-        $document->preserveWhiteSpace = true;
-        $document->formatOutput = false;
-
-        $loaded = $document->loadXML(
-            $xml,
-            \LIBXML_NONET | \LIBXML_NOERROR | \LIBXML_NOWARNING
-        );
-
-        if ($loaded !== true) {
-            throw new \RuntimeException('Modern DOM XML projection could not be loaded.');
-        }
-
-        return $document;
-    }
-
-    /**
-     * Dom\HTMLDocument::createFromString() accepts only a narrow flag whitelist
-     * on PHP 8.4+, so strip legacy libxml flags here to avoid turning every
-     * modern-parse attempt into an immediate fallback to libxml parsing.
-     */
-    protected function filterModernHtmlDocumentOptions(int $optionsXml): int
-    {
-        $allowedOptions = 0;
-
-        if (\defined('LIBXML_NOERROR')) {
-            $allowedOptions |= \LIBXML_NOERROR;
-        }
-
-        if (\defined('LIBXML_COMPACT')) {
-            $allowedOptions |= \LIBXML_COMPACT;
-        }
-
-        if (\defined('LIBXML_HTML_NOIMPLIED')) {
-            $allowedOptions |= \LIBXML_HTML_NOIMPLIED;
-        }
-
-        if (\defined('Dom\\HTML_NO_DEFAULT_NS')) {
-            /** @var int $domHtmlNoDefaultNs */
-            $domHtmlNoDefaultNs = \constant('Dom\\HTML_NO_DEFAULT_NS');
-            $allowedOptions |= $domHtmlNoDefaultNs;
-        }
-
-        return $optionsXml & $allowedOptions;
-    }
-
-    /**
-     * @return object
-     */
-    protected function createModernHtmlDocument(string $html, int $optionsXml)
-    {
-        $modernHtmlDocumentClass = self::MODERN_HTML_DOCUMENT_CLASS;
-
-        return $modernHtmlDocumentClass::createFromString(
-            $html,
-            $optionsXml,
-            $this->getEncoding()
-        );
-    }
-
-    protected function createModernXmlBridgeOptions(int $optionsXml): int
-    {
-        if (\defined('LIBXML_NOERROR')) {
-            $optionsXml |= \LIBXML_NOERROR;
-        }
-
-        if (\defined('Dom\\HTML_NO_DEFAULT_NS')) {
-            /** @var int $domHtmlNoDefaultNs */
-            $domHtmlNoDefaultNs = \constant('Dom\\HTML_NO_DEFAULT_NS');
-
-            return $optionsXml | $domHtmlNoDefaultNs;
-        }
-
-        return $optionsXml;
-    }
-
-    protected function stripModernXmlBridgeOptions(int $optionsXml): int
-    {
-        if (\defined('Dom\\HTML_NO_DEFAULT_NS')) {
-            /** @var int $domHtmlNoDefaultNs */
-            $domHtmlNoDefaultNs = \constant('Dom\\HTML_NO_DEFAULT_NS');
-
-            return $optionsXml & ~$domHtmlNoDefaultNs;
-        }
-
-        return $optionsXml;
-    }
-
-    protected function createLegacyDocumentWithLibxml(string $html, int $optionsXml): \DOMDocument
-    {
-        $document = new \DOMDocument('1.0', $this->getEncoding());
-        $document->preserveWhiteSpace = true;
-        $document->formatOutput = false;
-
         $documentFound = false;
         $sxe = \simplexml_load_string($html, \SimpleXMLElement::class, $optionsXml);
         if ($sxe !== false && \count(\libxml_get_errors()) === 0) {
             $domElementTmp = \dom_import_simplexml($sxe);
             if ($domElementTmp->ownerDocument instanceof \DOMDocument) {
                 $documentFound = true;
-                $document = $domElementTmp->ownerDocument;
-                $document->preserveWhiteSpace = true;
-                $document->formatOutput = false;
+                $this->document = $domElementTmp->ownerDocument;
             }
         }
 
@@ -799,14 +538,14 @@ class HtmlDomParser extends AbstractDomParser
             }
 
             if ($html !== '') {
-                $document->loadHTML($html, $optionsXml);
+                $this->document->loadHTML($html, $optionsXml);
             }
 
             // remove the "xml-encoding" hack
             if ($xmlHackUsed) {
-                foreach ($document->childNodes as $child) {
+                foreach ($this->document->childNodes as $child) {
                     if ($child->nodeType === \XML_PI_NODE) {
-                        $document->removeChild($child);
+                        $this->document->removeChild($child);
 
                         break;
                     }
@@ -814,375 +553,20 @@ class HtmlDomParser extends AbstractDomParser
             }
         }
 
-        return $document;
-    }
+        $this->markSyntheticParagraphWrapper();
 
-    /**
-     * @param object $modernDocument
-     */
-    protected function createLegacyDocumentViaCompatibilityProjection($modernDocument): \DOMDocument
-    {
-        return $this->projectModernDocumentToLegacyDocument($modernDocument);
-    }
+        // set encoding
+        $this->document->encoding = $this->getEncoding();
 
-    /**
-     * @param object $modernDocument
-     */
-    private function projectModernDocumentToLegacyDocument($modernDocument): \DOMDocument
-    {
-        $document = new \DOMDocument('1.0', $this->getEncoding());
-        $document->preserveWhiteSpace = true;
-        $document->formatOutput = false;
-
-        foreach ($this->getRequiredModernNodeProperty($modernDocument, 'childNodes') as $modernChildNode) {
-            $legacyNode = $this->projectModernNodeToLegacyNode($modernChildNode, $document);
-            if ($legacyNode instanceof \DOMNode) {
-                $document->appendChild($legacyNode);
-            }
+        // restore lib-xml settings
+        \libxml_clear_errors();
+        \libxml_use_internal_errors($internalErrors);
+        // @phpstan-ignore isset.variable (only defined on PHP < 8 paths where it is used)
+        if (\PHP_VERSION_ID < 80000 && isset($disableEntityLoader)) {
+            \libxml_disable_entity_loader($disableEntityLoader);
         }
 
-        return $document;
-    }
-
-    /**
-     * @param mixed $modernDocument
-     */
-    private function getModernHtmlDocumentXml($modernDocument): ?string
-    {
-        if (!\is_object($modernDocument) || !\method_exists($modernDocument, 'saveXML')) {
-            return null;
-        }
-
-        $xml = $modernDocument->saveXML();
-
-        if (!\is_string($xml) || $xml === '') {
-            return null;
-        }
-
-        return $xml;
-    }
-
-    private function createLegacyDocumentViaSimpleXmlBridge(string $xml): ?\DOMDocument
-    {
-        $internalErrors = \libxml_use_internal_errors(true);
-        try {
-            \libxml_clear_errors();
-
-            $simpleXml = \simplexml_load_string(
-                $xml,
-                \SimpleXMLElement::class,
-                \LIBXML_NONET | \LIBXML_NOERROR | \LIBXML_NOWARNING
-            );
-            if ($simpleXml === false) {
-                return null;
-            }
-
-            $legacyNode = \dom_import_simplexml($simpleXml);
-            if (!$legacyNode->ownerDocument instanceof \DOMDocument) {
-                return null;
-            }
-
-            $document = $legacyNode->ownerDocument;
-            $document->preserveWhiteSpace = true;
-            $document->formatOutput = false;
-
-            return $document;
-        } finally {
-            \libxml_clear_errors();
-            \libxml_use_internal_errors($internalErrors);
-        }
-    }
-
-    private function containsPotentialNamespacedMarkup(string $html): bool
-    {
-        if (\strpos($html, ':') === false) {
-            return false;
-        }
-
-        $insideTag = false;
-        $quote = '';
-        $length = \strlen($html);
-
-        for ($i = 0; $i < $length; ++$i) {
-            $character = $html[$i];
-
-            if ($insideTag === false) {
-                if ($character === '<') {
-                    $insideTag = true;
-                }
-
-                continue;
-            }
-
-            if ($quote !== '') {
-                if ($character === $quote) {
-                    $quote = '';
-                }
-
-                continue;
-            }
-
-            if ($character === '"' || $character === '\'') {
-                $quote = $character;
-
-                continue;
-            }
-
-            if ($character === '>') {
-                $insideTag = false;
-
-                continue;
-            }
-
-            if ($character === ':') {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private function prepareHtmlForXmlInputBridge(string $html): string
-    {
-        $preparedHtml = \preg_replace_callback(
-            $this->getSelfClosingTagsRegex(),
-            static function (array $matches): string {
-                $tag = \rtrim($matches[1]);
-                if (\substr($tag, -1) === '/') {
-                    return '<' . $tag . '>';
-                }
-
-                return '<' . $tag . '/>';
-            },
-            $html
-        );
-
-        if (!\is_string($preparedHtml)) {
-            return $html;
-        }
-
-        return $preparedHtml;
-    }
-
-    private function getSelfClosingTagsRegex(): string
-    {
-        if ($this->selfClosingTagsRegex === null) {
-            $selfClosingTagsPattern = \implode('|', \array_map(
-                static function (string $tag): string {
-                    return \preg_quote($tag, '/');
-                },
-                $this->selfClosingTags
-            ));
-
-            $this->selfClosingTagsRegex = '/<((?:' . $selfClosingTagsPattern . ')\b[^<>]*?)(\s*)>/iu';
-        }
-
-        return $this->selfClosingTagsRegex;
-    }
-
-    /**
-     * @return string[]
-     */
-    private function getSelfClosingTagClosers(): array
-    {
-        if ($this->selfClosingTagClosers === null) {
-            $selfClosingTagClosers = [];
-
-            foreach ($this->selfClosingTags as $tag) {
-                $selfClosingTagClosers[] = '</' . $tag . '>';
-            }
-
-            $this->selfClosingTagClosers = $selfClosingTagClosers;
-        }
-
-        return $this->selfClosingTagClosers;
-    }
-
-    /**
-     * @param object       $modernNode
-     * @param \DOMDocument $document
-     *
-     * @return \DOMNode|null
-     */
-    private function projectModernNodeToLegacyNode($modernNode, \DOMDocument $document)
-    {
-        $nodeType = $this->getRequiredModernNodeProperty($modernNode, 'nodeType');
-
-        switch ($nodeType) {
-            case \XML_ELEMENT_NODE:
-                return $this->projectModernElementToLegacyNode($modernNode, $document);
-            case \XML_TEXT_NODE:
-                return $document->createTextNode((string) $this->getOptionalModernNodeProperty($modernNode, 'nodeValue', ''));
-            case \XML_CDATA_SECTION_NODE:
-                return $document->createCDATASection((string) $this->getOptionalModernNodeProperty($modernNode, 'nodeValue', ''));
-            case \XML_COMMENT_NODE:
-                return $document->createComment((string) $this->getOptionalModernNodeProperty($modernNode, 'nodeValue', ''));
-            case \XML_DOCUMENT_TYPE_NODE:
-                return $document->implementation->createDocumentType(
-                    (string) $this->getOptionalModernNodeProperty(
-                        $modernNode,
-                        'name',
-                        $this->getOptionalModernNodeProperty($modernNode, 'nodeName', '')
-                    ),
-                    (string) $this->getOptionalModernNodeProperty($modernNode, 'publicId', ''),
-                    (string) $this->getOptionalModernNodeProperty($modernNode, 'systemId', '')
-                );
-            case \XML_PI_NODE:
-                return $document->createProcessingInstruction(
-                    (string) $this->getOptionalModernNodeProperty($modernNode, 'nodeName', ''),
-                    (string) $this->getOptionalModernNodeProperty($modernNode, 'nodeValue', '')
-                );
-            case \XML_DOCUMENT_FRAG_NODE:
-                $fragment = $document->createDocumentFragment();
-                $this->appendProjectedModernChildren($modernNode, $fragment, $document);
-
-                return $fragment;
-            default:
-                return null;
-        }
-    }
-
-    /**
-     * @param object       $modernElement
-     * @param \DOMDocument $document
-     */
-    private function projectModernElementToLegacyNode($modernElement, \DOMDocument $document): \DOMElement
-    {
-        $elementName = $this->getProjectedNodeName($modernElement);
-        $elementNamespaceUri = (string) $this->getOptionalModernNodeProperty($modernElement, 'namespaceURI', '');
-
-        if ($elementNamespaceUri !== '' && $elementNamespaceUri !== self::XHTML_NAMESPACE_URI) {
-            $element = $document->createElementNS($elementNamespaceUri, $elementName);
-        } else {
-            $element = $document->createElement($elementName);
-        }
-
-        $attributes = $this->getOptionalModernNodeProperty($modernElement, 'attributes');
-        if ($attributes !== null) {
-            foreach ($attributes as $modernAttribute) {
-                $attributeName = $this->getProjectedNodeName($modernAttribute);
-                $attributeValue = (string) $this->getOptionalModernNodeProperty($modernAttribute, 'nodeValue', '');
-                $attributeNamespaceUri = (string) $this->getOptionalModernNodeProperty($modernAttribute, 'namespaceURI', '');
-
-                if ($attributeNamespaceUri !== '') {
-                    $element->setAttributeNS($attributeNamespaceUri, $attributeName, $attributeValue);
-
-                    continue;
-                }
-
-                $element->setAttribute($attributeName, $attributeValue);
-            }
-        }
-
-        $this->appendProjectedModernChildren($modernElement, $element, $document);
-
-        return $element;
-    }
-
-    /**
-     * @param object       $modernParentNode
-     * @param \DOMNode     $legacyParentNode
-     * @param \DOMDocument $document
-     *
-     * @return void
-     */
-    private function appendProjectedModernChildren($modernParentNode, \DOMNode $legacyParentNode, \DOMDocument $document): void
-    {
-        foreach ($this->getProjectedModernChildNodes($modernParentNode) as $modernChildNode) {
-            $legacyChildNode = $this->projectModernNodeToLegacyNode($modernChildNode, $document);
-            if ($legacyChildNode instanceof \DOMNode) {
-                $legacyParentNode->appendChild($legacyChildNode);
-            }
-        }
-    }
-
-    /**
-     * @param object $modernNode
-     *
-     * @return iterable<mixed>
-     */
-    private function getProjectedModernChildNodes($modernNode): iterable
-    {
-        $localName = $this->getOptionalModernNodeProperty($modernNode, 'localName');
-
-        if (
-            $localName !== null
-            &&
-            \strtolower((string) $localName) === 'template'
-            &&
-            $this->hasModernNodeProperty($modernNode, 'content')
-        ) {
-            $templateContent = $this->getOptionalModernNodeProperty($modernNode, 'content');
-            if (
-                $templateContent !== null
-                &&
-                $this->hasModernNodeProperty($templateContent, 'childNodes')
-            ) {
-                return $this->getRequiredModernNodeProperty($templateContent, 'childNodes');
-            }
-        }
-
-        return $this->getRequiredModernNodeProperty($modernNode, 'childNodes');
-    }
-
-    /**
-     * @param object $modernNode
-     */
-    private function getProjectedNodeName($modernNode): string
-    {
-        $localName = (string) $this->getOptionalModernNodeProperty(
-            $modernNode,
-            'localName',
-            $this->getOptionalModernNodeProperty($modernNode, 'nodeName', '')
-        );
-        $prefix = (string) $this->getOptionalModernNodeProperty($modernNode, 'prefix', '');
-
-        if ($prefix !== '') {
-            return $prefix . ':' . $localName;
-        }
-
-        return $localName;
-    }
-
-    /**
-     * @param object $modernNode
-     */
-    private function hasModernNodeProperty($modernNode, string $property): bool
-    {
-        return \property_exists($modernNode, $property);
-    }
-
-    /**
-     * @param object $modernNode
-     *
-     * @return mixed
-     */
-    private function getRequiredModernNodeProperty($modernNode, string $property)
-    {
-        if (!$this->hasModernNodeProperty($modernNode, $property)) {
-            throw new \RuntimeException(
-                'Unsupported modern DOM node property "' . $property . '" on ' . \get_class($modernNode)
-            );
-        }
-
-        return $modernNode->{$property};
-    }
-
-    /**
-     * @param object $modernNode
-     * @param mixed  $default
-     *
-     * @return mixed
-     */
-    private function getOptionalModernNodeProperty($modernNode, string $property, $default = null)
-    {
-        if (!$this->hasModernNodeProperty($modernNode, $property)) {
-            return $default;
-        }
-
-        $value = $modernNode->{$property};
-
-        return $value !== null ? $value : $default;
+        return $this->document;
     }
 
     /**
@@ -1263,18 +647,6 @@ class HtmlDomParser extends AbstractDomParser
 
         $nodesList = $xPath->query($xPathQuery, $contextNode);
 
-        if (
-            $nodesList !== false
-            &&
-            $nodesList->length === 0
-        ) {
-            $namespaceAgnosticXPathQuery = self::createNamespaceAgnosticXPathQuery($xPathQuery);
-
-            if ($namespaceAgnosticXPathQuery !== $xPathQuery) {
-                $nodesList = $xPath->query($namespaceAgnosticXPathQuery, $contextNode);
-            }
-        }
-
         return self::createFindResultFromNodeList($nodesList, $idx, $queryHtmlDomParser);
     }
 
@@ -1347,27 +719,6 @@ class HtmlDomParser extends AbstractDomParser
         }
 
         return $scopedXPathQuery;
-    }
-
-    private static function createNamespaceAgnosticXPathQuery(string $xPathQuery): string
-    {
-        // Rewrite only element name tests ("axis::tag" and "/tag") so selectors
-        // keep matching foreign-content nodes (e.g. SVG / MathML) even when the
-        // underlying DOM stores those elements in namespaces.
-        $search = [
-            // Match unprefixed element names that appear immediately after an
-            // XPath axis operator, e.g. "descendant-or-self::svg".
-            '/(?<=::)(?!\*|text\(|comment\(|node\(|processing-instruction\()([a-zA-Z_][a-zA-Z0-9_-]*)(?=(?:\\[|\\/|\\||\\s|$))/u',
-            // Match unprefixed element names in child-step segments, e.g.
-            // "/svg", while leaving axis steps like "/following-sibling::".
-            '/(?<=\\/)(?!\\/|\\*|text\(|comment\(|node\(|processing-instruction\()([a-zA-Z_][a-zA-Z0-9_-]*)(?=(?:\\[|\\/|\\||\\s|$))/u',
-        ];
-
-        return (string) \preg_replace(
-            $search,
-            '*[local-name() = \'$1\']',
-            $xPathQuery
-        );
     }
 
     /**
@@ -1529,11 +880,7 @@ class HtmlDomParser extends AbstractDomParser
         // INFO: DOMDocument will encapsulate plaintext into a e.g. paragraph tag (<p>),
         //          so we try to remove it here again ...
 
-        if (
-            $this->getIsDOMDocumentCreatedWithoutHtmlWrapper()
-            &&
-            \strpos($content, '<html>') !== false
-        ) {
+        if ($this->getIsDOMDocumentCreatedWithoutHtmlWrapper()) {
             /** @noinspection HtmlRequiredLangAttribute */
             $content = \str_replace(
                 [
@@ -1545,11 +892,7 @@ class HtmlDomParser extends AbstractDomParser
             );
         }
 
-        if (
-            $this->getIsDOMDocumentCreatedWithoutHeadWrapper()
-            &&
-            \strpos($content, '<head>') !== false
-        ) {
+        if ($this->getIsDOMDocumentCreatedWithoutHeadWrapper()) {
             /** @noinspection HtmlRequiredTitleElement */
             $content = \str_replace(
                 [
@@ -1561,11 +904,7 @@ class HtmlDomParser extends AbstractDomParser
             );
         }
 
-        if (
-            $this->getIsDOMDocumentCreatedWithoutBodyWrapper()
-            &&
-            \strpos($content, '<body>') !== false
-        ) {
+        if ($this->getIsDOMDocumentCreatedWithoutBodyWrapper()) {
             $content = \str_replace(
                 [
                     '<body>',
@@ -1576,11 +915,7 @@ class HtmlDomParser extends AbstractDomParser
             );
         }
 
-        if (
-            $this->getIsDOMDocumentCreatedWithFakeEndScript()
-            &&
-            \strpos($content, '</script>') !== false
-        ) {
+        if ($this->getIsDOMDocumentCreatedWithFakeEndScript()) {
             $content = \str_replace(
                 '</script>',
                 '',
@@ -1589,19 +924,11 @@ class HtmlDomParser extends AbstractDomParser
         }
 
         if ($this->getIsDOMDocumentCreatedWithoutWrapper()) {
-            if (\strpos($content, '<p>') === 0) {
-                $content = (string) \preg_replace('/^<p>/', '', $content);
-            }
-            if (\strpos($content, '</p>') !== false) {
-                $content = (string) \preg_replace('/<\/p>/', '', $content);
-            }
+            $content = (string) \preg_replace('/^<p>/', '', $content);
+            $content = (string) \preg_replace('/<\/p>/', '', $content);
         }
 
-        if (
-            $this->getIsDOMDocumentCreatedWithoutHtml()
-            &&
-            \strpos($content, '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"') !== false
-        ) {
+        if ($this->getIsDOMDocumentCreatedWithoutHtml()) {
             $content = \str_replace(
                 '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">',
                 '',
@@ -1610,23 +937,17 @@ class HtmlDomParser extends AbstractDomParser
         }
 
         // https://bugs.php.net/bug.php?id=73175
-        if (\strpos($content, '</') !== false) {
-            $content = \str_replace(
-                $this->getSelfClosingTagClosers(),
-                '',
-                $content
-            );
-        }
+        $content = \str_replace(
+            \array_map(static function ($e) {
+                return '</' . $e . '>';
+            }, $this->selfClosingTags),
+            '',
+            $content
+        );
 
         /** @noinspection HtmlRequiredTitleElement */
-        if (
-            \strpos($content, 'simpleHtmlDom') !== false
-            ||
-            \strpos($content, '<head><head>') !== false
-            ||
-            \strpos($content, '</head></head>') !== false
-        ) {
-            $content = \str_replace(
+        $content = \trim(
+            \str_replace(
                 [
                     '<simpleHtmlDomHtml>',
                     '</simpleHtmlDomHtml>',
@@ -1644,10 +965,8 @@ class HtmlDomParser extends AbstractDomParser
                     '</head>',
                 ],
                 $content
-            );
-        }
-
-        $content = \trim($content);
+            )
+        );
 
         $content = $this->decodeHtmlEntity($content, $multiDecodeNewHtmlEntity);
 
