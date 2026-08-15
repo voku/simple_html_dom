@@ -1,0 +1,17 @@
+{
+    "schema_version": "1.0",
+    "kind": "run_learning_decision",
+    "run_id": "run:SHD-1:f3c67ad97267526d",
+    "decision": "findings_recorded",
+    "decided_by": "claude",
+    "decided_at": "2026-08-15T22:12:49+00:00",
+    "reason": "Five validated findings about the agent-loop workflow itself came out of this first governed run in this repository (hook autoload resolution, hard-coded CLI path in projected skills, router text ahead of the released CLI, demo data in the scaffolded board, and the blocked re-plan while a session is active). They are tracked as SHD-4 .. SHD-8. The parser work itself produced no reusable rule beyond the documented HTML5 boundaries.",
+    "finding_ids": [
+        "finding.2026-08-15.001",
+        "finding.2026-08-15.002",
+        "finding.2026-08-15.003",
+        "finding.2026-08-15.004",
+        "finding.2026-08-15.005"
+    ],
+    "follow_up_ref": "SHD-3"
+}

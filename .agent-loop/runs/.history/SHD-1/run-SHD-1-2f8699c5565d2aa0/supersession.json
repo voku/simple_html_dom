@@ -1,0 +1,12 @@
+{
+    "approved_at": "2026-08-15T22:08:14+00:00",
+    "approved_by": "voku",
+    "kind": "governed_run_supersession",
+    "recorded_at": "2026-08-15T22:08:14+00:00",
+    "replacement_contract_revision": 2,
+    "replacement_run_id": "run:SHD-1:f3c67ad97267526d",
+    "schema_version": "1.0",
+    "superseded_contract_revision": 1,
+    "superseded_run_id": "run:SHD-1:2f8699c5565d2aa0",
+    "task_id": "SHD-1"
+}

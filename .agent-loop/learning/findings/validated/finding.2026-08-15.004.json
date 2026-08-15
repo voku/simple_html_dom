@@ -1,0 +1,37 @@
+{
+  "id": "finding.2026-08-15.004",
+  "task_id": "SHD-1",
+  "session": "2026-08-15-shd-1-2",
+  "created_at": "2026-08-15T22:11:49+00:00",
+  "created_by": "claude",
+  "scope": [
+    ".agent-loop/todo/board.md",
+    ".agent-loop/tasks"
+  ],
+  "observation": "'agent-loop init scaffold' writes a DEMO-1 card, a DEMO-1 task file and a board whose project prefix is DEMO into the real workflow state, with no flag to skip it. Setting up the board for this repository meant deleting those files by hand - outside the board's own mutation commands - and rewriting board.md plus adding todo/kanban.config.json.",
+  "evidence": [
+    {
+      "type": "runtime_observation",
+      "command": "php bin/agent-loop init scaffold --dry-run",
+      "summary": "Reports 'would create .agent-loop/todo/cards/DEMO-1.md' and '.agent-loop/tasks/DEMO-1.md'; 'init scaffold' has only a --dry-run flag."
+    },
+    {
+      "type": "file_reference",
+      "path": ".agent-loop/todo/board.md",
+      "line": 3
+    }
+  ],
+  "hypothesis": "A scaffold that seeds example data into the same store as real data forces the first real user of that store to clean up by hand.",
+  "validated_conclusion": "'init scaffold' should either accept a project prefix and skip the demo card (for example '--prefix=SHD --no-demo'), or write the example into a clearly separate place, so the first governed task starts from a board that contains only real work.",
+  "confidence": "high",
+  "validation_status": "validated",
+  "status": "validated",
+  "sensitivity": "public",
+  "classification": "ADD_LEARNING_NOTE",
+  "pattern_key": "agent_loop.scaffold.demo_data",
+  "validation_case": {
+    "given": "a repository initializes its workflow state for real work",
+    "when": "init scaffold runs",
+    "then": "the resulting board contains only real cards, or the demo is opt-in"
+  }
+}

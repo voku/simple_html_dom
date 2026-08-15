@@ -60,6 +60,56 @@ $elementsOrFalse = $dom->findMultiOrFalse('.css-selector'); // "$elementsOrFalse
 
 ```
 
+### HTML5 parsing on PHP >= 8.4 (opt-in)
+
+PHP 8.4 added `\Dom\HTMLDocument`, a parser that follows the HTML5 specification and therefore
+recovers from broken markup the way a browser does. This library keeps handing out a
+`\DOMDocument`, so the HTML5 parser is opt-in per instance:
+
+```php
+use voku\helper\HtmlDomParser;
+
+$dom = (new HtmlDomParser())->useHtml5Parser();
+$dom->loadHtml('<table><tr><td>x</table><p>a<p>b');
+
+$dom->html(); // '<table><tbody><tr><td>x</td></tr></tbody></table><p>a</p><p>b</p>'
+
+// the libxml default parser instead returns:
+// '<table><tr><td>x</td></tr></table><p>a</p><p>b</p>'
+```
+
+For the static entry points (`str_get_html()` / `file_get_html()`), which create their instance
+internally, switch the default for every parser created afterwards:
+
+```php
+HtmlDomParser::useHtml5ParserByDefault(true);
+
+HtmlDomParser::isHtml5ParserSupported(); // false on PHP < 8.4
+$dom->getIsDOMDocumentCreatedWithHtml5Parser(); // which parser built the current document
+```
+
+What you get: implied `<tbody>`, auto-closed `<p>` / `<li>` / `<td>`, recovery from misnested
+formatting tags, tag names normalized to lower case, encoding detected from the document like a
+browser does, and elements that libxml would have dropped or moved.
+
+What it costs, and where it differs:
+
+- The result has to be bridged back into a `\DOMDocument`, which is one extra serialize + parse.
+  Measure it for your own input with `php build/benchmark_html5_parser.php`; on the fixtures of
+  this repository the complete `loadHtml()` + query + `html()` round-trip is currently *faster*
+  than the default path, because the HTML5 parser needs none of the string preprocessing that the
+  libxml path does.
+- HTML entities are resolved to their characters, as the specification requires, so `&nbsp;` and
+  `&amp;` come back as ` ` and `&` instead of staying entities.
+- The HTML5 parser always builds a complete document, so `getDocument()->documentElement` is
+  always `<html>`, even for a fragment. `html()` / `innerHtml()` still return the fragment.
+- Boolean attributes are serialized as `checked=""` instead of `checked`, an artifact of the XML
+  bridge.
+- The legacy parser is used - without an error - when the runtime is older than PHP 8.4, when
+  `useKeepBrokenHtml()` is active, or when the input cannot survive the bridge (an attribute name
+  that is legal in HTML but not in XML, for example). `getIsDOMDocumentCreatedWithHtml5Parser()`
+  reports which parser was used.
+
 ### Examples
 
 [github.com/voku/simple_html_dom/tree/master/example](https://github.com/voku/simple_html_dom/tree/master/example)

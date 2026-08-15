@@ -4,6 +4,26 @@
 vendor
 composer.lock
 
+# the isolated tool projects pin their own dependencies
+!/tools/*/composer.lock
+
+# agent-loop governed workflow (see AGENTS.md)
+# durable state - board, tasks, contracts, run receipts, learning - is committed;
+# navigation, recall and session working memory are regenerated on demand.
+/.agent-map/
+/.agent-loop/map/
+/.agent-loop/recall/
+/.agent-loop/sessions/
+/.agent-loop/edit/
+/.agent-loop/tool-inventory.json
+# generated client projections of the package-owned agent assets;
+# recreate them with "php bin/agent-loop init install-assets --agent=all"
+/.claude/
+/.codex/
+/.agents/
+/.github/skills/
+/.github/agents/
+
 # php (phpunit)
 build/logs/
 .phpunit.result.cache

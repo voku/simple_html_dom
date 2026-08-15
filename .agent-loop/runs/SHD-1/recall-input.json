@@ -1,0 +1,10 @@
+{
+    "contract": {
+        "path": "../../contracts/SHD-1/contract.json",
+        "revision": 2,
+        "sha256": "sha256:b667fecad39f5811da6d2ecf293b7ff2f3349b6b3043d2db720c27bd5abc855e"
+    },
+    "kind": "governed_recall_input",
+    "run_id": "run:SHD-1:f3c67ad97267526d",
+    "schema_version": "1.0"
+}

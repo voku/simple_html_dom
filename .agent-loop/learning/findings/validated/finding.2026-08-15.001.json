@@ -1,0 +1,38 @@
+{
+  "id": "finding.2026-08-15.001",
+  "task_id": "SHD-1",
+  "session": "2026-08-15-shd-1-2",
+  "created_at": "2026-08-15T22:11:49+00:00",
+  "created_by": "claude",
+  "scope": [
+    "docs/agents/claude-hooks/hooks/context.php",
+    "docs/agents/codex-hooks/hooks/context.php",
+    ".agent-loop/init.json"
+  ],
+  "observation": "The client hooks that 'agent-loop init install-assets' installs resolve their runtime as '<repository-root>/vendor/autoload.php' and otherwise register '<repository-root>/src' as the PSR-4 root of voku\\AgentLoop. This repository installs agent-loop as an isolated Composer tool project (tools/agent-loop), because the CLI needs PHP >= 8.3 while the library still supports PHP >= 7.1, and its own src/ is the parser library. The installed SessionStart hook therefore mis-registered the host source tree and failed with 'agent-loop Claude context hook failed: Class \"voku\\AgentLoop\\AgentGuidance\\AgentDisciplineHook\" not found'.",
+  "evidence": [
+    {
+      "type": "runtime_observation",
+      "command": "echo '{}' | php .claude/hooks/context.php --event=SessionStart",
+      "summary": "Printed 'Class voku\\AgentLoop\\AgentGuidance\\AgentDisciplineHook not found' with the package-owned hook installed; the same command returns the discipline payload after the host-owned hook bundle resolves tools/agent-loop/vendor/autoload.php first."
+    },
+    {
+      "type": "file_reference",
+      "path": "docs/agents/claude-hooks/hooks/context.php",
+      "line": 7
+    }
+  ],
+  "hypothesis": "A hook that hard-codes one autoload location cannot be installed into a repository that keeps the tool outside its root Composer project, and its fallback makes the failure worse by claiming the host's src/ as the package source root.",
+  "validated_conclusion": "The package-owned hooks should resolve their runtime from an ordered candidate list that includes a host-configured path (for example an 'agent_loop_autoload' key in .agent-loop/init.json) instead of only '<root>/vendor/autoload.php', and the src/ fallback should verify that the directory actually contains the package before registering it.",
+  "confidence": "high",
+  "validation_status": "validated",
+  "status": "validated",
+  "sensitivity": "public",
+  "classification": "UPDATE_SKILL",
+  "pattern_key": "agent_loop.install.autoload_resolution",
+  "validation_case": {
+    "given": "agent-loop is installed as an isolated Composer tool project outside the repository root",
+    "when": "an installed client hook starts",
+    "then": "the hook resolves the package runtime from the host-configured location instead of failing"
+  }
+}

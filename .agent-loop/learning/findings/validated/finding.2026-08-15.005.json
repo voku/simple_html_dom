@@ -1,0 +1,37 @@
+{
+  "id": "finding.2026-08-15.005",
+  "task_id": "SHD-1",
+  "session": "2026-08-15-shd-1-2",
+  "created_at": "2026-08-15T22:11:49+00:00",
+  "created_by": "claude",
+  "scope": [
+    ".agent-loop/contracts/SHD-1/contract.json",
+    ".agent-loop/sessions"
+  ],
+  "observation": "Static analysis showed that the change also needed phpstan.neon, a file the approved Contract did not list. The injected discipline says 'Scope or policy drift returns to PLAN', but 'workflow plan' refused the revision with 'Cannot revise Contract for SHD-1 while a governed Session is active. Finish or drop that Run before changing durable intent.' Returning to PLAN therefore required closing the active session first, which split one task across two Runs and two sessions.",
+  "evidence": [
+    {
+      "type": "runtime_observation",
+      "command": "php bin/agent-loop workflow plan SHD-1 --by voku ... --file phpstan.neon",
+      "summary": "[FAIL] workflow plan: Cannot revise Contract for SHD-1 while a governed Session is active. Finish or drop that Run before changing durable intent."
+    },
+    {
+      "type": "runtime_observation",
+      "command": "php bin/agent-loop session close 2026-08-15-shd-1 --status done && php bin/agent-loop workflow plan SHD-1 ...",
+      "summary": "After closing the session the same plan command created Contract revision 2 and 'workflow approve' prepared run:SHD-1:f3c67ad97267526d; the task now owns two sessions (2026-08-15-shd-1, 2026-08-15-shd-1-2) for one piece of work."
+    }
+  ],
+  "hypothesis": "The gate is right that durable intent must not change silently, but the discipline text describes a return to PLAN as if it were always available mid-implementation.",
+  "validated_conclusion": "Either the discipline should name the exact sequence for mid-implementation scope drift (record the reason, close the session, re-plan, re-approve), or 'workflow plan' should offer an explicit supersede flag that carries the running session across the new revision - as written, an agent that follows the discipline literally hits a hard failure at the moment the scope actually drifts.",
+  "confidence": "high",
+  "validation_status": "validated",
+  "status": "validated",
+  "sensitivity": "public",
+  "classification": "UPDATE_SKILL",
+  "pattern_key": "agent_loop.workflow.replan_while_session_active",
+  "validation_case": {
+    "given": "the approved scope drifts while a governed session is active",
+    "when": "the agent follows the discipline and returns to PLAN",
+    "then": "the documented sequence completes without a hard failure"
+  }
+}

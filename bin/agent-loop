@@ -1,0 +1,29 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+/*
+ * Repository entrypoint for the voku/agent-loop governed workflow CLI.
+ *
+ * The CLI requires PHP >= 8.3 while this library still supports PHP >= 7.1, so it is
+ * installed as an isolated Composer tool project under tools/agent-loop/ and never
+ * enters the root dependency set. This wrapper is what the installed agent skills and
+ * AGENTS.md mean when they say `bin/agent-loop`; the CLI itself resolves the project
+ * root from the current working directory, so run it from the repository root.
+ */
+
+$binary = __DIR__ . '/../tools/agent-loop/vendor/bin/agent-loop';
+
+if (!\is_file($binary)) {
+    \fwrite(
+        \STDERR,
+        "voku/agent-loop is not installed.\n"
+        . "Install the isolated tool project first:\n"
+        . "  composer install --working-dir=tools/agent-loop\n"
+    );
+
+    exit(1);
+}
+
+require $binary;

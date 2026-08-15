@@ -3,3 +3,10 @@ parameters:
     level: 8
     paths:
         - %currentWorkingDirectory%/src/
+    ignoreErrors:
+        # The opt-in HTML5 parser uses the "Dom" namespace of PHP >= 8.4, guarded at runtime by
+        # HtmlDomParser::isHtml5ParserSupported(). The analysis job runs on an older PHP, where
+        # those symbols do not exist yet.
+        -
+            message: '#Dom\\#'
+            path: %currentWorkingDirectory%/src/voku/helper/HtmlDomParser.php
