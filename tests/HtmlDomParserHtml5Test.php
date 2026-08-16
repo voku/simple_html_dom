@@ -114,6 +114,25 @@ final class HtmlDomParserHtml5Test extends \PHPUnit\Framework\TestCase
         static::assertSame('x', $dom->findOne('div span')->text());
     }
 
+    public function testXmlnsSubstringWithoutXmlnsAttributeNeedsNoTransportMarker()
+    {
+        $dom = $this->html5('<div data-xmlns="caller-value">x</div>');
+        $div = $dom->findOne('div');
+
+        static::assertTrue($dom->getIsDOMDocumentCreatedWithHtml5Parser());
+        static::assertSame('caller-value', $div->getAttribute('data-xmlns'));
+        static::assertSame('<div data-xmlns="caller-value">x</div>', $dom->html());
+    }
+
+    public function testXmlBridgeFailureFallsBackToLegacyParser()
+    {
+        $dom = (new HtmlDomParser())->useHtml5Parser();
+        $dom->loadHtml('<div @foo="bar">x</div>');
+
+        static::assertFalse($dom->getIsDOMDocumentCreatedWithHtml5Parser());
+        static::assertSame('<div @foo="bar">x</div>', $dom->html());
+    }
+
     public function testDocumentStaysALegacyDomDocument()
     {
         $dom = $this->html5('<div>x</div>');
