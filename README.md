@@ -60,67 +60,75 @@ $elementsOrFalse = $dom->findMultiOrFalse('.css-selector'); // "$elementsOrFalse
 
 ```
 
-### HTML5 parsing on PHP >= 8.4 (opt-in)
+### HTML5 parsing on PHP >= 8.4: `Html5DomParser`
 
 PHP 8.4 added `\Dom\HTMLDocument`, a parser that follows the HTML5 specification and therefore
-recovers from broken markup the way a browser does. This library keeps handing out a
-`\DOMDocument`, so the HTML5 parser is opt-in per instance:
+recovers from broken markup the way a browser does. This library exposes it as its own class,
+for the same reason PHP put it next to `\DOMDocument` instead of adding a mode to it: the
+parsing rules are different, and that difference is visible in the result.
+
+`Html5DomParser` extends `HtmlDomParser` and has the same API, so switching means changing the
+class name and nothing else:
 
 ```php
-use voku\helper\HtmlDomParser;
+use voku\helper\Html5DomParser;
 
-$dom = (new HtmlDomParser())->useHtml5Parser();
-$dom->loadHtml('<table><tr><td>x</table><p>a<p>b');
+$dom = Html5DomParser::str_get_html('<table><tr><td>x</table><p>a<p>b');
 
 $dom->html(); // '<table><tbody><tr><td>x</td></tr></tbody></table><p>a</p><p>b</p>'
 
-// the libxml default parser instead returns:
+// HtmlDomParser, unchanged, still returns:
 // '<table><tr><td>x</td></tr></table><p>a</p><p>b</p>'
 ```
 
-For the static entry points (`str_get_html()` / `file_get_html()`), which create their instance
-internally, switch the default for every parser created afterwards:
+`HtmlDomParser` is not affected by any of this and stays the default parser of this library.
 
-```php
-HtmlDomParser::useHtml5ParserByDefault(true);
-
-$dom = HtmlDomParser::str_get_html('<table><tr><td>x</table>');
-HtmlDomParser::isHtml5ParserSupported(); // false on PHP < 8.4
-$dom->getIsDOMDocumentCreatedWithHtml5Parser(); // which parser built the current document
-```
-
-What you get: implied `<tbody>`, auto-closed `<p>` / `<li>` / `<td>`, recovery from misnested
-formatting tags, tag names normalized to lower case, encoding detected from the document like a
+What you get with `Html5DomParser`: implied `<tbody>`, auto-closed `<p>` / `<li>` / `<td>`,
+recovery from misnested formatting tags, tag names normalized to lower case, camel-case SVG
+names (`viewBox`, `feColorMatrix`) restored, the encoding detected from the document like a
 browser does, and elements that libxml would have dropped or moved.
 
-What it costs, and where it differs:
+What is different, and why it is a separate class:
 
-- The result has to be bridged back into a `\DOMDocument`, which is one extra serialize + parse.
-  Measure it for your own input with `php build/benchmark_html5_parser.php`; on the fixtures of
-  this repository the complete `loadHtml()` + query + `html()` round-trip is currently *faster*
-  than the default path, because the HTML5 parser needs none of the string preprocessing that the
-  libxml path does.
-- HTML entities are resolved to their characters, as the specification requires, so `&nbsp;` and
-  `&amp;` come back as ` ` and `&` instead of staying entities.
+- HTML entities are resolved to their characters, as the specification requires, so `&nbsp;`
+  and `&amp;` come back as ` ` and `&` instead of staying entities.
 - The HTML5 parser always builds a complete document, so `getDocument()->documentElement` is
   always `<html>`, even for a fragment. `html()` / `innerHtml()` still return the fragment.
-- Boolean attributes are serialized as `checked=""` instead of `checked`, an artifact of the XML
-  bridge.
-- `useKeepBrokenHtml()` works together with it: the broken fragments are preserved verbatim and
-  the same document still gets HTML5 tree construction. Because a preserved fragment travels
-  through the parser as text, HTML5 tree construction moves it where a browser would move text -
-  out of a `<table>`, out of the `<head>` - so it can come back in a different position than the
-  default parser returns it. The fragment itself is never lost.
-- The legacy parser is used - without an error - when the runtime is older than PHP 8.4, or when
-  the result cannot be carried through the XML bridge (an attribute name that is legal in HTML but
-  not in XML, for example). That is never silent:
+- A bare attribute has the empty string as its value, exactly as in a browser, so
+  `<input checked>` gives `getAttribute('checked') === ''`. Test presence with
+  `hasAttribute()`, and expect `checked=""` in the serialized output.
+- Content written after `</body>` is moved back into the body, like a browser does.
+- `useKeepBrokenHtml()` works on top of it: the broken fragments are preserved verbatim, but
+  because they travel through the parser as text, HTML5 tree construction can move such a
+  fragment out of a `<table>` or out of the `<head>`. The fragment itself is never lost.
 
-  ```php
-  $dom->getIsDOMDocumentCreatedWithHtml5Parser(); // which parser built the current document
-  $dom->getHtml5ParserFallbackReason();           // null, or why the legacy parser was used
-  // HtmlDomParser::HTML5_FALLBACK_UNSUPPORTED_RUNTIME
-  // HtmlDomParser::HTML5_FALLBACK_XML_BRIDGE_FAILED
-  ```
+`tests/Html5DomParserCompatibilityTest.php` is the `HtmlDomParser` test suite run against
+`Html5DomParser`, so every one of these differences is pinned by a test, and everything else is
+proven to be unchanged.
+
+The result is bridged back into a `\DOMDocument`, which costs one extra serialize + parse and
+more transient memory. Measure it for your own input:
+
+```shell
+php build/benchmark_html5_parser.php
+```
+
+On the fixtures of this repository the complete `loadHtml()` + query + `html()` round-trip is
+currently *faster* than the libxml path (factor 0.72 - 0.95), because the HTML5 parser needs
+none of the string preprocessing that path does; small synthetic fragments are slower
+(factor ~1.3 - 1.5), and peak memory is higher in both cases.
+
+When the runtime is older than PHP 8.4, or the result cannot be carried through the bridge (an
+attribute name that is legal in HTML but not in XML, for example), `Html5DomParser` parses with
+libxml instead of failing. That is never silent:
+
+```php
+Html5DomParser::isHtml5ParserSupported();       // false on PHP < 8.4
+$dom->getIsDOMDocumentCreatedWithHtml5Parser(); // which parser built the current document
+$dom->getHtml5ParserFallbackReason();           // null, or why the libxml parser was used
+// Html5DomParser::FALLBACK_UNSUPPORTED_RUNTIME
+// Html5DomParser::FALLBACK_XML_BRIDGE_FAILED
+```
 
 ### Examples
 

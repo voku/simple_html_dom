@@ -34,23 +34,6 @@ namespace voku\helper;
 class HtmlDomParser extends AbstractDomParser
 {
     /**
-     * Fallback reason: the runtime is older than PHP 8.4, or its "\Dom" implementation is
-     * incomplete. See "getHtml5ParserFallbackReason()".
-     *
-     * @var string
-     */
-    const HTML5_FALLBACK_UNSUPPORTED_RUNTIME = 'unsupported_runtime';
-
-    /**
-     * Fallback reason: the HTML5 parser produced a document that could not be carried
-     * through the XML bridge, e.g. because the input used an attribute name that HTML
-     * allows and XML does not. See "getHtml5ParserFallbackReason()".
-     *
-     * @var string
-     */
-    const HTML5_FALLBACK_XML_BRIDGE_FAILED = 'xml_bridge_failed';
-
-    /**
      * @var callable|null
      *
      * @phpstan-var null|callable(string $cssSelectorString, string $xPathString, \DOMXPath, \voku\helper\HtmlDomParser): string
@@ -190,42 +173,10 @@ class HtmlDomParser extends AbstractDomParser
     protected $keepBrokenHtml = false;
 
     /**
-     * Default for new instances, see "useHtml5ParserByDefault()".
-     *
-     * @var bool
-     */
-    protected static $useHtml5ParserByDefault = false;
-
-    /**
-     * @var bool
-     */
-    protected $useHtml5Parser = false;
-
-    /**
-     * @var bool
-     */
-    protected $isDOMDocumentCreatedWithHtml5Parser = false;
-
-    /**
-     * @var string|null
-     */
-    protected $html5ParserFallbackReason;
-
-    /**
-     * Placeholder attribute name used while bridging an HTML5-parsed document, see
-     * "parkXmlnsAttributes()".
-     *
-     * @var string
-     */
-    private static $domHtmlXmlnsHelper = 'data-simplevokuxmlns';
-
-    /**
      * @param \DOMNode|SimpleHtmlDomInterface|string $element HTML code or SimpleHtmlDomInterface, \DOMNode
      */
     public function __construct($element = null)
     {
-        $this->useHtml5Parser = static::$useHtml5ParserByDefault;
-
         $this->document = new \DOMDocument('1.0', $this->getEncoding());
 
         // DOMDocument settings
@@ -480,32 +431,16 @@ class HtmlDomParser extends AbstractDomParser
             }
         }
 
-        $this->isDOMDocumentCreatedWithHtml5Parser = false;
-        $this->html5ParserFallbackReason = null;
+        // INFO: a subclass may parse the prepared HTML with a different backend, see
+        //          "Html5DomParser". Everything above this point - the input repairs and the
+        //          flags that shape the output - is shared, everything below is the libxml
+        //          parser of this class.
+        $documentFromOtherBackend = $this->createDOMDocumentFromPreparedHtml($html);
 
-        // INFO: PHP >= 8.4 ships "\Dom\HTMLDocument", an HTML5-spec parser that recovers from
-        //          broken markup the way a browser does. It is opt-in, because it parses into
-        //          the new DOM implementation and this class must keep handing out a legacy
-        //          "\DOMDocument", which costs one extra serialize + parse round-trip.
-        //
-        //          "keepBrokenHtml" works on top of it: that repair replaced the broken
-        //          fragments with text placeholders before this point, and the HTML5 parser
-        //          carries text through, so the two features do not exclude each other.
-        if ($this->useHtml5Parser) {
-            if (!self::isHtml5ParserSupported()) {
-                $this->html5ParserFallbackReason = self::HTML5_FALLBACK_UNSUPPORTED_RUNTIME;
-            } else {
-                $html5Document = $this->createDOMDocumentViaHtml5Parser($html);
+        if ($documentFromOtherBackend !== null) {
+            $this->document = $documentFromOtherBackend;
 
-                if ($html5Document !== null) {
-                    $this->document = $html5Document;
-                    $this->isDOMDocumentCreatedWithHtml5Parser = true;
-
-                    return $this->document;
-                }
-
-                $this->html5ParserFallbackReason = self::HTML5_FALLBACK_XML_BRIDGE_FAILED;
-            }
+            return $this->document;
         }
 
         if (\strpos($html, '<script') !== false) {
@@ -644,227 +579,6 @@ class HtmlDomParser extends AbstractDomParser
         }
 
         return $this->document;
-    }
-
-    /**
-     * Parse the HTML with the HTML5 parser of PHP >= 8.4 and bridge the result into a
-     * legacy "\DOMDocument".
-     *
-     * The bridge is a serialize + parse round-trip on purpose: "\Dom\HTMLDocument" and
-     * "\DOMDocument" are separate implementations on top of the same libxml document, and
-     * PHP refuses to hand a node of the new implementation to the old one (and the other
-     * way around), so there is no zero-copy handoff to use instead. XML is used as the
-     * transport because the tree is already HTML5-normalized at that point, so the XML
-     * parser only has to rebuild it, while re-parsing it as HTML would hand the tree back
-     * to the very parser this method exists to bypass.
-     *
-     * "\Dom\HTML_NO_DEFAULT_NS" keeps the elements out of the XHTML namespace, so the
-     * resulting document matches what the legacy parser produces and the generated XPath
-     * queries of this library keep working without namespace handling.
-     *
-     * The caller checks "isHtml5ParserSupported()" and owns the fallback reason, so this
-     * method is only reached on a runtime that has the parser.
-     *
-     * @param string $html
-     *
-     * @return \DOMDocument|null <p>NULL if the result could not be carried through the XML
-     *                           bridge; the caller then falls back to the legacy parser.</p>
-     */
-    private function createDOMDocumentViaHtml5Parser(string $html): ?\DOMDocument
-    {
-        // INFO: the HTML5 parser detects the encoding the way the specification does - from a
-        //          byte-order mark or a <meta> charset - which is the browser behavior this
-        //          parser is used for. Only a parser that was configured for a specific
-        //          encoding overrules that detection.
-        $encoding = $this->getEncoding();
-        $overrideEncoding = \strcasecmp($encoding, 'UTF-8') === 0 ? null : $encoding;
-
-        /** @phpstan-ignore class.notFound, classConstant.notFound (PHP >= 8.4 only, guarded by isHtml5ParserSupported()) */
-        $html5Document = \Dom\HTMLDocument::createFromString(
-            $html,
-            \LIBXML_NOERROR | \Dom\HTML_NO_DEFAULT_NS,
-            $overrideEncoding
-        );
-
-        // INFO: in HTML an "xmlns" attribute is just an attribute, but the XML transport
-        //          used below would turn it into a real namespace declaration and every
-        //          generated XPath query of this library would stop matching. It is
-        //          parked under a placeholder name and restored after the transport.
-        $xmlnsHelper = \stripos($html, 'xmlns') !== false
-            ? $this->parkXmlnsAttributes($html5Document)
-            : null;
-
-        $xml = $html5Document->saveXml();
-
-        if ($xml === false || $xml === '') {
-            return null;
-        }
-
-        $document = new \DOMDocument('1.0', $this->getEncoding());
-        $document->preserveWhiteSpace = true;
-        $document->formatOutput = false;
-
-        $internalErrors = \libxml_use_internal_errors(true);
-        \libxml_clear_errors();
-
-        $loaded = $document->loadXML($xml, \LIBXML_NONET);
-
-        \libxml_clear_errors();
-        \libxml_use_internal_errors($internalErrors);
-
-        if ($loaded === false) {
-            return null;
-        }
-
-        if ($xmlnsHelper !== null) {
-            $this->restoreXmlnsAttributes($document, $xmlnsHelper);
-        }
-
-        $document->encoding = $this->getEncoding();
-
-        return $document;
-    }
-
-    /**
-     * Rename every "xmlns" attribute of an HTML5-parsed document to a collision-free placeholder name.
-     *
-     * @param object $html5Document <p>A "\Dom\HTMLDocument" of PHP >= 8.4.</p>
-     *
-     * @return string|null <p>The placeholder name, or NULL when no "xmlns" attribute exists.</p>
-     */
-    private function parkXmlnsAttributes($html5Document): ?string
-    {
-        /** @phpstan-ignore class.notFound, argument.type (PHP >= 8.4 only, guarded by isHtml5ParserSupported()) */
-        $xPath = new \Dom\XPath($html5Document);
-        $elements = $xPath->query('//*[@xmlns]');
-
-        if ($elements->length === 0) {
-            return null;
-        }
-
-        $helper = self::$domHtmlXmlnsHelper;
-        $suffix = 0;
-        while ($xPath->query('//*[@' . $helper . ']')->length > 0) {
-            $helper = self::$domHtmlXmlnsHelper . '-' . ++$suffix;
-        }
-
-        foreach ($elements as $element) {
-            /** @phpstan-ignore method.notFound, method.notFound (\Dom\Element of PHP >= 8.4) */
-            $element->setAttribute($helper, $element->getAttribute('xmlns'));
-            /** @phpstan-ignore method.notFound (\Dom\Element of PHP >= 8.4) */
-            $element->removeAttribute('xmlns');
-        }
-
-        return $helper;
-    }
-
-    /**
-     * Restore the "xmlns" attributes that parkXmlnsAttributes() renamed.
-     *
-     * @param \DOMDocument $document
-     * @param string       $helper
-     *
-     * @return void
-     */
-    private function restoreXmlnsAttributes(\DOMDocument $document, string $helper)
-    {
-        // The helper is generated internally from a safe attribute name, and //*[] only selects elements.
-        /** @var \DOMNodeList<\DOMElement> $elements */
-        $elements = (new \DOMXPath($document))->query('//*[@' . $helper . ']');
-
-        foreach ($elements as $element) {
-            /** @var \DOMElement $element */
-            $element->setAttribute('xmlns', $element->getAttribute($helper));
-            $element->removeAttribute($helper);
-        }
-    }
-
-    /**
-     * Check if the HTML5 parser of PHP >= 8.4 can be used on this runtime.
-     *
-     * @return bool
-     */
-    public static function isHtml5ParserSupported(): bool
-    {
-        return \PHP_VERSION_ID >= 80400
-               &&
-               \class_exists('Dom\HTMLDocument')
-               &&
-               \defined('Dom\HTML_NO_DEFAULT_NS');
-    }
-
-    /**
-     * Use the HTML5 parser of PHP >= 8.4 ("\Dom\HTMLDocument") for this instance.
-     *
-     * It parses like a browser does: implied "tbody", auto-closed "p" / "li" / "td",
-     * recovery from nested tables and from misnested formatting tags. The libxml-based
-     * parser stays the default, because bridging the result back into the "\DOMDocument"
-     * that this library hands out costs an extra serialize + parse round-trip.
-     *
-     * It combines with "useKeepBrokenHtml()": that repair turns the broken fragments into
-     * text placeholders before parsing and puts them back after serialization, and the HTML5
-     * parser carries text through. Where text is not allowed - inside a table, inside the
-     * head - HTML5 tree construction moves such a placeholder to where a browser would put
-     * it, so a preserved fragment can come back in a different position than the legacy
-     * parser returns it.
-     *
-     * The legacy parser is used anyway - without an error - when the runtime is older than
-     * PHP 8.4 and when the result cannot be carried through the XML bridge. Use
-     * "getIsDOMDocumentCreatedWithHtml5Parser()" to see which parser produced the current
-     * document and "getHtml5ParserFallbackReason()" to see why.
-     *
-     * @param bool $useHtml5Parser
-     *
-     * @return $this
-     */
-    public function useHtml5Parser(bool $useHtml5Parser = true): DomParserInterface
-    {
-        $this->useHtml5Parser = $useHtml5Parser;
-
-        return $this;
-    }
-
-    /**
-     * Use the HTML5 parser of PHP >= 8.4 for every "HtmlDomParser" created from now on.
-     *
-     * This is the switch for the static entry points ("HtmlDomParser::str_get_html()",
-     * "HtmlDomParser::file_get_html()"), which create their instance internally. It does
-     * not change instances that already exist.
-     *
-     * @param bool $useHtml5Parser
-     *
-     * @return void
-     */
-    public static function useHtml5ParserByDefault(bool $useHtml5Parser = true)
-    {
-        static::$useHtml5ParserByDefault = $useHtml5Parser;
-    }
-
-    /**
-     * Check if the current document was created by the HTML5 parser of PHP >= 8.4.
-     *
-     * @return bool
-     */
-    public function getIsDOMDocumentCreatedWithHtml5Parser(): bool
-    {
-        return $this->isDOMDocumentCreatedWithHtml5Parser;
-    }
-
-    /**
-     * Check why the current document was built by the legacy parser although the HTML5
-     * parser was enabled.
-     *
-     * A fallback keeps the parser working instead of throwing, but it changes the result,
-     * so it must not be silent.
-     *
-     * @return string|null <p>NULL when no fallback happened - either the HTML5 parser built
-     *                     the current document, or it was never enabled for it. Otherwise
-     *                     "HtmlDomParser::HTML5_FALLBACK_UNSUPPORTED_RUNTIME" or
-     *                     "HtmlDomParser::HTML5_FALLBACK_XML_BRIDGE_FAILED".</p>
-     */
-    public function getHtml5ParserFallbackReason(): ?string
-    {
-        return $this->html5ParserFallbackReason;
     }
 
     /**
@@ -1387,11 +1101,7 @@ class HtmlDomParser extends AbstractDomParser
                 $content = $this->serializeChildNodes($this->document);
             }
         } elseif ($this->getIsDOMDocumentCreatedWithoutHtmlWrapper()) {
-            if ($this->isDOMDocumentCreatedWithHtml5Parser) {
-                $content = $this->serializeHtml5DocumentWithoutHtmlWrapper();
-            } else {
-                $content = $this->document->saveHTML($this->document->documentElement);
-            }
+            $content = $this->serializeDocumentWithoutHtmlWrapper();
         } else {
             $content = $this->document->saveHTML();
         }
@@ -1484,7 +1194,7 @@ class HtmlDomParser extends AbstractDomParser
      *
      * @param \DOMNode $node
      */
-    private function serializeNode(\DOMNode $node): string
+    protected function serializeNode(\DOMNode $node): string
     {
         if (\PHP_VERSION_ID < 80000 && $node instanceof \DOMElement) {
             return $this->serializeElementNodeForPhpLt8($node);
@@ -1613,34 +1323,36 @@ class HtmlDomParser extends AbstractDomParser
     }
 
     /**
-     * Serialize an HTML5-parsed document whose input had no <html> wrapper.
+     * Parse the already prepared HTML with a backend other than the libxml parser of this
+     * class.
      *
-     * The HTML5 parser always builds a complete document, so a comment that was written
-     * before or after the markup ends up as a sibling of the <html> element instead of a
-     * node inside it. Serializing only the document element - what the legacy parser needs -
-     * would drop those comments, and serializing the whole document would let the HTML
-     * serializer re-encode the output for a <meta> charset that only exists because the
-     * fragment was placed in a generated <head>.
+     * This is the extension point that "Html5DomParser" uses. It is called after the input
+     * repairs and after the flags that shape the output have been determined, so an
+     * alternative backend inherits all of that and only replaces the parsing itself.
+     *
+     * @param string $html <p>The prepared HTML, not the input of the caller.</p>
+     *
+     * @return \DOMDocument|null <p>NULL to use the libxml parser of this class, which is what
+     *                           this implementation always does.</p>
+     *
+     * @noinspection PhpUnusedParameterInspection
+     */
+    protected function createDOMDocumentFromPreparedHtml(string $html)
+    {
+        return null;
+    }
+
+    /**
+     * Serialize a document whose input had no <html> wrapper.
+     *
+     * A subclass whose parser builds a complete document even for a fragment needs a
+     * different rule here, see "Html5DomParser".
      *
      * @return string
      */
-    private function serializeHtml5DocumentWithoutHtmlWrapper(): string
+    protected function serializeDocumentWithoutHtmlWrapper(): string
     {
-        $content = '';
-
-        foreach ($this->document->childNodes as $childNode) {
-            if ($childNode === $this->document->documentElement) {
-                $content .= (string) $this->document->saveHTML($childNode);
-
-                continue;
-            }
-
-            if ($childNode instanceof \DOMComment) {
-                $content .= $this->serializeNode($childNode);
-            }
-        }
-
-        return $content;
+        return (string) $this->document->saveHTML($this->document->documentElement);
     }
 
     /**

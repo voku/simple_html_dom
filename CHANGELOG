@@ -1,8 +1,9 @@
 [PHP Simple HTML Dom - upcoming]
-1: "HtmlDomParser" -> add opt-in HTML5 parsing on PHP >= 8.4 via "\Dom\HTMLDocument": "useHtml5Parser()", "useHtml5ParserByDefault()", "isHtml5ParserSupported()" and "getIsDOMDocumentCreatedWithHtml5Parser()"
-2: add "build/benchmark_html5_parser.php" to compare the default parser and the HTML5 parser on real fixtures
-3: "HtmlDomParser" -> "useKeepBrokenHtml()" no longer disables the HTML5 parser; broken fragments stay preserved and the same document still gets HTML5 tree construction
-4: "HtmlDomParser" -> add "getHtml5ParserFallbackReason()" so a fallback to the legacy parser (unsupported runtime, failed XML bridge) is never silent
+1: add "Html5DomParser": HTML5 parsing on PHP >= 8.4 via "\Dom\HTMLDocument", as its own class next to "HtmlDomParser" and with the same API
+2: "Html5DomParser" -> "isHtml5ParserSupported()", "getIsDOMDocumentCreatedWithHtml5Parser()" and "getHtml5ParserFallbackReason()" report which parser produced a document and why
+3: "HtmlDomParser" -> unchanged behavior; it only gained the protected extension points "createDOMDocumentFromPreparedHtml()" and "serializeDocumentWithoutHtmlWrapper()"
+4: add "tests/Html5DomParserCompatibilityTest.php": the HtmlDomParser test suite run against Html5DomParser, with every HTML5 difference pinned
+5: add "build/benchmark_html5_parser.php" to compare both parsers (interleaved samples, median, parse/selector/serialize phases, peak memory)
 
 [PHP Simple HTML Dom v5.0.0 - 2026-04-21]
 1: BREAKING: require PHP >= 7.1.0 and drop PHP 7.0 support

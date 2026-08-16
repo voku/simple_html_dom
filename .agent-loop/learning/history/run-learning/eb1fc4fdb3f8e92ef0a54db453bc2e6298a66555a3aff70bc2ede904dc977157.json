@@ -1,0 +1,11 @@
+{
+    "schema_version": "1.0",
+    "kind": "run_learning_decision",
+    "run_id": "run:SHD-10:979d9db55d1f1d50",
+    "decision": "follow_up_required",
+    "decided_by": "claude",
+    "decided_at": "2026-08-16T21:11:31+00:00",
+    "reason": "Project-specific API decision plus a mechanical test copy; the reusable workflow findings were already recorded under SHD-1. The copied suite exposed one real defect that is not fixed here: fixHtmlOutput() reverses a substitution the HTML5 path never applies.",
+    "finding_ids": [],
+    "follow_up_ref": "SHD-11"
+}

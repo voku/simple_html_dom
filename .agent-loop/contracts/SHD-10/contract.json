@@ -1,0 +1,50 @@
+{
+    "acceptance_criteria": [
+        "HtmlDomParser has no HTML5 parser code left and its test suite passes unchanged.",
+        "Html5DomParser::str_get_html() and new Html5DomParser() work like the HtmlDomParser equivalents and produce HTML5 tree construction.",
+        "A copy of the HtmlDomParser test suite runs against Html5DomParser; every test either passes unchanged or is documented in place with the exact HTML5 reason it differs.",
+        "The benchmark uses the PR #146 methodology (interleaved parser order, warmup, median over samples, parse/selector/serialize phases, peak memory) and compares HtmlDomParser against Html5DomParser.",
+        "PHPStan stays green and the source stays PHP 7.1 compatible."
+    ],
+    "approved_at": "2026-08-16T20:52:53+00:00",
+    "approved_by": "voku",
+    "base_commit": "c9410ca98851e96cfc181828800b0390624d79e8",
+    "behavior_anchors": [
+        "Html5DomParser::loadHtml -> HtmlDomParser::createDOMDocument (shared preparation + flags) -> createDOMDocumentFromPreparedHtml() override -> XML bridge -> \\DOMDocument"
+    ],
+    "created_at": "2026-08-16T20:52:53+00:00",
+    "goal": "Move the opt-in HTML5 parsing out of HtmlDomParser into a new Html5DomParser class that keeps the same API layout, so the breaking HTML5 semantics are chosen by class instead of by a boolean flag.",
+    "kind": "task_contract",
+    "non_goals": [
+        "Do not change any behavior of HtmlDomParser itself; the libxml path and its output stay byte-identical.",
+        "Do not change the public API layout: Html5DomParser must be usable exactly like HtmlDomParser (same methods, same static entry points, same return types).",
+        "Do not add HTML5 knowledge to DomParserInterface, SimpleHtmlDom or the node classes.",
+        "Do not keep useHtml5Parser() / useHtml5ParserByDefault() on HtmlDomParser; the class is the switch now. They are unreleased, so nothing depends on them."
+    ],
+    "operating_prompt_manifest": null,
+    "operating_prompts": [],
+    "planned_by": "voku",
+    "revision": 1,
+    "schema_version": "1.0",
+    "scope": [
+        "src/voku/helper",
+        "tests",
+        "build",
+        "README.md",
+        "CHANGELOG"
+    ],
+    "status": "approved",
+    "tags": [
+        "php8.4",
+        "html5",
+        "parser",
+        "api"
+    ],
+    "task_id": "SHD-10",
+    "updated_at": "2026-08-16T20:52:53+00:00",
+    "validation": [
+        "php vendor/bin/phpunit -c phpunit.xml",
+        "php tools/agent-loop/vendor/bin/phpstan analyse -c phpstan.neon --no-progress",
+        "php build/benchmark_html5_parser.php"
+    ]
+}

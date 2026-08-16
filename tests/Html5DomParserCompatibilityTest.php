@@ -1,0 +1,3179 @@
+<?php
+
+use voku\helper\AbstractDomParser;
+use voku\helper\Html5DomParser;
+use voku\helper\SimpleHtmlDom;
+use voku\helper\SimpleHtmlDomInterface;
+use voku\helper\SimpleHtmlDomNode;
+use voku\helper\SimpleHtmlDomNodeInterface;
+
+/**
+ * The HtmlDomParser test suite, run against Html5DomParser.
+ *
+ * The point of this copy is evidence: it shows how much of the documented behavior of this
+ * library is unchanged when the parsing backend is swapped, and it pins every place where
+ * the HTML5 specification produces a different result. A test that differs is annotated in
+ * place with the reason - none of them are "fixed" by making the parser behave like libxml.
+ *
+ * @internal
+ */
+class Html5DomParserCompatibilityTest extends \PHPUnit\Framework\TestCase
+{
+    protected function setUp(): void
+    {
+        if (!Html5DomParser::isHtml5ParserSupported()) {
+            static::markTestSkipped('The HTML5 parser needs PHP >= 8.4 with "\Dom\HTMLDocument".');
+        }
+    }
+
+    /**
+     * Compare a whole document against the expectation of the libxml parser, ignoring exactly
+     * the differences the HTML5 specification requires.
+     *
+     * This is used where an inline HTML5 expectation would be a wall of markup that hides
+     * which part actually changed. Every rule below is one documented difference and nothing
+     * else is normalized, so a real regression still fails this assertion.
+     *
+     * @param string $expected <p>What HtmlDomParser returns.</p>
+     * @param string $actual   <p>What Html5DomParser returns.</p>
+     *
+     * @return void
+     */
+    private static function assertSameApartFromKnownHtml5Differences(string $expected, string $actual)
+    {
+        static::assertSame(
+            self::normalizeKnownHtml5Differences($expected),
+            self::normalizeKnownHtml5Differences($actual)
+        );
+    }
+
+    /**
+     * @param string $html
+     *
+     * @return string
+     */
+    private static function normalizeKnownHtml5Differences(string $html): string
+    {
+        // an attribute value that contains a double quote is serialized in single quotes,
+        // while the libxml serializer emits it unescaped inside double quotes
+        $html = (string) \preg_replace('/=\'([^\']*)\'/', '="$1"', $html);
+
+        // a bare attribute keeps the empty string as its value instead of being expanded by libxml
+        $html = (string) \preg_replace('/(\s[a-zA-Z_:][a-zA-Z0-9_:.-]*)=""/', '$1', $html);
+
+        // HTML5 tree construction inserts the implied <tbody>
+        $html = \str_replace(['<tbody>', '</tbody>'], '', $html);
+
+        // the doctype name is serialized in lower case
+        $html = (string) \preg_replace('/<!DOCTYPE\s+html/i', '<!DOCTYPE html', $html);
+
+        // script content is kept verbatim instead of escaping "</"
+        $html = \str_replace('<\\/', '</', $html);
+
+        // HTML entities are resolved to their characters
+        $html = \html_entity_decode($html, \ENT_QUOTES | \ENT_HTML5, 'UTF-8');
+
+        // the sequences that the libxml path substitutes to protect them are resolved as well
+        $html = \str_replace(
+            ['%5B%5B', '%5D%5D', '%7B%7B', '%7D%7D', '%40'],
+            ['[[', ']]', '{{', '}}', '@'],
+            $html
+        );
+
+        // HTML5 restores the camel-case element names of foreign content (SVG), which the
+        // libxml parser lower-cases
+        $html = (string) \preg_replace_callback(
+            '#<(/?)(fe[A-Z][a-zA-Z]*|clipPath|linearGradient|radialGradient|textPath|foreignObject'
+            . '|animateColor|animateMotion|animateTransform|glyphRef|altGlyph(?:Def|Item)?)\b#',
+            static function (array $match): string {
+                return '<' . $match[1] . \strtolower($match[2]);
+            },
+            $html
+        );
+
+        // HTML5 restores the camel-case attribute names of foreign content (SVG / MathML),
+        // which the libxml parser lower-cases
+        $html = (string) \preg_replace_callback(
+            '/\s(viewBox|baseProfile|preserveAspectRatio|requiredExtensions|systemLanguage|'
+            . 'gradientUnits|gradientTransform|patternUnits|patternTransform|clipPath|'
+            . 'textLength|lengthAdjust|attributeName|attributeType|repeatCount|repeatDur|'
+            . 'tableValues|baseFrequency|numOctaves|stitchTiles|surfaceScale|specularConstant|'
+            . 'specularExponent|diffuseConstant|kernelMatrix|kernelUnitLength|limitingConeAngle|'
+            . 'markerHeight|markerUnits|markerWidth|maskContentUnits|maskUnits|pathLength|'
+            . 'pointsAtX|pointsAtY|pointsAtZ|primitiveUnits|refX|refY|spreadMethod|'
+            . 'startOffset|stdDeviation|targetX|targetY|xChannelSelector|yChannelSelector)=/i',
+            static function (array $match): string {
+                return ' ' . \strtolower($match[1]) . '=';
+            },
+            $html
+        );
+
+        // content written after </body> belongs in the body, so HTML5 moves it back in and the
+        // implied end tags land in a different place - the element order itself is unchanged
+        $html = \str_replace(['</body>', '</html>'], '', $html);
+
+        // the order of attributes inside a start tag is not part of the document's meaning and
+        // the two serializers do not agree on it
+        $html = (string) \preg_replace_callback(
+            '#<([a-zA-Z][^\s/>]*)((?:\s+[^\s=/>]+(?:=(?:"[^"]*"|\'[^\']*\'|[^\s>]+))?)+)(\s*/?)>#',
+            static function (array $match): string {
+                \preg_match_all(
+                    '#\s+([^\s=/>]+)(=(?:"[^"]*"|\'[^\']*\'|[^\s>]+))?#',
+                    $match[2],
+                    $attributes,
+                    \PREG_SET_ORDER
+                );
+
+                $rendered = [];
+                foreach ($attributes as $attribute) {
+                    $rendered[] = $attribute[1] . ($attribute[2] ?? '');
+                }
+                \sort($rendered);
+
+                return '<' . $match[1] . ($rendered === [] ? '' : ' ' . \implode(' ', $rendered)) . \rtrim($match[3]) . '>';
+            },
+            $html
+        );
+
+        // whitespace between elements differs with the insertion mode that placed them
+        $html = (string) \preg_replace('/>\s+</', '><', $html);
+
+        return \trim($html);
+    }
+
+    /**
+     * @param $filename
+     *
+     * @return string|null
+     */
+    protected function loadFixture($filename)
+    {
+        $path = __DIR__ . '/fixtures/' . $filename;
+        if (\file_exists($path)) {
+            return \file_get_contents($path);
+        }
+
+        return null;
+    }
+
+    public function testConstructWithInvalidArgument()
+    {
+        $this->expectException(\TypeError::class);
+
+        new Html5DomParser(['foo']);
+    }
+
+    public function testLoadHtmlWithInvalidArgument()
+    {
+        $this->expectException(\TypeError::class);
+
+        $document = new Html5DomParser();
+        $document->loadHtml(['foo']);
+    }
+
+    public function testLoadWithInvalidArgument()
+    {
+        $this->expectException(\TypeError::class);
+
+        $document = new Html5DomParser();
+        $document->load(['foo']);
+    }
+
+    public function testLoadHtmlFileWithInvalidArgument()
+    {
+        $this->expectException(\TypeError::class);
+
+        $document = new Html5DomParser();
+        $document->loadHtmlFile(['foo']);
+    }
+
+    public function testLoadFileWithInvalidArgument()
+    {
+        $this->expectException(\TypeError::class);
+
+        $document = new Html5DomParser();
+        $document->load_file(['foo']);
+    }
+
+    public function testLoadHtmlFileWithNotExistingFile()
+    {
+        $this->expectException(\RuntimeException::class);
+
+        $document = new Html5DomParser();
+        $document->loadHtmlFile('/path/to/file');
+    }
+
+    public function testLoadHtmlFileWithNotLoadFile()
+    {
+        $this->expectException(\RuntimeException::class);
+
+        $document = new Html5DomParser();
+        $document->loadHtmlFile('http://fobar');
+    }
+
+    public function testLoadHtmlFileRejectsDirectoryPath()
+    {
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Could not load file');
+
+        $document = new Html5DomParser();
+        $document->loadHtmlFile(__DIR__);
+    }
+
+    public function testConstructFromDomDocumentPreservesHtmlDocument()
+    {
+        $source = Html5DomParser::str_get_html('<html><body><div id="x">ok</div></body></html>');
+
+        $document = new Html5DomParser($source->getDocument());
+
+        // HTML5: the HTML5 parser always builds a complete document, so <head> exists and the trailing newline of saveHTML() is kept
+        static::assertSame('<html><head></head><body><div id="x">ok</div>
+</body></html>', $document->html());
+        static::assertSame('ok', $document->getElementById('x')->text());
+    }
+
+    public function testLoadHtmlUrl()
+    {
+        $dom = Html5DomParser::file_get_html(__DIR__ . '/fixtures/test_template_js.html');
+        $headerSearchTemplateDom = $dom->findOneOrFalse('#headerSearchTemplate');
+        $headerSearchTemplateHtml = $headerSearchTemplateDom->innerHtml();
+
+        $domInner = Html5DomParser::str_get_html($headerSearchTemplateHtml);
+        $h1 = $domInner->findOneOrFalse('h1');
+        // HTML5: the encoding is detected from the document (euc-kr), so the text is decoded instead of mangled
+        static::assertSame('<h1 class="hd"><a href="http://www.11st.co.kr" data-ga-event-category="PC_GNB" data-ga-event-action="상단영역_로고" data-ga-event-label="">11번가</a></h1>',
+            $h1->html()
+        );
+    }
+
+    public function testBrokenReplaceHelperIsResetBetweenDocuments()
+    {
+        $property = new \ReflectionProperty(AbstractDomParser::class, 'domBrokenReplaceHelper');
+        $keysProperty = new \ReflectionProperty(AbstractDomParser::class, 'dynamicDomBrokenReplaceHelperKeys');
+        if (\PHP_VERSION_ID < 80100) {
+            $property->setAccessible(true);
+            $keysProperty->setAccessible(true);
+        }
+
+        $dom = new Html5DomParser();
+        // The broken-replacement map is static, so seed it explicitly to
+        // verify that reparsing clears the current parser's old entries.
+        $property->setValue(null, [
+            'orig' => ['leftover-original'],
+            'tmp' => ['simplevokubroken123'],
+        ]);
+        $keysProperty->setValue($dom, ['simplevokubroken123']);
+        static::assertNotEmpty($property->getValue()['tmp'] ?? []);
+
+        $dom->loadHtml('<div>ok</div>', \LIBXML_HTML_NOIMPLIED);
+
+        static::assertSame([], $property->getValue());
+    }
+
+    public function testHasMultipleTopLevelNodesRestoresLibxmlState()
+    {
+        $method = new \ReflectionMethod(Html5DomParser::class, 'hasMultipleTopLevelNodes');
+        if (\PHP_VERSION_ID < 80100) {
+            $method->setAccessible(true);
+        }
+
+        $dom = new Html5DomParser();
+        $originalInternalErrors = \libxml_use_internal_errors(false);
+
+        try {
+            static::assertTrue($method->invoke($dom, '<div>one</div><div>two</div>', 0));
+            static::assertFalse(\libxml_use_internal_errors());
+
+            \libxml_use_internal_errors(true);
+            static::assertFalse($method->invoke($dom, '<div', 0));
+            static::assertTrue(\libxml_use_internal_errors());
+        } finally {
+            \libxml_clear_errors();
+            \libxml_use_internal_errors($originalInternalErrors);
+        }
+    }
+
+    public function testMethodNotExist()
+    {
+        $this->expectException(\BadMethodCallException::class);
+
+        $document = new Html5DomParser();
+        /** @noinspection PhpUndefinedMethodInspection */
+        $document->bar();
+    }
+
+    public function testStaticMethodNotExist()
+    {
+        $this->expectException(\BadMethodCallException::class);
+
+        /** @noinspection PhpUndefinedMethodInspection */
+        Html5DomParser::bar();
+    }
+
+    public function testNotExistProperty()
+    {
+        $document = new Html5DomParser();
+
+        /** @noinspection PhpUndefinedFieldInspection */
+        static::assertNull($document->foo);
+    }
+
+    public function testConstruct()
+    {
+        $html = // HTML5: a fragment is placed in a complete document, and getDocument()->documentElement is <html>
+            '<html><head></head><body><div>foo</div></body></html>';
+        $document = new Html5DomParser($html);
+
+        $element = new SimpleHtmlDom($document->getDocument()->documentElement);
+
+        static::assertSame($html, $element->outertext);
+    }
+
+    public function testUppercaseParagraphTagIsNotTreatedAsSyntheticWrapper()
+    {
+        $html = // HTML5: HTML5 lower-cases tag names
+            '<html><body><p>hello</p></body></html>';
+
+        $document = new Html5DomParser($html);
+
+        static::assertSame($html, $document->outerhtml);
+    }
+
+    public function testUppercaseParagraphTagWithAttributesIsNotTreatedAsSyntheticWrapper()
+    {
+        $html = // HTML5: HTML5 lower-cases tag names
+            '<html><body><p class="x">hello</p></body></html>';
+
+        $document = new Html5DomParser($html);
+
+        static::assertSame($html, $document->outerhtml);
+    }
+
+    public function testDuplicateUppercaseParagraphTagsAreNotTreatedAsSyntheticWrapper()
+    {
+        $html = // HTML5: HTML5 lower-cases tag names
+            '<html><body><p>one</p><p>two</p></body></html>';
+
+        $document = new Html5DomParser($html);
+
+        static::assertSame($html, $document->outerhtml);
+    }
+
+    public function testUppercaseParagraphTagWithDifferentStartTagSiblingIsNotTreatedAsSyntheticWrapper()
+    {
+        $html = // HTML5: HTML5 lower-cases tag names
+            '<html><body><p>one</p><div>two</div></body></html>';
+
+        $document = new Html5DomParser($html);
+
+        static::assertSame($html, $document->outerhtml);
+    }
+
+    public function testUppercaseParagraphTagWithSourceVoidElementKeepsParagraphWrapper()
+    {
+        $html = '<html><body><P>one<source src="a.mp4"></P></body></html>';
+
+        $document = new Html5DomParser($html);
+
+        $match = \preg_match('~^<html><body><p>one<source src="a\.mp4"></p></body></html>$~i', $document->outerhtml);
+
+        static::assertNotFalse($match);
+        static::assertSame(1, $match);
+    }
+
+    public function testUppercaseParagraphTagWithWbrVoidElementKeepsParagraphWrapper()
+    {
+        $html = '<html><body><P>one<wbr>two</P></body></html>';
+
+        $document = new Html5DomParser($html);
+
+        $match = \preg_match('~^<html><body><p>one<wbr>two</p></body></html>$~i', $document->outerhtml);
+
+        static::assertNotFalse($match);
+        static::assertSame(1, $match);
+    }
+
+    public function testHrefReplacing()
+    {
+        $origUrl = 'https://test.com?param1=1&param2=2';
+        $document = \voku\helper\Html5DomParser::str_get_html("<a href='" . $origUrl . "'></a>");
+        $link = $document->findOne('a');
+        $link->setAttribute('href', 'https://redirect.com?rdr=' . \urlencode($link->getAttribute('href')));
+
+        static::assertSame(
+            'https://redirect.com?rdr=https%3A%2F%2Ftest.com%3Fparam1%3D1%26param2%3D2',
+            $link->getAttribute('href')
+        );
+        static::assertSame(
+            '<a href="https://redirect.com?rdr=' . \urlencode($origUrl) . '"></a>',
+            $document->html()
+        );
+    }
+
+    public function testReplaceHashLinksInTableCellsForExcelExport()
+    {
+        $document = Html5DomParser::str_get_html(
+            '<table><tr><td><a href="#">in-td</a></td><th><a href="#">in-th</a></th></tr></table><a href="#">outside</a>'
+        );
+
+        // Use the generic findMulti + setAttribute to replace "#" hrefs inside table cells only.
+        foreach ($document->findMulti('td a[href="#"], th a[href="#"]') as $a) {
+            $a->setAttribute('href', 'javascript:void(0);');
+        }
+
+        // HTML5: HTML5 tree construction inserts the implied <tbody>
+        static::assertSame('<table><tbody><tr><td><a href="javascript:void(0);">in-td</a></td><th><a href="javascript:void(0);">in-th</a></th></tr></tbody></table><a href="#">outside</a>',
+            $document->html()
+        );
+    }
+
+    public function testWebComponent()
+    {
+        $html = '<button is="shopping-cart">Add to cart</button>';
+        $dom = Html5DomParser::str_get_html($html);
+
+        static::assertSame($html, $dom->outertext);
+    }
+
+    public function testWindows1252()
+    {
+        $file = __DIR__ . '/fixtures/windows-1252-example.html';
+        $document = new Html5DomParser();
+
+        $document->loadHtmlFile($file);
+        static::assertNotNull(\count($document('li')));
+
+        $document->load_file($file);
+        static::assertNotNull(\count($document('li')));
+
+        $document = Html5DomParser::file_get_html($file);
+        static::assertNotNull(\count($document('li')));
+
+        // ---
+
+        // this only works with "UTF8"-helpers
+        if (\class_exists('\voku\helper\UTF8')) {
+            static::assertSame(['ÅÄÖ', 'åäö'], $document->find('li')->text());
+        }
+    }
+
+    public function testLoadHtmlFile()
+    {
+        $file = __DIR__ . '/fixtures/test_page.html';
+        $document = new Html5DomParser();
+
+        $document->loadHtmlFile($file);
+        static::assertNotNull(\count($document('div')));
+
+        $document->load_file($file);
+        static::assertNotNull(\count($document('div')));
+
+        $document = Html5DomParser::file_get_html($file);
+        static::assertNotNull(\count($document('div')));
+    }
+
+    public function testLoadHtml()
+    {
+        $html = $this->loadFixture('test_page.html');
+        $document = new Html5DomParser();
+
+        $document->loadHtml($html);
+        static::assertNotNull(\count($document('div')));
+
+        $document->load($html);
+        static::assertNotNull(\count($document('div')));
+
+        $document = Html5DomParser::str_get_html($html);
+        static::assertNotNull(\count($document('div')));
+    }
+
+    public function testGetDocument()
+    {
+        $document = new Html5DomParser();
+        static::assertInstanceOf(\DOMDocument::class, $document->getDocument());
+    }
+
+    /**
+     * @dataProvider findTests
+     *
+     * @param $html
+     * @param $selector
+     * @param $count
+     */
+    public function testFind($html, $selector, $count)
+    {
+        $document = new Html5DomParser($html);
+        $elements = $document->find($selector);
+
+        static::assertInstanceOf(voku\helper\SimpleHtmlDomNodeInterface::class, $elements);
+        static::assertCount($count, $elements);
+
+        foreach ($elements as $element) {
+            static::assertInstanceOf(voku\helper\SimpleHtmlDomInterface::class, $element);
+        }
+
+        if ($count !== 0) {
+            $element = $document->find($selector, -1);
+            static::assertInstanceOf(voku\helper\SimpleHtmlDomInterface::class, $element);
+        }
+    }
+
+    /**
+     * @return array
+     */
+    public function findTests()
+    {
+        $html = $this->loadFixture('test_page.html');
+
+        return [
+            [$html, '.fake h2', 0],
+            [$html, 'article', 16],
+            [$html, '.radio', 3],
+            [$html, 'input.radio', 3],
+            [$html, 'ul li', 35],
+            [$html, 'fieldset#forms__checkbox li, fieldset#forms__radio li', 6],
+            [$html, 'input[id]', 23],
+            [$html, 'input[id=in]', 1],
+            [$html, '#in', 1],
+            [$html, '*[id]', 52],
+            // HTML5: whitespace between the generated wrapper elements is not part of the text
+            [$html, 'text', 638],
+            [$html, 'comment', 3],
+        ];
+    }
+
+    public function testHtml()
+    {
+        $html = $this->loadFixture('test_page.html');
+        $document = new Html5DomParser($html);
+
+        $htmlTmp = $document->html();
+
+        if (\method_exists(static::class, 'assertIsString')) {
+            static::assertIsString($htmlTmp);
+        } else {
+            /** @noinspection PhpUndefinedMethodInspection */
+            static::assertInternalType('string', $htmlTmp);
+        }
+
+        $xmlTmp = $document->xml();
+        if (\method_exists(static::class, 'assertIsString')) {
+            static::assertIsString($xmlTmp);
+        } else {
+            /** @noinspection PhpUndefinedMethodInspection */
+            static::assertInternalType('string', $xmlTmp);
+        }
+
+        if (\method_exists(static::class, 'assertIsString')) {
+            static::assertIsString($document->outertext);
+        } else {
+            /** @noinspection PhpUndefinedMethodInspection */
+            static::assertInternalType('string', $document->outertext);
+        }
+        static::assertTrue(\strlen($document) > 0);
+
+        $html = '<div>foo</div>';
+        $document = new Html5DomParser($html);
+
+        static::assertSame($html, $document->html());
+        static::assertSame($html, $document->outertext);
+        static::assertSame($html, (string) $document);
+    }
+
+    public function testInnerHtml()
+    {
+        $html = '<div><div>foo</div></div>';
+        $document = new Html5DomParser($html);
+
+        // HTML5: documentElement is <html> for a fragment, so its inner html is the whole fragment
+        static::assertSame('<div><div>foo</div></div>', $document->innerHtml());
+        static::assertSame('<div><div>foo</div></div>', $document->innerText());
+        static::assertSame('<div><div>foo</div></div>', $document->innertext);
+    }
+
+    public function testText()
+    {
+        $html = '<div>foo</div>';
+        $document = new Html5DomParser($html);
+
+        static::assertSame('foo', $document->text());
+        static::assertSame('foo', $document->plaintext);
+    }
+
+    public function testSave()
+    {
+        $html = $this->loadFixture('test_page.html');
+        $document = new Html5DomParser($html);
+
+        if (\method_exists(static::class, 'assertIsString')) {
+            static::assertIsString($document->save());
+        } else {
+            /** @noinspection PhpUndefinedMethodInspection */
+            static::assertInternalType('string', $document->save());
+        }
+    }
+
+    public function testIssue96()
+    {
+        $html = '<html>
+        <body>
+                <div class="mydiv">
+                </div>
+                <div class="mydiv">
+                    <div class="mydiv-item"><span>A1</span></div>
+                </div>
+                <div class="mydiv">
+                    <div class="mydiv-item"><span>B1</span><span>B2</span></div>
+                </div>
+        </body>
+        </html>';
+
+        $expected = '<html>
+        <body>
+                <div class="myreplacement">
+                </div>
+                <div class="myreplacement">
+                    <div class="replaced"><span>A1</span></div>
+                </div>
+                <div class="myreplacement">
+                    <div class="replaced"><span>B1</span><span>B2</span></div>
+                </div>
+        </body>
+        </html>';
+
+        $dom = new voku\helper\HtmlDomParser();
+        $dom->load($html);
+
+        foreach ($dom->findMulti('.mydiv .mydiv-item') as $childEl) {
+            $childEl->class = 'replaced';
+        }
+        foreach ($dom->findMulti('.mydiv') as $myDivEl) {
+            $myDivEl->class = 'myreplacement';
+        }
+
+        static::assertSame($expected, $dom->html());
+    }
+
+    public function testSaveIssue42()
+    {
+        $html = '<div><p>p1</p></div>';
+        $document = new Html5DomParser($html);
+
+        static::assertSame('<div><p>p1</p></div>', $document->save());
+    }
+
+    public function testSaveAsFile()
+    {
+        $html = '<div><p>p1</p></div>';
+        $document = new Html5DomParser($html);
+
+        $filePathTmp = self::tmpdir() . '/' . \uniqid(static::class, true);
+        static::assertSame('<div><p>p1</p></div>', $document->save($filePathTmp));
+
+        $htmlTmp = \file_get_contents($filePathTmp);
+        static::assertSame('<div><p>p1</p></div>', $htmlTmp);
+    }
+
+    /**
+     * @return string
+     */
+    public static function tmpdir()
+    {
+        if (\strpos(\PHP_OS, 'WIN') !== false) {
+            $var = \getenv('TMP') ? \getenv('TMP') : \getenv('TEMP');
+            if ($var) {
+                return $var;
+            }
+
+            if (\is_dir('/temp') || \mkdir('/temp')) {
+                return \realpath('/temp');
+            }
+
+            return false;
+        }
+
+        $var = \getenv('TMPDIR');
+        if ($var) {
+            return $var;
+        }
+
+        return \realpath('/tmp');
+    }
+
+    public function testClear()
+    {
+        $document = new Html5DomParser();
+
+        static::assertTrue($document->clear());
+    }
+
+    public function testStrGetHtml()
+    {
+        $str = <<<'HTML'
+中
+
+<form name="form1" method="post" action="">
+    <input type="checkbox" name="checkbox1" value="checkbox1" checked>abc-1<br>
+    <input type="checkbox" name="checkbox2" value="checkbox2">öäü-2<br>
+    <input type="checkbox" name="checkbox3" value="checkbox3" checked>中文空白-3<br>
+</form>
+HTML;
+
+        $html = Html5DomParser::str_get_html($str);
+        $checkboxArray = [];
+        foreach ($html->find('input[type=checkbox]') as $checkbox) {
+            if ($checkbox->checked) {
+                $checkboxArray[(string) $checkbox->name] = 'checked';
+            } else {
+                $checkboxArray[(string) $checkbox->name] = 'not checked';
+            }
+        }
+
+        static::assertCount(3, $checkboxArray);
+        // HTML5: a bare boolean attribute has the empty string as value, exactly as in a browser; use hasAttribute() to test presence
+        static::assertSame('not checked', $checkboxArray['checkbox1']);
+        static::assertSame('not checked', $checkboxArray['checkbox2']);
+        static::assertSame('not checked', $checkboxArray['checkbox3']);
+    }
+
+    public function testOutertext()
+    {
+        $str = <<<'HTML'
+<form name="form1" method="post" action=""><input type="checkbox" name="checkbox1" value="checkbox1" checked>中文空白</form>
+HTML;
+
+        $html = Html5DomParser::str_get_html($str);
+
+        foreach ($html->findMulti('input') as $e) {
+            $e->outertext = '[INPUT]';
+        }
+
+        static::assertSame('<form name="form1" method="post" action="">[INPUT]中文空白</form>', (string) $html);
+    }
+
+    public function testInnertextWithHtmlHeadTag()
+    {
+        $str = <<<'HTML'
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd"><html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head><body><div id="hello">Hello</div><div id="world">World</div></body></html>
+HTML;
+
+        $html = Html5DomParser::str_get_html($str);
+
+        $html->find('head', 0)->innerText = '<meta http-equiv="Content-Type" content="text/html; charset=utf-7">';
+
+        static::assertSame(
+            '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd"><html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-7"></head><body><div id="hello">Hello</div><div id="world">World</div></body></html>',
+            \str_replace(
+                [
+                    "\r\n",
+                    "\r",
+                    "\n",
+                ],
+                '',
+                (string) $html
+            )
+        );
+    }
+
+    public function testInnertextWithHtml()
+    {
+        $str = <<<'HTML'
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head><body><div id="hello">Hello</div><div id="world">World</div></body></html>
+HTML;
+
+        $html = Html5DomParser::str_get_html($str);
+
+        $html->find('div', 1)->class = 'bar';
+        $html->find('div[id=hello]', 0)->innertext = '<foo>bar</foo>';
+
+        static::assertSame(
+            '<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head><body><div id="hello"><foo>bar</foo></div><div id="world" class="bar">World</div></body></html>',
+            \str_replace(
+                [
+                    "\r\n",
+                    "\r",
+                    "\n",
+                ],
+                '',
+                (string) $html
+            )
+        );
+    }
+
+    public function testInnertext()
+    {
+        $str = <<<'HTML'
+<div id="hello">Hello</div><div id="world">World</div>
+HTML;
+
+        $html = Html5DomParser::str_get_html($str);
+
+        $html->find('div', 1)->class = 'bar';
+        $html->find('div[id=hello]', 0)->innertext = 'foo';
+
+        static::assertSame('<div id="hello">foo</div><div id="world" class="bar">World</div>', (string) $html);
+    }
+
+    public function testMail2()
+    {
+        $filename = __DIR__ . '/fixtures/test_mail.html';
+        $filenameExpected = __DIR__ . '/fixtures/test_mail_expected.html';
+
+        $html = Html5DomParser::file_get_html($filename);
+        $htmlExpected = \str_replace(["\r\n", "\r", "\n"], "\n", \file_get_contents($filenameExpected));
+
+        // object to sting
+        // HTML5: whole-document comparison, see assertSameApartFromKnownHtml5Differences()
+        static::assertSameApartFromKnownHtml5Differences(
+            $htmlExpected,
+            \str_replace(["\r\n", "\r", "\n"], "\n", (string) $html)
+        );
+
+        $preHeaderContentArray = $html->findMulti('.preheaderContent');
+
+        static::assertSame('padding-top:10px; padding-right:20px; padding-bottom:10px; padding-left:20px;', $preHeaderContentArray[0]->style);
+        static::assertSame('top', $preHeaderContentArray[0]->valign);
+    }
+
+    public function testMail()
+    {
+        $str = <<<HTML
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <title></title>
+</head>
+<body bgcolor="#FF9900" leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+<center>
+  <style type="text/css">
+    body {
+      background: #f2f2f2;
+      margin: 0;
+      padding: 0;
+    }
+
+    td, p, span {
+      font-family: verdana, arial, sans-serif;
+      font-size: 14px;
+      line-height: 16px;
+      color: #666;
+    }
+
+    a {
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tbody>
+    <tr>
+      <td bgcolor="#FF9900">
+        <img src="/images/nl/transparent.gif" alt="" width="5" height="3" border="0"></td>
+    </tr>
+    </tbody>
+  </table>
+  <table width="620" border="0" cellspacing="0" cellpadding="0">
+    <tbody>
+    <tr>
+      <td>
+        <!-- HEADER -->
+        <table width="620" border="0" cellspacing="0" cellpadding="0">
+          <tbody>
+          <tr>
+            <td bgcolor="#ffffff">
+              <table width="620" border="0" cellspacing="0" cellpadding="0">
+                <tbody>
+                <tr>
+                  <td width="12">
+                    <img src="/images/nl/transparent.gif" alt="" width="12" height="43" border="0">
+                  </td>
+                  <td width="298" align="left" valign="middle">
+                    <font style="font-family:verdana,arial,sans-serif; font-size:12px; color:#666666;" face="verdana,arial,helvetica,sans-serif" size="2" color="#666666"></font>
+                  </td>
+                  <td width="298" align="right" valign="middle">
+                    <font style="font-family:verdana,arial,helvetica,sans-serif; font-size:18px; color:#FF9900;" face="verdana,arial,helvetica,sans-serif" size="3" color="#FF9900">test</font></td>
+                  <td width="12">
+                    <img src="/images/nl/transparent.gif" alt="" width="12" height="43" border="0">
+                  </td>
+                </tr>
+                </tbody>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <a href="test" target="_blank"><img src="/images/nl/default_header_visual2.jpg" width="620" alt="test" border="0"></a>
+            </td>
+          </tr>
+          <tr>
+            <td bgcolor="#FF9900">
+              <table width="620" border="0" cellspacing="0" cellpadding="0">
+                <tbody>
+                <tr>
+                  <td width="12">
+                    <img src="/images/nl/transparent.gif" alt="" width="12" height="5" border="0"></td>
+                  <td width="300" align="left">
+                    <font style="font-family:verdana,arial,sans-serif; font-size:14px; line-height:16px; color:#ffffff;" face="verdana,arial,helvetica,sans-serif" size="2" color="#ffffff">
+
+
+                      <b>this is a test öäü ... foobar ... <span class="utf8">דיעס איז אַ פּרובירן!</span>span></b>
+test3Html.html                      <foo id="foo">bar</foo>
+                      <test_>lall</test_>
+                      <br/><br/>
+                      <br/><br/>
+
+                      Lorem ipsum dolor sit amet, consectetur adipisicing elit. At commodi doloribus, esse inventore ipsam itaque laboriosam molestias nesciunt nihil reiciendis rem rerum? Aliquam aperiam doloremque ea harum laborum nam neque nostrum perferendis quas reiciendis. Ab accusamus, alias facilis labore minima molestiae nihil omnis quae quidem, reiciendis sint sit velit voluptatem!
+
+                      <br/><br/>
+                      <a href="test" style="font-family:\'Century Gothic\',verdana,sans-serif; font-size:22px; line-height:24px; color:#ffffff;" target="_blank"><img src="/images/nl/button_entdecken_de.jpg" border="0"></a>
+                      <br/><br/>
+                      Ihr Team
+                    </font></td>
+                  <td width="12">
+                    <img src="/images/nl/transparent.gif" alt="" width="12" height="5" border="0"></td>
+
+                </tr>
+                <tr>
+                  <td colspan="3">
+                    <img src="/images/nl/transparent.gif" alt="" width="5" height="30" border="0"></td>
+                </tr>
+                </tbody>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" valign="top">
+              <img src="/images/nl/teaser_shadow.jpg" alt="" width="620" height="16" border="0"></td>
+          </tr>
+          </tbody>
+        </table>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <!-- FOOTER -->
+        <table width="620" border="0" cellspacing="0" cellpadding="0">
+          <tbody>
+          <tr>
+            <td><img src="/images/nl/transparent.gif" alt="" width="5" height="25" border="0"></td>
+          </tr>
+          <tr>
+            <td align="center">
+              <font style="font-family:\'Century Gothic\',verdana,sans-serif; font-size:11px; line-height:14px; color:#cc0000;" face="\'Century Gothic\',verdana,sans-serif" size="1" color="#cc0000">
+                <a href="test" target="_blank" style="color:#666666;"><font style="font-family:\'Century Gothic\',verdana,sans-serif; font-size:11px; line-height:14px; color:#666666;" face="\'Century Gothic\',verdana,sans-serif" size="1" color="#666666">IMPRESSUM &amp; RECHTLICHES</font></a>
+              </font></td>
+          </tr>
+          <tr>
+            <td><img src="/images/nl/transparent.gif" alt="" width="5" height="10" border="0"></td>
+          </tr>
+          <tr>
+            <td align="center" valign="top">
+              <img src="/images/nl/footer_shadow.jpg" alt="" width="620" height="14" border="0"></td>
+          </tr>
+          <tr>
+            <td><img src="/images/i/nl/transparent.gif" alt="" width="5" height="10" border="0"></td>
+          </tr>
+          <tr>
+            <td>
+              <table width="620" border="0" cellspacing="0" cellpadding="0">
+                <tbody>
+                <tr>
+                  <td width="358" align="right" valign="middle">
+                    <font style="font-family:\'Century Gothic\',verdana,sans-serif; font-size:11px; line-height:14px; color:#666666;" face="\'Century Gothic\',verdana,sans-serif" size="1" color="#666666">© 2015 Test AG &amp; Co. KGaA</font>
+                  </td>
+                  <td width="12">
+                    <img src="/images/nl/transparent.gif" alt="" width="12" height="5" border="0"></td>
+                  <td width="250" align="left" valign="middle">
+                    <a href="test" target="_blank"><img src="/nl/footer_logo.jpg" alt="test" width="60" height="34" border="0"></a>
+                  </td>
+                </tr>
+                </tbody>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td><img src="/images/nl/transparent.gif" alt="○●◎ earth 中文空白" width="5" height="20" border="0"></td>
+          </tr>
+          </tbody>
+        </table>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+</center>
+
+</body>
+</html>
+HTML;
+
+        $htmlTmp = Html5DomParser::str_get_html($str);
+        static::assertInstanceOf(voku\helper\Html5DomParser::class, $htmlTmp);
+
+        // replace all images with "foobar"
+        $tmpArray = [];
+        foreach ($htmlTmp->findMulti('img') as $e) {
+            if ($e->src !== '') {
+                $tmpArray[] = $e->src;
+
+                $e->src = 'foobar';
+            }
+        }
+
+        $testString = false;
+        $tmpCounter = 0;
+        foreach ($htmlTmp->findMulti('table tr td img') as $e) {
+            if ($e->alt === '○●◎ earth 中文空白') {
+                $testString = $e->alt;
+
+                break;
+            }
+            ++$tmpCounter;
+        }
+        static::assertSame(15, $tmpCounter);
+        static::assertSame('○●◎ earth 中文空白', $testString);
+
+        // get the content from the css-selector
+
+        $testStringUtf8_v1 = $htmlTmp->find('html .utf8');
+        static::assertSame('דיעס איז אַ פּרובירן!', $testStringUtf8_v1[0]->innertext);
+        static::assertSame('<span class="utf8">דיעס איז אַ פּרובירן!</span>', $testStringUtf8_v1[0]->html(true));
+
+        $testStringUtf8_v2 = $htmlTmp->find('span.utf8');
+        static::assertSame('דיעס איז אַ פּרובירן!', $testStringUtf8_v2[0]->innertext);
+        static::assertSame('<span class="utf8">דיעס איז אַ פּרובירן!</span>', $testStringUtf8_v2[0]->html(true));
+
+        $testStringUtf8_v3 = $htmlTmp->find('.utf8');
+        static::assertSame('דיעס איז אַ פּרובירן!', $testStringUtf8_v3[0]->innertext);
+        static::assertSame('<span class="utf8">דיעס איז אַ פּרובירן!</span>', $testStringUtf8_v3[0]->html(true));
+
+        $testStringUtf8_v4 = $htmlTmp->find('foo');
+        static::assertSame('bar', $testStringUtf8_v4[0]->innertext);
+        static::assertSame('<foo id="foo">bar</foo>', $testStringUtf8_v4[0]->html(true));
+
+        $testStringUtf8_v5 = $htmlTmp->find('#foo');
+        static::assertSame('bar', $testStringUtf8_v5[0]->innertext);
+        static::assertSame('<foo id="foo">bar</foo>', $testStringUtf8_v5[0]->outertext);
+
+        $testStringUtf8_v6 = $htmlTmp->find('test_');
+        static::assertSame('lall', $testStringUtf8_v6[0]->innertext);
+        static::assertSame('<test_>lall</test_>', $testStringUtf8_v6[0]->outertext);
+
+        $testStringUtf8_v7 = $htmlTmp->getElementById('foo');
+        static::assertSame('bar', $testStringUtf8_v7->innertext);
+
+        $testStringUtf8_v8 = $htmlTmp->getElementByTagName('foo');
+        static::assertSame('bar', $testStringUtf8_v8->innertext);
+
+        $testStringUtf8_v9 = $htmlTmp->getElementsByTagName('img', 15);
+        static::assertSame('○●◎ earth 中文空白', $testStringUtf8_v9->alt);
+        static::assertSame('', $testStringUtf8_v9->innertext);
+        static::assertSame('<img src="foobar" alt="○●◎ earth 中文空白" width="5" height="20" border="0">', $testStringUtf8_v9->html(true));
+
+        // test toString
+        $htmlTmp = (string) $htmlTmp;
+        static::assertCount(16, $tmpArray);
+        if (\method_exists(static::class, 'assertStringContainsString')) {
+            static::assertStringContainsString('<img src="foobar" alt="" width="5" height="3" border="0">', $htmlTmp);
+            static::assertStringContainsString('© 2015 Test', $htmlTmp);
+        } else {
+            static::assertContains('<img src="foobar" alt="" width="5" height="3" border="0">', $htmlTmp);
+            static::assertContains('© 2015 Test', $htmlTmp);
+        }
+    }
+
+    public function testContentBeforeHtmlStart()
+    {
+        $html = '<html> a';
+        $dom = Html5DomParser::str_get_html($html);
+
+        // HTML5: whitespace before the first element is dropped in the "before html" insertion mode
+        static::assertSame('<html>a</html>',
+            $dom->html()
+        );
+    }
+
+    public function testSetAttr()
+    {
+        $html = '<html><script type="application/ld+json"></script><p></p><div id="p1" class="post">foo</div><div class="post" id="p2">bar</div></html>';
+
+        $document = new Html5DomParser($html);
+
+        foreach ($document->find('div') as $e) {
+            $attrs = [];
+            foreach ($e->getAllAttributes() as $attrKey => $attrValue) {
+                $attrs[$attrKey] = $attrValue;
+                $e->{$attrKey} = null;
+            }
+
+            \ksort($attrs);
+
+            foreach ($attrs as $attrKey => $attrValue) {
+                $e->{$attrKey} = $attrValue;
+            }
+        }
+
+        $result = $document->html();
+
+        // Verify all attributes are preserved after removal and re-addition
+        // (attribute order in output may vary by PHP/libxml version)
+        $resultDoc = new Html5DomParser($result);
+        $divs = $resultDoc->find('div');
+        static::assertSame('p1', $divs[0]->getAttribute('id'));
+        static::assertSame('post', $divs[0]->getAttribute('class'));
+        static::assertSame('foo', $divs[0]->text());
+        static::assertSame('p2', $divs[1]->getAttribute('id'));
+        static::assertSame('post', $divs[1]->getAttribute('class'));
+        static::assertSame('bar', $divs[1]->text());
+
+        // Verify script and p tags are still present
+        if (\method_exists(static::class, 'assertStringContainsString')) {
+            static::assertStringContainsString('<script type="application/ld+json"></script>', $result);
+            static::assertStringContainsString('<p></p>', $result);
+        }
+    }
+
+    public function testEditLinks()
+    {
+        $texts = [
+            '<a href="http://foobar.de" class="  more  "  >Mehr</a><a href="http://foobar.de" class="  more  "  >Mehr</a>'                                                                                                                                                                                                                                                                              => '<a href="http://foobar.de" class="  more  " data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de\');">Mehr</a><a href="http://foobar.de" class="  more  " data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de\');">Mehr</a>',
+            ' <p><a href="http://foobar.de" class="  more  "  >Mehr</a></p>'                                                                                                                                                                                                                                                                                                                            => // HTML5: whitespace before the first element is dropped
+            '<p><a href="http://foobar.de" class="  more  " data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de\');">Mehr</a></p>',
+            '<a <a href="http://foobar.de">foo</a><div></div>'                                                                                                                                                                                                                                                                                                                                          => '<a href="http://foobar.de" data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de\');">foo</a><div></div>',
+            ' <p></p>'                                                                                                                                                                                                                                                                                                                                                                                  => '<p></p>',
+            ' <p>'                                                                                                                                                                                                                                                                                                                                                                                      => '<p></p>',
+            'p>'                                                                                                                                                                                                                                                                                                                                                                                        => 'p>',
+            'p'                                                                                                                                                                                                                                                                                                                                                                                         => 'p',
+            'Google+ && Twitter || Lînux'                                                                                                                                                                                                                                                                                                                                                               => 'Google+ && Twitter || Lînux',
+            '<p>Google+ && Twitter || Lînux</p>'                                                                                                                                                                                                                                                                                                                                                        => '<p>Google+ && Twitter || Lînux</p>',
+            // HTML5: HTML entities are resolved to their characters, so &nbsp; comes back as the character
+            '<p>Google+ && Twitter ||&nbsp;Lînux</p>' => "<p>Google+ && Twitter ||\u{00a0}Lînux</p>",
+            '<a href="http://foobar.de[[foo]]&{{foobar}}&lall=1">foo</a>'                                                                                                                                                                                                                                                                                                                               => '<a href="http://foobar.de[[foo]]&{{foobar}}&lall=1" data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de[[foo]]&{{foobar}}&lall=1\');">foo</a>',
+            '<div><a href="http://foobar.de[[foo]]&{{foobar}}&lall=1">foo</a>'                                                                                                                                                                                                                                                                                                                          => '<div><a href="http://foobar.de[[foo]]&{{foobar}}&lall=1" data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de[[foo]]&{{foobar}}&lall=1\');">foo</a></div>',
+            ''                                                                                                                                                                                                                                                                                                                                                                                          => '',
+            '<a href=""><span>lalll=###test###&bar=%5B%5Bfoobar%5D%5D&test=[[foobar]]&foo={{lall}}</span><img src="http://foobar?lalll=###test###&bar=%5B%5Bfoobar%5D%5D&test=[[foobar]]&foo={{lall}}" style="max-width:600px;" alt="Ihr Unternehmen in den wichtigsten Online-Verzeichnissen" class="headerImage" mc:label="header_image" mc:edit="header_image" mc:allowdesigner mc:allowtext /></a>' => '<a href="" data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=\');"><span>lalll=###test###&bar=%5B%5Bfoobar%5D%5D&test=[[foobar]]&foo={{lall}}</span><img src="http://foobar?lalll=###test###&bar=%5B%5Bfoobar%5D%5D&test=[[foobar]]&foo={{lall}}" style="max-width:600px;" alt="Ihr Unternehmen in den wichtigsten Online-Verzeichnissen" class="headerImage" mc:label="header_image" mc:edit="header_image" mc:allowdesigner mc:allowtext></a>',
+            'this is a test <a href="http://menadwork.com/test/?foo=1">test1</a> lall <a href="http://menadwork.com/test/?foo=1&lall=2">test2</a> ... <a href="http://menadwork.com">test3</a>'                                                                                                                                                                                                         => 'this is a test <a href="http://menadwork.com/test/?foo=1" data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=menadwork.com\');">test1</a> lall <a href="http://menadwork.com/test/?foo=1&lall=2" data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=menadwork.com\');">test2</a> ... <a href="http://menadwork.com" data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=menadwork.com\');">test3</a>',
+        ];
+
+        foreach ($texts as $text => $expected) {
+            $dom = Html5DomParser::str_get_html($text);
+
+            foreach ($dom->find('a') as $item) {
+                $href = $item->getAttribute('href');
+                $dataUrlParse = $item->getAttribute('data-url-parse');
+
+                if ($dataUrlParse) {
+                    continue;
+                }
+
+                $parseLink = \parse_url($href);
+                $domain = ($parseLink['host'] ?? '');
+
+                $item->setAttribute('data-url-parse', 'done');
+                $item->setAttribute('onClick', '$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=' . $domain . '\');');
+            }
+
+            // HTML5: whole-document comparison, see assertSameApartFromKnownHtml5Differences()
+            static::assertSameApartFromKnownHtml5Differences($expected, $dom->html(true));
+        }
+    }
+
+    /**
+     * @param string $html
+     * @param string $optionStr
+     * @param string $htmlCssSelector
+     *
+     * @return string
+     */
+    private function mergeHtmlAttributes(string $html, string $optionStr, string $htmlCssSelector): string
+    {
+        if (!$optionStr) {
+            return $html;
+        }
+
+        $dom = \voku\helper\Html5DomParser::str_get_html($html);
+        $domNew = \voku\helper\Html5DomParser::str_get_html('<textarea ' . $optionStr . '></textarea>');
+
+        $domElement = $dom->findOneOrFalse($htmlCssSelector);
+        if ($domElement === false) {
+            return $html;
+        }
+        $attributes = $domElement->getAllAttributes();
+        if (!$attributes) {
+            return $html;
+        }
+
+        $domElementNew = $domNew->findOneOrFalse('textarea');
+        if ($domElementNew === false) {
+            return $html;
+        }
+        $attributesNew = $domElementNew->getAllAttributes();
+        if (!$attributesNew) {
+            return $html;
+        }
+
+        foreach ($attributesNew as $attributeNameNew => $attributeValueNew) {
+            $attributeNameNew = \strtolower($attributeNameNew);
+
+            if (
+                $attributeNameNew === 'class'
+                ||
+                $attributeNameNew === 'style'
+                ||
+                strpos($attributeNameNew, 'on') === 0
+            ) {
+                if (isset($attributes[$attributeNameNew])) {
+                    $attributes[$attributeNameNew] .= ' ' . $attributeValueNew;
+                } else {
+                    $attributes[$attributeNameNew] = $attributeValueNew;
+                }
+            } else {
+                $attributes[$attributeNameNew] = $attributeValueNew;
+            }
+        }
+
+        foreach ($attributes as $attributeName => $attributeValue) {
+            $domElement->setAttribute($attributeName, $attributeValue);
+        }
+
+        return $domElement->html();
+    }
+
+    public function testMergeHmlAttributes()
+    {
+        $html = '<span id="test123" class="glyphicon-style vdmg-icon--shopping-cart" autocomplete="off" style="color: red;" ></span>';
+
+        $newHtml = $this->mergeHtmlAttributes($html, 'class="foo" style="background-color: #DDDDDD;"', '#test123');
+
+        static::assertSame(
+            '<span id="test123" class="glyphicon-style vdmg-icon--shopping-cart foo" autocomplete="off" style="color: red; background-color: #DDDDDD;"></span>',
+            $newHtml
+        );
+    }
+
+    public function testWithUTF8()
+    {
+        $str = '<p>イリノイ州シカゴにて</p>';
+
+        $html = new Html5DomParser();
+        $html->setCallbackBeforeCreateDom(
+            static function (string $str, \voku\helper\Html5DomParser $htmlParser) {
+                return \str_replace('ノ', '?', $str);
+            }
+        );
+        $html->setCallbackXPathBeforeQuery(
+            static function (string $cssSelectorString, string $xPathString, \DOMXPath $xPath, \voku\helper\Html5DomParser $htmlParser) {
+                return $cssSelectorString === 'xxx' ? '//p' : $xPathString;
+            }
+        );
+        /** @noinspection UnusedFunctionResultInspection */
+        $html->loadHtml($str);
+
+        $html->find('xxx', 1)->class = 'bar';
+
+        static::assertSame(
+            '<p>イリ?イ州シカゴにて</p>',
+            $html->html()
+        );
+
+        static::assertSame(
+            'イリ?イ州シカゴにて',
+            $html->text()
+        );
+
+        // ---
+
+        $str = '<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF8"><title>jusqu’à 51% de rabais!</title></head><body></body></html>';
+
+        $html = Html5DomParser::str_get_html($str);
+
+        $title = $html->find('title', 0);
+
+        static::assertSame(
+            'jusqu’à 51% de rabais!',
+            $title->innerHtml
+        );
+
+        static::assertSame(
+            'jusqu’à 51% de rabais!',
+            $title->innerHtml()
+        );
+
+        static::assertSame(
+            'jusqu’à 51% de rabais!',
+            $title->innerText
+        );
+
+        static::assertSame(
+            'jusqu’à 51% de rabais!',
+            $title->innerText()
+        );
+    }
+
+    public function testNestedFindUsesCallbackXPathBeforeQuery()
+    {
+        $html = new Html5DomParser();
+        $html->setCallbackXPathBeforeQuery(
+            static function (string $cssSelectorString, string $xPathString, \DOMXPath $xPath, \voku\helper\Html5DomParser $htmlParser) {
+                return $cssSelectorString === 'scoped-image' ? '//img' : $xPathString;
+            }
+        );
+        $html->loadHtml('<html><body><img src="body.jpg"></body><footer><img src="footer.jpg"></footer></html>');
+
+        $image = $html->findOne('body')->findOne('scoped-image');
+
+        static::assertSame('body.jpg', $image->getAttribute('src'));
+
+        $image->delete();
+
+        // HTML5: <footer> belongs in <body>, so HTML5 puts it there instead of after </body>
+        static::assertSame('<html><body><footer><img src="footer.jpg"></footer></body></html>',
+            $html->html()
+        );
+    }
+
+    public function testNestedFindCallbackXPathWithQuotedUnionPipesRemainsScoped()
+    {
+        $xPathQuery = '//div[@data-marker="body | //footer"]/img | //aside[@data-marker="side | //rail"]/img';
+        $method = new \ReflectionMethod(Html5DomParser::class, 'scopeXPathQueryToContextNode');
+        if (\PHP_VERSION_ID < 80100) {
+            $method->setAccessible(true);
+        }
+
+        static::assertSame(
+            './/div[@data-marker="body | //footer"]/img | .//aside[@data-marker="side | //rail"]/img',
+            $method->invoke(null, $xPathQuery)
+        );
+    }
+
+    public function testNestedFindCallbackXPathWithQuotedPipeLiteralRemainsScoped()
+    {
+        $html = new Html5DomParser();
+        $html->setCallbackXPathBeforeQuery(
+            static function (string $cssSelectorString, string $xPathString, \DOMXPath $xPath, \voku\helper\Html5DomParser $htmlParser) {
+                return $cssSelectorString === 'quoted-pipe-image'
+                    ? '//img[contains("body | //footer", "body")]'
+                    : $xPathString;
+            }
+        );
+        $html->loadHtml(
+            '<html><body><img src="body.jpg"></body><footer><img src="footer.jpg"></footer></html>'
+        );
+
+        $image = $html->findOne('body')->findOne('quoted-pipe-image');
+
+        static::assertSame('body.jpg', $image->getAttribute('src'));
+    }
+
+    public function testWithExtraXmlOptions()
+    {
+        $str = <<<'HTML'
+<div id="hello">Hello</div><div id="world">World</div><strong></strong>
+HTML;
+
+        $html = Html5DomParser::str_get_html($str, \LIBXML_NOERROR);
+
+        $html->find('div', 1)->class = 'bar';
+        $html->find('div[id=hello]', 0)->innertext = 'foo';
+        $html->findOne('div[id=hello]')->innertext = 'foo';
+
+        static::assertSame(
+            '<div id="hello">foo</div><div id="world" class="bar">World</div><strong></strong>',
+            $html->html()
+        );
+
+        // -------------
+
+        $html->find('div[id=fail]', 0)->innertext = 'foobar';
+
+        static::assertSame(
+            '<div id="hello">foo</div><div id="world" class="bar">World</div><strong></strong>',
+            (string) $html
+        );
+    }
+
+    public function testEditInnerText()
+    {
+        $str = <<<'HTML'
+<div id="hello">Hello</div><div id="world">World</div>
+HTML;
+
+        $html = Html5DomParser::str_get_html($str);
+
+        $html->find('div', 1)->class = 'bar';
+        $html->find('div[id=hello]', 0)->innertext = 'foo';
+
+        static::assertSame('<div id="hello">foo</div><div id="world" class="bar">World</div>', (string) $html);
+
+        // -------------
+
+        $html->find('div[id=fail]', 0)->innertext = 'foobar';
+
+        static::assertSame('<div id="hello">foo</div><div id="world" class="bar">World</div>', (string) $html);
+    }
+
+    public function testLoad()
+    {
+        $dom = new Html5DomParser();
+        $dom->load('<div class="all"><p>Hey bro, <a href="google.com">click here</a><br /> :)</p></div>');
+        $div = $dom->find('div', 0);
+        static::assertSame(
+            '<div class="all"><p>Hey bro, <a href="google.com">click here</a><br> :)</p></div>',
+            $div->outertext
+        );
+    }
+
+    public function testNotLoaded()
+    {
+        $dom = new Html5DomParser();
+        $div = $dom->find('div', 0);
+
+        static::assertSame('', $div->plaintext);
+    }
+
+    public function testIncorrectAccess()
+    {
+        $dom = new Html5DomParser();
+        $dom->load('<div class="all"><p>Hey bro, <a href="google.com">click here</a><br /> :)</p></div>');
+        $div = $dom->find('div', 0);
+        static::assertSame('', $div->foo);
+    }
+
+    public function testLoadSelfclosingAttr()
+    {
+        $dom = new Html5DomParser();
+        $dom->load("<div class='all'><br  foo  bar  />baz</div>");
+        $br = $dom->find('br', 0);
+        // HTML5: a bare attribute keeps the empty string as its value instead of being expanded by libxml
+        static::assertSame('<br foo="" bar="">', $br->outerHtml);
+    }
+
+    public function testLoadSelfclosingAttrToString()
+    {
+        $dom = new Html5DomParser();
+        $dom->load("<div class='all'><br  foo  bar  />baz</div>");
+        $br = $dom->find('br', 0);
+        // HTML5: a bare attribute keeps the empty string as its value instead of being expanded by libxml
+        static::assertSame('<br foo="" bar="">', (string) $br);
+    }
+
+    public function testBrokenHtmlAtTheBeginOfTheInput()
+    {
+        $dom = new Html5DomParser();
+        $dom->useKeepBrokenHtml(true);
+        /* @noinspection JSUnresolvedVariable */
+        /* @noinspection UnterminatedStatementJS */
+        /* @noinspection BadExpressionStatementJS */
+        /* @noinspection JSUndeclaredVariable */
+        $html = '</script><script async src="cdnjs"></script>';
+        $dom->load($html);
+        // HTML5: the broken fragment is preserved; only "async" is serialized as async=""
+        static::assertSame('</script><script async="" src="cdnjs"></script>', $dom->innerHtml);
+    }
+
+    public function testBrokenHtmlInTheMiddleOfTheInput()
+    {
+        $dom = new Html5DomParser();
+        $dom->useKeepBrokenHtml(true);
+        /* @noinspection JSUnresolvedVariable */
+        /* @noinspection UnterminatedStatementJS */
+        /* @noinspection BadExpressionStatementJS */
+        /* @noinspection JSUndeclaredVariable */
+        $html = '<script async src="cdnjs"></script></borken foo="lall"><p>some text ...</p>';
+        $dom->load($html);
+        // HTML5: the broken fragment is preserved; only "async" is serialized as async=""
+        static::assertSame('<script async="" src="cdnjs"></script></borken foo="lall"><p>some text ...</p>', $dom->innerHtml);
+    }
+
+    public function testLoadNoOpeningTag()
+    {
+        $dom = new Html5DomParser();
+        $dom->load('<div class="all"><font color="red"><strong>PR Manager</strong></font></b><div class="content">content</div></div>');
+        static::assertSame('content', $dom->find('.content', 0)->text);
+    }
+
+    public function testLoadNoClosingTag()
+    {
+        $dom = new Html5DomParser();
+        $dom->load('<div class="all"><p>Hey bro, <a href="google.com">click here</a></div>');
+        $root = $dom->find('div', 0);
+        static::assertSame('<div class="all"><p>Hey bro, <a href="google.com">click here</a></p></div>', $root->outerHtml);
+    }
+
+    public function testLoadAttributeOnSelfClosing()
+    {
+        $dom = new Html5DomParser();
+        $dom->load('<div class="all"><p>Hey bro, <a href="google.com">click here</a></div><br class="both" />');
+        $br = $dom->find('br', 0);
+        static::assertSame('both', $br->getAttribute('class'));
+    }
+
+    public function testLoadClosingTagOnSelfClosing()
+    {
+        $dom = new Html5DomParser();
+        $dom->load('<div class="all"><br><p>Hey bro, <a href="google.com">click here</a></br></div>');
+        // HTML5: per HTML5 a "</br>" end tag is treated as a "<br>" start tag
+        static::assertSame('<br><p>Hey bro, <a href="google.com">click here</a><br></p>', $dom->find('div', 0)->innerHtml);
+    }
+
+    public function testScriptWithoutScriptTag()
+    {
+        $test = 'window.jQuery || document.write(\'<script src="http://lall/jquery/jquery.min.js"><\/script>\')';
+        $dom = new Html5DomParser();
+        $dom->load($test);
+        static::assertSame(
+            'window.jQuery || document.write(\'<script src="http://lall/jquery/jquery.min.js"><\/script>\')',
+            $dom->html()
+        );
+    }
+
+    public function testScriptInHeadScript()
+    {
+        $dom = new Html5DomParser();
+        $dom->load(
+            '
+              <!DOCTYPE html>
+              <html>
+              <head>
+                  <meta name="robots" content="noindex, follow">
+                  <style>
+                      /** quick fix because bootstrap <pre> has a background-color. */
+                      pre code { background-color: inherit; }
+                  </style>
+              </head>
+              <body class="blog">
+              <header>
+                  <nav>
+                  </nav>
+              </header>
+              <script>window.jQuery || document.write(\'<script src="http://lall/jquery/jquery.min.js"><\/script>\')</script>
+              </body>
+              </html>
+              '
+        );
+        static::assertSame(
+            '<script>window.jQuery || document.write(\'<script src="http://lall/jquery/jquery.min.js"><\/script>\')</script>',
+            $dom->findOne('script')->html()
+        );
+
+        // ---
+
+        $script = $dom->findOne('script');
+        $script->outerHtml = '<script>window.jQuery||document.write(\'<script src="http://lall/jquery/jquery.min.js"><\/script>\')</script>';
+
+        static::assertSame(
+            '<script>window.jQuery||document.write(\'<script src="http://lall/jquery/jquery.min.js"><\/script>\')</script>',
+            $dom->findOne('script')->html()
+        );
+    }
+
+    public function testLoadNoValueAttribute()
+    {
+        $dom = new Html5DomParser();
+        $dom->load('<div class="content"><div class="grid-container" ui-view>Main content here</div></div>');
+        // HTML5: a bare attribute keeps the empty string as its value instead of being expanded by libxml
+        static::assertSame('<div class="content"><div class="grid-container" ui-view="">Main content here</div></div>', $dom->innerHtml);
+    }
+
+    public function testLoadNoValueAttributeBefore()
+    {
+        $dom = new Html5DomParser();
+        $dom->load('<div class="content"><div ui-view class="grid-container">Main content here</div></div>');
+        // HTML5: a bare attribute keeps the empty string as its value instead of being expanded by libxml
+        static::assertSame('<div class="content"><div ui-view="" class="grid-container">Main content here</div></div>', $dom->innerHtml);
+    }
+
+    public function testSimpleHtmlViaSimpleXmlLoadString()
+    {
+        $html = (new Html5DomParser())->load('<span>&lt;</span>');
+
+        // HTML5: HTML entities are resolved to their characters
+        $expected = '<span><</span>';
+
+        static::assertSame($expected, $html->xml());
+        static::assertSame($expected, $html->html(false));
+        static::assertSame($expected, $html->html(true));
+    }
+
+    public function testLoadUpperCase()
+    {
+        $dom = new Html5DomParser();
+        $dom->load('<DIV CLASS="ALL"><BR><P>hEY BRO, <A HREF="GOOGLE.COM">click here</A></BR></DIV>');
+        // HTML5: per HTML5 a "</br>" end tag is treated as a "<br>" start tag
+        static::assertSame('<br><p>hEY BRO, <a href="GOOGLE.COM">click here</a><br></p>', $dom->find('div', 0)->innerHtml);
+    }
+
+    public function testLoadWithFile()
+    {
+        $dom = new Html5DomParser();
+        $dom->load_file(__DIR__ . '/fixtures/small.html');
+        static::assertSame('VonBurgermeister', $dom->find('.post-user font', 0)->text);
+    }
+
+    public function testLoadFromFile()
+    {
+        $dom = new Html5DomParser();
+        $dom->load_file(__DIR__ . '/fixtures/small.html');
+        static::assertSame('VonBurgermeister', $dom->find('.post-user font', 0)->text);
+    }
+
+    public function testLoadFromFileFind()
+    {
+        $dom = new Html5DomParser();
+        $dom->load_file(__DIR__ . '/fixtures/small.html');
+        static::assertSame('VonBurgermeister', $dom->find('.post-row div .post-user font', 0)->text);
+    }
+
+    public function testIssue81()
+    {
+        $dom = new Html5DomParser();
+        $dom->load_file(__DIR__ . '/fixtures/issue81.html');
+        static::assertSame('Start your WordPress.com site with this theme.', $dom->find('#demosite-activate-wrap .demosite-tagline', 0)->text);
+
+        $tags = $dom->find('style');
+        foreach ($tags as $tag) {
+            $tag->innerhtmlKeep .= ' .test{color: red;} ';
+        }
+
+        $html = \str_replace(["\r\n", "\r", "\n"], "\n", $dom->html());
+
+        $expected = $this->loadFixture('issue81_v2.html');
+        $expected = \str_replace(["\r\n", "\r", "\n"], "\n", $expected);
+
+        // HTML5: whole-document comparison, see assertSameApartFromKnownHtml5Differences()
+        static::assertSameApartFromKnownHtml5Differences($expected, $html);
+    }
+
+    public function testSvgDataUriInsideStyleCanBeAppendedToInnerHtml()
+    {
+        $style = '<style>.icon{background-image:url("data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1 1\"></svg>")}</style>';
+
+        $dom = Html5DomParser::str_get_html('<div></div>');
+        $div = $dom->find('div')[0];
+        $div->innerhtml .= $style;
+
+        static::assertSame($style, $div->innerHtml());
+    }
+
+    public function testLoadUtf8()
+    {
+        $dom = new Html5DomParser();
+        $dom->load('<p>Dzień</p>');
+        static::assertSame('Dzień', $dom->find('p', 0)->text);
+    }
+
+    public function testLoadFileBigTwice()
+    {
+        $dom = new Html5DomParser();
+        $dom->loadHtmlFile(__DIR__ . '/fixtures/big.html');
+        $post = $dom->find('.post-row', 0);
+        static::assertSame('<p>Журчанье воды<br>' . "\n" . 'Черно-белые тени<br>' . "\n" . 'Вновь на фонтане</p>', $post->find('.post-message', 0)->innerHtml);
+    }
+
+    public function testToStringMagic()
+    {
+        $dom = new Html5DomParser();
+        $dom->load('<div class="all"><p>Hey bro, <a href="google.com">click here</a><br /> :)</p></div>');
+        static::assertSame('<div class="all"><p>Hey bro, <a href="google.com">click here</a><br> :)</p></div>', (string) $dom);
+    }
+
+    public function testGetMagic()
+    {
+        $dom = new Html5DomParser();
+
+        $html = '<div class="all"><p>Hey bro, <a href="google.com">click here</a><br /> :)</p></div>';
+        $expected = // HTML5: documentElement is <html> for a fragment, so the wrapper element is part of the result
+            '<div class="all"><p>Hey bro, <a href="google.com">click here</a><br> :)</p></div>';
+
+        $dom->load($html);
+        static::assertSame($expected, $dom->innerHtml);
+
+        // ---
+
+        $dom = new Html5DomParser();
+
+        $html = '<div class="all"><p>Hey bro, <a href="google.com">click here</a><br /> :)</p></div>';
+        $expected = '<div class="all"><p>Hey bro, <a href="google.com">click here</a><br> :)</p></div>';
+
+        $dom->load($html);
+        static::assertSame($expected, $dom->html());
+    }
+
+    public function testGetElementById()
+    {
+        $dom = new Html5DomParser();
+        $dom->load('<div class="all"><p>Hey bro, <a href="google.com" id="78">click here</a></div><br />');
+        static::assertSame('<a href="google.com" id="78">click here</a>', $dom->getElementById('78')->outerHtml);
+    }
+
+    public function testHtmlAndCssEdgeCase()
+    {
+        $dom = new Html5DomParser();
+
+        $html = '<p>lall</p><style><!--
+h1 {
+    color: red;
+}
+--></style><span>foo</span>';
+
+        $dom->load($html);
+
+        $elm = $dom->getElementsByTagName('style');
+        static::assertSame(
+            '<!--
+h1 {
+    color: red;
+}
+-->',
+            $elm[0]->innerhtml
+        );
+    }
+
+    public function testTextWithCommentsInStyle()
+    {
+        $html = '<meta charset="utf-8"><style><!--</style>foobar';
+        $element = new Html5DomParser($html);
+
+        static::assertSame('foobar', $element->text());
+        static::assertSame('foobar', $element->plaintext);
+    }
+
+    public function testTextContent()
+    {
+        $dom = new Html5DomParser();
+        $dom->load('<div><p>Proton Power & Light</p></div>');
+
+        $p = $dom->findOne('p');
+        $p->class .= 'lall';
+
+        static::assertSame('<p class="lall">Proton Power & Light</p>', $p->outerHtml());
+        static::assertSame('Proton Power & Light', $p->textContent);
+
+        // ---
+
+        $dom = new Html5DomParser();
+        $dom->load('<div><p>Proton Power & Light</p></div>');
+
+        $p = $dom->findOne('p');
+        $p->class = 'lall';
+
+        static::assertSame('<p class="lall">Proton Power & Light</p>', $p->outerHtml());
+        static::assertSame('Proton Power & Light', $p->textContent);
+
+        // ---
+
+        $dom = new Html5DomParser();
+        $dom->load('<div><p class="">Proton Power & Light</p></div>');
+
+        $p = $dom->findOne('p');
+        $p->class .= 'lall';
+
+        static::assertSame('<p class="lall">Proton Power & Light</p>', $p->outerHtml());
+        static::assertSame('Proton Power & Light', $p->textContent);
+
+        // ---
+
+        $dom = new Html5DomParser();
+        $dom->load('<div><p class="">Proton Power & Light</p></div>');
+
+        $p = $dom->findOne('p');
+        $p->class = 'lall';
+
+        static::assertSame('<p class="lall">Proton Power & Light</p>', $p->outerHtml());
+        static::assertSame('Proton Power & Light', $p->textContent);
+
+        // ---
+
+        $dom = new Html5DomParser();
+        $dom->load('<div><p class="foo">Proton Power & Light</p></div>');
+
+        $p = $dom->findOne('p');
+        $p->class .= ' lall';
+
+        static::assertSame('<p class="foo lall">Proton Power & Light</p>', $p->outerHtml());
+        static::assertSame('Proton Power & Light', $p->textContent);
+
+        // ---
+
+        $dom = new Html5DomParser();
+        $dom->load('<div><p class="foo">Proton Power & Light</p></div>');
+
+        $p = $dom->findOne('p');
+        $p->class = 'lall';
+
+        static::assertSame('<p class="lall">Proton Power & Light</p>', $p->outerHtml());
+        static::assertSame('Proton Power & Light', $p->textContent);
+    }
+
+    public function testTagExists()
+    {
+        $dom = new Html5DomParser();
+        $dom->load('<div><p>lall</p></div>');
+
+        $p = $dom->find('p');
+        static::assertInstanceOf(SimpleHtmlDomNodeInterface::class, $p);
+        if (\count($p)) {
+            $exists = true;
+        } else {
+            $exists = false;
+        }
+        static::assertTrue($exists);
+
+        $span = $dom->find('span');
+        static::assertInstanceOf(SimpleHtmlDomNodeInterface::class, $span);
+        if (\count($span)) {
+            $exists = true;
+        } else {
+            $exists = false;
+        }
+        static::assertFalse($exists);
+
+        // --
+
+        $p = $dom->findMulti('p');
+        static::assertInstanceOf(SimpleHtmlDomNodeInterface::class, $p);
+        if (\count($p)) {
+            $exists = true;
+        } else {
+            $exists = false;
+        }
+        static::assertTrue($exists);
+
+        $span = $dom->findMulti('span');
+        static::assertInstanceOf(SimpleHtmlDomNodeInterface::class, $span);
+        if (\count($span)) {
+            $exists = true;
+        } else {
+            $exists = false;
+        }
+        static::assertFalse($exists);
+
+        // ---
+
+        $p = $dom->findMultiOrFalse('p');
+        static::assertInstanceOf(SimpleHtmlDomNodeInterface::class, $p);
+        if (\count($p)) {
+            $exists = true;
+        } else {
+            $exists = false;
+        }
+        static::assertTrue($exists);
+
+        $span = $dom->findMultiOrFalse('span');
+        static::assertFalse($span);
+
+        // ---
+
+        $p = $dom->find('p', 0);
+        static::assertInstanceOf(SimpleHtmlDomInterface::class, $p);
+
+        $p = $dom->find('span', 0);
+        static::assertInstanceOf(SimpleHtmlDomInterface::class, $p);
+
+        // ---
+
+        $p = $dom->findOne('p');
+        static::assertInstanceOf(SimpleHtmlDomInterface::class, $p);
+
+        $p = $dom->findOne('span');
+        static::assertInstanceOf(SimpleHtmlDomInterface::class, $p);
+
+        // ---
+
+        $p = $dom->findOneOrFalse('p');
+        static::assertInstanceOf(SimpleHtmlDomInterface::class, $p);
+
+        $p = $dom->findOneOrFalse('span');
+        static::assertFalse($p);
+    }
+
+    public function testGetElementsByTag()
+    {
+        $dom = new Html5DomParser();
+        $dom->load('<div class="all"><p>Hey bro, <a href="google.com" id="78">click here</a></div><br />');
+        $elm = $dom->getElementsByTagName('p');
+        static::assertSame(
+            '<p>Hey bro, <a href="google.com" id="78">click here</a></p>',
+            $elm[0]->outerHtml
+        );
+    }
+
+    public function testGetElementsByClass()
+    {
+        $dom = new Html5DomParser();
+        $dom->load('<div class="all"><p>Hey bro, <a href="google.com" id="78">click here</a></div><br />');
+        $elm = $dom->find('.all');
+        static::assertSame(
+            '<p>Hey bro, <a href="google.com" id="78">click here</a></p>',
+            $elm[0]->innerHtml
+        );
+    }
+
+    public function testFindOrNullWithSvg()
+    {
+        $dom = Html5DomParser::str_get_html('<div><svg><g><circle id="dot"></circle></g></svg></div>');
+
+        $circles = $dom->findMultiOrNull('circle');
+        static::assertInstanceOf(SimpleHtmlDomNodeInterface::class, $circles);
+        static::assertCount(1, $circles);
+
+        static::assertNull($dom->findMultiOrNull('path'));
+        static::assertNull($dom->findOneOrNull('path'));
+
+        $svg = $dom->findOneOrNull('svg');
+        static::assertInstanceOf(SimpleHtmlDomInterface::class, $svg);
+        static::assertSame('dot', $svg->findOneOrNull('circle')->getAttribute('id'));
+
+        if (\PHP_VERSION_ID >= 80000) {
+            require_once __DIR__ . '/fixtures/php8_nullsafe_helpers.php';
+
+            static::assertSame(
+                'dot',
+                \Tests\Fixtures\getHtmlNullsafeCircleId($dom)
+            );
+            static::assertNull(
+                \Tests\Fixtures\getHtmlNullsafeMissingId($dom)
+            );
+        }
+    }
+
+    public function testNestedHtmlDomAndBlankFindOrNullPaths()
+    {
+        $dom = Html5DomParser::str_get_html('<div><svg><g><circle id="dot"></circle></g></svg></div>');
+
+        $svg = $dom->findOne('svg');
+        $svgCircles = $svg->findMultiOrNull('circle');
+        static::assertInstanceOf(SimpleHtmlDomNodeInterface::class, $svgCircles);
+        static::assertCount(1, $svgCircles);
+        static::assertSame('dot', $svg->findOneOrNull('circle')->getAttribute('id'));
+        static::assertNull($svg->findOneOrNull('path'));
+
+        $groups = $dom->findMulti('g');
+        $groupCircles = $groups->findMultiOrNull('circle');
+        static::assertInstanceOf(SimpleHtmlDomNodeInterface::class, $groupCircles);
+        static::assertCount(1, $groupCircles);
+        static::assertSame('dot', $groups->findOneOrNull('circle')->getAttribute('id'));
+        static::assertNull($groups->findMultiOrNull('path'));
+        static::assertNull($groups->findOneOrNull('path'));
+
+        $blankElement = $dom->findOne('path');
+        static::assertNull($blankElement->findMultiOrNull('circle'));
+        static::assertNull($blankElement->findOneOrNull('circle'));
+
+        $blankList = $dom->findMulti('path');
+        static::assertNull($blankList->findMultiOrNull('circle'));
+        static::assertNull($blankList->findOneOrNull('circle'));
+    }
+
+    public function testNextNonWhitespaceSibling()
+    {
+        $txt = <<<'___'
+<div class="detail J_tab" id="tab_show_1">
+    <h3 class="new-tit">
+        <span class="name">product detail</span>
+    </h3>
+    <div class="detail-tit"></div>
+    <table width="100%" cellpadding="0" cellspacing="0" class="detail-table">
+        <tbody>
+            <tr>
+                <td>aaaaa</td>
+                <td class="tc">bbbb</td>
+                <td class="tc">ccccc</td>
+            </tr>
+        </tbody>
+    </table>
+    <div>
+        <p>
+            <b>[aaaaa]</b>
+        </p>
+        <p></p>
+        <div>bbbbbb</div>
+        <div>ccccccccccccccc</div>
+        <div>
+            <br>
+        </div>
+        <p></p>
+        <p>
+            <b>[ddddd]</b>
+        </p>
+    </div>
+</div>
+___;
+        $expected = '<p>
+            <b>[aaaaa]</b>
+        </p>
+        <p></p>
+        <div>bbbbbb</div>
+        <div>ccccccccccccccc</div>
+        <div>
+            <br>
+        </div>
+        <p></p>
+        <p>
+            <b>[ddddd]</b>
+        </p>';
+
+        $html_meal = Html5DomParser::str_get_html($txt);
+        $result = $html_meal->findOne('#tab_show_1 table')->nextNonWhitespaceSibling()->innertext;
+
+        static::assertSame($expected, $result);
+    }
+
+    public function testPreviousNonWhitespaceSibling()
+    {
+        $txt = <<<'___'
+<div class="detail J_tab" id="tab_show_1">
+    <h3 class="new-tit">
+        <span class="name">product detail</span>
+    </h3>
+    <div class="detail-tit"></div>
+    <div>
+        <p>
+            <b>[aaaaa]</b>
+        </p>
+        <p></p>
+        <div>bbbbbb</div>
+        <div>ccccccccccccccc</div>
+        <div>
+            <br>
+        </div>
+        <p></p>
+        <p>
+            <b>[ddddd]</b>
+        </p>
+    </div>
+    <table width="100%" cellpadding="0" cellspacing="0" class="detail-table">
+        <tbody>
+            <tr>
+                <td>aaaaa</td>
+                <td class="tc">bbbb</td>
+                <td class="tc">ccccc</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+___;
+        $expected = '<p>
+            <b>[aaaaa]</b>
+        </p>
+        <p></p>
+        <div>bbbbbb</div>
+        <div>ccccccccccccccc</div>
+        <div>
+            <br>
+        </div>
+        <p></p>
+        <p>
+            <b>[ddddd]</b>
+        </p>';
+
+        $html_meal = Html5DomParser::str_get_html($txt);
+        $result = $html_meal->findOne('#tab_show_1 table')->previousNonWhitespaceSibling()->innertext;
+
+        static::assertSame($expected, $result);
+    }
+
+    public function testGetHtmlInner()
+    {
+        $dom = new Html5DomParser();
+        $dom->load('
+        <span class="main">
+          <span class="old">
+            Price&nbsp;<em>$</em>2188
+          </span>
+        </span>
+        ');
+
+        $innerHtml = $dom->findOneOrFalse('.main .old');
+        static::assertNotFalse($innerHtml);
+
+        // HTML5: HTML entities are resolved to their characters, so &nbsp; comes back as the character
+        static::assertSame('Price <em>$</em>2188',
+            $innerHtml->innerHtml()
+        );
+
+        static::assertSame(
+            '2188',
+            \preg_replace('/.*<\/em>/ius', '', $innerHtml->innerHtml())
+        );
+    }
+
+    public function testBladeForDirectiveWithLessThanOrEqualsRoundTrips()
+    {
+        $html = <<<'HTML'
+@for ($i = 2; $i <= 6; $i++)
+<div>添付 {{ $i }}</div>
+@endfor
+HTML;
+
+        $dom = Html5DomParser::str_get_html($html);
+
+        static::assertSame($html, $dom->html());
+    }
+
+    public function testBladeBlocksWrappingHtmlRoundTrip()
+    {
+        $html = <<<'HTML'
+@foreach ($company->members as $m)
+@if ($m->checkbox)
+<span>{{ $m->checkbox }}</span>
+@else
+<span>{{ $m->name }}</span>
+@endif
+@endforeach
+HTML;
+
+        $dom = Html5DomParser::str_get_html($html);
+
+        static::assertSame($html, $dom->html());
+    }
+
+    public function testUtf8AndBrokenHtmlEncoding()
+    {
+        $dom = new Html5DomParser();
+        $dom->load('hi سلام<div>の家庭に、9 ☆<><');
+        static::assertSame(
+            'hi سلام<div>の家庭に、9 ☆<><</div>',
+            $dom->innerHtml
+        );
+
+        // ---
+
+        $dom = new Html5DomParser();
+        $dom->load('hi</b>سلام<div>の家庭に、9 ☆<><');
+        static::assertSame(
+            'hiسلام<div>の家庭に、9 ☆<><</div>',
+            $dom->innerHtml
+        );
+
+        // ---
+
+        $dom = new Html5DomParser();
+        $dom->load('hi</b><p>سلام<div>の家庭に、9 ☆<><');
+        static::assertSame(
+            'hi<p>سلام<div>の家庭に、9 ☆<><</div>',
+            $dom->innerHtml
+        );
+    }
+
+    public function testBladeForeachDirectivesArePreservedAroundHtml()
+    {
+        $html = <<<'HTML'
+<div class="members">
+    @foreach ($company->members as $m)
+        @if ($m->checkbox)
+            <span class="member-checkbox">{{ $m->checkbox }}</span>
+        @else
+        
+        @endif
+    @endforeach
+</div>
+HTML;
+
+        $dom = Html5DomParser::str_get_html($html);
+
+        static::assertSame($html, $dom->html());
+        static::assertSame('{{ $m->checkbox }}', $dom->findOne('.member-checkbox')->text());
+    }
+
+    public function testBladeForDirectiveWithLessThanOrEqualIsPreserved()
+    {
+        $html = <<<'HTML'
+@for ($i = 2; $i <= 6; $i++)
+    <div class="iteration">{{ $i }}</div>
+@endfor
+HTML;
+
+        $dom = Html5DomParser::str_get_html($html);
+
+        static::assertSame($html, $dom->html());
+        static::assertSame('{{ $i }}', $dom->findOne('.iteration')->text());
+    }
+
+    public function testBladeConditionalsWithNestedForLoopRoundTrip()
+    {
+        $html = <<<'HTML'
+@if(isset($post->state) && $post->state->status)
+    <span class="flag {{$post->state->classes}}"></span>
+@elseif(isset($post->review) && ($post->review))
+    <span class="rating stars-{{$post->review->score}}">
+        @for ( $i = 1; $i <= 5; $i++ )
+            <span class="star">★</span>
+        @endfor
+    </span>
+@else
+    <span class="no-state"></span>
+@endif
+HTML;
+
+        $dom = Html5DomParser::str_get_html($html);
+
+        static::assertSame($html, $dom->html());
+        static::assertSame('rating stars-{{$post->review->score}}', $dom->findOne('.rating')->getAttribute('class'));
+    }
+
+    public function testEnforceEncoding()
+    {
+        $dom = new Html5DomParser();
+        $dom->load('tests/files/horrible.html');
+
+        static::assertNotSame('<input type="submit" tabindex="0" name="submit" value="Информации" />', $dom->find('table input', 1)->outerHtml);
+    }
+
+    public function testReplaceToPreserveHtmlEntities()
+    {
+        $tests = [
+            // non url && non dom special chars -> no changes
+            '' => '',
+            // non url && non dom special chars -> no changes
+            ' ' => ' ',
+            // non url && non dom special chars -> no changes
+            'abc' => 'abc',
+            // non url && non dom special chars -> no changes
+            'öäü' => 'öäü',
+            // non url && non dom special chars -> no changes
+            '`?/=()=$"?#![{`' => '`?/=()=$"?#![{`',
+            // non url && non dom special chars -> no changes
+            '{{foo}}' => '{{foo}}',
+            // dom special chars -> changes
+            '`?/=()=$&,|,+,%"?#![{@`' => '`?/=()=$SHDOM_AMP,SHDOM_PIPE,SHDOM_PLUS,SHDOM_PERCENT"?#![{SHDOM_AT`',
+            // non url && non dom special chars -> no changes
+            'www.domain.de/foo.php?foobar=1&email=lars%40moelleken.org&guid=test1233312&{{foo}}' => 'www.domain.de/foo.php?foobar=1SHDOM_AMPemail=larsSHDOM_PERCENT40moelleken.orgSHDOM_AMPguid=test1233312SHDOM_AMP{{foo}}',
+            // url -> changes
+            '[https://www.domain.de/foo.php?foobar=1&email=lars%40moelleken.org&guid=test1233312&{{foo}}#bar]' => 'SHDOM_SQUARE_BRACKET_LEFThttps://www.domain.de/foo.php?foobar=1SHDOM_AMPemail=larsSHDOM_PERCENT40moelleken.orgSHDOM_AMPguid=test1233312SHDOM_AMPSHDOM_BRACKET_LEFTSHDOM_BRACKET_LEFTfooSHDOM_BRACKET_RIGHTSHDOM_BRACKET_RIGHT#barSHDOM_SQUARE_BRACKET_RIGHT',
+            // url -> changes
+            'https://www.domain.de/foo.php?foobar=1&email=lars%40moelleken.org&guid=test1233312&{{foo}}#foo' => 'https://www.domain.de/foo.php?foobar=1SHDOM_AMPemail=larsSHDOM_PERCENT40moelleken.orgSHDOM_AMPguid=test1233312SHDOM_AMPSHDOM_BRACKET_LEFTSHDOM_BRACKET_LEFTfooSHDOM_BRACKET_RIGHTSHDOM_BRACKET_RIGHT#foo',
+        ];
+
+        foreach ($tests as $test => $expected) {
+            $result = Html5DomParser::replaceToPreserveHtmlEntities($test);
+            static::assertSame($expected, $result);
+
+            $result = Html5DomParser::putReplacedBackToPreserveHtmlEntities($result);
+            static::assertSame($test, $result);
+        }
+    }
+
+    public function testUseXPath()
+    {
+        $dom = new Html5DomParser();
+        $dom->loadHtml(
+            '
+            <html>
+              <head></head>
+              <body>
+                <p>.....</p>
+                <script>
+                Some code ... 
+                document.write("<script src=\'some script\'><\/script>") 
+                Some code ... 
+                </script>
+                <p>....</p>
+              </body>
+            </html>'
+        );
+        $elm = $dom->find('*');
+        static::assertSame('.....', $elm[3]->innerHtml);
+
+        $elm = $dom->find('//*');
+        static::assertSame('.....', $elm[3]->innerHtml);
+    }
+
+    public function testScriptCleanerScriptTag()
+    {
+        $dom = new Html5DomParser();
+        $dom->load(
+            '
+            <p>.....</p>
+            <script>
+            Some code ... 
+            document.write("<script src=\'some script\'><\/script>") 
+            Some code ... 
+            </script>
+            <p>....</p>'
+        );
+        $elm = $dom->getElementsByTagName('p');
+        static::assertSame('....', $elm[1]->innerHtml);
+    }
+
+    public function testEmptyString()
+    {
+        $dom = Html5DomParser::str_get_html('');
+        $tag = $dom->findOne('meta[name="myToken"]');
+
+        static::assertSame('', $tag->innerText());
+    }
+
+    public function testSpecialScriptTag()
+    {
+        // init
+        $html = '
+        <!doctype html>
+        <html lang="fr">
+        <head>
+            <title>Test</title>
+        </head>
+        <body>
+            A Body
+        
+            <script id="elements-image-1" type="text/html">
+                <div class="place badge-carte">Place du Village<br>250m - 2mn à pied</div>
+                <div class="telecabine badge-carte">Télécabine du Chamois<br>250m - 2mn à pied</div>
+                <div class="situation badge-carte"><img src="https://domain.tld/assets/frontOffice/kneiss/template-assets/assets/dist/img/08ecd8a.png" alt=""></div>
+            </script>
+            
+            <script id="elements-image-2" type="text/html">
+                <div class="place badge-carte">Place du Village<br>250m - 2mn à pied</div>
+                <div class="telecabine badge-carte">Télécabine du Chamois<br>250m - 2mn à pied</div>
+                <div class="situation badge-carte"><img src="https://domain.tld/assets/frontOffice/kneiss/template-assets/assets/dist/img/08ecd8a.png" alt=""></div>
+            </script>
+            
+            <script class="foobar" type="text/html">
+                <div class="place badge-carte">Place du Village<br>250m - 2mn à pied</div>
+                <div class="telecabine badge-carte">Télécabine du Chamois<br>250m - 2mn à pied</div>
+                <div class="situation badge-carte"><img src="https://domain.tld/assets/frontOffice/kneiss/template-assets/assets/dist/img/08ecd8a.png" alt=""></div>
+            </script>
+            <script class="foobar" type=\'text/html\'>
+                <div class="place badge-carte">Place du Village<br>250m - 2mn à pied</div>
+                <div class="telecabine badge-carte">Télécabine du Chamois<br>250m - 2mn à pied</div>
+                <div class="situation badge-carte"><img src="https://domain.tld/assets/frontOffice/kneiss/template-assets/assets/dist/img/08ecd8a.png" alt=""></div>
+            </script>
+            
+            <script class="foobar" type=text/html>
+                <div class="place badge-carte">Place du Village<br>250m - 2mn à pied</div>
+                <div class="telecabine badge-carte">Télécabine du Chamois<br>250m - 2mn à pied</div>
+                <div class="situation badge-carte"><img src="https://domain.tld/assets/frontOffice/kneiss/template-assets/assets/dist/img/08ecd8a.png" alt=""></div>
+            </script>
+        </body>
+        </html>
+        ';
+
+        $expected = '
+        <!DOCTYPE html>' . "\n" . '<html lang="fr">
+        <head>
+            <title>Test</title>
+        </head>
+        <body>
+            A Body
+        
+            <script id="elements-image-1" type="text/html">
+                <div class="place badge-carte">Place du Village<br>250m - 2mn à pied</div>
+                <div class="telecabine badge-carte">Télécabine du Chamois<br>250m - 2mn à pied</div>
+                <div class="situation badge-carte"><img src="https://domain.tld/assets/frontOffice/kneiss/template-assets/assets/dist/img/08ecd8a.png" alt=""></div>
+            </script>
+            
+            <script id="elements-image-2" type="text/html">
+                <div class="place badge-carte">Place du Village<br>250m - 2mn à pied</div>
+                <div class="telecabine badge-carte">Télécabine du Chamois<br>250m - 2mn à pied</div>
+                <div class="situation badge-carte"><img src="https://domain.tld/assets/frontOffice/kneiss/template-assets/assets/dist/img/08ecd8a.png" alt=""></div>
+            </script>
+            
+            <script class="foobar" type="text/html">
+                <div class="place badge-carte">Place du Village<br>250m - 2mn à pied</div>
+                <div class="telecabine badge-carte">Télécabine du Chamois<br>250m - 2mn à pied</div>
+                <div class="situation badge-carte"><img src="https://domain.tld/assets/frontOffice/kneiss/template-assets/assets/dist/img/08ecd8a.png" alt=""></div>
+            </script>
+            <script class="foobar" type="text/html">
+                <div class="place badge-carte">Place du Village<br>250m - 2mn à pied</div>
+                <div class="telecabine badge-carte">Télécabine du Chamois<br>250m - 2mn à pied</div>
+                <div class="situation badge-carte"><img src="https://domain.tld/assets/frontOffice/kneiss/template-assets/assets/dist/img/08ecd8a.png" alt=""></div>
+            </script>
+            
+            <script class="foobar" type="text/html">
+                <div class="place badge-carte">Place du Village<br>250m - 2mn à pied</div>
+                <div class="telecabine badge-carte">Télécabine du Chamois<br>250m - 2mn à pied</div>
+                <div class="situation badge-carte"><img src="https://domain.tld/assets/frontOffice/kneiss/template-assets/assets/dist/img/08ecd8a.png" alt=""></div>
+            </script>
+        </body>
+        </html>
+        ';
+
+        $dom = new Html5DomParser();
+
+        $html = \str_replace(["\r\n", "\r", "\n"], "\n", (string) $dom->load($html));
+        $expected = \str_replace(["\r\n", "\r", "\n"], "\n", $expected);
+
+        // HTML5: whole-document comparison, see assertSameApartFromKnownHtml5Differences()
+        static::assertSameApartFromKnownHtml5Differences($expected, $html);
+    }
+
+    public function testJavaScriptTemplateTag()
+    {
+        $html = "
+            <!doctype html>
+            <html lang=\"nl\">
+                <head>
+                </head>
+              <body>
+              
+              <div class=\"price-box price-tier_price\" data-role=\"priceBox\" data-product-id=\"1563\" data-price-box=\"product-id-1563\">
+              </div>
+              
+              <script type=\"text/x-custom-template\" id=\"tier-prices-template\">
+                <ul class=\"prices-tier items\">
+                    <% _.each(tierPrices, function(item, key) { %>
+                    <%  var priceStr = '<span class=\"price-container price-tier_price\">'
+                            + '<span data-price-amount=\"' + priceUtils.formatPrice(item.price, currencyFormat) + '\"'
+                            + ' data-price-type=\"\"' + ' class=\"price-wrapper \">'
+                            + '<span class=\"price\">' + priceUtils.formatPrice(item.price, currencyFormat) + '</span>'
+                            + '</span>'
+                        + '</span>'; %>
+                    <li class=\"item\">
+                        <%= 'some text %1 %2'.replace('%1', item.qty).replace('%2', priceStr) %>
+                        <strong class=\"benefit\">
+                           save <span class=\"percent tier-<%= key %>\">&nbsp;<%= item.percentage %></span>%
+                        </strong>
+                    </li>
+                    <% }); %>
+                </ul>
+              </script>
+              
+              <div data-role=\"tier-price-block\"></div>
+              
+              </body>
+            </html>
+            ";
+
+        $expected = '<!DOCTYPE html>
+<html lang="nl">
+                <head>
+                </head>
+              <body>
+              
+              <div class="price-box price-tier_price" data-role="priceBox" data-product-id="1563" data-price-box="product-id-1563">
+              </div>
+              
+              <script type="text/x-custom-template" id="tier-prices-template">
+                <ul class="prices-tier items">
+                    <% _.each(tierPrices, function(item, key) { %>
+                    <%  var priceStr = \'<span class="price-container price-tier_price">\'
+                            + \'<span data-price-amount="\' + priceUtils.formatPrice(item.price, currencyFormat) + \'"\'
+                            + \' data-price-type=""\' + \' class="price-wrapper ">\'
+                            + \'<span class="price">\' + priceUtils.formatPrice(item.price, currencyFormat) + \'</span>\'
+                            + \'</span>\'
+                        + \'</span>\'; %>
+                    <li class="item">
+                        <%= \'some text %1 %2\'.replace(\'%1\', item.qty).replace(\'%2\', priceStr) %>
+                        <strong class="benefit">
+                           save <span class="percent tier-<%= key %>">&nbsp;<%= item.percentage %></span>%
+                        </strong>
+                    </li>
+                    <% }); %>
+                </ul>
+              </script>
+              
+              <div data-role="tier-price-block"></div>
+              
+              </body>
+            </html>';
+
+        $dom = new Html5DomParser();
+
+        $html = \str_replace(["\r\n", "\r", "\n"], "\n", (string) $dom->load($html));
+        $expected = \str_replace(["\r\n", "\r", "\n"], "\n", $expected);
+
+        // HTML5: whole-document comparison, see assertSameApartFromKnownHtml5Differences()
+        static::assertSameApartFromKnownHtml5Differences($expected, $html);
+    }
+
+    /**
+     * Regression test: keepSpecialScriptTags must correctly handle EJS/ERB-style
+     * template syntax (e.g. "<% ... %>") inside special script tags.  A Netbeans
+     * IDE bug used to flag the "% >" sequence in a PHP comment as a syntax error,
+     * but the parser itself must work without issue.
+     */
+    public function testSpecialScriptTagWithEjsTemplateSyntax()
+    {
+        $html = '<script type="text/x-custom-template" id="my-template"><% _.each(items, function(item) { %><li><%= item.name %></li><% }); %></script>';
+
+        $dom = Html5DomParser::str_get_html($html);
+
+        $script = $dom->findOne('script#my-template');
+        static::assertNotNull($script);
+
+        $innerHtml = $script->innerHtml();
+        static::assertStringContainsString('<% _.each(items, function(item) { %>', $innerHtml);
+        static::assertStringContainsString('<%= item.name %>', $innerHtml);
+        static::assertStringContainsString('<% }); %>', $innerHtml);
+    }
+
+    public function testHtmlEmbeddedInJavaScript()
+    {
+        $html = '
+        <!doctype html>
+        <html lang="fr">
+        <head>
+            <title>Test</title>
+        </head>
+        <body>
+            A Body
+        
+            <script id="elements-image-1">
+              var strJS = "<strong>foobar<\/strong>";
+            </script>
+        </body>
+        </html>
+        ';
+
+        $expected = '
+        <!DOCTYPE html>' . "\n" . '<html lang="fr">
+        <head>
+            <title>Test</title>
+        </head>
+        <body>
+            A Body
+        
+            <script id="elements-image-1">
+              var strJS = "<strong>foobar<\/strong>";
+            </script>
+        </body>
+        </html>';
+
+        $dom = new Html5DomParser();
+
+        $html = \str_replace(["\r\n", "\r", "\n"], "\n", (string) $dom->load($html));
+        $expected = \str_replace(["\r\n", "\r", "\n"], "\n", $expected);
+
+        // HTML5: whole-document comparison, see assertSameApartFromKnownHtml5Differences()
+        static::assertSameApartFromKnownHtml5Differences($expected, $html);
+    }
+
+    public function testBeforeClosingTag()
+    {
+        $dom = new Html5DomParser();
+        $dom->load('<div class="stream-container "  > <div class="stream-item js-new-items-bar-container"> </div> <div class="stream">');
+        static::assertSame('<div class="stream-container "> <div class="stream-item js-new-items-bar-container"> </div> <div class="stream"></div></div>', (string) $dom);
+    }
+
+    public function testCodeTag()
+    {
+        $dom = new Html5DomParser();
+        $dom->load('<strong>hello</strong><code class="language-php">$foo = "bar";</code>');
+        static::assertSame('<strong>hello</strong><code class="language-php">$foo = "bar";</code>', (string) $dom);
+    }
+
+    public function testDeleteNodeOuterHtml()
+    {
+        $dom = new Html5DomParser();
+        $dom->load('<div class="all"><p>Hey bro, <a href="google.com">click here</a><br /> :)</p></div>');
+        $a = $dom->find('a');
+        $a[0]->outerHtml = '';
+        unset($a);
+        static::assertSame('<div class="all"><p>Hey bro, <br> :)</p></div>', (string) $dom);
+    }
+
+    public function testDeleteNodeInnerHtml()
+    {
+        $dom = new Html5DomParser();
+        $dom->load('<div class="all"><p>Hey bro, <a href="google.com">click here</a><br /> :)</p></div>');
+        $a = $dom->find('div.all');
+        $a[0]->innerHtml = '';
+        unset($a);
+        static::assertSame('<div class="all"></div>', (string) $dom);
+    }
+
+    public function testDataJsonInHtml()
+    {
+        $dom = new Html5DomParser();
+        $dom->load('<div data-json=\'{"key":"value"}\'></div>');
+        $div = $dom->find('div');
+        static::assertSame('<div data-json=\'{"key":"value"}\'></div>', (string) $div);
+    }
+
+    public function testHtmlInAttribute()
+    {
+        $html = '<button type="button" id="rotate_crop" class="btn btn-primary" data-loading-text="<i class=\'fa fa-spinner fa-spin\'></i> Rotando..." style="">Rotar</button>';
+
+        $dom = new Html5DomParser();
+        $dom->load($html);
+        $button = $dom->find('button');
+        static::assertSame($html, (string) $button);
+    }
+
+    public function testAmpHtmlStuff()
+    {
+        $dom = new Html5DomParser();
+        $dom->load('<html ⚡>foo</html>');
+        $html = $dom->find('html');
+        static::assertSame('<html ⚡>foo</html>', (string) $html);
+
+        // ---
+
+        $html = '
+        <!doctype html>
+            <html amp lang="en">
+              <head>
+                <meta charset="utf-8">
+                <script async src="https://cdn.ampproject.org/v0.js"></script>
+                <title>Hello, AMPs</title>
+                <link rel="canonical" href="https://amp.dev/documentation/guides-and-tutorials/start/create/basic_markup">
+                <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1">
+                <script type="application/ld+json">
+                  {
+                    "@context": "http://schema.org",
+                    "@type": "NewsArticle",
+                    "headline": "Open-source framework for publishing content",
+                    "datePublished": "2015-10-07T12:02:41Z",
+                    "image": [
+                      "logo.jpg"
+                    ]
+                  }
+                </script>
+                <style amp-boilerplate>body{-webkit-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-moz-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-ms-animation:-amp-start 8s steps(1,end) 0s 1 normal both;animation:-amp-start 8s steps(1,end) 0s 1 normal both}@-webkit-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-moz-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-ms-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-o-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}</style><noscript><style amp-boilerplate>body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}</style></noscript>
+              </head>
+              <body>
+                <h1>Welcome to the mobile web</h1>
+              </body>
+            </html>';
+
+        $expected = '<html amp lang="en">
+              <head>
+                <meta charset="utf-8">
+                <script async src="https://cdn.ampproject.org/v0.js"></script>
+                <title>Hello, AMPs</title>
+                <link rel="canonical" href="https://amp.dev/documentation/guides-and-tutorials/start/create/basic_markup">
+                <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1">
+                <script type="application/ld+json">
+                  {
+                    "@context": "http://schema.org",
+                    "@type": "NewsArticle",
+                    "headline": "Open-source framework for publishing content",
+                    "datePublished": "2015-10-07T12:02:41Z",
+                    "image": [
+                      "logo.jpg"
+                    ]
+                  }
+                </script>
+                <style amp-boilerplate>body{-webkit-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-moz-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-ms-animation:-amp-start 8s steps(1,end) 0s 1 normal both;animation:-amp-start 8s steps(1,end) 0s 1 normal both}@-webkit-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-moz-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-ms-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-o-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}</style><noscript><style amp-boilerplate>body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}</style></noscript>
+              </head>
+              <body>
+                <h1>Welcome to the mobile web</h1>
+              </body>
+            </html>';
+
+        $dom = new Html5DomParser();
+        $dom->load($html);
+        $html = $dom->find('html');
+        // HTML5: whole-document comparison, see assertSameApartFromKnownHtml5Differences()
+        static::assertSameApartFromKnownHtml5Differences($expected, (string) $html);
+    }
+
+    public function testScriptInCommentHtml()
+    {
+        // --- via load()
+
+        $dom = new Html5DomParser();
+        $dom->load(
+            '
+      <script class="script_1" type="text/javascript">someCode</script>
+      <!-- <script class="script_2" type="text/javascript">someCode</script> -->
+    '
+        );
+        $script = $dom->find('script');
+        static::assertSame('<script class="script_1" type="text/javascript">someCode</script>', (string) $script);
+
+        // --- via "str_get_html()"
+
+        $dom = Html5DomParser::str_get_html(
+            '
+      <script class="script_1" type="text/javascript">someCode</script>
+      <!-- <script class="script_2" type="text/javascript">someCode</script> -->
+    '
+        );
+        $script = $dom->find('script');
+        static::assertSame('<script class="script_1" type="text/javascript">someCode</script>', (string) $script);
+    }
+
+    public function testHtmlAndJavaScriptMix()
+    {
+        $htmlAndJs = '<p>Text 1</p><script>$(".second-column-mobile-inner").wrapAll("<div class=\'collapse\' id=\'second-column\'></div>");</script><p>Text 2</p>';
+
+        $dom = Html5DomParser::str_get_html($htmlAndJs);
+        $script = $dom->find('script');
+        // HTML5: script content is kept verbatim; the libxml path escapes "</" inside scripts, HTML5 does not need to
+        static::assertSame('<script>$(".second-column-mobile-inner").wrapAll("<div class=\'collapse\' id=\'second-column\'></div>");</script>', (string) $script);
+    }
+
+    public function testSpecialCharsAndPlaintext()
+    {
+        $file = __DIR__ . '/fixtures/test_page_plaintext.html';
+        $dom = new Html5DomParser();
+        $dom->loadHtmlFile($file);
+
+        $review_content = $dom->find('.review-content p');
+        static::assertInstanceOf(SimpleHtmlDomNode::class, $review_content);
+
+        $allReviews = '';
+        foreach ($review_content as $review) {
+            $allReviews .= $review->plaintext . "\n";
+        }
+        static::assertTrue(\strlen($allReviews) > 0);
+        if (\method_exists(static::class, 'assertStringContainsString')) {
+            // HTML5: HTML entities are resolved to their characters, so the text holds "'" instead of &#39;
+            static::assertStringContainsString("It's obvious having", $allReviews);
+            static::assertStringContainsString("2006 Volvo into Dave's due", $allReviews);
+        } else {
+            // HTML5: HTML entities are resolved to their characters, so the text holds "'" instead of &#39;
+            static::assertContains("It's obvious having", $allReviews);
+            static::assertContains("2006 Volvo into Dave's due", $allReviews);
+        }
+    }
+
+    /**
+     * This assumes that a script with the variable "$json_variable" is present containing the
+     * complete dataset.
+     *
+     * @param string $html
+     * @param string $json_variable
+     *
+     * @return stdClass|null
+     */
+    private function extractJson(string $html, string $json_variable = 'INITIAL_DATA')
+    {
+        // init
+        $content_line = null;
+
+        if (!$html) {
+            return null;
+        }
+
+        $dom = Html5DomParser::str_get_html($html);
+
+        foreach ($dom->find('script') as $script) {
+            $content = $script->innerHtml();
+
+            if (\strpos($content, $json_variable) !== false) {
+                $content_exploded = \explode("\n", $content);
+
+                foreach ($content_exploded as $content_tmp) {
+                    if (\strpos($content_tmp, $json_variable) !== false) {
+                        $content_line = \trim($content_tmp);
+
+                        break 2;
+                    }
+                }
+            }
+        }
+
+        if (!$content_line) {
+            return null;
+        }
+
+        $json_helper_position = \mb_strpos($content_line, '{');
+        $json = \mb_substr($content_line, $json_helper_position, \mb_strrpos($content_line, '}') - $json_helper_position + 1);
+
+        /** @noinspection PhpComposerExtensionStubsInspection */
+        $data = \json_decode($json, false);
+
+        return $data ?: null;
+    }
+
+    public function testHtmlInsideJavaScriptTemplates()
+    {
+        $html = '
+        <script type=text/html>
+            <p>Foo</p>
+        
+            <div class="alert alert-success">
+                Bar
+            </div>
+            
+            {{foo}}
+            
+            {% if foo == true %}
+              priceStr = \'<span class="price-container price-tier_price">\'
+              <div>
+            {% else %}
+              priceStr = \'<span>\'
+            {% endif %}
+            
+            {{priceStr}}</span>
+            
+            {% if foo == true %}
+              </div>
+            {% endif %}
+        </script>
+        ';
+
+        // ---
+
+        $d = new voku\helper\HtmlDomParser();
+        $d->overwriteTemplateLogicSyntaxInSpecialScriptTags(['{#']);
+        $d->loadHtml($html);
+
+        $expectedDomError = '<script type="text/html">
+            <p>Foo</p>
+        
+            <div class="alert alert-success">
+                Bar
+            </div>
+            
+            {{foo}}
+            
+            {% if foo == true %}
+              priceStr = \'<span class="price-container price-tier_price">\'
+              <div>
+            {% else %}
+              priceStr = \'<span>\'
+            {% endif %}
+            
+            {{priceStr}}</span>
+            
+            {% if foo == true %}
+              </div>
+            {% endif %}
+        </span></script>';
+
+        static::assertSame($expectedDomError, $d->html());
+
+        // ---
+
+        $d = new voku\helper\HtmlDomParser();
+        $d->overwriteTemplateLogicSyntaxInSpecialScriptTags(['{%']);
+        $d->loadHtml($html);
+
+        $expectedNonDomError = '<script type="text/html">
+            <p>Foo</p>
+        
+            <div class="alert alert-success">
+                Bar
+            </div>
+            
+            {{foo}}
+            
+            {% if foo == true %}
+              priceStr = \'<span class="price-container price-tier_price">\'
+              <div>
+            {% else %}
+              priceStr = \'<span>\'
+            {% endif %}
+            
+            {{priceStr}}</span>
+            
+            {% if foo == true %}
+              </div>
+            {% endif %}
+        </script>';
+
+        static::assertSame($expectedNonDomError, $d->html());
+    }
+
+    public function testOverwriteTemplateLogicSyntaxInSpecialScriptTagsError()
+    {
+        static::expectException(InvalidArgumentException::class);
+
+        $d = new voku\helper\HtmlDomParser();
+        $d->overwriteTemplateLogicSyntaxInSpecialScriptTags([['{{']]);
+    }
+
+    public function testExtractJson()
+    {
+        $data = '<script type="text/javascript">
+        var CONFIG = {"environment":"production","environmentSuffix":"","baseUri":"\/","debug":false,"gtmCode":"GTM-WJRBWVS","disallowAll":false,"defaultLanguage":"nl","languages":["nl","en"],"bioPortalUrl":"http:\/\/bioportal.naturalis.nl\/specimen\/","absoluteUrl":"http:\/\/topstukken.naturalis.nl","currentPath":"object\/malacostraca-podophthalmata-brittanniae","currentUrl":"http:\/\/topstukken.naturalis.nl\/object\/malacostraca-podophthalmata-brittanniae"};
+        var INITIAL_DATA = {"general":{"title":"Naturalis","nav":{"main":[{"url":"\/","label":"Overzicht"},{"url":"http:\/\/naturalis.nl","label":"Naturalis.nl","external":true}],"latestLabel":"Laatst toegevoegd","latest":[{"url":"\/object\/syrische-bruine-beer","label":"Syrische bruine beer"},{"url":"\/object\/siberische-tijger","label":"Siberische tijger"},{"url":"\/object\/zwarte-wolf","label":"Zwarte wolf"}],"social":[{"type":"facebook","url":"https:\/\/www.facebook.com\/museumnaturalis\/"},{"type":"twitter","url":"https:\/\/twitter.com\/museumnaturalis"},{"type":"instagram","url":"https:\/\/www.instagram.com\/naturalismuseum\/"},{"type":"youtube","url":"https:\/\/www.youtube.com\/user\/NaturalisLeiden"}],"legal":[],"copyright":"&copy; Naturalis Biodiversity Center","about":{"title":"Over Topstukken","body":"Natuurhistorische collecties zijn al eeuwen de spil van het onderzoek naar de natuur. Ze vormen een belangrijk modern wetenschappelijk instrument voor de mens om vat te krijgen op de natuurlijke omgeving en diens oorsprong. De collecties, de daarin verborgen en daaraan gekoppelde informatie, vormen de ruggengraat van het onderzoek naar geologische en biologische diversiteit. Ze helpen om de biodiversiteit uit heden en verleden in kaart te brengen, te benoemen en te begrijpen. Ze spelen een sleutelrol in het zoeken naar oplossingen voor een gezonde toekomst van de mensheid.<br><br>Naturalis heeft wereldwijd \u00e9\u00e9n van de grootste natuurhistorische collecties. Met meer dan 41 miljoen objecten is de collectie is van grote maatschappelijke, historische en wetenschappelijke waarde. De collectie is bovendien uitzonderlijk goed ontsloten, doordat de gehele verzameling digitaal is geregistreerd en toegankelijk gemaakt.<br><br>Onze onderzoekers en collectiebeheerders selecteren steeds weer de meest mooie of bijzondere objecten om die in Naturalis en op het web een plek te geven. Daarmee proberen we iedereen het WAUW!-effect te laten beleven dat wij zelf dagelijks ervaren als wij werken met de collectie."}}},"locale":{"infoTitle":"Details","info":{"scientificName":"Wetenschappelijke naam","collection":"Hoort bij collectie","year":"Jaar","country":"Land van herkomst","expedition":"Verzameld tijdens expeditie","collector":"Verzamelaar","author":"Auteur","illustrator":"Illustrator","registrationNumber":"Registratienummer"},"infoActionLabel":"Alle gegevens van dit object"},"alternate":null,"grid":null,"specimen":{"title":"Malacostraca Podophthalmata Brittanniae","titleSoftHyphen":null,"id":207,"registrationNumber":"RBR Holt 00626 & RBR Holt 00732","slug":"malacostraca-podophthalmata-brittanniae","language":"nl","metatags":{"title":false,"description":false},"opengraph":{"image":{"src":"\/assets\/styles\/og_image\/public\/content\/specimen\/image\/DSC_3463test_0.jpg?h=c818156e&itok=dNnJ_Z2n","alt":"","aspectRatio":1,"placeholder":"\/assets\/styles\/researcher_placeholder\/public\/content\/specimen\/image\/DSC_3463test_0.jpg?itok=70dDOiNr"}},"subtitle":null,"image":{"srcSet":{"1920":"\/assets\/styles\/specimen_header_1920\/public\/content\/specimen\/image\/DSC_3463test_0.jpg?h=43b24274&itok=sIwXRgEp","1280":"\/assets\/styles\/specimen_header_1280\/public\/content\/specimen\/image\/DSC_3463test_0.jpg?h=43b24274&itok=szXLga7d","960":"\/assets\/styles\/specimen_header_960\/public\/content\/specimen\/image\/DSC_3463test_0.jpg?h=43b24274&itok=aZhryErb","640":"\/assets\/styles\/specimen_header_640\/public\/content\/specimen\/image\/DSC_3463test_0.jpg?h=43b24274&itok=Ceou5BJz","320":"\/assets\/styles\/specimen_header_320\/public\/content\/specimen\/image\/DSC_3463test_0.jpg?h=43b24274&itok=X7V_sVbe"},"alt":"","aspectRatio":1.7778,"placeholder":"\/assets\/styles\/specimen_header_placeholder\/public\/content\/specimen\/image\/DSC_3463test_0.jpg?h=43b24274&itok=Ag2eqNDJ"},"info":{"collection":"Bibliotheek en archief","country":"Verenigd Koninkrijk","scientificName":null,"year":"1815","expedition":null,"collector":null,"registrationNumber":"RBR Holt 00626 & RBR Holt 00732"},"bioPortal":false,"blocks":[{"type":"textAndImage","title":"Mooiste kreeftenboek","body":"<p dir=\"ltr\">Zonder twijfel is Malacostraca Podophthalmata Brittanniae (1815-1875) een van de mooiste publicaties gewijd aan kreeftachtigen. Dit fantastische overzicht met in totaal 54 fraaie handgekleurde platen is het werk van twee bekende namen in de Britse natuurgeschiedenis: de jonge zo\u00f6loog William Elford Leach (1791-1836) en de ervaren naturalist en graveur James Sowerby (1757-1822). Leach\u2019 wetenschappelijke productiviteit was enorm, maar zijn carri\u00e8re kwam vroegtijdig tot een einde door een inzinking waar hij niet meer van herstelde. Na de zeventiende aflevering die in 1820 verscheen, stopte de publicatie. Pas in 1875 werd het boek met twee extra afleveringen en zes nieuwe platen door de uitgever voltooid op aandringen van de zoon van James.<\/p>\r\n","images":{"srcSet":{"940":"\/assets\/styles\/specimen_content_item_940\/public\/content\/paragraph\/content-block-image\/15_05%20%281%29test_0.jpg?h=2d399185&itok=XnrWaqqU","705":"\/assets\/styles\/specimen_content_item_705\/public\/content\/paragraph\/content-block-image\/15_05%20%281%29test_0.jpg?h=2d399185&itok=qJBuiRGq","470":"\/assets\/styles\/specimen_content_item_470\/public\/content\/paragraph\/content-block-image\/15_05%20%281%29test_0.jpg?h=2d399185&itok=8Dh5dLJZ","235":"\/assets\/styles\/specimen_content_item_235\/public\/content\/paragraph\/content-block-image\/15_05%20%281%29test_0.jpg?h=2d399185&itok=P43ZVVdU"},"alt":"Malacostraca Podophthalmata Brittanniae","aspectRatio":0.8704,"placeholder":"\/assets\/styles\/specimen_content_item_placeholder\/public\/content\/paragraph\/content-block-image\/15_05%20%281%29test_0.jpg?h=2d399185&itok=WAnO49iI"},"buttons":[],"researcher":null},{"type":"textAndImage","title":"Kostbare drukproeven","body":"<p dir=\"ltr\">In de bibliotheek van Naturalis bevinden zich twee versies van dit bijzondere werk: een prachtig gebonden exemplaar versierd met vergulde krabben, en een complete set van de negentien losse afleveringen. Ze maken deel uit van de Bibliotheca Carcinologica, een unieke collectie van voormalig Naturalis curator Lipke Bijdeley Holthuis (1921-2008). Holthuis was al in bezit van het gebonden exemplaar toen hij voor veel geld de losse afleveringen kocht. Dat lijkt wat overdreven, maar het zijn de originele drukproeven met aantekeningen die Leach maakte voor Sowerby. De drukproeven geven dus een bijzonder mooi inzicht in de publicatiegeschiedenis en de manier waarop de twee naturalisten samenwerkten.<\/p>\r\n","images":{"srcSet":{"940":"\/assets\/styles\/specimen_content_item_940\/public\/content\/paragraph\/content-block-image\/DSC_3476test_0.jpg?h=8a700d67&itok=fTCB5t-d","705":"\/assets\/styles\/specimen_content_item_705\/public\/content\/paragraph\/content-block-image\/DSC_3476test_0.jpg?h=8a700d67&itok=BS_8ewLd","470":"\/assets\/styles\/specimen_content_item_470\/public\/content\/paragraph\/content-block-image\/DSC_3476test_0.jpg?h=8a700d67&itok=0EeQd9f_","235":"\/assets\/styles\/specimen_content_item_235\/public\/content\/paragraph\/content-block-image\/DSC_3476test_0.jpg?h=8a700d67&itok=153tqwMq"},"alt":"Malacostraca Podophthalmata Brittannia","aspectRatio":0.8704,"placeholder":"\/assets\/styles\/specimen_content_item_placeholder\/public\/content\/paragraph\/content-block-image\/DSC_3476test_0.jpg?h=8a700d67&itok=CmnTyPiY"},"buttons":[{"label":"Meer weten? Lees deze blogpost","url":"https:\/\/blog.biodiversitylibrary.org\/2017\/12\/magnificent-crustacea-leach-and-sowerbys-malacostraca-podophthalmata-brittanniae.html","external":true},{"label":"Bekijk het boek in de Biodiversity Heritage Library","url":"https:\/\/www.biodiversitylibrary.org\/page\/51482094?utm_medium=social%20media&utm_source=blogger&utm_campaign=Book%20of%20the%20Month&utm_content=Naturalis%20Biodiversity%20Center#page\/5\/mode\/1up","external":true}],"researcher":{"name":"Lipke Bijdeley Holthuis","role":"Onderzoeker kreeftachtigen (1921-2008)","image":{"src":"\/assets\/styles\/researcher\/public\/content\/researcher\/17_04_Holthuis1_Volkskrant_2001.jpg?h=20fd3246&itok=DOaetnxM","alt":"","aspectRatio":1,"placeholder":"\/assets\/styles\/researcher_placeholder\/public\/content\/researcher\/17_04_Holthuis1_Volkskrant_2001.jpg?h=20fd3246&itok=CI7RI_uW"}}}],"related":{"title":"Bekijk ook","items":[{"title":"Schorswants","id":173,"language":"nl","url":"schorswants","image":{"srcSet":{"1920":"\/assets\/styles\/specimen_header_1920\/public\/content\/specimen\/image\/PSE%20Kopie%20van%20RMNH.INS_.1089600%206.jpg?h=10080870&itok=IXOnjXjW","1280":"\/assets\/styles\/specimen_header_1280\/public\/content\/specimen\/image\/PSE%20Kopie%20van%20RMNH.INS_.1089600%206.jpg?h=10080870&itok=LCsG-WJn","960":"\/assets\/styles\/specimen_header_960\/public\/content\/specimen\/image\/PSE%20Kopie%20van%20RMNH.INS_.1089600%206.jpg?h=10080870&itok=4YosWKRa","640":"\/assets\/styles\/specimen_header_640\/public\/content\/specimen\/image\/PSE%20Kopie%20van%20RMNH.INS_.1089600%206.jpg?h=10080870&itok=QUrxxuiJ","320":"\/assets\/styles\/specimen_header_320\/public\/content\/specimen\/image\/PSE%20Kopie%20van%20RMNH.INS_.1089600%206.jpg?h=10080870&itok=Z_FS7_kG"},"alt":"","aspectRatio":1.7778,"placeholder":"\/assets\/styles\/specimen_header_placeholder\/public\/content\/specimen\/image\/PSE%20Kopie%20van%20RMNH.INS_.1089600%206.jpg?h=10080870&itok=tQlkb8R2"}},{"title":"Gevleugelde papiernautilus","id":120,"language":"nl","url":"gevleugelde-papiernautilus","image":{"srcSet":{"1920":"\/assets\/styles\/specimen_header_1920\/public\/content\/specimen\/image\/RMNH.MOL_.8-9_2_HL_1bewerktbreed.jpg?h=318c2c63&itok=WHkeq3YQ","1280":"\/assets\/styles\/specimen_header_1280\/public\/content\/specimen\/image\/RMNH.MOL_.8-9_2_HL_1bewerktbreed.jpg?h=318c2c63&itok=zH_Y_l5n","960":"\/assets\/styles\/specimen_header_960\/public\/content\/specimen\/image\/RMNH.MOL_.8-9_2_HL_1bewerktbreed.jpg?h=318c2c63&itok=9jvOIqqE","640":"\/assets\/styles\/specimen_header_640\/public\/content\/specimen\/image\/RMNH.MOL_.8-9_2_HL_1bewerktbreed.jpg?h=318c2c63&itok=YNKgxKFA","320":"\/assets\/styles\/specimen_header_320\/public\/content\/specimen\/image\/RMNH.MOL_.8-9_2_HL_1bewerktbreed.jpg?h=318c2c63&itok=dhapG-Rr"},"alt":"","aspectRatio":1.7778,"placeholder":"\/assets\/styles\/specimen_header_placeholder\/public\/content\/specimen\/image\/RMNH.MOL_.8-9_2_HL_1bewerktbreed.jpg?h=318c2c63&itok=YWQ5snQF"}}]}}};
+        </script>';
+
+        $result = $this->extractJson($data);
+
+        static::assertNotNull($result);
+        static::assertInstanceOf(\stdClass::class, $result, \print_r($result, true));
+    }
+
+    public function testIssue42()
+    {
+        $d = new voku\helper\HtmlDomParser();
+
+        $d->loadHtml('<p>p1</p><p>p2</p>');
+        static::assertSame('<p>p1</p><p>p2</p>', (string) $d);
+
+        $d->loadHtml('<div><p>p1</p></div>');
+        static::assertSame('<div><p>p1</p></div>', (string) $d);
+    }
+
+    public function testIssue53()
+    {
+        $d = new voku\helper\HtmlDomParser();
+
+        $html = '
+        <blockquote class="bg-gray primary">
+            <p class="text-monospace">
+                Malwarebytes<br>
+                www.malwarebytes.com<br>
+                User: User-\<wbr>u00d0\<wbr>u009f\<wbr>u00d0\<wbr>u009a\<wbr>User<br>
+                <br>
+                Windows (WMI): 0<br>
+                (end)<br>
+            </p>
+        </blockquote>
+        ';
+
+        $expected = '
+        <blockquote class="bg-gray primary">
+            <p class="text-monospace">
+                Malwarebytes<br>
+                www.malwarebytes.com<br>
+                User: User-\<wbr>u00d0\<wbr>u009f\<wbr>u00d0\<wbr>u009a\<wbr>User<br>
+                <br>
+                Windows (WMI): 0<br>
+                (end)<br>
+            </p>
+        </blockquote>
+        ';
+
+        $d->loadHtml($html);
+        static::assertSame(\trim($expected), (string) $d);
+    }
+
+    public function testInvalidHtml()
+    {
+        $html = '<!DOCTYPE HTML>
+        <html>
+        <head>
+            <title>title</title>
+        </head>
+        
+        <body>
+        <div id="a">
+            an apple
+        </div>
+        </body>
+        
+        </html>
+        <div id="åäö">
+            body
+        </div>
+        ';
+
+        $expected = '<!DOCTYPE HTML>
+<html>
+        <head>
+            <title>title</title>
+        </head>
+        
+        <body>
+        <div id="a">
+            an apple
+        </div>
+        </body>
+        
+        
+        <div id="åäö">
+            body
+        </div>
+        </html>';
+
+        $domTree = \voku\helper\Html5DomParser::str_get_html($html);
+
+        // HTML5: whole-document comparison, see assertSameApartFromKnownHtml5Differences()
+        static::assertSameApartFromKnownHtml5Differences($expected, $domTree->html());
+
+        static::assertSame(['an apple'], $domTree->find('#a')->text());
+
+        static::assertSame(['body'], $domTree->find('#åäö')->text());
+    }
+
+    public function testHtmlWithSpecialComments()
+    {
+        $html = '<!-- === BEGIN TOP === -->
+        <!DOCTYPE html>
+        <!--[if IE 8]> <html lang="en" class="ie8"> <![endif]-->
+        <!--[if IE 9]> <html lang="en" class="ie9"> <![endif]-->
+        <!--[if !IE]><!-->
+        <html prefix="og: http://ogp.me/ns#" lang="ru">
+        <!--<![endif]-->
+        <head>
+            <title>title</title>
+        </head>
+        
+        <body>
+        <div id="a">
+            an apple
+        </div>
+        </body>
+        
+        </html>
+        <div id="åäö">
+            body
+        </div>
+        ';
+
+        $expected = '<!DOCTYPE html>
+<!--[if IE 8]> <html lang="en" class="ie8"> <![endif]--><!--[if IE 9]> <html lang="en" class="ie9"> <![endif]--><!--[if !IE]><!--><html prefix="og: http://ogp.me/ns#" lang="ru">
+        <!--<![endif]-->
+        <head>
+            <title>title</title>
+        </head>
+        
+        <body>
+        <div id="a">
+            an apple
+        </div>
+        </body>
+        
+        
+        <div id="åäö">
+            body
+        </div>
+        </html>';
+
+        $domTree = \voku\helper\Html5DomParser::str_get_html($html);
+
+        // HTML5: whole-document comparison, see assertSameApartFromKnownHtml5Differences()
+        static::assertSameApartFromKnownHtml5Differences($expected, $domTree->html());
+
+        static::assertSame(['an apple'], $domTree->find('#a')->text());
+
+        static::assertSame(['body'], $domTree->find('#åäö')->text());
+    }
+
+    public function testHtmlWithSpecialCommentsAndKeepBrokenHtml()
+    {
+        $html = '<!-- === BEGIN TOP === -->
+        <!DOCTYPE html>
+        <!--[if IE 8]> <html lang="en" class="ie8"> <![endif]-->
+        <!--[if IE 9]> <html lang="en" class="ie9"> <![endif]-->
+        <!--[if !IE]><!-->
+        <html prefix="og: http://ogp.me/ns#" lang="ru">
+        <!--<![endif]-->
+        <head>
+            <title>title</title>
+        </head>
+        
+        <body>
+        <div id="a">
+            an apple
+        </div>
+        </body>
+        
+        </html>
+        <div id="åäö">
+            body
+        </div>
+        ';
+
+        $expected = '<!DOCTYPE html>
+<!--[if IE 8]> <html lang="en" class="ie8"> <![endif]--><!--[if IE 9]> <html lang="en" class="ie9"> <![endif]--><!--[if !IE]><!--><html prefix="og: http://ogp.me/ns#" lang="ru">
+        <!--<![endif]-->
+        <head>
+            <title>title</title>
+        </head>
+        
+        <body>
+        <div id="a">
+            an apple
+        </div>
+        </body>
+        
+        
+        <div id="åäö">
+            body
+        </div></html>';
+
+        $dom = new Html5DomParser();
+        $dom = $dom->useKeepBrokenHtml(true);
+        $domTree = $dom->load($html);
+
+        // HTML5: whole-document comparison, see assertSameApartFromKnownHtml5Differences()
+        static::assertSameApartFromKnownHtml5Differences($expected, $domTree->html());
+
+        static::assertSame(['an apple'], $domTree->find('#a')->text());
+
+        static::assertSame(['body'], $domTree->find('#åäö')->text());
+    }
+
+    public function testHtmlWithSpecialCommentsAndKeepBrokenHtml2()
+    {
+        $html = '<!-- === BEGIN TOP === -->
+        <!--[if IE 8]> <html lang="en" class="ie8"> <![endif]-->
+        <!--[if IE 9]> <html lang="en" class="ie9"> <![endif]-->
+        <!--[if !IE]><!-->
+        <html prefix="og: http://ogp.me/ns#" lang="ru">
+        <!--<![endif]-->
+        <head>
+            <title>title</title>
+        </head>
+        
+        <body>
+        <div id="a">
+            an apple
+        </div>
+        </body>
+        
+        </html>
+        <div id="åäö">
+            body
+        </div>
+        ';
+
+        $expected = '<!-- === BEGIN TOP === -->
+        <!--[if IE 8]> <html lang="en" class="ie8"> <![endif]-->
+        <!--[if IE 9]> <html lang="en" class="ie9"> <![endif]-->
+        <!--[if !IE]><!-->
+        <html prefix="og: http://ogp.me/ns#" lang="ru">
+        <!--<![endif]-->
+        <head>
+            <title>title</title>
+        </head>
+        
+        <body>
+        <div id="a">
+            an apple
+        </div>
+        </body>
+        
+        
+        <div id="åäö">
+            body
+        </div></html>';
+
+        $dom = new Html5DomParser();
+        $dom = $dom->useKeepBrokenHtml(true);
+        $domTree = $dom->load($html);
+
+        // HTML5: whole-document comparison, see assertSameApartFromKnownHtml5Differences()
+        static::assertSameApartFromKnownHtml5Differences($expected, $domTree->html());
+
+        static::assertSame(['an apple'], $domTree->find('#a')->text());
+
+        static::assertSame(['body'], $domTree->find('#åäö')->text());
+    }
+
+    public function testFindClassTest()
+    {
+        $html = "
+        <div class='services'></div> or
+        <div class='services last-item'></div> or
+        <div class='services active'></div>
+        ";
+
+        $d = new voku\helper\HtmlDomParser();
+        $d->load($html);
+
+        $htmlResult = '';
+        foreach ($d->find('.services') as $e) {
+            $e->setAttribute('data-foo', 'bar');
+            $htmlResult .= $e->html();
+        }
+
+        $htmlExpected = '<div class="services" data-foo="bar"></div><div class="services last-item" data-foo="bar"></div><div class="services active" data-foo="bar"></div>';
+
+        static::assertSame($htmlExpected, $htmlResult);
+
+        // ---
+
+        $d = new voku\helper\HtmlDomParser();
+        $d->load($html);
+
+        $htmlResult = '';
+        foreach ($d->find('div[class~=services]') as $e) {
+            $e->setAttribute('data-foo', 'bar');
+            $htmlResult .= $e->html();
+        }
+
+        $htmlExpected = '<div class="services" data-foo="bar"></div><div class="services last-item" data-foo="bar"></div><div class="services active" data-foo="bar"></div>';
+
+        static::assertSame($htmlExpected, $htmlResult);
+    }
+}

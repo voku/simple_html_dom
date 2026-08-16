@@ -1,5 +1,6 @@
 <?php
 
+use voku\helper\Html5DomParser;
 use voku\helper\HtmlDomParser;
 
 /**
@@ -7,36 +8,34 @@ use voku\helper\HtmlDomParser;
  *
  * @internal
  */
-final class HtmlDomParserHtml5Test extends \PHPUnit\Framework\TestCase
+final class Html5DomParserTest extends \PHPUnit\Framework\TestCase
 {
     protected function setUp(): void
     {
-        if (!HtmlDomParser::isHtml5ParserSupported()) {
+        if (!Html5DomParser::isHtml5ParserSupported()) {
             static::markTestSkipped('The HTML5 parser needs PHP >= 8.4 with "\Dom\HTMLDocument".');
         }
     }
 
-    protected function tearDown(): void
+    public function testTheParserIsChosenByClassNotByAFlag()
     {
-        if (HtmlDomParser::isHtml5ParserSupported()) {
-            HtmlDomParser::useHtml5ParserByDefault(false);
-        }
+        $html = '<table><tr><td>x</table>';
+
+        $legacy = new HtmlDomParser($html);
+        static::assertCount(0, $legacy->findMulti('tbody'));
+        static::assertFalse(\method_exists($legacy, 'useHtml5Parser'));
+
+        $html5 = new Html5DomParser($html);
+        static::assertTrue($html5->getIsDOMDocumentCreatedWithHtml5Parser());
+        static::assertCount(1, $html5->findMulti('tbody'));
     }
 
-    public function testIsOptInAndOffByDefault()
+    public function testItIsAHtmlDomParser()
     {
-        $dom = new HtmlDomParser('<table><tr><td>x</table>');
+        $dom = new Html5DomParser('<div>x</div>');
 
-        static::assertFalse($dom->getIsDOMDocumentCreatedWithHtml5Parser());
-        static::assertCount(0, $dom->findMulti('tbody'));
-    }
-
-    public function testUseHtml5ParserIsFluent()
-    {
-        $dom = new HtmlDomParser();
-
-        static::assertSame($dom, $dom->useHtml5Parser());
-        static::assertSame($dom, $dom->useHtml5Parser(false));
+        static::assertInstanceOf(HtmlDomParser::class, $dom);
+        static::assertInstanceOf(\voku\helper\DomParserInterface::class, $dom);
     }
 
     public function testImpliedTableSectionIsCreated()
@@ -126,33 +125,31 @@ final class HtmlDomParserHtml5Test extends \PHPUnit\Framework\TestCase
 
     public function testXmlBridgeFailureFallsBackToLegacyParser()
     {
-        $dom = (new HtmlDomParser())->useHtml5Parser();
+        $dom = new Html5DomParser();
         $dom->loadHtml('<div @foo="bar">x</div>');
 
         static::assertFalse($dom->getIsDOMDocumentCreatedWithHtml5Parser());
         static::assertSame('<div @foo="bar">x</div>', $dom->html());
         static::assertSame(
-            HtmlDomParser::HTML5_FALLBACK_XML_BRIDGE_FAILED,
+            Html5DomParser::FALLBACK_XML_BRIDGE_FAILED,
             $dom->getHtml5ParserFallbackReason()
         );
     }
 
     public function testNoFallbackReasonWithoutAFallback()
     {
-        static::assertNull($this->html5('<div>x</div>')->getHtml5ParserFallbackReason());
+        $dom = $this->html5('<div>x</div>');
 
-        $legacy = new HtmlDomParser('<div>x</div>');
-
-        static::assertFalse($legacy->getIsDOMDocumentCreatedWithHtml5Parser());
-        static::assertNull($legacy->getHtml5ParserFallbackReason());
+        static::assertTrue($dom->getIsDOMDocumentCreatedWithHtml5Parser());
+        static::assertNull($dom->getHtml5ParserFallbackReason());
     }
 
     public function testTheFallbackReasonIsResetPerDocument()
     {
-        $dom = (new HtmlDomParser())->useHtml5Parser();
+        $dom = new Html5DomParser();
         $dom->loadHtml('<div @foo="bar">x</div>');
         static::assertSame(
-            HtmlDomParser::HTML5_FALLBACK_XML_BRIDGE_FAILED,
+            Html5DomParser::FALLBACK_XML_BRIDGE_FAILED,
             $dom->getHtml5ParserFallbackReason()
         );
 
@@ -164,7 +161,7 @@ final class HtmlDomParserHtml5Test extends \PHPUnit\Framework\TestCase
 
     public function testKeepBrokenHtmlDoesNotDisableTheHtml5Parser()
     {
-        $dom = (new HtmlDomParser())->useHtml5Parser();
+        $dom = new Html5DomParser();
         $dom->useKeepBrokenHtml(true);
         $dom->loadHtml('<script async src="cdnjs"></script></borken foo="lall"><table><tr><td>c</table>');
 
@@ -179,7 +176,7 @@ final class HtmlDomParserHtml5Test extends \PHPUnit\Framework\TestCase
 
     public function testKeepBrokenHtmlKeepsTheBrokenFragmentAtTheBeginOfTheInput()
     {
-        $dom = (new HtmlDomParser())->useHtml5Parser();
+        $dom = new Html5DomParser();
         $dom->useKeepBrokenHtml(true);
         $dom->loadHtml('</script><script src="cdnjs"></script>');
 
@@ -201,7 +198,7 @@ final class HtmlDomParserHtml5Test extends \PHPUnit\Framework\TestCase
         $legacy->loadHtml($html);
         static::assertSame($html, $legacy->innerHtml);
 
-        $dom = (new HtmlDomParser())->useHtml5Parser();
+        $dom = new Html5DomParser();
         $dom->useKeepBrokenHtml(true);
         $dom->loadHtml($html);
 
@@ -251,7 +248,7 @@ final class HtmlDomParserHtml5Test extends \PHPUnit\Framework\TestCase
 
     public function testEncodingIsDetectedFromTheDocumentLikeInABrowser()
     {
-        $dom = (new HtmlDomParser())->useHtml5Parser();
+        $dom = new Html5DomParser();
         $dom->loadHtml(
             '<!DOCTYPE html><html><head><meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">'
             . '</head><body><p>' . \chr(0xE4) . '</p></body></html>'
@@ -260,32 +257,35 @@ final class HtmlDomParserHtml5Test extends \PHPUnit\Framework\TestCase
         static::assertSame('ä', $dom->findOne('p')->text());
     }
 
-    public function testTheParserFlagIsResetWhenTheParserIsTurnedOffAgain()
+    public function testTheSameInstanceKeepsParsingWithHtml5()
     {
-        $dom = (new HtmlDomParser())->useHtml5Parser();
+        $dom = new Html5DomParser();
+
         $dom->loadHtml('<table><tr><td>x</table>');
         static::assertTrue($dom->getIsDOMDocumentCreatedWithHtml5Parser());
 
-        $dom->useHtml5Parser(false);
-        $dom->loadHtml('<table><tr><td>x</table>');
+        $dom->loadHtml('<ul><li>one<li>two</ul>');
 
-        static::assertFalse($dom->getIsDOMDocumentCreatedWithHtml5Parser());
-        static::assertCount(0, $dom->findMulti('tbody'));
+        static::assertTrue($dom->getIsDOMDocumentCreatedWithHtml5Parser());
+        static::assertSame('<ul><li>one</li><li>two</li></ul>', $dom->html());
     }
 
-    public function testTheDefaultAppliesToTheStaticEntryPoints()
+    public function testTheStaticEntryPointsReturnThisParser()
     {
-        HtmlDomParser::useHtml5ParserByDefault(true);
+        $dom = Html5DomParser::str_get_html('<table><tr><td>x</table>');
 
-        $dom = HtmlDomParser::str_get_html('<table><tr><td>x</table>');
-
+        static::assertInstanceOf(Html5DomParser::class, $dom);
         static::assertTrue($dom->getIsDOMDocumentCreatedWithHtml5Parser());
         static::assertCount(1, $dom->findMulti('tbody'));
 
-        HtmlDomParser::useHtml5ParserByDefault(false);
+        $fromFile = Html5DomParser::file_get_html(__DIR__ . '/fixtures/test_page.html');
 
-        static::assertFalse(
-            HtmlDomParser::str_get_html('<table><tr><td>x</table>')->getIsDOMDocumentCreatedWithHtml5Parser()
+        static::assertInstanceOf(Html5DomParser::class, $fromFile);
+        static::assertTrue($fromFile->getIsDOMDocumentCreatedWithHtml5Parser());
+
+        static::assertNotInstanceOf(
+            Html5DomParser::class,
+            HtmlDomParser::str_get_html('<table><tr><td>x</table>')
         );
     }
 
@@ -306,12 +306,11 @@ final class HtmlDomParserHtml5Test extends \PHPUnit\Framework\TestCase
     /**
      * @param string $html
      *
-     * @return HtmlDomParser
+     * @return Html5DomParser
      */
-    private function html5(string $html): HtmlDomParser
+    private function html5(string $html): Html5DomParser
     {
-        $dom = new HtmlDomParser();
-        $dom->useHtml5Parser();
+        $dom = new Html5DomParser();
         $dom->loadHtml($html);
 
         return $dom;
