@@ -1,0 +1,37 @@
+{
+  "id": "finding.2026-08-16.001",
+  "task_id": "SHD-11",
+  "session": "2026-08-16-shd-11-r1-30b896aa",
+  "created_at": "2026-08-16T22:59:30+00:00",
+  "created_by": "voku",
+  "scope": [
+    ".agent-loop/runs/SHD-11/run.json",
+    ".agent-loop/sessions"
+  ],
+  "observation": "A governed Run persisted its bound Session id while the Session itself remained pruneable/untracked. On a fresh checkout, workflow approve created a new Session id and then rejected its own resume because the durable Run was still bound to the original Session. Resume only succeeded after reconstructing the exact original Session id from its slug.",
+  "evidence": [
+    {
+      "type": "runtime_observation",
+      "command": "php bin/agent-loop workflow approve SHD-11 --by voku",
+      "summary": "On a fresh checkout the command could not resume the durable Run after the original working Session had disappeared, because the newly created Session identity did not match the Run binding."
+    },
+    {
+      "type": "runtime_observation",
+      "command": "php bin/agent-loop session start --task SHD-11 --by voku --slug shd-11-r1-30b896aa && php bin/agent-loop workflow approve SHD-11 --by voku",
+      "summary": "Recreating the exact bound Session id 2026-08-16-shd-11-r1-30b896aa allowed the existing Run run:SHD-11:7eb9dd9a5be120d6 to resume and Recall to compile normally."
+    }
+  ],
+  "hypothesis": "Run-to-Session binding is useful while working memory exists, but durable Run resumption should not require callers to reconstruct an intentionally pruneable Session identity.",
+  "validated_conclusion": "agent-loop should provide a deterministic resume path for a governed Run whose bound Session was pruned, either by recreating the bound Session identity itself or by explicitly rebinding replacement working memory under governed rules. The caller should not need to reverse-engineer the old Session slug.",
+  "confidence": "high",
+  "validation_status": "validated",
+  "status": "validated",
+  "sensitivity": "public",
+  "classification": "UPDATE_SKILL",
+  "pattern_key": "agent_loop.run.resume_after_session_prune",
+  "validation_case": {
+    "given": "a durable governed Run whose bound pruneable Session no longer exists",
+    "when": "workflow approve or the documented resume command is invoked",
+    "then": "the Run resumes with valid working memory without requiring manual reconstruction of the old Session id"
+  }
+}
