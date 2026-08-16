@@ -85,6 +85,13 @@ jobs:
           mkdir -p build/logs
           XDEBUG_MODE=coverage php vendor/bin/infection run --configuration=infection.json5
 
+      - name: Upload PHP 8.4 coverage evidence
+        if: ${{ matrix.php == '8.4' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-php-8.4-${{ github.sha }}
+          path: build/logs/clover.xml
+
       - name: Upload coverage results to Coveralls
         if: ${{ matrix.php == '8.4' }}
         continue-on-error: true
