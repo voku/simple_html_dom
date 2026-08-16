@@ -1,0 +1,23 @@
+name: PR 150 final coverage cleanup
+
+on:
+  push:
+    branches:
+      - claude/php-8.4-dom-htmldocument-vronm4
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: claude/php-8.4-dom-htmldocument-vronm4
+          fetch-depth: 0
+
+      - name: Remove impossible restore guards
+        run: python3 .github/pr150-final-coverage.py
