@@ -1,0 +1,37 @@
+name: PR 150 inspect SHD-11 review
+
+on:
+  push:
+    branches:
+      - claude/php-8.4-dom-htmldocument-vronm4
+    paths:
+      - .github/workflows/pr150-inspect-shd11-review.yml
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout validated candidate
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: 370fee44a3e4e1a39a98f9a78ed32bf1db242f4f
+      - name: Setup PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: composer
+      - name: Install workflow tool
+        run: composer install --working-dir=tools/agent-loop --prefer-dist --no-interaction
+      - name: Rebuild discovery and print blindspot evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          php bin/agent-loop map build --paths=src,tests,build
+          php bin/agent-loop review blindspots SHD-11
+          echo '--- blindspot report ---'
+          cat .agent-loop/recall/SHD-11/reviews/SHD-11.blindspots.json
