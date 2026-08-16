@@ -124,6 +124,18 @@ replace_once(
 ''',
 )
 
+# Temporary runner-only marker. It is never committed as a product change; it identifies the
+# exact raw input that still cannot cross the XML bridge.
+content = read(compat_test)
+method_start = content.index('    public function testEditLinks()')
+loop = '        foreach ($texts as $text => $expected) {'
+loop_start = content.index(loop, method_start)
+marker = '''        $editLinksCase = 0;
+        foreach ($texts as $text => $expected) {
+            \\fwrite(STDERR, 'EDIT_LINKS_CASE=' . $editLinksCase++ . ' INPUT=' . \\json_encode($text) . "\\n");'''
+content = content[:loop_start] + marker + content[loop_start + len(loop):]
+write(compat_test, content)
+
 for file in [html_parser, html5_parser, compat_test]:
     subprocess.run(['php', '-l', file], cwd=ROOT, check=True)
 subprocess.run(['git', 'diff', '--check'], cwd=ROOT, check=True)
