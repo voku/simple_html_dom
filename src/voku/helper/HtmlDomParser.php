@@ -647,26 +647,22 @@ class HtmlDomParser extends AbstractDomParser
         $encoding = $this->getEncoding();
         $overrideEncoding = \strcasecmp($encoding, 'UTF-8') === 0 ? null : $encoding;
 
-        try {
-            /** @phpstan-ignore class.notFound, classConstant.notFound (PHP >= 8.4 only, guarded by isHtml5ParserSupported()) */
-            $html5Document = \Dom\HTMLDocument::createFromString(
-                $html,
-                \LIBXML_NOERROR | \Dom\HTML_NO_DEFAULT_NS,
-                $overrideEncoding
-            );
+        /** @phpstan-ignore class.notFound, classConstant.notFound (PHP >= 8.4 only, guarded by isHtml5ParserSupported()) */
+        $html5Document = \Dom\HTMLDocument::createFromString(
+            $html,
+            \LIBXML_NOERROR | \Dom\HTML_NO_DEFAULT_NS,
+            $overrideEncoding
+        );
 
-            // INFO: in HTML an "xmlns" attribute is just an attribute, but the XML transport
-            //          used below would turn it into a real namespace declaration and every
-            //          generated XPath query of this library would stop matching. It is
-            //          parked under a placeholder name and restored after the transport.
-            $xmlnsHelper = \stripos($html, 'xmlns') !== false
-                ? $this->parkXmlnsAttributes($html5Document)
-                : null;
+        // INFO: in HTML an "xmlns" attribute is just an attribute, but the XML transport
+        //          used below would turn it into a real namespace declaration and every
+        //          generated XPath query of this library would stop matching. It is
+        //          parked under a placeholder name and restored after the transport.
+        $xmlnsHelper = \stripos($html, 'xmlns') !== false
+            ? $this->parkXmlnsAttributes($html5Document)
+            : null;
 
-            $xml = $html5Document->saveXml();
-        } catch (\Throwable $throwable) {
-            return null;
-        }
+        $xml = $html5Document->saveXml();
 
         if ($xml === false || $xml === '') {
             return null;
