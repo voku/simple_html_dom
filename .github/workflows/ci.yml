@@ -86,6 +86,7 @@ jobs:
           XDEBUG_MODE=coverage php vendor/bin/infection run --configuration=infection.json5
 
       - name: Upload coverage results to Coveralls
+        if: ${{ matrix.php == '8.4' }}
         continue-on-error: true
         env:
             COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
