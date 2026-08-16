@@ -740,18 +740,12 @@ class HtmlDomParser extends AbstractDomParser
      */
     private function restoreXmlnsAttributes(\DOMDocument $document, string $helper)
     {
-        $xPath = new \DOMXPath($document);
-        $elements = $xPath->query('//*[@' . $helper . ']');
-
-        if ($elements === false) {
-            return;
-        }
+        // The helper is generated internally from a safe attribute name, and //*[] only selects elements.
+        /** @var \DOMNodeList $elements */
+        $elements = (new \DOMXPath($document))->query('//*[@' . $helper . ']');
 
         foreach ($elements as $element) {
-            if (!$element instanceof \DOMElement) {
-                continue;
-            }
-
+            /** @var \DOMElement $element */
             $element->setAttribute('xmlns', $element->getAttribute($helper));
             $element->removeAttribute($helper);
         }
