@@ -1,0 +1,30 @@
+{
+    "contract_revision": 1,
+    "contract_sha256": "sha256:ec2a1fd1697c3c25ab7a26ed40316039d5f75d498dc08d34526073f05e176199",
+    "implementation_snapshot": "sha256:0593ce7a9729cad20e0fab5d6106d88fcf0a4119bd112e94baa6bee4563454e1",
+    "kind": "run_verification_receipt",
+    "obligations": [
+        {
+            "command": "php vendor/bin/phpunit -c phpunit.xml",
+            "duration_ms": 4081,
+            "executed_at": "2026-08-16T23:10:01+00:00",
+            "exit_code": 0,
+            "recorded_by": "voku",
+            "status": "passed"
+        },
+        {
+            "command": "php tools/agent-loop/vendor/bin/phpstan analyse -c phpstan.neon --no-progress",
+            "duration_ms": 4372,
+            "executed_at": "2026-08-16T23:10:06+00:00",
+            "exit_code": 0,
+            "recorded_by": "voku",
+            "status": "passed"
+        }
+    ],
+    "run_id": "run:SHD-13:aa680aa27b58e057",
+    "schema_version": "1.1",
+    "source_session_id": "2026-08-16-shd-13-r1-218b4d94",
+    "task_id": "SHD-13",
+    "verdict": "satisfied",
+    "verified_at": "2026-08-16T23:10:06+00:00"
+}
