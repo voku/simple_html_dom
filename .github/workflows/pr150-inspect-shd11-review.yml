@@ -15,10 +15,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Checkout validated candidate
+      - name: Checkout branch
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
-          ref: 370fee44a3e4e1a39a98f9a78ed32bf1db242f4f
+          ref: claude/php-8.4-dom-htmldocument-vronm4
       - name: Setup PHP
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
         with:
@@ -27,16 +27,23 @@ jobs:
           tools: composer
       - name: Install workflow tool
         run: composer install --working-dir=tools/agent-loop --prefer-dist --no-interaction
-      - name: Rebuild discovery and print blindspot evidence
+      - name: Print closeout command help
         shell: bash
         run: |
-          set -uo pipefail
-          php bin/agent-loop map build --paths=src,tests,build
           set +e
-          php bin/agent-loop review blindspots SHD-11
-          review_exit=$?
-          set -e
-          echo '--- blindspot report ---'
-          cat .agent-loop/recall/SHD-11/reviews/SHD-11.blindspots.json
-          echo "BLINDSPOT_EXIT=${review_exit}"
+          for args in \
+            'recall help' \
+            'recall compile --help' \
+            'recall log-outcome --help' \
+            'session help' \
+            'session checkpoint --help' \
+            'session close --help' \
+            'workflow help' \
+            'workflow status SHD-11 --format=json' \
+            'learn help'; do
+            echo
+            echo "===== php bin/agent-loop ${args} ====="
+            php bin/agent-loop ${args}
+            echo "EXIT=$?"
+          done
           exit 0
