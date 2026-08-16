@@ -26,14 +26,34 @@ jobs:
           php-version: '8.3'
           coverage: none
           tools: composer
-      - name: Install StyleCI CLI
-        run: composer global require styleci/cli:^1.6 --no-interaction
-      - name: Show StyleCI delta
+      - name: Install PHP-CS-Fixer
+        run: composer global require friendsofphp/php-cs-fixer:^3 --no-interaction
+      - name: Show local equivalent of StyleCI delta
         shell: bash
         run: |
+          cat > /tmp/styleci.php <<'PHP'
+          <?php
+          $finder = PhpCsFixer\Finder::create()
+              ->in(['src', 'tests', 'build'])
+              ->name('*.php');
+          return (new PhpCsFixer\Config())
+              ->setRiskyAllowed(true)
+              ->setRules([
+                  '@PSR2' => true,
+                  'indentation_type' => false,
+                  'no_unused_imports' => true,
+                  'include' => true,
+                  'single_quote' => true,
+                  'ordered_imports' => true,
+              ])
+              ->setFinder($finder);
+          PHP
           set +e
-          "$HOME/.composer/vendor/bin/styleci" analyze --dry-run --no-interaction -vvv .
+          "$HOME/.composer/vendor/bin/php-cs-fixer" fix \
+            --config=/tmp/styleci.php \
+            --dry-run \
+            --diff \
+            --verbose
           exit_code=$?
-          echo "STYLECI_EXIT=${exit_code}"
-          git diff -- . ':!vendor' ':!tools/agent-loop/vendor'
+          echo "PHP_CS_FIXER_EXIT=${exit_code}"
           exit 0
