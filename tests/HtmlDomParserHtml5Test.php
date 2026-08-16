@@ -131,6 +131,85 @@ final class HtmlDomParserHtml5Test extends \PHPUnit\Framework\TestCase
 
         static::assertFalse($dom->getIsDOMDocumentCreatedWithHtml5Parser());
         static::assertSame('<div @foo="bar">x</div>', $dom->html());
+        static::assertSame(
+            HtmlDomParser::HTML5_FALLBACK_XML_BRIDGE_FAILED,
+            $dom->getHtml5ParserFallbackReason()
+        );
+    }
+
+    public function testNoFallbackReasonWithoutAFallback()
+    {
+        static::assertNull($this->html5('<div>x</div>')->getHtml5ParserFallbackReason());
+
+        $legacy = new HtmlDomParser('<div>x</div>');
+
+        static::assertFalse($legacy->getIsDOMDocumentCreatedWithHtml5Parser());
+        static::assertNull($legacy->getHtml5ParserFallbackReason());
+    }
+
+    public function testTheFallbackReasonIsResetPerDocument()
+    {
+        $dom = (new HtmlDomParser())->useHtml5Parser();
+        $dom->loadHtml('<div @foo="bar">x</div>');
+        static::assertSame(
+            HtmlDomParser::HTML5_FALLBACK_XML_BRIDGE_FAILED,
+            $dom->getHtml5ParserFallbackReason()
+        );
+
+        $dom->loadHtml('<div>x</div>');
+
+        static::assertTrue($dom->getIsDOMDocumentCreatedWithHtml5Parser());
+        static::assertNull($dom->getHtml5ParserFallbackReason());
+    }
+
+    public function testKeepBrokenHtmlDoesNotDisableTheHtml5Parser()
+    {
+        $dom = (new HtmlDomParser())->useHtml5Parser();
+        $dom->useKeepBrokenHtml(true);
+        $dom->loadHtml('<script async src="cdnjs"></script></borken foo="lall"><table><tr><td>c</table>');
+
+        // the broken fragment survives verbatim ...
+        static::assertTrue($dom->getIsDOMDocumentCreatedWithHtml5Parser());
+        static::assertNull($dom->getHtml5ParserFallbackReason());
+        static::assertStringContainsString('</borken foo="lall">', $dom->innerHtml);
+
+        // ... and the same document still got HTML5 tree construction
+        static::assertCount(1, $dom->findMulti('tbody'));
+    }
+
+    public function testKeepBrokenHtmlKeepsTheBrokenFragmentAtTheBeginOfTheInput()
+    {
+        $dom = (new HtmlDomParser())->useHtml5Parser();
+        $dom->useKeepBrokenHtml(true);
+        $dom->loadHtml('</script><script src="cdnjs"></script>');
+
+        static::assertTrue($dom->getIsDOMDocumentCreatedWithHtml5Parser());
+        static::assertSame('</script><script src="cdnjs"></script>', $dom->innerHtml);
+    }
+
+    /**
+     * The preserved fragment is a text placeholder while the document is parsed, and HTML5
+     * tree construction moves text out of a table - a browser does the same. The fragment is
+     * kept, its position is not.
+     */
+    public function testKeepBrokenHtmlInsideATableMovesTheFragmentOutOfTheTable()
+    {
+        $html = '<table><tr><td>x</td></tr></borken foo="1"></table>';
+
+        $legacy = new HtmlDomParser();
+        $legacy->useKeepBrokenHtml(true);
+        $legacy->loadHtml($html);
+        static::assertSame($html, $legacy->innerHtml);
+
+        $dom = (new HtmlDomParser())->useHtml5Parser();
+        $dom->useKeepBrokenHtml(true);
+        $dom->loadHtml($html);
+
+        static::assertTrue($dom->getIsDOMDocumentCreatedWithHtml5Parser());
+        static::assertSame(
+            '</borken foo="1"><table><tbody><tr><td>x</td></tr></tbody></table>',
+            $dom->innerHtml
+        );
     }
 
     public function testDocumentStaysALegacyDomDocument()
@@ -179,15 +258,6 @@ final class HtmlDomParserHtml5Test extends \PHPUnit\Framework\TestCase
         );
 
         static::assertSame('ä', $dom->findOne('p')->text());
-    }
-
-    public function testKeepBrokenHtmlFallsBackToTheLegacyParser()
-    {
-        $dom = (new HtmlDomParser())->useHtml5Parser();
-        $dom->useKeepBrokenHtml(true);
-        $dom->loadHtml('<p>a</p>');
-
-        static::assertFalse($dom->getIsDOMDocumentCreatedWithHtml5Parser());
     }
 
     public function testTheParserFlagIsResetWhenTheParserIsTurnedOffAgain()

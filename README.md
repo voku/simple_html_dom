@@ -106,10 +106,21 @@ What it costs, and where it differs:
   always `<html>`, even for a fragment. `html()` / `innerHtml()` still return the fragment.
 - Boolean attributes are serialized as `checked=""` instead of `checked`, an artifact of the XML
   bridge.
-- The legacy parser is used - without an error - when the runtime is older than PHP 8.4, when
-  `useKeepBrokenHtml()` is active, or when the input cannot survive the bridge (an attribute name
-  that is legal in HTML but not in XML, for example). `getIsDOMDocumentCreatedWithHtml5Parser()`
-  reports which parser was used.
+- `useKeepBrokenHtml()` works together with it: the broken fragments are preserved verbatim and
+  the same document still gets HTML5 tree construction. Because a preserved fragment travels
+  through the parser as text, HTML5 tree construction moves it where a browser would move text -
+  out of a `<table>`, out of the `<head>` - so it can come back in a different position than the
+  default parser returns it. The fragment itself is never lost.
+- The legacy parser is used - without an error - when the runtime is older than PHP 8.4, or when
+  the result cannot be carried through the XML bridge (an attribute name that is legal in HTML but
+  not in XML, for example). That is never silent:
+
+  ```php
+  $dom->getIsDOMDocumentCreatedWithHtml5Parser(); // which parser built the current document
+  $dom->getHtml5ParserFallbackReason();           // null, or why the legacy parser was used
+  // HtmlDomParser::HTML5_FALLBACK_UNSUPPORTED_RUNTIME
+  // HtmlDomParser::HTML5_FALLBACK_XML_BRIDGE_FAILED
+  ```
 
 ### Examples
 

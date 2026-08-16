@@ -1,0 +1,11 @@
+{
+    "schema_version": "1.0",
+    "kind": "run_learning_decision",
+    "run_id": "run:SHD-9:c5aea99f2ceefc6a",
+    "decision": "no_durable_learning",
+    "decided_by": "claude",
+    "decided_at": "2026-08-16T20:50:14+00:00",
+    "reason": "Bounded follow-up on SHD-1. The guard it removed was a defensive assumption, and the measurement that disproved it is already recorded on the card and pinned by tests; nothing reusable beyond this parser.",
+    "finding_ids": [],
+    "follow_up_ref": null
+}

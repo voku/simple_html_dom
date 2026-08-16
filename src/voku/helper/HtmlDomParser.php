@@ -34,6 +34,23 @@ namespace voku\helper;
 class HtmlDomParser extends AbstractDomParser
 {
     /**
+     * Fallback reason: the runtime is older than PHP 8.4, or its "\Dom" implementation is
+     * incomplete. See "getHtml5ParserFallbackReason()".
+     *
+     * @var string
+     */
+    const HTML5_FALLBACK_UNSUPPORTED_RUNTIME = 'unsupported_runtime';
+
+    /**
+     * Fallback reason: the HTML5 parser produced a document that could not be carried
+     * through the XML bridge, e.g. because the input used an attribute name that HTML
+     * allows and XML does not. See "getHtml5ParserFallbackReason()".
+     *
+     * @var string
+     */
+    const HTML5_FALLBACK_XML_BRIDGE_FAILED = 'xml_bridge_failed';
+
+    /**
      * @var callable|null
      *
      * @phpstan-var null|callable(string $cssSelectorString, string $xPathString, \DOMXPath, \voku\helper\HtmlDomParser): string
@@ -188,6 +205,11 @@ class HtmlDomParser extends AbstractDomParser
      * @var bool
      */
     protected $isDOMDocumentCreatedWithHtml5Parser = false;
+
+    /**
+     * @var string|null
+     */
+    protected $html5ParserFallbackReason;
 
     /**
      * Placeholder attribute name used while bridging an HTML5-parsed document, see
@@ -459,19 +481,30 @@ class HtmlDomParser extends AbstractDomParser
         }
 
         $this->isDOMDocumentCreatedWithHtml5Parser = false;
+        $this->html5ParserFallbackReason = null;
 
         // INFO: PHP >= 8.4 ships "\Dom\HTMLDocument", an HTML5-spec parser that recovers from
         //          broken markup the way a browser does. It is opt-in, because it parses into
         //          the new DOM implementation and this class must keep handing out a legacy
         //          "\DOMDocument", which costs one extra serialize + parse round-trip.
-        if ($this->useHtml5Parser && !$this->keepBrokenHtml) {
-            $html5Document = $this->createDOMDocumentViaHtml5Parser($html);
+        //
+        //          "keepBrokenHtml" works on top of it: that repair replaced the broken
+        //          fragments with text placeholders before this point, and the HTML5 parser
+        //          carries text through, so the two features do not exclude each other.
+        if ($this->useHtml5Parser) {
+            if (!self::isHtml5ParserSupported()) {
+                $this->html5ParserFallbackReason = self::HTML5_FALLBACK_UNSUPPORTED_RUNTIME;
+            } else {
+                $html5Document = $this->createDOMDocumentViaHtml5Parser($html);
 
-            if ($html5Document !== null) {
-                $this->document = $html5Document;
-                $this->isDOMDocumentCreatedWithHtml5Parser = true;
+                if ($html5Document !== null) {
+                    $this->document = $html5Document;
+                    $this->isDOMDocumentCreatedWithHtml5Parser = true;
 
-                return $this->document;
+                    return $this->document;
+                }
+
+                $this->html5ParserFallbackReason = self::HTML5_FALLBACK_XML_BRIDGE_FAILED;
             }
         }
 
@@ -629,17 +662,16 @@ class HtmlDomParser extends AbstractDomParser
      * resulting document matches what the legacy parser produces and the generated XPath
      * queries of this library keep working without namespace handling.
      *
+     * The caller checks "isHtml5ParserSupported()" and owns the fallback reason, so this
+     * method is only reached on a runtime that has the parser.
+     *
      * @param string $html
      *
-     * @return \DOMDocument|null <p>NULL if the HTML5 parser is unavailable or refused the input;
-     *                           the caller then falls back to the legacy parser.</p>
+     * @return \DOMDocument|null <p>NULL if the result could not be carried through the XML
+     *                           bridge; the caller then falls back to the legacy parser.</p>
      */
     private function createDOMDocumentViaHtml5Parser(string $html): ?\DOMDocument
     {
-        if (!self::isHtml5ParserSupported()) {
-            return null;
-        }
-
         // INFO: the HTML5 parser detects the encoding the way the specification does - from a
         //          byte-order mark or a <meta> charset - which is the browser behavior this
         //          parser is used for. Only a parser that was configured for a specific
@@ -769,11 +801,17 @@ class HtmlDomParser extends AbstractDomParser
      * parser stays the default, because bridging the result back into the "\DOMDocument"
      * that this library hands out costs an extra serialize + parse round-trip.
      *
+     * It combines with "useKeepBrokenHtml()": that repair turns the broken fragments into
+     * text placeholders before parsing and puts them back after serialization, and the HTML5
+     * parser carries text through. Where text is not allowed - inside a table, inside the
+     * head - HTML5 tree construction moves such a placeholder to where a browser would put
+     * it, so a preserved fragment can come back in a different position than the legacy
+     * parser returns it.
+     *
      * The legacy parser is used anyway - without an error - when the runtime is older than
-     * PHP 8.4, when "useKeepBrokenHtml()" is active (that repair is written for the legacy
-     * parser), or when the HTML5 parser refuses the input. Use
+     * PHP 8.4 and when the result cannot be carried through the XML bridge. Use
      * "getIsDOMDocumentCreatedWithHtml5Parser()" to see which parser produced the current
-     * document.
+     * document and "getHtml5ParserFallbackReason()" to see why.
      *
      * @param bool $useHtml5Parser
      *
@@ -810,6 +848,23 @@ class HtmlDomParser extends AbstractDomParser
     public function getIsDOMDocumentCreatedWithHtml5Parser(): bool
     {
         return $this->isDOMDocumentCreatedWithHtml5Parser;
+    }
+
+    /**
+     * Check why the current document was built by the legacy parser although the HTML5
+     * parser was enabled.
+     *
+     * A fallback keeps the parser working instead of throwing, but it changes the result,
+     * so it must not be silent.
+     *
+     * @return string|null <p>NULL when no fallback happened - either the HTML5 parser built
+     *                     the current document, or it was never enabled for it. Otherwise
+     *                     "HtmlDomParser::HTML5_FALLBACK_UNSUPPORTED_RUNTIME" or
+     *                     "HtmlDomParser::HTML5_FALLBACK_XML_BRIDGE_FAILED".</p>
+     */
+    public function getHtml5ParserFallbackReason(): ?string
+    {
+        return $this->html5ParserFallbackReason;
     }
 
     /**

@@ -1,13 +1,14 @@
 # SHD-9: Use the HTML5 parser whenever it is enabled, instead of silently falling back
 
 - **Ticket:** SHD-9
-- **Lane:** BACKLOG
-- **Status:** Backlog
+- **Lane:** VERIFY
+- **Status:** In Test
 - **Domain:** parser
+- **Assignee:** claude
 - **Created:** 2026-08-16T20:20:17+00:00
-- **Updated:** 2026-08-16T20:20:17+00:00
+- **Updated:** 2026-08-16T20:50:21+00:00
 - **Summary:** When a caller enables the PHP >= 8.4 HTML5 parser, HtmlDomParser should use it. Today useKeepBrokenHtml() silently disables it, and an input the XML bridge cannot carry silently downgrades the whole document.
-- **Next:** Plan the contract (workflow plan SHD-9)
+- **Next:** Review the pushed branch
 - **Validation:** php vendor/bin/phpunit -c phpunit.xml
 - **Priority:** 2
 - **Format version:** 1
