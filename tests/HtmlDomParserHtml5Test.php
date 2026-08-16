@@ -90,6 +90,18 @@ final class HtmlDomParserHtml5Test extends \PHPUnit\Framework\TestCase
         static::assertSame('', $dom->getDocument()->documentElement->namespaceURI ?? '');
     }
 
+    public function testXmlnsAttributeSurvivesTheXmlTransportWithoutNamespacingElements()
+    {
+        $dom = $this->html5('<div xmlns="urn:example"><span>x</span></div>');
+        $div = $dom->findOne('div');
+
+        static::assertTrue($dom->getIsDOMDocumentCreatedWithHtml5Parser());
+        static::assertSame('urn:example', $div->getAttribute('xmlns'));
+        static::assertSame('', $div->getNode()->namespaceURI ?? '');
+        static::assertSame('x', $dom->findOne('div span')->text());
+        static::assertSame('<div xmlns="urn:example"><span>x</span></div>', $dom->html());
+    }
+
     public function testDocumentStaysALegacyDomDocument()
     {
         $dom = $this->html5('<div>x</div>');
