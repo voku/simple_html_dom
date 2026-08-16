@@ -1,0 +1,146 @@
+name: PR 150 close SHD-14
+
+on:
+  push:
+    branches:
+      - claude/php-8.4-dom-htmldocument-vronm4
+    paths:
+      - .github/workflows/pr150-close-shd14.yml
+
+permissions:
+  contents: write
+
+jobs:
+  closeout:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: claude/php-8.4-dom-htmldocument-vronm4
+          fetch-depth: 0
+
+      - name: Setup PHP 8.3
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
+        with:
+          php-version: '8.3'
+          coverage: none
+          extensions: zip
+          tools: composer
+
+      - name: Install dependencies
+        run: |
+          composer install --prefer-dist --no-interaction
+          composer install --working-dir=tools/agent-loop --prefer-dist --no-interaction
+          composer global require friendsofphp/php-cs-fixer:^3 --no-interaction
+
+      - name: Plan and approve formatter-only follow-up
+        run: |
+          php bin/agent-loop map build --paths=tests
+          php bin/agent-loop workflow plan SHD-14 \
+            --by voku \
+            --file tests/Html5DomParserCompatibilityTest.php \
+            --goal 'Apply only the five StyleCI method-argument formatting changes to the HTML5 compatibility test and bind the exact formatted test bytes without changing assertions or parser behavior.' \
+            --behavior-anchor 'Html5DomParserCompatibilityTest assertion values and execution stay unchanged; only multiline formatting of five long assertSame calls changes.' \
+            --validation 'php vendor/bin/phpunit -c phpunit.xml' \
+            --validation 'php tools/agent-loop/vendor/bin/phpstan analyse -c phpstan.neon --no-progress'
+          php bin/agent-loop workflow approve SHD-14 --by voku
+
+      - name: Apply exact StyleCI-equivalent formatting
+        shell: bash
+        run: |
+          cat > /tmp/styleci.php <<'PHP'
+          <?php
+          $finder = PhpCsFixer\Finder::create()
+              ->files()
+              ->append(['tests/Html5DomParserCompatibilityTest.php']);
+          return (new PhpCsFixer\Config())
+              ->setRiskyAllowed(true)
+              ->setRules([
+                  '@PSR2' => true,
+                  'indentation_type' => false,
+                  'no_unused_imports' => true,
+                  'include' => true,
+                  'single_quote' => true,
+                  'ordered_imports' => true,
+              ])
+              ->setFinder($finder);
+          PHP
+          "$HOME/.composer/vendor/bin/php-cs-fixer" fix --config=/tmp/styleci.php --verbose
+          git diff --check
+          changed=$(git diff --name-only)
+          test "$changed" = 'tests/Html5DomParserCompatibilityTest.php'
+
+      - name: Validate and record exact observations
+        shell: bash
+        run: |
+          set -uo pipefail
+          record() {
+            local command="$1"
+            local start end duration exit_code status
+            start=$(date +%s%3N)
+            set +e
+            bash -lc "$command"
+            exit_code=$?
+            set -e
+            end=$(date +%s%3N)
+            duration=$((end - start))
+            if [ "$exit_code" -eq 0 ]; then status=passed; else status=failed; fi
+            php bin/agent-loop session validation record SHD-14 \
+              --contract-revision 1 \
+              --command "$command" \
+              --status "$status" \
+              --exit-code "$exit_code" \
+              --duration-ms "$duration" \
+              --by voku
+            return "$exit_code"
+          }
+          set -e
+          record 'php vendor/bin/phpunit -c phpunit.xml'
+          record 'php tools/agent-loop/vendor/bin/phpstan analyse -c phpstan.neon --no-progress'
+
+      - name: Review and checkpoint
+        shell: bash
+        run: |
+          php bin/agent-loop review code SHD-14
+          php bin/agent-loop session checkpoint SHD-14 \
+            --title 'L2 blind-spot review checkpoint' \
+            --body 'StyleCI identified five method_argument_space fixes only. PHP-CS-Fixer applied them only to Html5DomParserCompatibilityTest.php; PHPUnit and PHPStan passed and assertion values were not changed.'
+          set +e
+          php bin/agent-loop review blindspots SHD-14
+          initial_review_exit=$?
+          set -e
+          echo "INITIAL_BLINDSPOT_EXIT=${initial_review_exit}"
+          cat .agent-loop/recall/SHD-14/reviews/SHD-14.blindspots.json
+
+      - name: Record no durable learning
+        run: |
+          php bin/agent-loop workflow learn SHD-14 \
+            --status no_durable_learning \
+            --by voku \
+            --reason 'Formatter-only StyleCI compliance in the copied compatibility test; no behavior, architecture, or reusable workflow rule changed.'
+
+      - name: Require clean post-learning review
+        run: |
+          php bin/agent-loop review blindspots SHD-14
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path('.agent-loop/recall/SHD-14/reviews/SHD-14.blindspots.json').read_text())
+          if report.get('findings'):
+              raise SystemExit('blind-spot findings remain')
+          if report.get('status') != 'ok':
+              raise SystemExit('blind-spot report is not ok')
+          PY
+
+      - name: Close governed Run and commit
+        run: |
+          php bin/agent-loop workflow close SHD-14 --status done
+          php bin/agent-loop workflow status SHD-14 --expect complete --format=json
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .agent-loop tests/Html5DomParserCompatibilityTest.php
+          git diff --cached --check
+          git commit -m 'Apply governed StyleCI compatibility-test formatting (SHD-14)'
+          git push origin HEAD:claude/php-8.4-dom-htmldocument-vronm4
