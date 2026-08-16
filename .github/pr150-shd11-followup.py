@@ -130,7 +130,7 @@ replace_once(
 # any future repair pass. Keep the rest of testEditLinks running instead of aborting at this case.
 regex_once(
     compat_test,
-    r'''^\s*'<a <a href="http://foobar\.de">foo</a><div></div>'.*\n''',
+    r'''^\s*'<a <a href="http://foobar\.de">foo</a><div></div>'[^\n]*\n''',
     '',
 )
 method_anchor = '''    public function testEditLinks()
