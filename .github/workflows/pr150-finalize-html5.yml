@@ -60,7 +60,18 @@ jobs:
           php bin/agent-loop workflow status SHD-11 --format=json
 
       - name: Apply scoped implementation
-        run: python3 .github/pr150-finalize-html5.py patch
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('.github/pr150-finalize-html5.py')
+          text = path.read_text()
+          old = 'updated, count = re.subn(pattern, replacement, content, count=1, flags=re.S)'
+          new = 'updated, count = re.subn(pattern, lambda _match: replacement, content, count=1, flags=re.S)'
+          if text.count(old) != 1:
+              raise SystemExit(f'expected regex replacement line once, found {text.count(old)}')
+          path.write_text(text.replace(old, new, 1))
+          PY
+          python3 .github/pr150-finalize-html5.py patch
 
       - name: Validate and record evidence
         shell: bash
