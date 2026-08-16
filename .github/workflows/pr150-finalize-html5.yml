@@ -45,11 +45,11 @@ jobs:
           text = path.read_text()
           text = text.replace(
               'Html5DomParser must never silently become HtmlDomParser, and shared output cleanup must only reverse placeholders that the selected backend actually created.',
-              'Html5DomParser must never silently become HtmlDomParser, and the shared preserve/restore transformation must bracket backend selection so every parser gets the same paired normalization contract.'
+              'Html5DomParser must never silently become HtmlDomParser, and its minimal bridge-sensitive input protection must pair with the existing shared inverse cleanup without changing HtmlDomParser preprocessing.'
           )
           text = text.replace(
               'Also fix SHD-11 proper: the HTML5 backend skips the legacy replaceToPreserveHtmlEntities() workaround, so output cleanup must restore only the broken-fragment placeholders that this backend actually created.',
-              'Also fix SHD-11 proper: move replaceToPreserveHtmlEntities() into shared preprocessing before backend selection so the existing shared inverse cleanup is paired for both parsers and caller-owned percent-encoded values remain stable.'
+              'Also fix SHD-11 proper: protect only percent escapes and the Google AMP marker before the HTML5 backend. Keep HtmlDomParser preprocessing order unchanged and keep the existing shared inverse cleanup authoritative for DOM mutations and broken-fragment placeholders.'
           )
           path.write_text(text)
           PY
@@ -64,9 +64,9 @@ jobs:
             --file build/benchmark_html5_parser.php \
             --file README.md \
             --file CHANGELOG \
-            --goal 'Finish the separate Html5DomParser boundary: an explicitly selected HTML5 parser must never silently become the libxml parser, and the shared preserve/restore normalization must be paired across backend selection.' \
-            --behavior-anchor 'HtmlDomParser::createDOMDocument -> shared input preparation -> replaceToPreserveHtmlEntities -> selected backend -> shared inverse cleanup' \
-            --behavior-anchor 'Html5DomParser::loadHtml -> PHP Dom HTMLDocument -> XML bridge -> legacy DOMDocument, with no parser-semantic fallback and stable caller-owned percent encodings' \
+            --goal 'Finish the separate Html5DomParser boundary: an explicitly selected HTML5 parser must never silently become the libxml parser, while bridge-sensitive input protection stays minimal and does not disturb legacy preprocessing.' \
+            --behavior-anchor 'HtmlDomParser::createDOMDocument keeps its existing preprocessing order and libxml-only replaceToPreserveHtmlEntities pass' \
+            --behavior-anchor 'Html5DomParser::loadHtml protects percent escapes and the Google AMP marker -> PHP Dom HTMLDocument -> XML bridge -> legacy DOMDocument -> existing shared inverse cleanup, with no parser-semantic fallback' \
             --validation 'php vendor/bin/phpunit -c phpunit.xml' \
             --validation 'php tools/agent-loop/vendor/bin/phpstan analyse -c phpstan.neon --no-progress' \
             --validation 'php build/benchmark_html5_parser.php'
