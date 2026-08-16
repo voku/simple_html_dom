@@ -84,6 +84,7 @@ internally, switch the default for every parser created afterwards:
 ```php
 HtmlDomParser::useHtml5ParserByDefault(true);
 
+$dom = HtmlDomParser::str_get_html('<table><tr><td>x</table>');
 HtmlDomParser::isHtml5ParserSupported(); // false on PHP < 8.4
 $dom->getIsDOMDocumentCreatedWithHtml5Parser(); // which parser built the current document
 ```
