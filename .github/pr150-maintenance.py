@@ -11,8 +11,6 @@ import sys
 
 ROOT = Path(__file__).resolve().parent.parent
 BRANCH = 'claude/php-8.4-dom-htmldocument-vronm4'
-WORKFLOW = ROOT / '.github/workflows/pr150-maintenance.yml'
-SCRIPT = ROOT / '.github/pr150-maintenance.py'
 
 
 def run(*args: str) -> None:
@@ -146,17 +144,6 @@ def patch_test() -> None:
     path.write_text(replace_once(text, anchor, test + anchor, 'HTML5 test anchor'))
 
 
-def patch_ci() -> None:
-    path = ROOT / '.github/workflows/ci.yml'
-    text = path.read_text()
-    path.write_text(replace_once(
-        text,
-        '        uses: coverallsapp/github-action@v2\n',
-        '        uses: coverallsapp/github-action@8d6379e14d29928660c4ba802d8e85393440b329 # v2\n',
-        'Coveralls action',
-    ))
-
-
 def repair_archived_contract() -> None:
     history = ROOT / '.agent-loop/contracts/SHD-1/history/contract.001.json'
     snapshot = json.loads(history.read_text())
@@ -198,7 +185,6 @@ def validate() -> None:
     allowed = {
         '.agent-loop/runs/.history/SHD-1/run-SHD-1-2f8699c5565d2aa0/contract.json',
         '.agent-loop/runs/.history/SHD-1/run-SHD-1-2f8699c5565d2aa0/recall-input.json',
-        '.github/workflows/ci.yml',
         'src/voku/helper/HtmlDomParser.php',
         'tests/HtmlDomParserHtml5Test.php',
         'tools/agent-loop/composer.lock',
@@ -220,9 +206,14 @@ def validate() -> None:
 def commit() -> None:
     run('git', 'config', 'user.name', 'github-actions[bot]')
     run('git', 'config', 'user.email', '41898282+github-actions[bot]@users.noreply.github.com')
-    WORKFLOW.unlink()
-    SCRIPT.unlink()
-    run('git', 'add', '-A')
+    run(
+        'git', 'add',
+        '.agent-loop/runs/.history/SHD-1/run-SHD-1-2f8699c5565d2aa0/contract.json',
+        '.agent-loop/runs/.history/SHD-1/run-SHD-1-2f8699c5565d2aa0/recall-input.json',
+        'src/voku/helper/HtmlDomParser.php',
+        'tests/HtmlDomParserHtml5Test.php',
+        'tools/agent-loop/composer.lock',
+    )
     run('git', 'commit', '-m', 'Fix bounded PR review findings')
     run('git', 'push', 'origin', f'HEAD:{BRANCH}')
 
@@ -233,7 +224,6 @@ def main() -> int:
     run('composer', '--version')
     patch_parser()
     patch_test()
-    patch_ci()
     repair_archived_contract()
     update_agent_loop()
     validate()
