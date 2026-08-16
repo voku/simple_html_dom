@@ -1,13 +1,13 @@
-# SHD-11: Html5DomParser: fixHtmlOutput reverses a substitution the HTML5 path never applies
+# SHD-11: Html5DomParser: enforce the explicit backend boundary
 
 - **Ticket:** SHD-11
-- **Lane:** BACKLOG
-- **Status:** Backlog
+- **Lane:** READY
+- **Status:** Selected
 - **Domain:** parser
 - **Created:** 2026-08-16T21:11:23+00:00
 - **Updated:** 2026-08-16T21:11:23+00:00
-- **Summary:** fixHtmlOutput() always calls putReplacedBackToPreserveHtmlEntities(), but Html5DomParser skips the matching replaceToPreserveHtmlEntities(), so input that already contains %5B%5B, %7B%7B or %40 is rewritten on output.
+- **Summary:** Html5DomParser must never silently become HtmlDomParser, and its minimal bridge-sensitive input protection must pair with the existing shared inverse cleanup without changing HtmlDomParser preprocessing.
 - **Format version:** 1
 
 ## Agent Task Brief
-Measured on 2026-08-16: applying replaceToPreserveHtmlEntities() in Html5DomParser for symmetry fixes testEditLinks and testMail2 but breaks testSimpleHtmlViaSimpleXmlLoadString, testGetHtmlInner and both XML-bridge fallback tests, so it was reverted. The asymmetry is currently absorbed by the normalizer in tests/Html5DomParserCompatibilityTest.php (the '%5B%5B' / '%40' rule). Real fix: make the reverse step conditional on the substitution having run, instead of making the HTML5 path run a libxml workaround it does not need.
+Finish the separate-parser design from SHD-10. Choosing Html5DomParser is an explicit semantic choice, so a successful parse must come from the PHP HTML5 backend; unsupported runtimes and an XML bridge that cannot represent the normalized tree must fail visibly instead of silently switching parser semantics. Also fix SHD-11 proper: protect only percent escapes and the Google AMP marker before the HTML5 backend. Keep HtmlDomParser preprocessing order unchanged and keep the existing shared inverse cleanup authoritative for DOM mutations and broken-fragment placeholders. Keep HtmlDomParser behavior unchanged, keep the public DOMDocument / DOMNode API, and validate with the copied compatibility suite plus the PR #146 benchmark method.

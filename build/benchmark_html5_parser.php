@@ -39,43 +39,49 @@ $samples = 5;
  */
 function runBenchmarkOnce(string $parserClass, string $html, string $selector, int $iterations): array
 {
-    $parseSeconds = 0.0;
-    $selectorSeconds = 0.0;
-    $serializeSeconds = 0.0;
-    $matches = 0;
-    $length = 0;
-
-    // PHP >= 8.2 can reset the high-water mark, which is the only way to see the peak of one
-    // run instead of the peak of the whole process
     if (\function_exists('memory_reset_peak_usage')) {
         \memory_reset_peak_usage();
     }
+    \gc_collect_cycles();
 
     $peakBefore = \memory_get_usage();
+    $documents = [];
 
+    // Keep the PR #146 phase layout: build the whole parser batch first, then query it, then
+    // serialize it. This makes parse / selector / serialization timing directly comparable to
+    // that benchmark and keeps its peak-memory pressure visible instead of freeing each DOM
+    // before the next iteration.
+    $start = \microtime(true);
     for ($i = 0; $i < $iterations; ++$i) {
-        $start = \microtime(true);
         $dom = new $parserClass();
         $dom->loadHtml($html);
-        $parseSeconds += \microtime(true) - $start;
-
-        $start = \microtime(true);
-        $matches = \count($dom->findMulti($selector));
-        $selectorSeconds += \microtime(true) - $start;
-
-        $start = \microtime(true);
-        $length = \strlen($dom->html());
-        $serializeSeconds += \microtime(true) - $start;
-
-        unset($dom);
+        $documents[] = $dom;
     }
+    $parseSeconds = \microtime(true) - $start;
+
+    $matches = 0;
+    $start = \microtime(true);
+    foreach ($documents as $dom) {
+        $matches = \count($dom->findMulti($selector));
+    }
+    $selectorSeconds = \microtime(true) - $start;
+
+    $length = 0;
+    $start = \microtime(true);
+    foreach ($documents as $dom) {
+        $length = \strlen($dom->html());
+    }
+    $serializeSeconds = \microtime(true) - $start;
+
+    $peakBytes = \max(0, \memory_get_peak_usage() - $peakBefore);
+    unset($documents);
 
     return [
         'parse_ms'     => $parseSeconds / $iterations * 1000,
         'selector_ms'  => $selectorSeconds / $iterations * 1000,
         'serialize_ms' => $serializeSeconds / $iterations * 1000,
         'total_ms'     => ($parseSeconds + $selectorSeconds + $serializeSeconds) / $iterations * 1000,
-        'peak_bytes'   => \max(0, \memory_get_peak_usage() - $peakBefore),
+        'peak_bytes'   => $peakBytes,
         'matches'      => $matches,
         'length'       => $length,
     ];

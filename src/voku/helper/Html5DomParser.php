@@ -38,9 +38,12 @@ namespace voku\helper;
  * serialized as XML and re-parsed, which is cheap because it is already normalized at that
  * point.
  *
- * When the runtime is older than PHP 8.4, or the result cannot survive that bridge, the
- * libxml parser of "HtmlDomParser" produces the document instead. That keeps the parser
- * working, and "getHtml5ParserFallbackReason()" says when it happened.
+ * Choosing this class is a strict parser choice. If the PHP 8.4 HTML5 backend is not
+ * available, or the normalized tree cannot be represented by the legacy "\DOMDocument"
+ * bridge this library exposes, parsing throws instead of silently switching to libxml. Call
+ * "isHtml5ParserSupported()" before selecting this class when an application supports older
+ * runtimes, and choose "HtmlDomParser" explicitly when legacy semantics are the desired
+ * fallback.
  *
  * @property-read string $outerText
  *                                 <p>Get dom node's outer html (alias for "outerHtml").</p>
@@ -71,23 +74,6 @@ namespace voku\helper;
 class Html5DomParser extends HtmlDomParser
 {
     /**
-     * Fallback reason: the runtime is older than PHP 8.4, or its "\Dom" implementation is
-     * incomplete. See "getHtml5ParserFallbackReason()".
-     *
-     * @var string
-     */
-    const FALLBACK_UNSUPPORTED_RUNTIME = 'unsupported_runtime';
-
-    /**
-     * Fallback reason: the HTML5 tree could not be carried through the XML bridge, e.g.
-     * because the input used an attribute name that HTML allows and XML does not. See
-     * "getHtml5ParserFallbackReason()".
-     *
-     * @var string
-     */
-    const FALLBACK_XML_BRIDGE_FAILED = 'xml_bridge_failed';
-
-    /**
      * Placeholder attribute name used while bridging the parsed document, see
      * "parkXmlnsAttributes()".
      *
@@ -101,11 +87,6 @@ class Html5DomParser extends HtmlDomParser
     protected $isDOMDocumentCreatedWithHtml5Parser = false;
 
     /**
-     * @var string|null
-     */
-    protected $html5ParserFallbackReason;
-
-    /**
      * Check if the HTML5 parser of PHP >= 8.4 can be used on this runtime.
      *
      * When it cannot, this class still works: it parses with the libxml parser of
@@ -113,6 +94,35 @@ class Html5DomParser extends HtmlDomParser
      *
      * @return bool
      */
+    /**
+     * Protect only input that the shared output cleanup would otherwise change or that the
+     * XML transport cannot represent directly.
+     *
+     * Do not run the full libxml protection pass here: protecting ampersands would suppress
+     * native HTML5 entity parsing, and moving the legacy pass before backend selection breaks
+     * the existing special-script preprocessing order.
+     *
+     * @param string $html
+     *
+     * @return string
+     */
+    private static function protectHtml5BridgeSensitiveInput(string $html): string
+    {
+        $search = [];
+        $replace = [];
+
+        foreach (self::$domReplaceHelper['orig'] as $index => $original) {
+            if ($original !== '%' && $original !== '<html ⚡') {
+                continue;
+            }
+
+            $search[] = $original;
+            $replace[] = self::$domReplaceHelper['tmp'][$index];
+        }
+
+        return \str_replace($search, $replace, $html);
+    }
+
     public static function isHtml5ParserSupported(): bool
     {
         return \PHP_VERSION_ID >= 80400
@@ -133,22 +143,6 @@ class Html5DomParser extends HtmlDomParser
     }
 
     /**
-     * Check why the current document was built by the libxml parser instead of the HTML5
-     * parser.
-     *
-     * A fallback keeps the parser working instead of throwing, but it changes the result,
-     * so it must not be silent.
-     *
-     * @return string|null <p>NULL when the HTML5 parser built the current document, otherwise
-     *                     "Html5DomParser::FALLBACK_UNSUPPORTED_RUNTIME" or
-     *                     "Html5DomParser::FALLBACK_XML_BRIDGE_FAILED".</p>
-     */
-    public function getHtml5ParserFallbackReason(): ?string
-    {
-        return $this->html5ParserFallbackReason;
-    }
-
-    /**
      * Parse the prepared HTML with the HTML5 parser.
      *
      * "keepBrokenHtml" works on top of this: that repair replaced the broken fragments with
@@ -165,22 +159,16 @@ class Html5DomParser extends HtmlDomParser
     protected function createDOMDocumentFromPreparedHtml(string $html)
     {
         $this->isDOMDocumentCreatedWithHtml5Parser = false;
-        $this->html5ParserFallbackReason = null;
 
         if (!static::isHtml5ParserSupported()) {
-            $this->html5ParserFallbackReason = self::FALLBACK_UNSUPPORTED_RUNTIME;
-
-            return null;
+            throw new \RuntimeException(
+                'Html5DomParser requires PHP >= 8.4 with "\\Dom\\HTMLDocument" and "\\Dom\\HTML_NO_DEFAULT_NS".'
+            );
         }
+
+        $html = self::protectHtml5BridgeSensitiveInput($html);
 
         $document = $this->createDOMDocumentViaHtml5Parser($html);
-
-        if ($document === null) {
-            $this->html5ParserFallbackReason = self::FALLBACK_XML_BRIDGE_FAILED;
-
-            return null;
-        }
-
         $this->isDOMDocumentCreatedWithHtml5Parser = true;
 
         return $document;
@@ -241,8 +229,10 @@ class Html5DomParser extends HtmlDomParser
      *
      * @param string $html
      *
-     * @return \DOMDocument|null <p>NULL if the result could not be carried through the XML
-     *                           bridge.</p>
+     * @throws \RuntimeException <p>If the normalized HTML5 tree cannot be represented by
+     *                           the legacy DOMDocument bridge.</p>
+     *
+     * @return \DOMDocument
      */
     private function createDOMDocumentViaHtml5Parser(string $html)
     {
@@ -271,7 +261,7 @@ class Html5DomParser extends HtmlDomParser
         $xml = $html5Document->saveXml();
 
         if ($xml === false || $xml === '') {
-            return null;
+            throw new \RuntimeException('Html5DomParser could not serialize the normalized HTML5 document for the DOMDocument bridge.');
         }
 
         $document = new \DOMDocument('1.0', $this->getEncoding());
@@ -282,12 +272,15 @@ class Html5DomParser extends HtmlDomParser
         \libxml_clear_errors();
 
         $loaded = $document->loadXML($xml, \LIBXML_NONET);
+        $lastError = \libxml_get_last_error();
 
         \libxml_clear_errors();
         \libxml_use_internal_errors($internalErrors);
 
         if ($loaded === false) {
-            return null;
+            $detail = $lastError instanceof \LibXMLError ? ' ' . \trim($lastError->message) : '';
+
+            throw new \RuntimeException('Html5DomParser could not bridge the normalized HTML5 document into DOMDocument.' . $detail);
         }
 
         if ($xmlnsHelper !== null) {
@@ -346,18 +339,11 @@ class Html5DomParser extends HtmlDomParser
      */
     private function restoreXmlnsAttributes(\DOMDocument $document, string $helper)
     {
-        $xPath = new \DOMXPath($document);
-        $elements = $xPath->query('//*[@' . $helper . ']');
-
-        if ($elements === false) {
-            return;
-        }
+        // The helper is generated internally from a safe attribute name, and //*[] only selects elements.
+        /** @var \DOMNodeList<\DOMElement> $elements */
+        $elements = (new \DOMXPath($document))->query('//*[@' . $helper . ']');
 
         foreach ($elements as $element) {
-            if (!$element instanceof \DOMElement) {
-                continue;
-            }
-
             $element->setAttribute('xmlns', $element->getAttribute($helper));
             $element->removeAttribute($helper);
         }

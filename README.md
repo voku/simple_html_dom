@@ -118,17 +118,23 @@ currently *faster* than the libxml path (factor 0.72 - 0.95), because the HTML5 
 none of the string preprocessing that path does; small synthetic fragments are slower
 (factor ~1.3 - 1.5), and peak memory is higher in both cases.
 
-When the runtime is older than PHP 8.4, or the result cannot be carried through the bridge (an
-attribute name that is legal in HTML but not in XML, for example), `Html5DomParser` parses with
-libxml instead of failing. That is never silent:
+`Html5DomParser` is a strict parser choice. It does **not** silently switch back to
+`HtmlDomParser`, because that would make the class name lie about the parsing semantics. On an
+application that also runs on PHP < 8.4, check support before selecting the class:
 
 ```php
-Html5DomParser::isHtml5ParserSupported();       // false on PHP < 8.4
-$dom->getIsDOMDocumentCreatedWithHtml5Parser(); // which parser built the current document
-$dom->getHtml5ParserFallbackReason();           // null, or why the libxml parser was used
-// Html5DomParser::FALLBACK_UNSUPPORTED_RUNTIME
-// Html5DomParser::FALLBACK_XML_BRIDGE_FAILED
+if (Html5DomParser::isHtml5ParserSupported()) {
+    $dom = Html5DomParser::str_get_html($html);
+} else {
+    $dom = HtmlDomParser::str_get_html($html); // explicit application decision
+}
 ```
+
+Parsing throws a `RuntimeException` when the HTML5 backend is unavailable or when its normalized
+tree cannot be represented by the legacy `\DOMDocument` XML bridge (for example an HTML-valid
+attribute name that XML cannot represent). Use `HtmlDomParser` explicitly if legacy parsing is
+the intended fallback. A successful `Html5DomParser` parse therefore always means HTML5 tree
+construction actually happened.
 
 ### Examples
 

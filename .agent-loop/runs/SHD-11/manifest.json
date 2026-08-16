@@ -1,0 +1,140 @@
+{
+    "disagreements": [],
+    "mode": "governed",
+    "next_action": "agent-loop review blindspots SHD-11",
+    "references": {
+        "approval": {
+            "approved_at": "2026-08-16T22:43:57+00:00",
+            "approved_by": "voku",
+            "contract_revision": 1,
+            "observation_mode": "checked",
+            "owner": "agent-loop",
+            "source": {
+                "path": ".agent-loop/contracts/SHD-11/contract.json",
+                "sha256": "sha256:56c2569c3ab879ebed959a5ef4694377a7bdfd1ea031227010653f8bc1704bbe"
+            },
+            "state": "current"
+        },
+        "board": {
+            "card_id": "SHD-11",
+            "configuration": {
+                "mode": "json",
+                "source": {
+                    "path": ".agent-loop/todo/kanban.config.json",
+                    "sha256": "sha256:ffcdba42f34819cf17e90a940b0f9e9da99a63f31c2289a250c4c15e9c7d85ec"
+                }
+            },
+            "lane": "READY",
+            "observation_mode": "checked",
+            "owner": "agent-kanban",
+            "revision": "b65588a1a4600017c53fa8b729041047c0fd63f1ed9d1f1ebaa1e1d8ab2baa11",
+            "source": {
+                "path": ".agent-loop/todo/cards/SHD-11.md",
+                "sha256": "sha256:b65588a1a4600017c53fa8b729041047c0fd63f1ed9d1f1ebaa1e1d8ab2baa11"
+            },
+            "state": "linked",
+            "status": "Selected"
+        },
+        "contract": {
+            "acceptance_criteria": [],
+            "goal": "Finish the separate Html5DomParser boundary: an explicitly selected HTML5 parser must never silently become the libxml parser, while bridge-sensitive input protection stays minimal and does not disturb legacy preprocessing.",
+            "observation_mode": "checked",
+            "owner": "agent-loop",
+            "revision": 1,
+            "source": {
+                "path": ".agent-loop/contracts/SHD-11/contract.json",
+                "sha256": "sha256:56c2569c3ab879ebed959a5ef4694377a7bdfd1ea031227010653f8bc1704bbe"
+            },
+            "state": "approved"
+        },
+        "edit": {
+            "observation_mode": "checked",
+            "owner": "agent-loop",
+            "state": "none"
+        },
+        "execution_contract": {
+            "contract_revision": 1,
+            "contract_source": {
+                "path": ".agent-loop/contracts/SHD-11/contract.json",
+                "sha256": "sha256:56c2569c3ab879ebed959a5ef4694377a7bdfd1ea031227010653f8bc1704bbe"
+            },
+            "observation_mode": "checked",
+            "owner": "agent-loop",
+            "required": false,
+            "state": "not_required"
+        },
+        "learning": {
+            "observation_mode": "checked",
+            "owner": "agent-learning",
+            "run_id": "run:SHD-11:7eb9dd9a5be120d6",
+            "state": "missing"
+        },
+        "map": {
+            "observation_mode": "checked",
+            "owner": "agent-map",
+            "path": ".agent-loop/map/php-symbols.json",
+            "snapshot": "sha256:c7e5640cb8caedac54683d36f2852543354d5c491342f5393b7b0617fa6aa8ce",
+            "source": {
+                "path": ".agent-loop/map/php-symbols.json",
+                "sha256": "sha256:9b5aa8d7dd1467f1b9803b24b8553d7e0ff65ceb6634e269a7e11cb4722adb66"
+            },
+            "state": "ready"
+        },
+        "outcome_lineage": {
+            "observation_mode": "checked",
+            "owner": "agent-learning",
+            "run_id": "run:SHD-11:7eb9dd9a5be120d6",
+            "state": "run_bound"
+        },
+        "recall": {
+            "bundle_sha256": "d261b1deae059b8559735a809552384bea8568539650d58319266ce49abf9b2f",
+            "compilation_id": "compilation.SHD-11.2026-08-16-224357.f1257f6e",
+            "observation_mode": "checked",
+            "owner": "agent-recall-compiler",
+            "snapshot_sha256": "ab7c1bfdfe39778a080b7e0fbfb522de55d812e729747f7e1f19c2ab02fa5c20",
+            "source": {
+                "path": ".agent-loop/recall/SHD-11/meta.json",
+                "sha256": "sha256:4e270198be5b7804813c93281fd458cf916bcc6e5166a757f0a0236fd693bc0f"
+            },
+            "state": "compiled"
+        },
+        "review": {
+            "observation_mode": "checked",
+            "owner": "agent-recall-compiler",
+            "path": ".agent-loop/recall/SHD-11/reviews/SHD-11.blindspots.json",
+            "state": "missing"
+        },
+        "search_index": {
+            "observation_mode": "checked",
+            "owner": "agent-map",
+            "path": ".agent-loop/map/search.sqlite",
+            "state": "missing"
+        },
+        "session": {
+            "base_commit": null,
+            "ephemeral": false,
+            "observation_mode": "checked",
+            "owner": "agent-session",
+            "session_id": "2026-08-16-shd-11-r1-30b896aa",
+            "source": {
+                "path": ".agent-loop/sessions/2026-08-16-shd-11-r1-30b896aa/session.json",
+                "sha256": "sha256:4b9360eb9b8a0ee6bd6bf2038a90007b0c27686e02d8834f9db94edd13b98325"
+            },
+            "state": "active",
+            "task_id": "SHD-11"
+        },
+        "verification": {
+            "action": "agent-loop workflow status SHD-11 --format=json",
+            "gate": "review",
+            "implementation_snapshot": "sha256:5562cf431b4fc70a13705670389d417312af1aebbd2065864dbd5634ba249002",
+            "observation_mode": "checked",
+            "owner": "agent-loop",
+            "reason": "missing blind-spot report .agent-loop/recall/SHD-11/reviews/SHD-11.blindspots.json",
+            "state": "blocked"
+        }
+    },
+    "run_id": "run:SHD-11:7eb9dd9a5be120d6",
+    "schema_version": "1.0",
+    "state": "incomplete",
+    "task_id": "SHD-11"
+}

@@ -1,9 +1,10 @@
 [PHP Simple HTML Dom - upcoming]
-1: add "Html5DomParser": HTML5 parsing on PHP >= 8.4 via "\Dom\HTMLDocument", as its own class next to "HtmlDomParser" and with the same API
-2: "Html5DomParser" -> "isHtml5ParserSupported()", "getIsDOMDocumentCreatedWithHtml5Parser()" and "getHtml5ParserFallbackReason()" report which parser produced a document and why
-3: "HtmlDomParser" -> unchanged behavior; it only gained the protected extension points "createDOMDocumentFromPreparedHtml()" and "serializeDocumentWithoutHtmlWrapper()"
-4: add "tests/Html5DomParserCompatibilityTest.php": the HtmlDomParser test suite run against Html5DomParser, with every HTML5 difference pinned
-5: add "build/benchmark_html5_parser.php" to compare both parsers (interleaved samples, median, parse/selector/serialize phases, peak memory)
+1: add "Html5DomParser": strict HTML5 parsing on PHP >= 8.4 via "\Dom\HTMLDocument", as its own class next to "HtmlDomParser" and with the same API layout
+2: "Html5DomParser" -> never silently falls back to libxml; use "isHtml5ParserSupported()" before selecting it on older runtimes, and parsing throws if the HTML5 tree cannot cross the legacy DOMDocument bridge
+3: "Html5DomParser" -> only reverses output placeholders its backend actually created, preserving literal legacy protection tokens such as "%5B%5B" and "%40"
+4: "HtmlDomParser" -> unchanged behavior; it only gained protected backend / serialization extension points used by Html5DomParser
+5: add "tests/Html5DomParserCompatibilityTest.php": the HtmlDomParser test suite run against Html5DomParser, with every intentional HTML5 difference pinned
+6: add "build/benchmark_html5_parser.php" to compare both parsers using the PR #146 method (interleaved samples, discarded warm-up, median, phase timings, peak memory)
 
 [PHP Simple HTML Dom v5.0.0 - 2026-04-21]
 1: BREAKING: require PHP >= 7.1.0 and drop PHP 7.0 support

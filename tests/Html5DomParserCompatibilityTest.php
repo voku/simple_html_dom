@@ -73,13 +73,6 @@ class Html5DomParserCompatibilityTest extends \PHPUnit\Framework\TestCase
         // HTML entities are resolved to their characters
         $html = \html_entity_decode($html, \ENT_QUOTES | \ENT_HTML5, 'UTF-8');
 
-        // the sequences that the libxml path substitutes to protect them are resolved as well
-        $html = \str_replace(
-            ['%5B%5B', '%5D%5D', '%7B%7B', '%7D%7D', '%40'],
-            ['[[', ']]', '{{', '}}', '@'],
-            $html
-        );
-
         // HTML5 restores the camel-case element names of foreign content (SVG), which the
         // libxml parser lower-cases
         $html = (string) \preg_replace_callback(
@@ -1135,13 +1128,20 @@ HTML;
         }
     }
 
+    public function testEditLinksPinsMalformedHtmlThatCannotCrossTheXmlBridge()
+    {
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('could not bridge the normalized HTML5 document');
+
+        Html5DomParser::str_get_html('<a <a href="http://foobar.de">foo</a><div></div>');
+    }
+
     public function testEditLinks()
     {
         $texts = [
             '<a href="http://foobar.de" class="  more  "  >Mehr</a><a href="http://foobar.de" class="  more  "  >Mehr</a>'                                                                                                                                                                                                                                                                              => '<a href="http://foobar.de" class="  more  " data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de\');">Mehr</a><a href="http://foobar.de" class="  more  " data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de\');">Mehr</a>',
             ' <p><a href="http://foobar.de" class="  more  "  >Mehr</a></p>'                                                                                                                                                                                                                                                                                                                            => // HTML5: whitespace before the first element is dropped
             '<p><a href="http://foobar.de" class="  more  " data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de\');">Mehr</a></p>',
-            '<a <a href="http://foobar.de">foo</a><div></div>'                                                                                                                                                                                                                                                                                                                                          => '<a href="http://foobar.de" data-url-parse="done" onClick="$.get(\'/incext.php?brandcontact=1&click=1&page_id=1&brand=foobar&domain=foobar.de\');">foo</a><div></div>',
             ' <p></p>'                                                                                                                                                                                                                                                                                                                                                                                  => '<p></p>',
             ' <p>'                                                                                                                                                                                                                                                                                                                                                                                      => '<p></p>',
             'p>'                                                                                                                                                                                                                                                                                                                                                                                        => 'p>',
@@ -2597,7 +2597,8 @@ HTML;
         $dom = new Html5DomParser();
         $dom->load('<html ⚡>foo</html>');
         $html = $dom->find('html');
-        static::assertSame('<html ⚡>foo</html>', (string) $html);
+        // HTML5 tree construction always creates the missing head/body children.
+        static::assertSame('<html ⚡><head></head><body>foo</body></html>', (string) $html);
 
         // ---
 

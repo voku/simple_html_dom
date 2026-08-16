@@ -1355,6 +1355,7 @@ class HtmlDomParser extends AbstractDomParser
         return (string) $this->document->saveHTML($this->document->documentElement);
     }
 
+
     /**
      * @param \DOMNode $parentNode
      *
