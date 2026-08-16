@@ -1,0 +1,39 @@
+name: PR 150 StyleCI diagnose
+
+on:
+  push:
+    branches:
+      - tmp/pr150-coverage-diagnose
+    paths:
+      - .github/workflows/pr150-styleci-diagnose.yml
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: claude/php-8.4-dom-htmldocument-vronm4
+          fetch-depth: 0
+      - name: Setup PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
+        with:
+          php-version: '8.3'
+          coverage: none
+          tools: composer
+      - name: Install StyleCI CLI
+        run: composer global require styleci/cli:^1.6 --no-interaction
+      - name: Show StyleCI delta
+        shell: bash
+        run: |
+          set +e
+          "$HOME/.composer/vendor/bin/styleci" analyze --dry-run --no-interaction -vvv .
+          exit_code=$?
+          echo "STYLECI_EXIT=${exit_code}"
+          git diff -- . ':!vendor' ':!tools/agent-loop/vendor'
+          exit 0
