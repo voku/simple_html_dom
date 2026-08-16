@@ -33,36 +33,11 @@ def regex_once(path: str, pattern: str, replacement: str) -> None:
 
 html_parser = 'src/voku/helper/HtmlDomParser.php'
 html5_parser = 'src/voku/helper/Html5DomParser.php'
+compat_test = 'tests/Html5DomParserCompatibilityTest.php'
 
-# The protection and inverse transformation are one contract. Run protection before backend
-# selection so every backend that later uses shared output cleanup receives protected input.
-anchor = '''        // INFO: a subclass may parse the prepared HTML with a different backend, see
-        //          "Html5DomParser". Everything above this point - the input repairs and the
-        //          flags that shape the output - is shared, everything below is the libxml
-        //          parser of this class.
-'''
-replace_once(
-    html_parser,
-    anchor,
-    '''        // Protect syntax that shared output normalization later decodes/restores. This
-        // transformation must happen before backend selection; otherwise Html5DomParser would
-        // participate in the inverse cleanup without having received the matching protection.
-        $html = self::replaceToPreserveHtmlEntities($html);
-
-''' + anchor,
-)
-
-# Remove the old libxml-only placement of the same transform.
-old_after_hook = '''        $html = self::replaceToPreserveHtmlEntities($html);
-
-        $documentFound = false;
-'''
-replace_once(html_parser, old_after_hook, '''        $documentFound = false;
-''')
-
-# The first finalizer introduced a backend-specific output hook. With the transformation moved
-# to shared preprocessing that indirection is unnecessary and, worse, would leave generated
-# SHDOM_* tokens behind after DOM mutations. Restore the proven common inverse path.
+# The first finalizer introduced backend-specific output cleanup. That was the wrong boundary:
+# DOM mutations can legitimately create the existing SHDOM_* tokens after parsing, so both
+# parser classes must keep the proven common inverse cleanup.
 replace_once(
     html_parser,
     '        return $this->restoreOutputPlaceholders($content, $putBrokenReplacedBack);',
@@ -78,15 +53,77 @@ regex_once(
     r'''\n    /\*\*\n     \* Restore placeholders created by this parser backend before exposing output\..*?\n    protected function restoreOutputPlaceholders\(string \$content, bool \$putBrokenReplacedBack\): string\n    \{\n        return self::putReplacedBackToPreserveHtmlEntities\(\$content, \$putBrokenReplacedBack\);\n    \}\n''',
     '\n',
 )
-
-# Likewise remove the HTML5-specific partial inverse. The shared transform now gives us exact
-# pairing, so the existing common cleanup is both smaller and correct.
 regex_once(
     html5_parser,
     r'''\n    /\*\*\n     \* Restore only placeholders that the HTML5 path actually created\..*?\n    protected function restoreOutputPlaceholders\(string \$content, bool \$putBrokenReplacedBack\): string\n    \{.*?\n    \}\n\n''',
     '\n',
 )
 
-for file in [html_parser, html5_parser]:
+# Keep HtmlDomParser's historical preprocessing order untouched. Html5DomParser only needs to
+# protect input that shared output normalization would otherwise destructively decode (percent
+# escapes) or that cannot safely cross the XML bridge as-is (the Google AMP lightning marker).
+# Reuse the existing replacement table so the normal common inverse path remains authoritative.
+needle = '''        $document = $this->createDOMDocumentViaHtml5Parser($html);
+        $this->isDOMDocumentCreatedWithHtml5Parser = true;
+'''
+replace_once(
+    html5_parser,
+    needle,
+    '''        $html = self::protectHtml5BridgeSensitiveInput($html);
+
+        $document = $this->createDOMDocumentViaHtml5Parser($html);
+        $this->isDOMDocumentCreatedWithHtml5Parser = true;
+''',
+)
+
+anchor = '''    public static function isHtml5ParserSupported(): bool
+    {
+'''
+helper = '''    /**
+     * Protect only input that the shared output cleanup would otherwise change or that the
+     * XML transport cannot represent directly.
+     *
+     * Do not run the full libxml protection pass here: protecting ampersands would suppress
+     * native HTML5 entity parsing, and moving the legacy pass before backend selection breaks
+     * the existing special-script preprocessing order.
+     *
+     * @param string $html
+     *
+     * @return string
+     */
+    private static function protectHtml5BridgeSensitiveInput(string $html): string
+    {
+        $search = [];
+        $replace = [];
+
+        foreach (self::$domReplaceHelper['orig'] as $index => $original) {
+            if ($original !== '%' && $original !== '<html ⚡') {
+                continue;
+            }
+
+            $search[] = $original;
+            $replace[] = self::$domReplaceHelper['tmp'][$index];
+        }
+
+        return \\str_replace($search, $replace, $html);
+    }
+
+'''
+replace_once(html5_parser, anchor, helper + anchor)
+
+# The copied suite is supposed to pin intentional HTML5 differences. A successful HTML5 parse
+# always has the browser-created head/body children, even when the caller supplied <html> only.
+replace_once(
+    compat_test,
+    '''        $html = $dom->find('html');
+        static::assertSame('<html ⚡>foo</html>', (string) $html);
+''',
+    '''        $html = $dom->find('html');
+        // HTML5 tree construction always creates the missing head/body children.
+        static::assertSame('<html ⚡><head></head><body>foo</body></html>', (string) $html);
+''',
+)
+
+for file in [html_parser, html5_parser, compat_test]:
     subprocess.run(['php', '-l', file], cwd=ROOT, check=True)
 subprocess.run(['git', 'diff', '--check'], cwd=ROOT, check=True)
