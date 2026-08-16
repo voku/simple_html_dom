@@ -55,6 +55,7 @@ jobs:
             --validation 'php vendor/bin/phpunit -c phpunit.xml' \
             --validation 'php tools/agent-loop/vendor/bin/phpstan analyse -c phpstan.neon --no-progress' \
             --validation 'php build/benchmark_html5_parser.php'
+          php bin/agent-loop map build --paths=src,tests
           php bin/agent-loop workflow approve SHD-11 --by voku
           php bin/agent-loop workflow status SHD-11 --format=json
 
