@@ -6,6 +6,7 @@ on:
       - claude/php-8.4-dom-htmldocument-vronm4
     paths:
       - .github/pr150-finalize-html5.py
+      - .github/pr150-shd11-followup.py
       - .github/workflows/pr150-finalize-html5.yml
 
 permissions:
@@ -38,6 +39,20 @@ jobs:
       - name: Prepare governed task
         run: |
           python3 .github/pr150-finalize-html5.py prepare
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('.agent-loop/todo/cards/SHD-11.md')
+          text = path.read_text()
+          text = text.replace(
+              'Html5DomParser must never silently become HtmlDomParser, and shared output cleanup must only reverse placeholders that the selected backend actually created.',
+              'Html5DomParser must never silently become HtmlDomParser, and the shared preserve/restore transformation must bracket backend selection so every parser gets the same paired normalization contract.'
+          )
+          text = text.replace(
+              'Also fix SHD-11 proper: the HTML5 backend skips the legacy replaceToPreserveHtmlEntities() workaround, so output cleanup must restore only the broken-fragment placeholders that this backend actually created.',
+              'Also fix SHD-11 proper: move replaceToPreserveHtmlEntities() into shared preprocessing before backend selection so the existing shared inverse cleanup is paired for both parsers and caller-owned percent-encoded values remain stable.'
+          )
+          path.write_text(text)
+          PY
           php bin/agent-loop workflow status SHD-11 --format=json || true
           php bin/agent-loop workflow plan SHD-11 \
             --by voku \
@@ -49,9 +64,9 @@ jobs:
             --file build/benchmark_html5_parser.php \
             --file README.md \
             --file CHANGELOG \
-            --goal 'Finish the separate Html5DomParser boundary: an explicitly selected HTML5 parser must never silently become the libxml parser, and output cleanup must reverse only placeholders created by that backend.' \
-            --behavior-anchor 'Html5DomParser::loadHtml -> shared input preparation -> PHP Dom HTMLDocument -> XML bridge -> legacy DOMDocument, with no parser-semantic fallback' \
-            --behavior-anchor 'Html5DomParser output -> restore only keepBrokenHtml placeholders -> preserve caller-owned percent-encoded legacy protection tokens' \
+            --goal 'Finish the separate Html5DomParser boundary: an explicitly selected HTML5 parser must never silently become the libxml parser, and the shared preserve/restore normalization must be paired across backend selection.' \
+            --behavior-anchor 'HtmlDomParser::createDOMDocument -> shared input preparation -> replaceToPreserveHtmlEntities -> selected backend -> shared inverse cleanup' \
+            --behavior-anchor 'Html5DomParser::loadHtml -> PHP Dom HTMLDocument -> XML bridge -> legacy DOMDocument, with no parser-semantic fallback and stable caller-owned percent encodings' \
             --validation 'php vendor/bin/phpunit -c phpunit.xml' \
             --validation 'php tools/agent-loop/vendor/bin/phpstan analyse -c phpstan.neon --no-progress' \
             --validation 'php build/benchmark_html5_parser.php'
@@ -72,6 +87,7 @@ jobs:
           path.write_text(text.replace(old, new, 1))
           PY
           python3 .github/pr150-finalize-html5.py patch
+          python3 .github/pr150-shd11-followup.py
 
       - name: Validate and record evidence
         shell: bash
