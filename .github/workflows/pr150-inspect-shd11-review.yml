@@ -74,19 +74,29 @@ jobs:
           record 'php tools/agent-loop/vendor/bin/phpstan analyse -c phpstan.neon --no-progress'
           record 'php build/benchmark_html5_parser.php'
 
-      - name: Record review checkpoint and durable learning
+      - name: Record review checkpoint and current blindspot report
+        shell: bash
         run: |
           php bin/agent-loop review code SHD-11
           php bin/agent-loop session checkpoint SHD-11 \
             --title 'Validated strict Html5DomParser boundary and stubbornness review' \
             --body '589 tests / 5029 assertions passed; PHPStan passed; PR #146-style benchmark passed. Separate Html5DomParser is an explicit backend choice, keepBrokenHtml remains preprocessing, and the deliberately malformed nested-anchor fixture is pinned as an explicit XML-bridge RuntimeException. SHD-2 owns any future repair pass for HTML5 trees that cannot be represented by the legacy DOMDocument bridge.'
+          set +e
+          php bin/agent-loop review blindspots SHD-11
+          initial_review_exit=$?
+          set -e
+          cat .agent-loop/recall/SHD-11/reviews/SHD-11.blindspots.json
+          echo "INITIAL_BLINDSPOT_EXIT=${initial_review_exit}"
+
+      - name: Record durable Run Learning
+        run: |
           php bin/agent-loop workflow learn SHD-11 \
             --status follow_up_required \
             --by voku \
             --reason 'SHD-11 is complete as a strict parser boundary; SHD-2 remains the bounded follow-up for repairing HTML5 trees that the XML bridge cannot represent without changing parser semantics.' \
             --follow-up SHD-2
 
-      - name: Require clean blindspot review
+      - name: Require clean post-learning blindspot review
         shell: bash
         run: |
           set +e
@@ -94,7 +104,7 @@ jobs:
           review_exit=$?
           set -e
           cat .agent-loop/recall/SHD-11/reviews/SHD-11.blindspots.json
-          echo "BLINDSPOT_EXIT=${review_exit}"
+          echo "FINAL_BLINDSPOT_EXIT=${review_exit}"
           test "$review_exit" -eq 0
 
       - name: Close governed Run
