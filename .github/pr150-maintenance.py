@@ -21,7 +21,7 @@ def run(*args: str) -> None:
 
 
 def output(*args: str) -> str:
-    return subprocess.check_output(args, cwd=ROOT, text=True).strip()
+    return subprocess.check_output(args, cwd=ROOT, text=True).rstrip('\n')
 
 
 def replace_once(text: str, old: str, new: str, label: str) -> str:
