@@ -36,6 +36,11 @@ jobs:
       - name: Recreate governed working context and Recall
         run: |
           php bin/agent-loop map build --paths=src,tests,build
+          php bin/agent-loop session start \
+            --task SHD-11 \
+            --by voku \
+            --slug shd-11-r1-30b896aa
+          php bin/agent-loop session show 2026-08-16-shd-11-r1-30b896aa
           php bin/agent-loop workflow approve SHD-11 --by voku
           php bin/agent-loop workflow manifest SHD-11 --write
           php bin/agent-loop workflow status SHD-11 --format=json
