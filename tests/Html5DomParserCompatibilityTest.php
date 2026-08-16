@@ -234,7 +234,8 @@ class Html5DomParserCompatibilityTest extends \PHPUnit\Framework\TestCase
         $domInner = Html5DomParser::str_get_html($headerSearchTemplateHtml);
         $h1 = $domInner->findOneOrFalse('h1');
         // HTML5: the encoding is detected from the document (euc-kr), so the text is decoded instead of mangled
-        static::assertSame('<h1 class="hd"><a href="http://www.11st.co.kr" data-ga-event-category="PC_GNB" data-ga-event-action="상단영역_로고" data-ga-event-label="">11번가</a></h1>',
+        static::assertSame(
+            '<h1 class="hd"><a href="http://www.11st.co.kr" data-ga-event-category="PC_GNB" data-ga-event-action="상단영역_로고" data-ga-event-label="">11번가</a></h1>',
             $h1->html()
         );
     }
@@ -415,7 +416,8 @@ class Html5DomParserCompatibilityTest extends \PHPUnit\Framework\TestCase
         }
 
         // HTML5: HTML5 tree construction inserts the implied <tbody>
-        static::assertSame('<table><tbody><tr><td><a href="javascript:void(0);">in-td</a></td><th><a href="javascript:void(0);">in-th</a></th></tr></tbody></table><a href="#">outside</a>',
+        static::assertSame(
+            '<table><tbody><tr><td><a href="javascript:void(0);">in-td</a></td><th><a href="javascript:void(0);">in-th</a></th></tr></tbody></table><a href="#">outside</a>',
             $document->html()
         );
     }
@@ -1083,7 +1085,8 @@ HTML;
         $dom = Html5DomParser::str_get_html($html);
 
         // HTML5: whitespace before the first element is dropped in the "before html" insertion mode
-        static::assertSame('<html>a</html>',
+        static::assertSame(
+            '<html>a</html>',
             $dom->html()
         );
     }
@@ -1329,7 +1332,8 @@ HTML;
         $image->delete();
 
         // HTML5: <footer> belongs in <body>, so HTML5 puts it there instead of after </body>
-        static::assertSame('<html><body><footer><img src="footer.jpg"></footer></body></html>',
+        static::assertSame(
+            '<html><body><footer><img src="footer.jpg"></footer></body></html>',
             $html->html()
         );
     }
@@ -2090,7 +2094,8 @@ ___;
         static::assertNotFalse($innerHtml);
 
         // HTML5: HTML entities are resolved to their characters, so &nbsp; comes back as the character
-        static::assertSame('Price <em>$</em>2188',
+        static::assertSame(
+            'Price <em>$</em>2188',
             $innerHtml->innerHtml()
         );
 

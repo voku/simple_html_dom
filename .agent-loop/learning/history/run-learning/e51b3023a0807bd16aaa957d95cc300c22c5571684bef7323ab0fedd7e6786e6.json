@@ -1,0 +1,15 @@
+{
+    "schema_version": "1.0",
+    "kind": "run_learning_decision",
+    "run_id": "run:SHD-14:a4adbedaddf310a2",
+    "decision": "no_durable_learning",
+    "decided_by": "voku",
+    "decided_at": "2026-08-16T23:15:18+00:00",
+    "reason": "Formatter-only StyleCI compliance in the copied compatibility test; no behavior, architecture, or reusable workflow rule changed.",
+    "finding_ids": [],
+    "follow_up_ref": null,
+    "contract_revision": 1,
+    "implementation_snapshot": "sha256:9973f30f3a342b81d3770d7433484198a3c5db3d836c06e9fb3fe9899d2adef3",
+    "validation_evidence_sha256": "sha256:47c51e07058bd705296f0716a20127fc62f91c094d3e0d3577ef02e1b3b6f177",
+    "review_evidence_sha256": "sha256:869761b4d4a661b59c0d74a15f81b2e8e71dd60ade3f7aeca0313e2570ce8d1e"
+}
