@@ -1,0 +1,88 @@
+name: PR 150 remaining coverage diagnose
+
+on:
+  push:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['7.1', '8.4']
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: xdebug
+          extensions: zip
+          tools: composer
+
+      - name: Install dependencies
+        run: composer update --prefer-dist --no-interaction
+
+      - name: Run full suite with Clover
+        run: |
+          mkdir -p build/logs
+          php vendor/bin/phpunit -c phpunit.xml --coverage-clover=build/logs/clover.xml
+
+      - name: Print uncovered new HtmlDomParser lines
+        run: |
+          python3 - <<'PY'
+          import subprocess
+          import xml.etree.ElementTree as ET
+          from pathlib import Path
+
+          base = 'f73a6008d85075ca385b881b8440d4af26468207'
+          diff = subprocess.check_output(
+              ['git', 'diff', '--unified=0', base, '--', 'src/voku/helper/HtmlDomParser.php'],
+              text=True,
+          )
+          new_lines = set()
+          current = None
+          for line in diff.splitlines():
+              if line.startswith('@@'):
+                  rhs = line.split(' +', 1)[1].split(' ', 1)[0]
+                  start_count = rhs.split(',', 1)
+                  start = int(start_count[0])
+                  count = int(start_count[1]) if len(start_count) > 1 else 1
+                  current = start
+                  continue
+              if current is None:
+                  continue
+              if line.startswith('+') and not line.startswith('+++'):
+                  new_lines.add(current)
+                  current += 1
+              elif line.startswith('-') and not line.startswith('---'):
+                  continue
+              else:
+                  current += 1
+
+          clover = ET.parse('build/logs/clover.xml')
+          target = None
+          for file_node in clover.findall('.//file'):
+              if file_node.attrib.get('name', '').endswith('/src/voku/helper/HtmlDomParser.php'):
+                  target = file_node
+                  break
+          if target is None:
+              raise SystemExit('HtmlDomParser.php not found in Clover')
+
+          source = Path('src/voku/helper/HtmlDomParser.php').read_text().splitlines()
+          uncovered = []
+          for line in target.findall('./line'):
+              number = int(line.attrib['num'])
+              if number not in new_lines:
+                  continue
+              if line.attrib.get('type') == 'stmt' and int(line.attrib.get('count', '0')) == 0:
+                  uncovered.append(number)
+                  print(f'{number}: {source[number - 1]}')
+          print('UNCOVERED_NEW=' + ','.join(map(str, uncovered)))
+          PY
