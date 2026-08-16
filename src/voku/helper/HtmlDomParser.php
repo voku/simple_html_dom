@@ -659,9 +659,9 @@ class HtmlDomParser extends AbstractDomParser
             //          used below would turn it into a real namespace declaration and every
             //          generated XPath query of this library would stop matching. It is
             //          parked under a placeholder name and restored after the transport.
-            $hasXmlnsAttributes = \stripos($html, 'xmlns') !== false
-                                  &&
-                                  $this->parkXmlnsAttributes($html5Document);
+            $xmlnsHelper = \stripos($html, 'xmlns') !== false
+                ? $this->parkXmlnsAttributes($html5Document)
+                : null;
 
             $xml = $html5Document->saveXml();
         } catch (\Throwable $throwable) {
@@ -688,8 +688,8 @@ class HtmlDomParser extends AbstractDomParser
             return null;
         }
 
-        if ($hasXmlnsAttributes) {
-            $this->restoreXmlnsAttributes($document);
+        if ($xmlnsHelper !== null) {
+            $this->restoreXmlnsAttributes($document, $xmlnsHelper);
         }
 
         $document->encoding = $this->getEncoding();
@@ -698,43 +698,50 @@ class HtmlDomParser extends AbstractDomParser
     }
 
     /**
-     * Rename every "xmlns" attribute of an HTML5-parsed document to a placeholder name.
+     * Rename every "xmlns" attribute of an HTML5-parsed document to a collision-free placeholder name.
      *
      * @param object $html5Document <p>A "\Dom\HTMLDocument" of PHP >= 8.4.</p>
      *
-     * @return bool <p>TRUE if at least one attribute was renamed.</p>
+     * @return string|null <p>The placeholder name, or NULL when no "xmlns" attribute exists.</p>
      */
-    private function parkXmlnsAttributes($html5Document): bool
+    private function parkXmlnsAttributes($html5Document): ?string
     {
         /** @phpstan-ignore class.notFound, argument.type (PHP >= 8.4 only, guarded by isHtml5ParserSupported()) */
         $xPath = new \Dom\XPath($html5Document);
         $elements = $xPath->query('//*[@xmlns]');
 
         if ($elements->length === 0) {
-            return false;
+            return null;
+        }
+
+        $helper = self::$domHtmlXmlnsHelper;
+        $suffix = 0;
+        while ($xPath->query('//*[@' . $helper . ']')->length > 0) {
+            $helper = self::$domHtmlXmlnsHelper . '-' . ++$suffix;
         }
 
         foreach ($elements as $element) {
             /** @phpstan-ignore method.notFound, method.notFound (\Dom\Element of PHP >= 8.4) */
-            $element->setAttribute(self::$domHtmlXmlnsHelper, $element->getAttribute('xmlns'));
+            $element->setAttribute($helper, $element->getAttribute('xmlns'));
             /** @phpstan-ignore method.notFound (\Dom\Element of PHP >= 8.4) */
             $element->removeAttribute('xmlns');
         }
 
-        return true;
+        return $helper;
     }
 
     /**
      * Restore the "xmlns" attributes that parkXmlnsAttributes() renamed.
      *
      * @param \DOMDocument $document
+     * @param string       $helper
      *
      * @return void
      */
-    private function restoreXmlnsAttributes(\DOMDocument $document)
+    private function restoreXmlnsAttributes(\DOMDocument $document, string $helper)
     {
         $xPath = new \DOMXPath($document);
-        $elements = $xPath->query('//*[@' . self::$domHtmlXmlnsHelper . ']');
+        $elements = $xPath->query('//*[@' . $helper . ']');
 
         if ($elements === false) {
             return;
@@ -745,8 +752,8 @@ class HtmlDomParser extends AbstractDomParser
                 continue;
             }
 
-            $element->setAttribute('xmlns', $element->getAttribute(self::$domHtmlXmlnsHelper));
-            $element->removeAttribute(self::$domHtmlXmlnsHelper);
+            $element->setAttribute('xmlns', $element->getAttribute($helper));
+            $element->removeAttribute($helper);
         }
     }
 

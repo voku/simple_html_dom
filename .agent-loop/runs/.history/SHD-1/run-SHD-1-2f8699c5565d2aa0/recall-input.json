@@ -1,6 +1,6 @@
 {
     "contract": {
-        "path": "../../contracts/SHD-1/contract.json",
+        "path": "contract.json",
         "revision": 1,
         "sha256": "sha256:2063951df944d1a45c1565a8d54cf70fee3d90a95d0588c12da4b487b80507a0"
     },
