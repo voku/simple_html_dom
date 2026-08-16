@@ -741,7 +741,7 @@ class HtmlDomParser extends AbstractDomParser
     private function restoreXmlnsAttributes(\DOMDocument $document, string $helper)
     {
         // The helper is generated internally from a safe attribute name, and //*[] only selects elements.
-        /** @var \DOMNodeList $elements */
+        /** @var \DOMNodeList<\DOMElement> $elements */
         $elements = (new \DOMXPath($document))->query('//*[@' . $helper . ']');
 
         foreach ($elements as $element) {
