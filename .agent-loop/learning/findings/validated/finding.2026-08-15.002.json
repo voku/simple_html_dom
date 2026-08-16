@@ -1,0 +1,37 @@
+{
+  "id": "finding.2026-08-15.002",
+  "task_id": "SHD-1",
+  "session": "2026-08-15-shd-1-2",
+  "created_at": "2026-08-15T22:11:49+00:00",
+  "created_by": "claude",
+  "scope": [
+    ".claude/skills/agent-loop-task-start/SKILL.md",
+    "bin/agent-loop"
+  ],
+  "observation": "Every installed agent-loop skill and the SessionStart discipline payload spell the CLI as 'vendor/bin/agent-loop'. In this repository that path does not exist, because the workflow CLI lives in the isolated tool project under tools/agent-loop. 'make/agent-loop.mk' already solves the same problem for Make targets with an overridable AGENT_LOOP_BIN variable, but nothing renders that value into the projected skill text.",
+  "evidence": [
+    {
+      "type": "file_reference",
+      "path": ".claude/skills/agent-loop-task-start/SKILL.md",
+      "line": 18
+    },
+    {
+      "type": "runtime_observation",
+      "command": "grep -rn 'vendor/bin/agent-loop' .claude/skills | wc -l",
+      "summary": "The projected skills repeat the hard-coded path many times; the repository added bin/agent-loop as a wrapper so the documented command exists at all."
+    }
+  ],
+  "hypothesis": "Guidance that names an executable path is configuration, not prose, and has to be rendered per host like the Make targets already are.",
+  "validated_conclusion": "The skill projection should substitute the host's configured entrypoint (the AGENT_LOOP_BIN value or an init.json key) when it writes the client skill files, so an agent reading a projected skill never gets a command that this repository cannot run.",
+  "confidence": "high",
+  "validation_status": "validated",
+  "status": "validated",
+  "sensitivity": "public",
+  "classification": "UPDATE_SKILL",
+  "pattern_key": "agent_loop.install.cli_entrypoint",
+  "validation_case": {
+    "given": "a host repository runs the workflow CLI from a path other than vendor/bin/agent-loop",
+    "when": "the skills are projected into a client",
+    "then": "the projected commands name the entrypoint that exists in that repository"
+  }
+}

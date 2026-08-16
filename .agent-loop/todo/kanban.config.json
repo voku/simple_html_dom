@@ -1,0 +1,10 @@
+{
+  "projectPrefix": "SHD",
+  "archiveDirectory": "todo/archive",
+  "wipLimits": {
+    "DOING": 2
+  },
+  "requiredFieldsByLane": {
+    "READY": ["taskBrief"]
+  }
+}

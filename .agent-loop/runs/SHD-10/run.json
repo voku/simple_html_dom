@@ -1,0 +1,14 @@
+{
+    "contract_revision": 1,
+    "contract_source": {
+        "path": ".agent-loop/contracts/SHD-10/contract.json",
+        "sha256": "sha256:442781617af2a85d44639e3e1a6aa00d446285a32e34059ef8436e24b457d66e"
+    },
+    "kind": "governed_run",
+    "learning_root": ".agent-loop/learning",
+    "prepared_at": "2026-08-16T20:52:53+00:00",
+    "run_id": "run:SHD-10:979d9db55d1f1d50",
+    "schema_version": "1.0",
+    "session_id": "2026-08-16-shd-10",
+    "task_id": "SHD-10"
+}

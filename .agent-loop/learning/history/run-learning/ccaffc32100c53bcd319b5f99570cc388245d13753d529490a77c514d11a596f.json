@@ -1,0 +1,15 @@
+{
+    "schema_version": "1.0",
+    "kind": "run_learning_decision",
+    "run_id": "run:SHD-11:7eb9dd9a5be120d6",
+    "decision": "follow_up_required",
+    "decided_by": "voku",
+    "decided_at": "2026-08-16T22:59:06+00:00",
+    "reason": "SHD-11 is complete as a strict parser boundary; SHD-2 remains the bounded follow-up for repairing HTML5 trees that the XML bridge cannot represent without changing parser semantics.",
+    "finding_ids": [],
+    "follow_up_ref": "SHD-2",
+    "contract_revision": 1,
+    "implementation_snapshot": "sha256:77e0a64f2baebeea1273cee6c041e461005c671fc23cb68f9139c2d983c12e13",
+    "validation_evidence_sha256": "sha256:c5c48163738a52382f3859fc1210c8156f7bced6120708fd9b01b91e3dfb8441",
+    "review_evidence_sha256": "sha256:b9157f8e16e1f11e84770c5655a2737c783a7dc3d0f9ce718fa5d7af1bdcb7b2"
+}

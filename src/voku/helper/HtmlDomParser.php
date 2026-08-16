@@ -431,6 +431,18 @@ class HtmlDomParser extends AbstractDomParser
             }
         }
 
+        // INFO: a subclass may parse the prepared HTML with a different backend, see
+        //          "Html5DomParser". Everything above this point - the input repairs and the
+        //          flags that shape the output - is shared, everything below is the libxml
+        //          parser of this class.
+        $documentFromOtherBackend = $this->createDOMDocumentFromPreparedHtml($html);
+
+        if ($documentFromOtherBackend !== null) {
+            $this->document = $documentFromOtherBackend;
+
+            return $this->document;
+        }
+
         if (\strpos($html, '<script') !== false) {
             // keepSpecialScriptTags must run before html5FallbackForScriptTags so
             // that special-type scripts (type="text/html", etc.) are converted to
@@ -1089,7 +1101,7 @@ class HtmlDomParser extends AbstractDomParser
                 $content = $this->serializeChildNodes($this->document);
             }
         } elseif ($this->getIsDOMDocumentCreatedWithoutHtmlWrapper()) {
-            $content = $this->document->saveHTML($this->document->documentElement);
+            $content = $this->serializeDocumentWithoutHtmlWrapper();
         } else {
             $content = $this->document->saveHTML();
         }
@@ -1182,7 +1194,7 @@ class HtmlDomParser extends AbstractDomParser
      *
      * @param \DOMNode $node
      */
-    private function serializeNode(\DOMNode $node): string
+    protected function serializeNode(\DOMNode $node): string
     {
         if (\PHP_VERSION_ID < 80000 && $node instanceof \DOMElement) {
             return $this->serializeElementNodeForPhpLt8($node);
@@ -1309,6 +1321,40 @@ class HtmlDomParser extends AbstractDomParser
 
         return $content;
     }
+
+    /**
+     * Parse the already prepared HTML with a backend other than the libxml parser of this
+     * class.
+     *
+     * This is the extension point that "Html5DomParser" uses. It is called after the input
+     * repairs and after the flags that shape the output have been determined, so an
+     * alternative backend inherits all of that and only replaces the parsing itself.
+     *
+     * @param string $html <p>The prepared HTML, not the input of the caller.</p>
+     *
+     * @return \DOMDocument|null <p>NULL to use the libxml parser of this class, which is what
+     *                           this implementation always does.</p>
+     *
+     * @noinspection PhpUnusedParameterInspection
+     */
+    protected function createDOMDocumentFromPreparedHtml(string $html)
+    {
+        return null;
+    }
+
+    /**
+     * Serialize a document whose input had no <html> wrapper.
+     *
+     * A subclass whose parser builds a complete document even for a fragment needs a
+     * different rule here, see "Html5DomParser".
+     *
+     * @return string
+     */
+    protected function serializeDocumentWithoutHtmlWrapper(): string
+    {
+        return (string) $this->document->saveHTML($this->document->documentElement);
+    }
+
 
     /**
      * @param \DOMNode $parentNode

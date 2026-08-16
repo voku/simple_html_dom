@@ -1,0 +1,1230 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
+        "This file is @generated automatically"
+    ],
+    "content-hash": "0627593213f102d7e23684384d5c719c",
+    "packages": [
+        {
+            "name": "doctrine/deprecations",
+            "version": "1.1.6",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/doctrine/deprecations.git",
+                "reference": "d4fe3e6fd9bb9e72557a19674f44d8ac7db4c6ca"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/doctrine/deprecations/zipball/d4fe3e6fd9bb9e72557a19674f44d8ac7db4c6ca",
+                "reference": "d4fe3e6fd9bb9e72557a19674f44d8ac7db4c6ca",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.1 || ^8.0"
+            },
+            "conflict": {
+                "phpunit/phpunit": "<=7.5 || >=14"
+            },
+            "require-dev": {
+                "doctrine/coding-standard": "^9 || ^12 || ^14",
+                "phpstan/phpstan": "1.4.10 || 2.1.30",
+                "phpstan/phpstan-phpunit": "^1.0 || ^2",
+                "phpunit/phpunit": "^7.5 || ^8.5 || ^9.6 || ^10.5 || ^11.5 || ^12.4 || ^13.0",
+                "psr/log": "^1 || ^2 || ^3"
+            },
+            "suggest": {
+                "psr/log": "Allows logging deprecations via PSR-3 logger implementation"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Doctrine\\Deprecations\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "A small layer on top of trigger_error(E_USER_DEPRECATED) or PSR-3 logging with options to disable all deprecations or selectively for packages.",
+            "homepage": "https://www.doctrine-project.org/",
+            "support": {
+                "issues": "https://github.com/doctrine/deprecations/issues",
+                "source": "https://github.com/doctrine/deprecations/tree/1.1.6"
+            },
+            "time": "2026-02-07T07:09:04+00:00"
+        },
+        {
+            "name": "fidry/cpu-core-counter",
+            "version": "1.3.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/theofidry/cpu-core-counter.git",
+                "reference": "db9508f7b1474469d9d3c53b86f817e344732678"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/theofidry/cpu-core-counter/zipball/db9508f7b1474469d9d3c53b86f817e344732678",
+                "reference": "db9508f7b1474469d9d3c53b86f817e344732678",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.2 || ^8.0"
+            },
+            "require-dev": {
+                "fidry/makefile": "^0.2.0",
+                "fidry/php-cs-fixer-config": "^1.1.2",
+                "phpstan/extension-installer": "^1.2.0",
+                "phpstan/phpstan": "^2.0",
+                "phpstan/phpstan-deprecation-rules": "^2.0.0",
+                "phpstan/phpstan-phpunit": "^2.0",
+                "phpstan/phpstan-strict-rules": "^2.0",
+                "phpunit/phpunit": "^8.5.31 || ^9.5.26",
+                "webmozarts/strict-phpunit": "^7.5"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Fidry\\CpuCoreCounter\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Théo FIDRY",
+                    "email": "theo.fidry@gmail.com"
+                }
+            ],
+            "description": "Tiny utility to get the number of CPU cores.",
+            "keywords": [
+                "CPU",
+                "core"
+            ],
+            "support": {
+                "issues": "https://github.com/theofidry/cpu-core-counter/issues",
+                "source": "https://github.com/theofidry/cpu-core-counter/tree/1.3.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/theofidry",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-08-14T07:29:31+00:00"
+        },
+        {
+            "name": "helgesverre/toon",
+            "version": "v3.2.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/HelgeSverre/toon-php.git",
+                "reference": "55ca6ba93846bde75eeb04dac70a99fe0bb435dd"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/HelgeSverre/toon-php/zipball/55ca6ba93846bde75eeb04dac70a99fe0bb435dd",
+                "reference": "55ca6ba93846bde75eeb04dac70a99fe0bb435dd",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.1"
+            },
+            "require-dev": {
+                "infection/infection": "*",
+                "laravel/pint": "1.20.0",
+                "phpbench/phpbench": "^1.4",
+                "phpstan/phpstan": "^1.10",
+                "phpunit/phpunit": "^10.0"
+            },
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "src/helpers.php"
+                ],
+                "psr-4": {
+                    "HelgeSverre\\Toon\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Helge Sverre",
+                    "email": "helge.sverre@gmail.com"
+                }
+            ],
+            "description": "Token-Oriented Object Notation - A compact data format for reducing token consumption when sending structured data to LLMs",
+            "keywords": [
+                "ai",
+                "anthropic",
+                "claude",
+                "compression",
+                "cost-reduction",
+                "format",
+                "gpt",
+                "laravel",
+                "llm",
+                "openai",
+                "optimization",
+                "prompt",
+                "serialization",
+                "token"
+            ],
+            "support": {
+                "issues": "https://github.com/HelgeSverre/toon-php/issues",
+                "source": "https://github.com/HelgeSverre/toon-php/tree/v3.2.1"
+            },
+            "time": "2026-07-08T15:55:13+00:00"
+        },
+        {
+            "name": "nikic/php-parser",
+            "version": "v5.8.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/nikic/PHP-Parser.git",
+                "reference": "044a6a392ff8ad0d61f14370a5fbbd0a0107152f"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/044a6a392ff8ad0d61f14370a5fbbd0a0107152f",
+                "reference": "044a6a392ff8ad0d61f14370a5fbbd0a0107152f",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "ext-tokenizer": "*",
+                "php": ">=7.4"
+            },
+            "require-dev": {
+                "ircmaxell/php-yacc": "^0.0.7",
+                "phpunit/phpunit": "^9.0"
+            },
+            "bin": [
+                "bin/php-parse"
+            ],
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "5.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "PhpParser\\": "lib/PhpParser"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Nikita Popov"
+                }
+            ],
+            "description": "A PHP parser written in PHP",
+            "keywords": [
+                "parser",
+                "php"
+            ],
+            "support": {
+                "issues": "https://github.com/nikic/PHP-Parser/issues",
+                "source": "https://github.com/nikic/PHP-Parser/tree/v5.8.0"
+            },
+            "time": "2026-07-04T14:30:18+00:00"
+        },
+        {
+            "name": "phpdocumentor/reflection-common",
+            "version": "2.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/phpDocumentor/ReflectionCommon.git",
+                "reference": "1d01c49d4ed62f25aa84a747ad35d5a16924662b"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/phpDocumentor/ReflectionCommon/zipball/1d01c49d4ed62f25aa84a747ad35d5a16924662b",
+                "reference": "1d01c49d4ed62f25aa84a747ad35d5a16924662b",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.2 || ^8.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-2.x": "2.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "phpDocumentor\\Reflection\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Jaap van Otterdijk",
+                    "email": "opensource@ijaap.nl"
+                }
+            ],
+            "description": "Common reflection classes used by phpdocumentor to reflect the code structure",
+            "homepage": "http://www.phpdoc.org",
+            "keywords": [
+                "FQSEN",
+                "phpDocumentor",
+                "phpdoc",
+                "reflection",
+                "static analysis"
+            ],
+            "support": {
+                "issues": "https://github.com/phpDocumentor/ReflectionCommon/issues",
+                "source": "https://github.com/phpDocumentor/ReflectionCommon/tree/2.x"
+            },
+            "time": "2020-06-27T09:03:43+00:00"
+        },
+        {
+            "name": "phpdocumentor/reflection-docblock",
+            "version": "6.0.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/phpDocumentor/ReflectionDocBlock.git",
+                "reference": "7bae67520aa9f5ecc506d646810bd40d9da54582"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/phpDocumentor/ReflectionDocBlock/zipball/7bae67520aa9f5ecc506d646810bd40d9da54582",
+                "reference": "7bae67520aa9f5ecc506d646810bd40d9da54582",
+                "shasum": ""
+            },
+            "require": {
+                "doctrine/deprecations": "^1.1",
+                "ext-filter": "*",
+                "php": "^7.4 || ^8.0",
+                "phpdocumentor/reflection-common": "^2.2",
+                "phpdocumentor/type-resolver": "^2.0",
+                "phpstan/phpdoc-parser": "^2.0",
+                "webmozart/assert": "^1.9.1 || ^2"
+            },
+            "require-dev": {
+                "mockery/mockery": "~1.3.5 || ~1.6.0",
+                "phpstan/extension-installer": "^1.1",
+                "phpstan/phpstan": "^1.8",
+                "phpstan/phpstan-mockery": "^1.1",
+                "phpstan/phpstan-webmozart-assert": "^1.2",
+                "phpunit/phpunit": "^9.5",
+                "psalm/phar": "^5.26",
+                "shipmonk/dead-code-detector": "^0.5.1"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "5.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "phpDocumentor\\Reflection\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Mike van Riel",
+                    "email": "me@mikevanriel.com"
+                },
+                {
+                    "name": "Jaap van Otterdijk",
+                    "email": "opensource@ijaap.nl"
+                }
+            ],
+            "description": "With this component, a library can provide support for annotations via DocBlocks or otherwise retrieve information that is embedded in a DocBlock.",
+            "support": {
+                "issues": "https://github.com/phpDocumentor/ReflectionDocBlock/issues",
+                "source": "https://github.com/phpDocumentor/ReflectionDocBlock/tree/6.0.3"
+            },
+            "time": "2026-03-18T20:49:53+00:00"
+        },
+        {
+            "name": "phpdocumentor/type-resolver",
+            "version": "2.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/phpDocumentor/TypeResolver.git",
+                "reference": "327a05bbee54120d4786a0dc67aad30226ad4cf9"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/phpDocumentor/TypeResolver/zipball/327a05bbee54120d4786a0dc67aad30226ad4cf9",
+                "reference": "327a05bbee54120d4786a0dc67aad30226ad4cf9",
+                "shasum": ""
+            },
+            "require": {
+                "doctrine/deprecations": "^1.0",
+                "php": "^7.4 || ^8.0",
+                "phpdocumentor/reflection-common": "^2.0",
+                "phpstan/phpdoc-parser": "^2.0"
+            },
+            "require-dev": {
+                "ext-tokenizer": "*",
+                "phpbench/phpbench": "^1.2",
+                "phpstan/extension-installer": "^1.4",
+                "phpstan/phpstan": "^2.1",
+                "phpstan/phpstan-phpunit": "^2.0",
+                "phpunit/phpunit": "^9.5",
+                "psalm/phar": "^4"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-1.x": "1.x-dev",
+                    "dev-2.x": "2.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "phpDocumentor\\Reflection\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Mike van Riel",
+                    "email": "me@mikevanriel.com"
+                }
+            ],
+            "description": "A PSR-5 based resolver of Class names, Types and Structural Element Names",
+            "support": {
+                "issues": "https://github.com/phpDocumentor/TypeResolver/issues",
+                "source": "https://github.com/phpDocumentor/TypeResolver/tree/2.0.0"
+            },
+            "time": "2026-01-06T21:53:42+00:00"
+        },
+        {
+            "name": "phpstan/phpdoc-parser",
+            "version": "2.3.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/phpstan/phpdoc-parser.git",
+                "reference": "fb19eedd2bb67ff8cf7a5502ad329e701d6398a3"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/phpstan/phpdoc-parser/zipball/fb19eedd2bb67ff8cf7a5502ad329e701d6398a3",
+                "reference": "fb19eedd2bb67ff8cf7a5502ad329e701d6398a3",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.4 || ^8.0"
+            },
+            "require-dev": {
+                "doctrine/annotations": "^2.0",
+                "nikic/php-parser": "^5.3.0",
+                "php-parallel-lint/php-parallel-lint": "^1.2",
+                "phpstan/extension-installer": "^1.0",
+                "phpstan/phpstan": "^2.0",
+                "phpstan/phpstan-phpunit": "^2.0",
+                "phpstan/phpstan-strict-rules": "^2.0",
+                "phpunit/phpunit": "^9.6",
+                "symfony/process": "^5.2"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "PHPStan\\PhpDocParser\\": [
+                        "src/"
+                    ]
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "PHPDoc parser with support for nullable, intersection and generic types",
+            "support": {
+                "issues": "https://github.com/phpstan/phpdoc-parser/issues",
+                "source": "https://github.com/phpstan/phpdoc-parser/tree/2.3.3"
+            },
+            "time": "2026-07-08T07:01:06+00:00"
+        },
+        {
+            "name": "phpstan/phpstan",
+            "version": "2.2.8",
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/e285254e60f33c21902efef4a926ca0987c06804",
+                "reference": "e285254e60f33c21902efef4a926ca0987c06804",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.4|^8.0"
+            },
+            "conflict": {
+                "phpstan/phpstan-shim": "*"
+            },
+            "bin": [
+                "phpstan",
+                "phpstan.phar"
+            ],
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "bootstrap.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Ondřej Mirtes"
+                },
+                {
+                    "name": "Markus Staab"
+                },
+                {
+                    "name": "Vincent Langlet"
+                }
+            ],
+            "description": "PHPStan - PHP Static Analysis Tool",
+            "keywords": [
+                "dev",
+                "static analysis"
+            ],
+            "support": {
+                "docs": "https://phpstan.org/user-guide/getting-started",
+                "forum": "https://github.com/phpstan/phpstan/discussions",
+                "issues": "https://github.com/phpstan/phpstan/issues",
+                "security": "https://github.com/phpstan/phpstan/security/policy",
+                "source": "https://github.com/phpstan/phpstan-src"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/ondrejmirtes",
+                    "type": "github"
+                },
+                {
+                    "url": "https://github.com/phpstan",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-08-04T22:21:45+00:00"
+        },
+        {
+            "name": "psr/simple-cache",
+            "version": "3.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/php-fig/simple-cache.git",
+                "reference": "764e0b3939f5ca87cb904f570ef9be2d78a07865"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/php-fig/simple-cache/zipball/764e0b3939f5ca87cb904f570ef9be2d78a07865",
+                "reference": "764e0b3939f5ca87cb904f570ef9be2d78a07865",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.0.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "3.0.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Psr\\SimpleCache\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "PHP-FIG",
+                    "homepage": "https://www.php-fig.org/"
+                }
+            ],
+            "description": "Common interfaces for simple caching",
+            "keywords": [
+                "cache",
+                "caching",
+                "psr",
+                "psr-16",
+                "simple-cache"
+            ],
+            "support": {
+                "source": "https://github.com/php-fig/simple-cache/tree/3.0.0"
+            },
+            "time": "2021-10-29T13:26:27+00:00"
+        },
+        {
+            "name": "voku/agent-kanban",
+            "version": "0.3.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/voku/agent-kanban.git",
+                "reference": "ff6b54b3c05b45a5b59f7cbb9a3cfb509943aa27"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/voku/agent-kanban/zipball/ff6b54b3c05b45a5b59f7cbb9a3cfb509943aa27",
+                "reference": "ff6b54b3c05b45a5b59f7cbb9a3cfb509943aa27",
+                "shasum": ""
+            },
+            "require": {
+                "ext-mbstring": "*",
+                "php": "^8.3"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^3.75",
+                "phpstan/phpstan": "^2.1",
+                "phpunit/phpunit": "^11.5"
+            },
+            "bin": [
+                "bin/agent-kanban"
+            ],
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "voku\\AgentKanban\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Lars Moelleken",
+                    "homepage": "https://github.com/voku"
+                }
+            ],
+            "description": "Markdown TODO Kanban parser, renderer, and verifier for coding-agent workflows.",
+            "homepage": "https://github.com/voku/agent-kanban",
+            "support": {
+                "issues": "https://github.com/voku/agent-kanban/issues",
+                "source": "https://github.com/voku/agent-kanban"
+            },
+            "time": "2026-08-16T00:20:59+00:00"
+        },
+        {
+            "name": "voku/agent-learning",
+            "version": "0.13.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/voku/agent-learning.git",
+                "reference": "6231a1b69541ed5fe6ea7308473f49e0e4812333"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/voku/agent-learning/zipball/6231a1b69541ed5fe6ea7308473f49e0e4812333",
+                "reference": "6231a1b69541ed5fe6ea7308473f49e0e4812333",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.3"
+            },
+            "require-dev": {
+                "phpstan/phpstan": "^2.1",
+                "phpunit/phpunit": "^11.5"
+            },
+            "bin": [
+                "bin/agent-learning"
+            ],
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "voku\\AgentLearning\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Lars Moelleken",
+                    "homepage": "https://github.com/voku"
+                }
+            ],
+            "description": "Reviewable finding, proposal, redaction, and decision-history tooling for coding-agent learning loops.",
+            "homepage": "https://github.com/voku/agent-learning",
+            "support": {
+                "issues": "https://github.com/voku/agent-learning/issues",
+                "source": "https://github.com/voku/agent-learning"
+            },
+            "time": "2026-08-15T23:33:48+00:00"
+        },
+        {
+            "name": "voku/agent-loop",
+            "version": "0.16.5",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/voku/agent-loop.git",
+                "reference": "e046c2030c242daa22bff7469c8dc5089eb23aab"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/voku/agent-loop/zipball/e046c2030c242daa22bff7469c8dc5089eb23aab",
+                "reference": "e046c2030c242daa22bff7469c8dc5089eb23aab",
+                "shasum": ""
+            },
+            "require": {
+                "helgesverre/toon": "^3.1",
+                "php": "^8.3",
+                "voku/agent-kanban": "^0.3.1",
+                "voku/agent-learning": "^0.13.0",
+                "voku/agent-map": "^0.8.1",
+                "voku/agent-recall-compiler": "^0.13.1",
+                "voku/agent-session": "^0.6.0",
+                "voku/itp-context": "^0.3.0"
+            },
+            "require-dev": {
+                "phpstan/phpstan": "^2.1",
+                "phpunit/phpunit": "^11.5"
+            },
+            "suggest": {
+                "voku/housekeeping": "Standalone cron runner to auto-run agent-loop maintenance tasks against a target repository."
+            },
+            "bin": [
+                "bin/agent-loop"
+            ],
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-main": "0.16.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "voku\\AgentLoop\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Lars Moelleken",
+                    "homepage": "https://github.com/voku"
+                }
+            ],
+            "description": "Unified Composer CLI for the governed coding-agent loop: edit orchestration, board, session, recall, review, learning, memory review, and verification.",
+            "homepage": "https://github.com/voku/agent-loop",
+            "support": {
+                "issues": "https://github.com/voku/agent-loop/issues",
+                "source": "https://github.com/voku/agent-loop"
+            },
+            "time": "2026-08-16T08:27:23+00:00"
+        },
+        {
+            "name": "voku/agent-map",
+            "version": "0.8.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/voku/agent-map.git",
+                "reference": "9b357980f2d9f879385cc6c1f831e720dbd366de"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/voku/agent-map/zipball/9b357980f2d9f879385cc6c1f831e720dbd366de",
+                "reference": "9b357980f2d9f879385cc6c1f831e720dbd366de",
+                "shasum": ""
+            },
+            "require": {
+                "composer-runtime-api": "^2.2",
+                "helgesverre/toon": "^3.1",
+                "php": ">=8.2",
+                "phpstan/phpstan": "^2.2",
+                "voku/simple-php-code-parser": "^0.22",
+                "voku/stop-words": "^2.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^11.0"
+            },
+            "bin": [
+                "bin/agent-map"
+            ],
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "voku\\AgentMap\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "Compact PHP repository symbol maps for coding-agent navigation.",
+            "support": {
+                "issues": "https://github.com/voku/agent-map/issues",
+                "source": "https://github.com/voku/agent-map/tree/0.8.1"
+            },
+            "time": "2026-08-14T23:24:25+00:00"
+        },
+        {
+            "name": "voku/agent-recall-compiler",
+            "version": "0.13.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/voku/agent-recall-compiler.git",
+                "reference": "cf2ebe1ac8822eefe1062a91d979690cf0ec5613"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/voku/agent-recall-compiler/zipball/cf2ebe1ac8822eefe1062a91d979690cf0ec5613",
+                "reference": "cf2ebe1ac8822eefe1062a91d979690cf0ec5613",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.3",
+                "voku/agent-map": "^0.5.0 || ^0.6.0 || ^0.7.0 || ^0.8.0"
+            },
+            "require-dev": {
+                "phpstan/phpstan": "^2.1",
+                "phpunit/phpunit": "^11.5"
+            },
+            "bin": [
+                "bin/agent-recall-compiler"
+            ],
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "voku\\AgentRecallCompiler\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Lars Moelleken",
+                    "homepage": "https://github.com/voku"
+                }
+            ],
+            "description": "Deterministic L2 Meta-Prompt compiler and briefing manager for coding agents.",
+            "homepage": "https://github.com/voku/agent-recall-compiler",
+            "support": {
+                "issues": "https://github.com/voku/agent-recall-compiler/issues",
+                "source": "https://github.com/voku/agent-recall-compiler"
+            },
+            "time": "2026-08-16T08:05:17+00:00"
+        },
+        {
+            "name": "voku/agent-session",
+            "version": "0.6.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/voku/agent-session.git",
+                "reference": "6c881a6c7ce3912fb0f035ad3aa4ac1d99fa0b34"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/voku/agent-session/zipball/6c881a6c7ce3912fb0f035ad3aa4ac1d99fa0b34",
+                "reference": "6c881a6c7ce3912fb0f035ad3aa4ac1d99fa0b34",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.3"
+            },
+            "require-dev": {
+                "phpstan/phpstan": "^2.1",
+                "phpunit/phpunit": "^11.5"
+            },
+            "bin": [
+                "bin/agent-session"
+            ],
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-main": "0.5.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "voku\\AgentSession\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Lars Moelleken",
+                    "homepage": "https://github.com/voku"
+                }
+            ],
+            "description": "Working-memory layer for coding agents: per-task session plans, decisions, assumptions, checkpoints, claim metadata, and retention.",
+            "homepage": "https://github.com/voku/agent-session",
+            "support": {
+                "issues": "https://github.com/voku/agent-session/issues",
+                "source": "https://github.com/voku/agent-session"
+            },
+            "time": "2026-08-15T11:31:12+00:00"
+        },
+        {
+            "name": "voku/itp-context",
+            "version": "0.3.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/voku/itp-context.git",
+                "reference": "785a61d9ec8cb0eb9a868908a97314ec4b69c173"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/voku/itp-context/zipball/785a61d9ec8cb0eb9a868908a97314ec4b69c173",
+                "reference": "785a61d9ec8cb0eb9a868908a97314ec4b69c173",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.3.0"
+            },
+            "require-dev": {
+                "phpstan/phpstan": "^2.1",
+                "phpunit/phpunit": "^11.5"
+            },
+            "bin": [
+                "bin/itp-context-summarize",
+                "bin/itp-context-validate",
+                "bin/itp-context-generate",
+                "bin/itp-context-export",
+                "bin/itp-context-query"
+            ],
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "0.1.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "ItpContext\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Lars Moelleken",
+                    "email": "lars@moelleken.org",
+                    "homepage": "https://www.moelleken.org/"
+                }
+            ],
+            "description": "Architecture context attributes, inline enum rule definitions, validation and summarization helpers for PHP projects.",
+            "homepage": "https://github.com/voku/itp-context",
+            "keywords": [
+                "Context",
+                "architecture",
+                "attribute",
+                "enum",
+                "php",
+                "rule",
+                "rules"
+            ],
+            "support": {
+                "issues": "https://github.com/voku/itp-context/issues",
+                "source": "https://github.com/voku/itp-context"
+            },
+            "time": "2026-05-18T10:38:21+00:00"
+        },
+        {
+            "name": "voku/simple-cache",
+            "version": "6.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/voku/simple-cache.git",
+                "reference": "c5d8b516d6780ae297adf4bcd7f87b0b81b8ccb3"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/voku/simple-cache/zipball/c5d8b516d6780ae297adf4bcd7f87b0b81b8ccb3",
+                "reference": "c5d8b516d6780ae297adf4bcd7f87b0b81b8ccb3",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.0.0",
+                "psr/simple-cache": "~1.0 || ~2.0 || ~3.0"
+            },
+            "provide": {
+                "psr/simple-cache-implementation": "1.0|2.0|3.0"
+            },
+            "require-dev": {
+                "phpstan/phpstan": "^1.12 || ^2.0",
+                "phpunit/phpunit": "~6.0 || ~7.0 || ~9.0",
+                "predis/predis": "^1.1 || ^2.0 || ^3.0",
+                "symfony/var-exporter": "^5.4 || ^6.0 || ^7.0 || ^8.0"
+            },
+            "suggest": {
+                "predis/predis": "~1.1 || ~2.0 || ~3.0",
+                "symfony/var-exporter": "^5.4 || ~6.0 || ~7.0 || ~8.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "voku\\cache\\": "src/voku/cache/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Lars Moelleken",
+                    "homepage": "https://www.moelleken.org/",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Simple Cache library",
+            "homepage": "https://github.com/voku/simple-cache",
+            "keywords": [
+                "cache",
+                "caching",
+                "php",
+                "simple cache"
+            ],
+            "support": {
+                "issues": "https://github.com/voku/simple-cache/issues",
+                "source": "https://github.com/voku/simple-cache/tree/6.1.0"
+            },
+            "funding": [
+                {
+                    "url": "https://www.paypal.me/moelleken",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/voku",
+                    "type": "github"
+                },
+                {
+                    "url": "https://www.patreon.com/voku",
+                    "type": "patreon"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/voku/simple-cache",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2026-04-24T00:48:22+00:00"
+        },
+        {
+            "name": "voku/simple-php-code-parser",
+            "version": "0.22.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/voku/Simple-PHP-Code-Parser.git",
+                "reference": "e664ea91639392bba76157b71530d6c7f5529af8"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/voku/Simple-PHP-Code-Parser/zipball/e664ea91639392bba76157b71530d6c7f5529af8",
+                "reference": "e664ea91639392bba76157b71530d6c7f5529af8",
+                "shasum": ""
+            },
+            "require": {
+                "fidry/cpu-core-counter": "^1.3",
+                "nikic/php-parser": "^4.18 || ^5",
+                "php": ">=8.1",
+                "phpdocumentor/reflection-common": "~2.2",
+                "phpdocumentor/reflection-docblock": "~5.3 || ~6.0",
+                "phpdocumentor/type-resolver": "~1.7.2 || ~2.0",
+                "phpstan/phpdoc-parser": "~2.0",
+                "voku/simple-cache": "~6.0"
+            },
+            "require-dev": {
+                "phpstan/phpstan": "^2.0",
+                "phpunit/phpunit": "~9.6 || ~11.0 || ~13.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "voku\\": "src/voku/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "Apache-2.0"
+            ],
+            "authors": [
+                {
+                    "name": "Lars Moelleken",
+                    "homepage": "https://www.moelleken.org/"
+                }
+            ],
+            "description": "Get a simple data structure from your php code.",
+            "homepage": "https://github.com/voku/Simple-PHP-Code-Parser",
+            "keywords": [
+                "parser",
+                "php",
+                "phpdoc"
+            ],
+            "support": {
+                "issues": "https://github.com/voku/Simple-PHP-Code-Parser/issues",
+                "source": "https://github.com/voku/Simple-PHP-Code-Parser/tree/0.22.3"
+            },
+            "funding": [
+                {
+                    "url": "https://www.paypal.me/moelleken",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/voku",
+                    "type": "github"
+                },
+                {
+                    "url": "https://www.patreon.com/voku",
+                    "type": "patreon"
+                }
+            ],
+            "time": "2026-08-16T16:02:25+00:00"
+        },
+        {
+            "name": "voku/stop-words",
+            "version": "2.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/voku/stop-words.git",
+                "reference": "8e63c0af20f800b1600783764e0ce19e53969f71"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/voku/stop-words/zipball/8e63c0af20f800b1600783764e0ce19e53969f71",
+                "reference": "8e63c0af20f800b1600783764e0ce19e53969f71",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.0.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "~6.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "voku\\": "src/voku/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Lars Moelleken",
+                    "homepage": "http://www.moelleken.org/"
+                }
+            ],
+            "description": "Stop-Words via PHP",
+            "keywords": [
+                "stop words",
+                "stop-words"
+            ],
+            "support": {
+                "issues": "https://github.com/voku/stop-words/issues",
+                "source": "https://github.com/voku/stop-words/tree/master"
+            },
+            "time": "2018-11-23T01:37:27+00:00"
+        },
+        {
+            "name": "webmozart/assert",
+            "version": "2.4.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/webmozarts/assert.git",
+                "reference": "2ccb7c2e821038c03a3e6e1700c570c158c55f70"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/webmozarts/assert/zipball/2ccb7c2e821038c03a3e6e1700c570c158c55f70",
+                "reference": "2ccb7c2e821038c03a3e6e1700c570c158c55f70",
+                "shasum": ""
+            },
+            "require": {
+                "ext-ctype": "*",
+                "ext-date": "*",
+                "ext-filter": "*",
+                "php": "^8.2"
+            },
+            "suggest": {
+                "ext-intl": "",
+                "ext-simplexml": "",
+                "ext-spl": ""
+            },
+            "type": "library",
+            "extra": {
+                "psalm": {
+                    "pluginClass": "Webmozart\\Assert\\PsalmPlugin"
+                },
+                "branch-alias": {
+                    "dev-master": "2.0-dev",
+                    "dev-feature/2-0": "2.0-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Webmozart\\Assert\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Bernhard Schussek",
+                    "email": "bschussek@gmail.com"
+                },
+                {
+                    "name": "Woody Gilk",
+                    "email": "woody.gilk@gmail.com"
+                }
+            ],
+            "description": "Assertions to validate method input/output with nice error messages.",
+            "keywords": [
+                "assert",
+                "check",
+                "validate"
+            ],
+            "support": {
+                "issues": "https://github.com/webmozarts/assert/issues",
+                "source": "https://github.com/webmozarts/assert/tree/2.4.1"
+            },
+            "time": "2026-06-15T15:31:57+00:00"
+        }
+    ],
+    "packages-dev": [],
+    "aliases": [],
+    "minimum-stability": "stable",
+    "stability-flags": {},
+    "prefer-stable": false,
+    "prefer-lowest": false,
+    "platform": {
+        "php": ">=8.3"
+    },
+    "platform-dev": {},
+    "plugin-api-version": "2.9.0"
+}

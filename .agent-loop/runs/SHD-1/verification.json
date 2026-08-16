@@ -1,0 +1,37 @@
+{
+    "contract_revision": 2,
+    "contract_sha256": "sha256:b667fecad39f5811da6d2ecf293b7ff2f3349b6b3043d2db720c27bd5abc855e",
+    "kind": "run_verification_receipt",
+    "obligations": [
+        {
+            "command": "php vendor/bin/phpunit -c phpunit.xml",
+            "duration_ms": null,
+            "executed_at": "2026-08-15T22:09:26+00:00",
+            "exit_code": 0,
+            "recorded_by": "claude",
+            "status": "passed"
+        },
+        {
+            "command": "php build/benchmark_html5_parser.php",
+            "duration_ms": null,
+            "executed_at": "2026-08-15T22:09:34+00:00",
+            "exit_code": 0,
+            "recorded_by": "claude",
+            "status": "passed"
+        },
+        {
+            "command": "php tools/agent-loop/vendor/bin/phpstan analyse -c phpstan.neon --no-progress",
+            "duration_ms": null,
+            "executed_at": "2026-08-15T22:09:34+00:00",
+            "exit_code": 0,
+            "recorded_by": "claude",
+            "status": "passed"
+        }
+    ],
+    "run_id": "run:SHD-1:f3c67ad97267526d",
+    "schema_version": "1.0",
+    "source_session_id": "2026-08-15-shd-1-2",
+    "task_id": "SHD-1",
+    "verdict": "satisfied",
+    "verified_at": "2026-08-15T22:13:08+00:00"
+}

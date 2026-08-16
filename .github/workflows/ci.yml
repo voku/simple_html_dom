@@ -88,16 +88,18 @@ jobs:
       - name: Upload coverage results to Coveralls
         continue-on-error: true
         env:
-            COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COVERALLS_PARALLEL: 'true'
+          COVERALLS_FLAG_NAME: php-${{ matrix.php }}-${{ matrix.composer }}
         run: |
-            composer global require php-coveralls/php-coveralls
-            php-coveralls --coverage_clover=build/logs/clover.xml -v
+          composer global require php-coveralls/php-coveralls
+          php-coveralls --coverage_clover=build/logs/clover.xml -v
 
       - name: Upload coverage results to Codecov
         uses: codecov/codecov-action@v4
         with:
           files: build/logs/clover.xml
-          
+
       - name: Archive logs artifacts
         if: ${{ failure() }}
         uses: actions/upload-artifact@v4
@@ -105,3 +107,14 @@ jobs:
           name: logs_composer-${{ matrix.composer }}_php-${{ matrix.php }}
           path: |
             build/logs
+
+  coveralls-finish:
+    needs: tests
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Close Coveralls parallel build
+        uses: coverallsapp/github-action@8d6379e14d29928660c4ba802d8e85393440b329 # v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          parallel-finished: true

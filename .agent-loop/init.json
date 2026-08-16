@@ -1,0 +1,5 @@
+{
+  "version": 1,
+  "claude_hooks_root": "docs/agents/claude-hooks",
+  "codex_hooks_root": "docs/agents/codex-hooks"
+}

@@ -1,0 +1,15 @@
+{
+    "schema_version": "1.0",
+    "kind": "run_learning_decision",
+    "run_id": "run:SHD-13:aa680aa27b58e057",
+    "decision": "no_durable_learning",
+    "decided_by": "voku",
+    "decided_at": "2026-08-16T23:10:06+00:00",
+    "reason": "Annotation/PHPDoc-only portability binding for PHPStan on PHP 8.3; the underlying PHP 8.4 symbol-boundary behavior is already captured by SHD-11 and no new reusable product rule emerged.",
+    "finding_ids": [],
+    "follow_up_ref": null,
+    "contract_revision": 1,
+    "implementation_snapshot": "sha256:0593ce7a9729cad20e0fab5d6106d88fcf0a4119bd112e94baa6bee4563454e1",
+    "validation_evidence_sha256": "sha256:9abd55cfc594fa135e1cb8f20978fbca76aee6aa8d004e73da7c036bec4eb988",
+    "review_evidence_sha256": "sha256:e08ecab73ea6f9b5eec7c5821782eefb20ca24481fe7cbdd60d5fa239da32de9"
+}

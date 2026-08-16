@@ -1,0 +1,15 @@
+{
+    "name": "voku/simple-html-dom-agent-loop-tool",
+    "description": "Isolated tool project for the voku/agent-loop governed workflow CLI.",
+    "type": "project",
+    "license": "MIT",
+    "require": {
+        "php": ">=8.3",
+        "voku/agent-loop": "^0.16"
+    },
+    "config": {
+        "allow-plugins": false,
+        "sort-packages": true,
+        "preferred-install": "source"
+    }
+}

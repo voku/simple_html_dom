@@ -1,0 +1,37 @@
+{
+  "id": "finding.2026-08-15.003",
+  "task_id": "SHD-1",
+  "session": "2026-08-15-shd-1-2",
+  "created_at": "2026-08-15T22:11:49+00:00",
+  "created_by": "claude",
+  "scope": [
+    "AGENTS.md",
+    "tools/agent-loop/composer.lock"
+  ],
+  "observation": "The project-instructions router that agent-loop ships tells a fresh agent session to run 'bin/agent-loop init status' once and to follow its 'Activation:' and 'Next:' lines, and the README documents 'init sync-instructions'. The released version installed here (voku/agent-loop 0.16.3) prints neither section from 'init status' and has no 'sync-instructions' command in 'init help'.",
+  "evidence": [
+    {
+      "type": "runtime_observation",
+      "command": "php bin/agent-loop init status",
+      "summary": "Output contains only 'Source paths', 'Agent aliases', 'Target manifests' and 'Stale managed entries' - no 'Activation:' or 'Next:' section for an agent to act on."
+    },
+    {
+      "type": "runtime_observation",
+      "command": "php bin/agent-loop init help",
+      "summary": "Lists doctor, paths, status, tools, validate, install-plan, install-assets, sync-skills, sync-subagents, sync-hooks, sync-githooks, sync-tools and scaffold; 'sync-instructions' is absent."
+    }
+  ],
+  "hypothesis": "Instruction text that ships with the package describes the development branch, so a host that installs a release gets guidance for behavior its CLI does not have.",
+  "validated_conclusion": "Router and README text should describe only what the installed version can do - either by version-gating those sentences or by shipping the router from the same release that implements the commands it names - otherwise the first instruction a new session follows produces no actionable output.",
+  "confidence": "high",
+  "validation_status": "validated",
+  "status": "validated",
+  "sensitivity": "public",
+  "classification": "ADD_LEARNING_NOTE",
+  "pattern_key": "agent_loop.docs.release_vs_main",
+  "validation_case": {
+    "given": "the installed release does not implement a command that the shipped router names",
+    "when": "a fresh session follows the router's first instruction",
+    "then": "the instruction produces output the agent can act on, or the router does not claim it"
+  }
+}

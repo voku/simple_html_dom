@@ -60,6 +60,82 @@ $elementsOrFalse = $dom->findMultiOrFalse('.css-selector'); // "$elementsOrFalse
 
 ```
 
+### HTML5 parsing on PHP >= 8.4: `Html5DomParser`
+
+PHP 8.4 added `\Dom\HTMLDocument`, a parser that follows the HTML5 specification and therefore
+recovers from broken markup the way a browser does. This library exposes it as its own class,
+for the same reason PHP put it next to `\DOMDocument` instead of adding a mode to it: the
+parsing rules are different, and that difference is visible in the result.
+
+`Html5DomParser` extends `HtmlDomParser` and has the same API, so switching means changing the
+class name and nothing else:
+
+```php
+use voku\helper\Html5DomParser;
+
+$dom = Html5DomParser::str_get_html('<table><tr><td>x</table><p>a<p>b');
+
+$dom->html(); // '<table><tbody><tr><td>x</td></tr></tbody></table><p>a</p><p>b</p>'
+
+// HtmlDomParser, unchanged, still returns:
+// '<table><tr><td>x</td></tr></table><p>a</p><p>b</p>'
+```
+
+`HtmlDomParser` is not affected by any of this and stays the default parser of this library.
+
+What you get with `Html5DomParser`: implied `<tbody>`, auto-closed `<p>` / `<li>` / `<td>`,
+recovery from misnested formatting tags, tag names normalized to lower case, camel-case SVG
+names (`viewBox`, `feColorMatrix`) restored, the encoding detected from the document like a
+browser does, and elements that libxml would have dropped or moved.
+
+What is different, and why it is a separate class:
+
+- HTML entities are resolved to their characters, as the specification requires, so `&nbsp;`
+  and `&amp;` come back as ` ` and `&` instead of staying entities.
+- The HTML5 parser always builds a complete document, so `getDocument()->documentElement` is
+  always `<html>`, even for a fragment. `html()` / `innerHtml()` still return the fragment.
+- A bare attribute has the empty string as its value, exactly as in a browser, so
+  `<input checked>` gives `getAttribute('checked') === ''`. Test presence with
+  `hasAttribute()`, and expect `checked=""` in the serialized output.
+- Content written after `</body>` is moved back into the body, like a browser does.
+- `useKeepBrokenHtml()` works on top of it: the broken fragments are preserved verbatim, but
+  because they travel through the parser as text, HTML5 tree construction can move such a
+  fragment out of a `<table>` or out of the `<head>`. The fragment itself is never lost.
+
+`tests/Html5DomParserCompatibilityTest.php` is the `HtmlDomParser` test suite run against
+`Html5DomParser`, so every one of these differences is pinned by a test, and everything else is
+proven to be unchanged.
+
+The result is bridged back into a `\DOMDocument`, which costs one extra serialize + parse and
+more transient memory. Measure it for your own input:
+
+```shell
+php build/benchmark_html5_parser.php
+```
+
+On the fixtures of this repository the complete `loadHtml()` + query + `html()` round-trip is
+currently *faster* than the libxml path (factor 0.72 - 0.95), because the HTML5 parser needs
+none of the string preprocessing that path does; small synthetic fragments are slower
+(factor ~1.3 - 1.5), and peak memory is higher in both cases.
+
+`Html5DomParser` is a strict parser choice. It does **not** silently switch back to
+`HtmlDomParser`, because that would make the class name lie about the parsing semantics. On an
+application that also runs on PHP < 8.4, check support before selecting the class:
+
+```php
+if (Html5DomParser::isHtml5ParserSupported()) {
+    $dom = Html5DomParser::str_get_html($html);
+} else {
+    $dom = HtmlDomParser::str_get_html($html); // explicit application decision
+}
+```
+
+Parsing throws a `RuntimeException` when the HTML5 backend is unavailable or when its normalized
+tree cannot be represented by the legacy `\DOMDocument` XML bridge (for example an HTML-valid
+attribute name that XML cannot represent). Use `HtmlDomParser` explicitly if legacy parsing is
+the intended fallback. A successful `Html5DomParser` parse therefore always means HTML5 tree
+construction actually happened.
+
 ### Examples
 
 [github.com/voku/simple_html_dom/tree/master/example](https://github.com/voku/simple_html_dom/tree/master/example)
