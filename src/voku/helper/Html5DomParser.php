@@ -87,14 +87,6 @@ class Html5DomParser extends HtmlDomParser
     protected $isDOMDocumentCreatedWithHtml5Parser = false;
 
     /**
-     * Check if the HTML5 parser of PHP >= 8.4 can be used on this runtime.
-     *
-     * When it cannot, this class still works: it parses with the libxml parser of
-     * "HtmlDomParser" and reports the fallback.
-     *
-     * @return bool
-     */
-    /**
      * Protect only input that the shared output cleanup would otherwise change or that the
      * XML transport cannot represent directly.
      *
@@ -123,6 +115,14 @@ class Html5DomParser extends HtmlDomParser
         return \str_replace($search, $replace, $html);
     }
 
+    /**
+     * Check if the HTML5 parser of PHP >= 8.4 can be used on this runtime.
+     *
+     * Callers supporting older PHP versions can use this capability check to choose
+     * "HtmlDomParser" explicitly. This class itself never silently changes parser backends.
+     *
+     * @return bool
+     */
     public static function isHtml5ParserSupported(): bool
     {
         return \PHP_VERSION_ID >= 80400
@@ -154,7 +154,10 @@ class Html5DomParser extends HtmlDomParser
      *
      * @param string $html
      *
-     * @return \DOMDocument|null <p>NULL to let "HtmlDomParser" parse with libxml instead.</p>
+     * @throws \RuntimeException <p>If the HTML5 parser is unavailable or its normalized tree
+     *                           cannot cross the legacy DOMDocument bridge.</p>
+     *
+     * @return \DOMDocument
      */
     protected function createDOMDocumentFromPreparedHtml(string $html)
     {
@@ -243,9 +246,10 @@ class Html5DomParser extends HtmlDomParser
         $encoding = $this->getEncoding();
         $overrideEncoding = \strcasecmp($encoding, 'UTF-8') === 0 ? null : $encoding;
 
-        /** @phpstan-ignore class.notFound, classConstant.notFound (PHP >= 8.4 only, guarded by isHtml5ParserSupported()) */
+        /** @phpstan-ignore class.notFound (PHP >= 8.4 only, guarded by isHtml5ParserSupported()) */
         $html5Document = \Dom\HTMLDocument::createFromString(
             $html,
+            /** @phpstan-ignore constant.notFound (PHP >= 8.4 only, guarded by isHtml5ParserSupported()) */
             \LIBXML_NOERROR | \Dom\HTML_NO_DEFAULT_NS,
             $overrideEncoding
         );
@@ -307,6 +311,7 @@ class Html5DomParser extends HtmlDomParser
     {
         /** @phpstan-ignore class.notFound, argument.type (PHP >= 8.4 only, guarded by isHtml5ParserSupported()) */
         $xPath = new \Dom\XPath($html5Document);
+        /** @phpstan-ignore class.notFound (\Dom\XPath of PHP >= 8.4) */
         $elements = $xPath->query('//*[@xmlns]');
 
         if ($elements->length === 0) {
@@ -315,6 +320,7 @@ class Html5DomParser extends HtmlDomParser
 
         $helper = self::$domHtmlXmlnsHelper;
         $suffix = 0;
+        /** @phpstan-ignore class.notFound (\Dom\XPath of PHP >= 8.4) */
         while ($xPath->query('//*[@' . $helper . ']')->length > 0) {
             $helper = self::$domHtmlXmlnsHelper . '-' . ++$suffix;
         }
