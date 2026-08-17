@@ -52,7 +52,7 @@ jobs:
           php bin/agent-loop board card move SHD-12 --to=DOING
           php bin/agent-loop workflow status SHD-12 --format=json > /tmp/shd12-before.json
           run_id="$(jq -er '.manifest.run_id' /tmp/shd12-before.json)"
-          session_id="$(jq -er '.manifest.references.session.expected_session_id' /tmp/shd12-before.json)"
+          session_id="$(jq -er '.manifest.references.session | .id // .expected_session_id' /tmp/shd12-before.json)"
           test -n "$run_id"
           test -n "$session_id"
           test -f ".agent-loop/sessions/${session_id}/session.json"
@@ -80,7 +80,7 @@ jobs:
           php bin/agent-loop workflow approve SHD-12 --by voku
           php bin/agent-loop workflow status SHD-12 --format=json > /tmp/shd12-after.json
           run_id_after="$(jq -er '.manifest.run_id' /tmp/shd12-after.json)"
-          session_id_after="$(jq -er '.manifest.references.session.expected_session_id' /tmp/shd12-after.json)"
+          session_id_after="$(jq -er '.manifest.references.session | .id // .expected_session_id' /tmp/shd12-after.json)"
           test "$run_id_after" = "$RUN_ID_BEFORE"
           test "$session_id_after" = "$SESSION_ID_BEFORE"
           test -f ".agent-loop/sessions/${SESSION_ID_BEFORE}/session.json"
