@@ -5,9 +5,10 @@
 - **Status:** Backlog
 - **Domain:** agent-loop-workflow
 - **Created:** 2026-08-15T22:12:40+00:00
-- **Updated:** 2026-08-15T22:12:40+00:00
-- **Summary:** Skill and discipline text name an executable path that does not exist in every host; make/agent-loop.mk already solves this with AGENT_LOOP_BIN.
+- **Updated:** 2026-08-17T10:35:00+00:00
+- **Upstream owner:** voku/agent-loop#138
+- **Summary:** Skill and discipline text name an executable path that does not exist in every host. The owner-level portable CLI-path fix is tracked upstream; this consumer card remains only as dogfood provenance.
 - **Format version:** 1
 
 ## Agent Task Brief
-See finding.2026-08-15.002. This repository added bin/agent-loop as a wrapper so the documented command works. Upstream fix: render the host entrypoint into the projected skills.
+See finding.2026-08-15.002 and voku/agent-loop#138. This repository added bin/agent-loop as a local wrapper so the projected command is usable here. Do not grow another consumer-specific command-path abstraction. The upstream issue owns resolving the repository-local agent-loop CLI once and rendering that resolved path into projected skills/subagents for isolated tool-project installs.
