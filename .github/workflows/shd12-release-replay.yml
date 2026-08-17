@@ -1,0 +1,163 @@
+name: SHD-12 released resume replay
+
+on:
+  push:
+    branches: [chore/agent-loop-0.16.6-replay]
+    paths: ['.github/workflows/shd12-release-replay.yml']
+
+permissions:
+  contents: write
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: chore/agent-loop-0.16.6-replay
+          fetch-depth: 0
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: composer:v2
+      - name: Install root and currently locked workflow tool
+        run: |
+          composer install --prefer-dist --no-interaction
+          composer install --working-dir=tools/agent-loop --prefer-dist --no-interaction
+          old_loop="$(composer show --working-dir=tools/agent-loop voku/agent-loop --format=json | jq -r '.versions[0]')"
+          old_session="$(composer show --working-dir=tools/agent-loop voku/agent-session --format=json | jq -r '.versions[0]')"
+          echo "OLD_LOOP=${old_loop}" >> "$GITHUB_ENV"
+          echo "OLD_SESSION=${old_session}" >> "$GITHUB_ENV"
+          test "$old_loop" = '0.16.5'
+          test "$old_session" = '0.6.0'
+      - name: Create governed SHD-12 Run under the old installed release
+        shell: bash
+        run: |
+          set -euo pipefail
+          php bin/agent-loop board card move SHD-12 --to=READY
+          php bin/agent-loop workflow plan SHD-12 \
+            --by voku \
+            --file tools/agent-loop/composer.lock \
+            --goal 'Prove released agent-loop 0.16.6 resumes the exact governed Run after its pruneable Session disappears, then persist the upgraded isolated tool lock.' \
+            --non-goal 'Do not make Session durable and do not change HtmlDomParser or Html5DomParser behavior.' \
+            --behavior-anchor 'governed Run id + bound Session id before pruning -> same Run id + same rehydrated Session id after upgrading 0.16.5 to 0.16.6' \
+            --acceptance 'The first approval is created by installed agent-loop 0.16.5 and the resume is executed by installed agent-loop 0.16.6.' \
+            --acceptance 'After deleting the bound working Session, workflow approve recreates the exact Session id and keeps the exact Run id.' \
+            --validation 'composer validate --working-dir=tools/agent-loop --strict' \
+            --validation 'php vendor/bin/phpunit -c phpunit.xml' \
+            --validation 'php tools/agent-loop/vendor/bin/phpstan analyse -c phpstan.neon --no-progress'
+          php bin/agent-loop workflow approve SHD-12 --by voku
+          php bin/agent-loop board card move SHD-12 --to=DOING
+          php bin/agent-loop workflow status SHD-12 --format=json > /tmp/shd12-before.json
+          run_id="$(jq -er '.manifest.run_id' /tmp/shd12-before.json)"
+          session_id="$(jq -er '.manifest.references.session.expected_session_id' /tmp/shd12-before.json)"
+          test -n "$run_id"
+          test -n "$session_id"
+          test -f ".agent-loop/sessions/${session_id}/session.json"
+          echo "RUN_ID_BEFORE=${run_id}" >> "$GITHUB_ENV"
+          echo "SESSION_ID_BEFORE=${session_id}" >> "$GITHUB_ENV"
+      - name: Upgrade only the isolated released workflow set
+        shell: bash
+        run: |
+          set -euo pipefail
+          composer update --working-dir=tools/agent-loop \
+            voku/agent-loop voku/agent-session \
+            --with-dependencies --minimal-changes --no-interaction
+          new_loop="$(composer show --working-dir=tools/agent-loop voku/agent-loop --format=json | jq -r '.versions[0]')"
+          new_session="$(composer show --working-dir=tools/agent-loop voku/agent-session --format=json | jq -r '.versions[0]')"
+          test "$new_loop" = '0.16.6'
+          test "$new_session" = '0.6.1'
+          echo "NEW_LOOP=${new_loop}" >> "$GITHUB_ENV"
+          echo "NEW_SESSION=${new_session}" >> "$GITHUB_ENV"
+      - name: Delete pruneable working memory and prove exact released resume
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf ".agent-loop/sessions/${SESSION_ID_BEFORE}"
+          test ! -e ".agent-loop/sessions/${SESSION_ID_BEFORE}"
+          php bin/agent-loop workflow approve SHD-12 --by voku
+          php bin/agent-loop workflow status SHD-12 --format=json > /tmp/shd12-after.json
+          run_id_after="$(jq -er '.manifest.run_id' /tmp/shd12-after.json)"
+          session_id_after="$(jq -er '.manifest.references.session.expected_session_id' /tmp/shd12-after.json)"
+          test "$run_id_after" = "$RUN_ID_BEFORE"
+          test "$session_id_after" = "$SESSION_ID_BEFORE"
+          test -f ".agent-loop/sessions/${SESSION_ID_BEFORE}/session.json"
+          test "$(jq -r '.id' ".agent-loop/sessions/${SESSION_ID_BEFORE}/session.json")" = "$SESSION_ID_BEFORE"
+          test "$(jq -r '.status' ".agent-loop/sessions/${SESSION_ID_BEFORE}/session.json")" = 'active'
+          printf 'old agent-loop: %s\nnew agent-loop: %s\nold agent-session: %s\nnew agent-session: %s\nrun: %s\nsession: %s\n' \
+            "$OLD_LOOP" "$NEW_LOOP" "$OLD_SESSION" "$NEW_SESSION" "$RUN_ID_BEFORE" "$SESSION_ID_BEFORE"
+      - name: Validate upgraded candidate and record exact observations
+        shell: bash
+        run: |
+          set -uo pipefail
+          record() {
+            local command="$1"
+            local start end duration exit_code status
+            start=$(date +%s%3N)
+            set +e
+            bash -lc "$command"
+            exit_code=$?
+            set -e
+            end=$(date +%s%3N)
+            duration=$((end - start))
+            if [ "$exit_code" -eq 0 ]; then status=passed; else status=failed; fi
+            php bin/agent-loop session validation record SHD-12 \
+              --contract-revision 1 \
+              --command "$command" \
+              --status "$status" \
+              --exit-code "$exit_code" \
+              --duration-ms "$duration" \
+              --by voku
+            return "$exit_code"
+          }
+          set -e
+          record 'composer validate --working-dir=tools/agent-loop --strict'
+          record 'php vendor/bin/phpunit -c phpunit.xml'
+          record 'php tools/agent-loop/vendor/bin/phpstan analyse -c phpstan.neon --no-progress'
+          php bin/agent-loop board card move SHD-12 --to=VERIFY
+      - name: Review, learn, finish board and close governed Run
+        shell: bash
+        run: |
+          set -euo pipefail
+          php bin/agent-loop review code SHD-12
+          php bin/agent-loop session checkpoint SHD-12 \
+            --title 'L2 blind-spot review checkpoint' \
+            --body "Released upgrade replay passed: agent-loop ${OLD_LOOP}->${NEW_LOOP}, agent-session ${OLD_SESSION}->${NEW_SESSION}; missing Session ${SESSION_ID_BEFORE} was rehydrated exactly and governed Run ${RUN_ID_BEFORE} was unchanged."
+          set +e
+          php bin/agent-loop review blindspots SHD-12
+          initial_review_exit=$?
+          set -e
+          echo "INITIAL_BLINDSPOT_EXIT=${initial_review_exit}"
+          php bin/agent-loop workflow learn SHD-12 \
+            --status no_durable_learning \
+            --by voku \
+            --reason 'The reusable defect and owner boundary were already captured and fixed upstream in agent-session 0.6.1 and agent-loop 0.16.6; this run is the released consumer regression proof.'
+          php bin/agent-loop review blindspots SHD-12
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path('.agent-loop/recall/SHD-12/reviews/SHD-12.blindspots.json').read_text())
+          if report.get('findings'):
+              raise SystemExit('blind-spot findings remain: ' + ', '.join(item.get('id', '?') for item in report['findings']))
+          if report.get('status') != 'ok':
+              raise SystemExit('blind-spot report is not ok: ' + str(report.get('status')))
+          PY
+          php bin/agent-loop board card move SHD-12 --to=DONE
+          php bin/agent-loop workflow close SHD-12 --status done
+          php bin/agent-loop workflow status SHD-12 --expect complete --format=json
+          php bin/agent-loop workflow report SHD-12
+      - name: Commit only durable consumer evidence and remove helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm .github/workflows/shd12-release-replay.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tools/agent-loop/composer.lock .agent-loop .github/workflows/shd12-release-replay.yml
+          git diff --cached --check
+          echo '--- durable diff ---'
+          git diff --cached --stat
+          git commit -m 'Close SHD-12 with released agent-loop resume replay'
+          git push origin HEAD:chore/agent-loop-0.16.6-replay
