@@ -164,17 +164,36 @@ jobs:
               }
           }
           sort($changed, SORT_STRING);
-          $expected = ['voku/agent-loop', 'voku/agent-session'];
+          $expected = [
+              'phpstan/phpstan',
+              'voku/agent-kanban',
+              'voku/agent-learning',
+              'voku/agent-loop',
+              'voku/agent-map',
+              'voku/agent-recall-compiler',
+              'voku/agent-session',
+          ];
           if ($changed !== $expected) {
               fwrite(STDERR, 'Unexpected dependency delta: ' . json_encode($changed, JSON_THROW_ON_ERROR) . PHP_EOL);
               exit(1);
           }
-          if (($after['voku/agent-loop']['version'] ?? null) !== '0.16.6') {
-              fwrite(STDERR, 'Expected voku/agent-loop 0.16.6.' . PHP_EOL);
-              exit(1);
+
+          $expectedVersions = [
+              'voku/agent-kanban' => '0.3.2',
+              'voku/agent-learning' => '0.13.1',
+              'voku/agent-loop' => '0.16.6',
+              'voku/agent-map' => '0.8.2',
+              'voku/agent-recall-compiler' => '0.13.6',
+              'voku/agent-session' => '0.6.1',
+          ];
+          foreach ($expectedVersions as $name => $version) {
+              if (($after[$name]['version'] ?? null) !== $version) {
+                  fwrite(STDERR, sprintf('Expected %s %s, got %s.%s', $name, $version, (string) ($after[$name]['version'] ?? 'missing'), PHP_EOL));
+                  exit(1);
+              }
           }
-          if (($after['voku/agent-session']['version'] ?? null) !== '0.6.1') {
-              fwrite(STDERR, 'Expected voku/agent-session 0.6.1.' . PHP_EOL);
+          if (isset($after['phpstan/phpstan'])) {
+              fwrite(STDERR, 'phpstan/phpstan should no longer be a production transitive dependency of the isolated agent-loop tool project.' . PHP_EOL);
               exit(1);
           }
           PHP
@@ -213,21 +232,21 @@ jobs:
           try {
               $contracts = new TaskContractStore($root);
               $contracts->create(
-                  'SHD-RESUME-1',
-                  'Replay the consumer defect that motivated SHD-12.',
+                  'ABC-123',
+                  'Resume the same governed Run after working memory disappears.',
                   ['README.md'],
-                  ['Do not rebind durable Run identity.'],
-                  ['test -f README.md'],
-                  'consumer-dogfood',
+                  ['Do not rebind Run identity.'],
+                  ['vendor/bin/phpunit'],
+                  'lars',
               );
-              $contract = $contracts->approve('SHD-RESUME-1', 'consumer-dogfood');
+              $contract = $contracts->approve('ABC-123', 'lars');
 
               $sessions = new SessionStore();
               $session = $sessions->rehydrate(
                   $root . '/.agent-loop/sessions',
-                  '2001-02-03-shd-resume-1-r1-deadbeef',
-                  'SHD-RESUME-1',
-                  'consumer-dogfood',
+                  '2001-02-03-abc-123-r1-deadbeef',
+                  'ABC-123',
+                  'lars',
                   $contract->baseCommit,
               );
               $runStore = new GovernedRunStore($root);
@@ -237,7 +256,7 @@ jobs:
               $approve = new WorkflowApproveCommand(
                   $root,
                   static function (array $argv) use ($root): int {
-                      $recallRoot = $root . '/.agent-loop/recall/SHD-RESUME-1';
+                      $recallRoot = $root . '/.agent-loop/recall/ABC-123';
                       if (!is_dir($recallRoot)) {
                           mkdir($recallRoot, 0o775, true);
                       }
@@ -245,8 +264,8 @@ jobs:
                           $recallRoot . '/meta.json',
                           json_encode([
                               'schema_version' => '1.0',
-                              'task_id' => 'SHD-RESUME-1',
-                              'compilation_id' => 'SHD-RESUME-1-consumer-proof',
+                              'task_id' => 'ABC-123',
+                              'compilation_id' => 'ABC-123-consumer-proof',
                               'selected_guidance' => [],
                               'selected_constraints' => [],
                               'output_hashes' => [],
@@ -258,7 +277,7 @@ jobs:
               );
 
               ob_start();
-              $exit = $approve->run(['SHD-RESUME-1', '--by', 'consumer-dogfood']);
+              $exit = $approve->run(['ABC-123', '--by', 'lars']);
               $output = (string) ob_get_clean();
               if ($exit !== 0) {
                   fwrite(STDERR, $output);
@@ -266,7 +285,7 @@ jobs:
               }
 
               $rehydrated = $sessions->load($root . '/.agent-loop/sessions', $session->id);
-              $resumedRun = $runStore->find('SHD-RESUME-1');
+              $resumedRun = $runStore->find('ABC-123');
               if ($rehydrated->id !== $session->id || $rehydrated->status !== SessionStatus::ACTIVE) {
                   fwrite(STDERR, 'Installed consumer did not rehydrate the exact active Session identity.' . PHP_EOL);
                   exit(1);
