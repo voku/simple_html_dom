@@ -7,7 +7,7 @@
 - **Created:** 2026-08-15T22:12:41+00:00
 - **Updated:** 2026-08-17T10:35:00+00:00
 - **Resolved upstream:** voku/agent-loop#153
-- **Summary:** The installed 0.16.3 host guidance named command routes not available from the same installed CLI. The owner-level release/projection consistency gate is tracked upstream; this consumer card remains only as dogfood provenance.
+- **Summary:** The installed 0.16.3 host guidance named command routes unavailable from the same installed CLI. voku/agent-loop#153 shipped the installed release/projection consistency gate; this consumer now consumes that owner fix, and the card remains only as dogfood provenance.
 - **Format version:** 1
 
 ## Agent Task Brief

@@ -7,7 +7,7 @@
 - **Created:** 2026-08-15T22:12:41+00:00
 - **Updated:** 2026-08-17T10:35:00+00:00
 - **Resolved upstream:** voku/agent-loop#151
-- **Summary:** Real repository initialization currently receives durable DEMO identity/work by default. The owner-level separation of real-project scaffold from explicit demo mode is tracked upstream; this consumer card remains only as dogfood provenance.
+- **Summary:** The dogfood run showed that real repository initialization received durable DEMO identity/work by default. voku/agent-loop#151 shipped the separation between real-project scaffold and explicit demo mode; this consumer now consumes that owner fix, and the card remains only as dogfood provenance.
 - **Format version:** 1
 
 ## Agent Task Brief

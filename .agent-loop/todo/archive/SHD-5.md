@@ -7,7 +7,7 @@
 - **Created:** 2026-08-15T22:12:40+00:00
 - **Updated:** 2026-08-17T10:35:00+00:00
 - **Resolved upstream:** voku/agent-loop#138
-- **Summary:** Skill and discipline text name an executable path that does not exist in every host. The owner-level portable CLI-path fix is tracked upstream; this consumer card remains only as dogfood provenance.
+- **Summary:** The dogfood run showed that projected guidance could name an executable path unavailable in isolated tool-project installs. voku/agent-loop#138 shipped repository-local CLI-path resolution and projection; this consumer now consumes that owner fix, and the card remains only as dogfood provenance.
 - **Format version:** 1
 
 ## Agent Task Brief

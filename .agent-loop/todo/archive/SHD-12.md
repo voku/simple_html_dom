@@ -7,7 +7,7 @@
 - **Created:** 2026-08-16T22:59:30+00:00
 - **Updated:** 2026-08-17T10:35:00+00:00
 - **Resolved upstream:** voku/agent-loop#181 (owner capability: voku/agent-session#15)
-- **Summary:** A durable governed Run can outlive its pruneable bound Session, but approval/resume currently creates a new Session ID and then correctly refuses to rebind the existing Run. The exact-ID rehydration fix is shipped and consumed here; this card remains only as dogfood provenance.
+- **Summary:** The dogfood run showed that a durable governed Run could outlive its pruneable bound Session while approval/resume created a new Session ID and correctly refused to rebind the existing Run. voku/agent-session#15 and voku/agent-loop#181 shipped exact-ID rehydration; this consumer now consumes and replays that owner fix, and the card remains only as dogfood provenance.
 - **Format version:** 1
 
 ## Agent Task Brief
