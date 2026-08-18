@@ -146,9 +146,11 @@ jobs:
           {
               $lock = json_decode((string) file_get_contents($path), true, 512, JSON_THROW_ON_ERROR);
               $result = [];
-              foreach ($lock['packages'] ?? [] as $package) {
-                  if (is_array($package) && is_string($package['name'] ?? null)) {
-                      $result[$package['name']] = $package;
+              foreach (['packages', 'packages-dev'] as $section) {
+                  foreach ($lock[$section] ?? [] as $package) {
+                      if (is_array($package) && is_string($package['name'] ?? null)) {
+                          $result[$package['name']] = $package;
+                      }
                   }
               }
 
