@@ -124,7 +124,7 @@ jobs:
       - name: Setup PHP and Composer
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.4'
+          php-version: '8.3'
           coverage: none
           tools: composer
 
@@ -192,6 +192,11 @@ jobs:
               exit(1);
           }
           PHP
+
+      - name: Install host project dependencies
+        run: |
+          composer update --prefer-dist --no-interaction
+          composer dump-autoload -o
 
       - name: Replay durable validation command
         run: php tools/agent-loop/vendor/bin/phpstan analyse -c phpstan.neon --no-progress
@@ -302,6 +307,7 @@ jobs:
 
       - name: Guard and publish final tool dependency state
         run: |
+          rm -f composer.lock
           unexpected="$(git diff --name-only | grep -Ev '^tools/agent-loop/composer\.lock$' || true)"
           if [[ -n "$unexpected" ]]; then
             echo 'Unexpected files from dependency resolution:' >&2
