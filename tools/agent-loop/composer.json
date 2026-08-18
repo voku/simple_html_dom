@@ -7,6 +7,9 @@
         "php": ">=8.3",
         "voku/agent-loop": "^0.16"
     },
+    "require-dev": {
+        "phpstan/phpstan": "^2.1"
+    },
     "config": {
         "allow-plugins": false,
         "sort-packages": true,

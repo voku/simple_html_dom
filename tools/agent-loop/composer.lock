@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "0627593213f102d7e23684384d5c719c",
+    "content-hash": "f29e753e8e6969fbacdfe76dbec62892",
     "packages": [
         {
             "name": "doctrine/deprecations",
@@ -462,70 +462,6 @@
             "time": "2026-07-08T07:01:06+00:00"
         },
         {
-            "name": "phpstan/phpstan",
-            "version": "2.2.8",
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/e285254e60f33c21902efef4a926ca0987c06804",
-                "reference": "e285254e60f33c21902efef4a926ca0987c06804",
-                "shasum": ""
-            },
-            "require": {
-                "php": "^7.4|^8.0"
-            },
-            "conflict": {
-                "phpstan/phpstan-shim": "*"
-            },
-            "bin": [
-                "phpstan",
-                "phpstan.phar"
-            ],
-            "type": "library",
-            "autoload": {
-                "files": [
-                    "bootstrap.php"
-                ]
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Ondřej Mirtes"
-                },
-                {
-                    "name": "Markus Staab"
-                },
-                {
-                    "name": "Vincent Langlet"
-                }
-            ],
-            "description": "PHPStan - PHP Static Analysis Tool",
-            "keywords": [
-                "dev",
-                "static analysis"
-            ],
-            "support": {
-                "docs": "https://phpstan.org/user-guide/getting-started",
-                "forum": "https://github.com/phpstan/phpstan/discussions",
-                "issues": "https://github.com/phpstan/phpstan/issues",
-                "security": "https://github.com/phpstan/phpstan/security/policy",
-                "source": "https://github.com/phpstan/phpstan-src"
-            },
-            "funding": [
-                {
-                    "url": "https://github.com/ondrejmirtes",
-                    "type": "github"
-                },
-                {
-                    "url": "https://github.com/phpstan",
-                    "type": "github"
-                }
-            ],
-            "time": "2026-08-04T22:21:45+00:00"
-        },
-        {
             "name": "psr/simple-cache",
             "version": "3.0.0",
             "source": {
@@ -578,16 +514,16 @@
         },
         {
             "name": "voku/agent-kanban",
-            "version": "0.3.1",
+            "version": "0.3.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/voku/agent-kanban.git",
-                "reference": "ff6b54b3c05b45a5b59f7cbb9a3cfb509943aa27"
+                "reference": "9e2d913de673fd58f2a55d92ccc257e880df1b91"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/voku/agent-kanban/zipball/ff6b54b3c05b45a5b59f7cbb9a3cfb509943aa27",
-                "reference": "ff6b54b3c05b45a5b59f7cbb9a3cfb509943aa27",
+                "url": "https://api.github.com/repos/voku/agent-kanban/zipball/9e2d913de673fd58f2a55d92ccc257e880df1b91",
+                "reference": "9e2d913de673fd58f2a55d92ccc257e880df1b91",
                 "shasum": ""
             },
             "require": {
@@ -624,20 +560,20 @@
                 "issues": "https://github.com/voku/agent-kanban/issues",
                 "source": "https://github.com/voku/agent-kanban"
             },
-            "time": "2026-08-16T00:20:59+00:00"
+            "time": "2026-08-16T17:07:52+00:00"
         },
         {
             "name": "voku/agent-learning",
-            "version": "0.13.0",
+            "version": "0.13.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/voku/agent-learning.git",
-                "reference": "6231a1b69541ed5fe6ea7308473f49e0e4812333"
+                "reference": "43eb7eca381c0974bc707ab0b9cd8c5085ceefdc"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/voku/agent-learning/zipball/6231a1b69541ed5fe6ea7308473f49e0e4812333",
-                "reference": "6231a1b69541ed5fe6ea7308473f49e0e4812333",
+                "url": "https://api.github.com/repos/voku/agent-learning/zipball/43eb7eca381c0974bc707ab0b9cd8c5085ceefdc",
+                "reference": "43eb7eca381c0974bc707ab0b9cd8c5085ceefdc",
                 "shasum": ""
             },
             "require": {
@@ -672,20 +608,20 @@
                 "issues": "https://github.com/voku/agent-learning/issues",
                 "source": "https://github.com/voku/agent-learning"
             },
-            "time": "2026-08-15T23:33:48+00:00"
+            "time": "2026-08-18T07:14:25+00:00"
         },
         {
             "name": "voku/agent-loop",
-            "version": "0.16.5",
+            "version": "0.16.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/voku/agent-loop.git",
-                "reference": "e046c2030c242daa22bff7469c8dc5089eb23aab"
+                "reference": "3c8ce1be8806f24eabf46d4688dd65c0215eb66a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/voku/agent-loop/zipball/e046c2030c242daa22bff7469c8dc5089eb23aab",
-                "reference": "e046c2030c242daa22bff7469c8dc5089eb23aab",
+                "url": "https://api.github.com/repos/voku/agent-loop/zipball/3c8ce1be8806f24eabf46d4688dd65c0215eb66a",
+                "reference": "3c8ce1be8806f24eabf46d4688dd65c0215eb66a",
                 "shasum": ""
             },
             "require": {
@@ -695,7 +631,7 @@
                 "voku/agent-learning": "^0.13.0",
                 "voku/agent-map": "^0.8.1",
                 "voku/agent-recall-compiler": "^0.13.1",
-                "voku/agent-session": "^0.6.0",
+                "voku/agent-session": "^0.6.1",
                 "voku/itp-context": "^0.3.0"
             },
             "require-dev": {
@@ -735,32 +671,35 @@
                 "issues": "https://github.com/voku/agent-loop/issues",
                 "source": "https://github.com/voku/agent-loop"
             },
-            "time": "2026-08-16T08:27:23+00:00"
+            "time": "2026-08-17T00:18:09+00:00"
         },
         {
             "name": "voku/agent-map",
-            "version": "0.8.1",
+            "version": "0.8.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/voku/agent-map.git",
-                "reference": "9b357980f2d9f879385cc6c1f831e720dbd366de"
+                "reference": "7175004f1db6d3217655374275922e9fe4b15a34"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/voku/agent-map/zipball/9b357980f2d9f879385cc6c1f831e720dbd366de",
-                "reference": "9b357980f2d9f879385cc6c1f831e720dbd366de",
+                "url": "https://api.github.com/repos/voku/agent-map/zipball/7175004f1db6d3217655374275922e9fe4b15a34",
+                "reference": "7175004f1db6d3217655374275922e9fe4b15a34",
                 "shasum": ""
             },
             "require": {
                 "composer-runtime-api": "^2.2",
                 "helgesverre/toon": "^3.1",
                 "php": ">=8.2",
-                "phpstan/phpstan": "^2.2",
                 "voku/simple-php-code-parser": "^0.22",
                 "voku/stop-words": "^2.0"
             },
             "require-dev": {
+                "phpstan/phpstan": "^2.2",
                 "phpunit/phpunit": "^11.0"
+            },
+            "suggest": {
+                "phpstan/phpstan": "Enables PHPStan-backed semantic relation analysis; without it agent-map builds structural-only maps."
             },
             "bin": [
                 "bin/agent-map"
@@ -778,22 +717,22 @@
             "description": "Compact PHP repository symbol maps for coding-agent navigation.",
             "support": {
                 "issues": "https://github.com/voku/agent-map/issues",
-                "source": "https://github.com/voku/agent-map/tree/0.8.1"
+                "source": "https://github.com/voku/agent-map/tree/0.8.2"
             },
-            "time": "2026-08-14T23:24:25+00:00"
+            "time": "2026-08-18T06:52:39+00:00"
         },
         {
             "name": "voku/agent-recall-compiler",
-            "version": "0.13.2",
+            "version": "0.13.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/voku/agent-recall-compiler.git",
-                "reference": "cf2ebe1ac8822eefe1062a91d979690cf0ec5613"
+                "reference": "48163965e84007728246a10ba8ccd4bf9e4de078"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/voku/agent-recall-compiler/zipball/cf2ebe1ac8822eefe1062a91d979690cf0ec5613",
-                "reference": "cf2ebe1ac8822eefe1062a91d979690cf0ec5613",
+                "url": "https://api.github.com/repos/voku/agent-recall-compiler/zipball/48163965e84007728246a10ba8ccd4bf9e4de078",
+                "reference": "48163965e84007728246a10ba8ccd4bf9e4de078",
                 "shasum": ""
             },
             "require": {
@@ -829,20 +768,20 @@
                 "issues": "https://github.com/voku/agent-recall-compiler/issues",
                 "source": "https://github.com/voku/agent-recall-compiler"
             },
-            "time": "2026-08-16T08:05:17+00:00"
+            "time": "2026-08-18T09:42:40+00:00"
         },
         {
             "name": "voku/agent-session",
-            "version": "0.6.0",
+            "version": "0.6.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/voku/agent-session.git",
-                "reference": "6c881a6c7ce3912fb0f035ad3aa4ac1d99fa0b34"
+                "reference": "bf6b804293b502af1ee59a66ca8c01644d393fd2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/voku/agent-session/zipball/6c881a6c7ce3912fb0f035ad3aa4ac1d99fa0b34",
-                "reference": "6c881a6c7ce3912fb0f035ad3aa4ac1d99fa0b34",
+                "url": "https://api.github.com/repos/voku/agent-session/zipball/bf6b804293b502af1ee59a66ca8c01644d393fd2",
+                "reference": "bf6b804293b502af1ee59a66ca8c01644d393fd2",
                 "shasum": ""
             },
             "require": {
@@ -858,7 +797,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-main": "0.5.x-dev"
+                    "dev-main": "0.6.x-dev"
                 }
             },
             "autoload": {
@@ -882,7 +821,7 @@
                 "issues": "https://github.com/voku/agent-session/issues",
                 "source": "https://github.com/voku/agent-session"
             },
-            "time": "2026-08-15T11:31:12+00:00"
+            "time": "2026-08-17T00:03:30+00:00"
         },
         {
             "name": "voku/itp-context",
@@ -1216,7 +1155,72 @@
             "time": "2026-06-15T15:31:57+00:00"
         }
     ],
-    "packages-dev": [],
+    "packages-dev": [
+        {
+            "name": "phpstan/phpstan",
+            "version": "2.2.8",
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/e285254e60f33c21902efef4a926ca0987c06804",
+                "reference": "e285254e60f33c21902efef4a926ca0987c06804",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.4|^8.0"
+            },
+            "conflict": {
+                "phpstan/phpstan-shim": "*"
+            },
+            "bin": [
+                "phpstan",
+                "phpstan.phar"
+            ],
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "bootstrap.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Ondřej Mirtes"
+                },
+                {
+                    "name": "Markus Staab"
+                },
+                {
+                    "name": "Vincent Langlet"
+                }
+            ],
+            "description": "PHPStan - PHP Static Analysis Tool",
+            "keywords": [
+                "dev",
+                "static analysis"
+            ],
+            "support": {
+                "docs": "https://phpstan.org/user-guide/getting-started",
+                "forum": "https://github.com/phpstan/phpstan/discussions",
+                "issues": "https://github.com/phpstan/phpstan/issues",
+                "security": "https://github.com/phpstan/phpstan/security/policy",
+                "source": "https://github.com/phpstan/phpstan-src"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/ondrejmirtes",
+                    "type": "github"
+                },
+                {
+                    "url": "https://github.com/phpstan",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-08-04T22:21:45+00:00"
+        }
+    ],
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {},
