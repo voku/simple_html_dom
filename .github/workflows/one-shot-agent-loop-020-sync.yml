@@ -1,0 +1,127 @@
+name: One-shot agent-loop 0.20 sync
+
+on:
+  push:
+    branches:
+      - agent/shd-parser-backlog-sync
+    paths:
+      - .github/workflows/one-shot-agent-loop-020-sync.yml
+
+permissions:
+  contents: write
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: agent/shd-parser-backlog-sync
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup PHP and Composer
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: composer
+
+      - name: Resolve current agent-loop toolchain
+        run: |
+          cp tools/agent-loop/composer.json /tmp/agent-loop-composer.json.before
+          cp tools/agent-loop/composer.lock /tmp/agent-loop-composer.lock.before
+
+          (
+            cd tools/agent-loop
+            composer require 'voku/agent-loop:^0.20.52'               --with-all-dependencies               --prefer-dist               --no-interaction               --no-progress               --no-plugins               --no-scripts
+            composer validate --strict
+          )
+
+      - name: Verify resolved agent package set
+        run: |
+          php <<'PHP'
+          <?php
+          declare(strict_types=1);
+
+          /** @return array<string, array<string, mixed>> */
+          function packageMap(string $path): array
+          {
+              $lock = json_decode((string) file_get_contents($path), true, 512, JSON_THROW_ON_ERROR);
+              $result = [];
+
+              foreach (['packages', 'packages-dev'] as $section) {
+                  foreach ($lock[$section] ?? [] as $package) {
+                      if (!is_array($package) || !is_string($package['name'] ?? null)) {
+                          continue;
+                      }
+                      $result[$section . '/' . $package['name']] = $package;
+                  }
+              }
+
+              return $result;
+          }
+
+          $after = packageMap('tools/agent-loop/composer.lock');
+          $expected = [
+              'packages/voku/agent-loop' => '0.20.52',
+              'packages/voku/agent-kanban' => '0.4.4',
+              'packages/voku/agent-learning' => '0.18.28',
+              'packages/voku/agent-map' => '0.18.3',
+              'packages/voku/agent-recall-compiler' => '0.25.1',
+              'packages/voku/agent-session' => '0.7.1',
+          ];
+
+          foreach ($expected as $key => $version) {
+              $actual = $after[$key]['version'] ?? null;
+              if ($actual !== $version) {
+                  fwrite(STDERR, sprintf('Expected %s %s, got %s.%s', $key, $version, var_export($actual, true), PHP_EOL));
+                  exit(1);
+              }
+              echo $key . '=' . $version . PHP_EOL;
+          }
+
+          if (($after['packages-dev/phpstan/phpstan']['version'] ?? null) === null) {
+              fwrite(STDERR, 'Explicit phpstan/phpstan dev dependency disappeared.' . PHP_EOL);
+              exit(1);
+          }
+          PHP
+
+      - name: Validate consumer integration
+        run: |
+          composer update --prefer-dist --no-interaction --no-progress
+          php tools/agent-loop/vendor/bin/agent-loop board verify
+          php tools/agent-loop/vendor/bin/phpstan analyse -c phpstan.neon --no-progress
+          git diff --check
+
+      - name: Guard final scope
+        run: |
+          changed="$(git diff --name-only HEAD; git diff --cached --name-only HEAD)"
+          unexpected="$(printf '%s\n' "$changed" | sed '/^$/d' | sort -u | grep -Ev '^((tools/agent-loop/composer\.json)|(tools/agent-loop/composer\.lock)|(\.github/workflows/one-shot-agent-loop-020-sync\.yml))$' || true)"
+          if [[ -n "$unexpected" ]]; then
+            echo 'Unexpected files in one-shot sync:' >&2
+            echo "$unexpected" >&2
+            exit 1
+          fi
+
+          grep -F '"voku/agent-loop": "^0.20.52"' tools/agent-loop/composer.json >/dev/null
+          git diff --check
+          git diff --stat
+
+      - name: Commit result and remove helper
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          rm .github/workflows/one-shot-agent-loop-020-sync.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tools/agent-loop/composer.json tools/agent-loop/composer.lock .github/workflows/one-shot-agent-loop-020-sync.yml
+          git diff --cached --check
+          git commit -m 'chore: update agent-loop toolchain to 0.20.52'
+          git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:agent/shd-parser-backlog-sync
