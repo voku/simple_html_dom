@@ -169,6 +169,13 @@ class Html5DomParser extends HtmlDomParser
             );
         }
 
+        // A <meta charset=...> inserted into <head> can make legacy DOMDocument::saveHTML()
+        // re-encode the whole document. Keep the proven legacy mutation path for <head>
+        // until serialization is isolated from that libxml side effect.
+        if (\strtolower($contextNode->tagName) === 'head') {
+            return null;
+        }
+
         // Foreign-content fragments need their own namespace-aware bridge. Keep the existing
         // legacy mutation path for those until that contract is covered explicitly.
         if ($contextNode->namespaceURI !== null && $contextNode->namespaceURI !== '') {
