@@ -636,6 +636,20 @@ class HtmlDomParser extends AbstractDomParser
     }
 
     /**
+     * Map a public HTML attribute name for a write into the legacy DOM.
+     *
+     * @param string $name
+     *
+     * @return string
+     *
+     * @internal Used by SimpleHtmlDom wrappers that retain their originating parser context.
+     */
+    public function mapPublicAttributeNameToDomForWrite(string $name): string
+    {
+        return $this->mapPublicAttributeNameToDom($name);
+    }
+
+    /**
      * Map a legacy DOM attribute name back to the public HTML attribute name.
      *
      * @param string $name
