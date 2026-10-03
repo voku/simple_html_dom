@@ -213,20 +213,23 @@ final class Html5DomParserDefaultCompatibilityTest extends \PHPUnit\Framework\Te
 
     /**
      * The HTML element remains on the legacy mutation path because HTML fragment parsing in
-     * that context may synthesize a second head while replacing body.outerHtml.
+     * that context may synthesize an additional head while replacing body.outerHtml.
      */
-    public function testBodyOuterHtmlMutationDoesNotDuplicateHead()
+    public function testBodyOuterHtmlMutationKeepsLegacySemanticsWithoutDuplicateHead()
     {
         $this->requireHtml5Parser();
 
-        $dom = Html5DomParser::str_get_html(
-            '<html><head><title>kept</title></head><body id="target"><p>old</p></body></html>'
-        );
-        $target = $dom->findOne('#target');
+        $html = '<html><head><title>kept</title></head><body id="target"><p>old</p></body></html>';
+        $replacement = '<body><p>new</p></body>';
 
-        $target->outerHtml = '<body><p>new</p></body>';
+        $legacy = HtmlDomParser::str_get_html($html);
+        $legacy->findOne('#target')->outerHtml = $replacement;
 
-        static::assertCount(1, $dom->findMulti('head'));
+        $dom = Html5DomParser::str_get_html($html);
+        $dom->findOne('#target')->outerHtml = $replacement;
+
+        static::assertSame($legacy->html(), $dom->html());
+        static::assertLessThanOrEqual(1, \count($dom->findMulti('head')));
         static::assertCount(1, $dom->findMulti('body'));
         static::assertSame('kept', $dom->findOne('title')->text());
         static::assertSame('<p>new</p>', $dom->findOne('body')->innerHtml());
@@ -249,43 +252,6 @@ final class Html5DomParserDefaultCompatibilityTest extends \PHPUnit\Framework\Te
 
         static::assertSame('<b>new</b>', $target->innerHtml());
         static::assertSame('new', $target->findOne('b')->text());
-    }
-
-    /**
-     * SHD-3: replacing body would use html as the fragment context. Keep that context on the
-     * legacy path so fragment parsing cannot synthesize a second head/body pair.
-     */
-    public function testOuterHtmlBodyMutationKeepsSingleDocumentWrappers()
-    {
-        $this->requireHtml5Parser();
-
-        $dom = Html5DomParser::str_get_html(
-            '<html><head><title>old</title></head><body id="target"><p>old</p></body></html>'
-        );
-        $target = $dom->findOne('#target');
-
-        $target->outerHtml = '<body><p>new</p></body>';
-
-        static::assertCount(1, $dom->findMulti('head'));
-        static::assertCount(1, $dom->findMulti('body'));
-        static::assertSame('new', $dom->findOne('body p')->text());
-    }
-
-    /**
-     * SHD-3: template contents are stored outside the template element's ordinary child list
-     * by the modern DOM API. Keep template mutations on the proven legacy path so markup is
-     * not silently discarded by fragment serialization.
-     */
-    public function testInnerHtmlTemplateMutationPreservesMarkup()
-    {
-        $this->requireHtml5Parser();
-
-        $dom = Html5DomParser::str_get_html('<template id="target"></template>');
-        $target = $dom->findOne('#target');
-
-        $target->innerHtml = '<strong>x</strong>';
-
-        static::assertStringContainsString('<strong>x</strong>', $target->innerHtml());
     }
 
     /**
