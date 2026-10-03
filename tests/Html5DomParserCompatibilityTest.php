@@ -1131,12 +1131,15 @@ HTML;
         }
     }
 
-    public function testEditLinksPinsMalformedHtmlThatCannotCrossTheXmlBridge()
+    public function testEditLinksPreservesMalformedHtmlOnlyAttributeThroughXmlBridge()
     {
-        $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('could not bridge the normalized HTML5 document');
+        $dom = Html5DomParser::str_get_html('<a <a href="http://foobar.de">foo</a><div></div>');
+        $link = $dom->findOne('a');
 
-        Html5DomParser::str_get_html('<a <a href="http://foobar.de">foo</a><div></div>');
+        static::assertTrue($link->hasAttribute('<a'));
+        static::assertSame('', $link->getAttribute('<a'));
+        static::assertSame('http://foobar.de', $link->getAttribute('href'));
+        static::assertSame('foo', $link->text());
     }
 
     public function testEditLinks()
