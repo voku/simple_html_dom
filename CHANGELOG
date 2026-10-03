@@ -1,4 +1,6 @@
 [PHP Simple HTML Dom - upcoming]
+
+[PHP Simple HTML Dom v5.1.0 - upcoming]
 1: add "Html5DomParser": strict HTML5 parsing on PHP >= 8.4 via "\Dom\HTMLDocument", as its own class next to "HtmlDomParser" and with the same API layout
 2: "Html5DomParser" -> never silently falls back to libxml; use "isHtml5ParserSupported()" before selecting it on older runtimes; HTML-valid / XML-invalid attribute names are bridged through collision-safe placeholders and restored through the public HTML API
 3: "Html5DomParser" -> only reverses output placeholders its backend actually created, preserving literal legacy protection tokens such as "%5B%5B" and "%40"
