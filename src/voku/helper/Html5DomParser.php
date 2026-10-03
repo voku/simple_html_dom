@@ -39,11 +39,14 @@ namespace voku\helper;
  * point.
  *
  * Choosing this class is a strict parser choice. If the PHP 8.4 HTML5 backend is not
- * available, or the normalized tree cannot be represented by the legacy "\DOMDocument"
- * bridge this library exposes, parsing throws instead of silently switching to libxml. Call
- * "isHtml5ParserSupported()" before selecting this class when an application supports older
- * runtimes, and choose "HtmlDomParser" explicitly when legacy semantics are the desired
- * fallback.
+ * available, or the normalized tree still cannot cross the legacy "\DOMDocument" bridge,
+ * parsing throws instead of silently switching to libxml. HTML-valid attribute names that XML
+ * cannot represent directly are carried through that bridge under collision-safe internal
+ * names and restored by the public HTML wrapper / serialization APIs. The raw legacy
+ * "\DOMDocument" necessarily retains the internal names because it cannot represent the
+ * original HTML-only names itself. Call "isHtml5ParserSupported()" before selecting this class
+ * when an application supports older runtimes, and choose "HtmlDomParser" explicitly when
+ * legacy semantics are the desired fallback.
  *
  * @property-read string $outerText
  *                                 <p>Get dom node's outer html (alias for "outerHtml").</p>
@@ -85,6 +88,26 @@ class Html5DomParser extends HtmlDomParser
      * @var bool
      */
     protected $isDOMDocumentCreatedWithHtml5Parser = false;
+
+    /**
+     * Prefix for XML-safe placeholder attributes used by the legacy DOM bridge.
+     *
+     * @var string
+     */
+    private static $domHtmlInvalidAttributeHelperPrefix = 'data-simplevokuinvalidattr-';
+
+    /**
+     * @var array<string, string>
+     *
+     */
+    private $invalidAttributeNamePublicToDom = [];
+
+    /**
+     * @var array<string, string>
+     *
+     */
+    private $invalidAttributeNameDomToPublic = [];
+
 
     /**
      * Protect only input that the shared output cleanup would otherwise change or that the
@@ -133,6 +156,102 @@ class Html5DomParser extends HtmlDomParser
     }
 
     /**
+     * {@inheritdoc}
+     */
+    public function mapPublicAttributeNameToDom(string $name): string
+    {
+        return $this->invalidAttributeNamePublicToDom[$name] ?? $name;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function mapPublicAttributeNameToDomForWrite(string $name): string
+    {
+        $mappedName = $this->mapPublicAttributeNameToDom($name);
+        if ($mappedName !== $name) {
+            return $mappedName;
+        }
+
+        if (
+            self::isXmlAttributeNameTransportSafe($name)
+            &&
+            !isset($this->invalidAttributeNameDomToPublic[$name])
+        ) {
+            return $name;
+        }
+
+        $helper = $this->createInvalidAttributeHelperNameForLegacyDocument($name);
+        $this->registerInvalidAttributeName($name, $helper);
+
+        return $helper;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function mapDomAttributeNameToPublic(string $name): string
+    {
+        return $this->invalidAttributeNameDomToPublic[$name] ?? $name;
+    }
+
+    /**
+     * Restore HTML-only attribute names after the legacy DOM serializer emitted their
+     * XML-safe placeholders.
+     *
+     * @param string $content
+     * @param bool   $multiDecodeNewHtmlEntity
+     * @param bool   $putBrokenReplacedBack
+     *
+     * @return string
+     */
+    public function fixHtmlOutput(
+        string $content,
+        bool $multiDecodeNewHtmlEntity = false,
+        bool $putBrokenReplacedBack = true
+    ): string {
+        $content = parent::fixHtmlOutput($content, $multiDecodeNewHtmlEntity, $putBrokenReplacedBack);
+
+        return $this->restorePublicAttributeNamesInHtml($content);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function restorePublicAttributeNamesInHtml(string $html): string
+    {
+        if ($this->invalidAttributeNameDomToPublic === []) {
+            return $html;
+        }
+
+        $restored = \preg_replace_callback(
+            '/<[A-Za-z][A-Za-z0-9:-]*(?:"[^"]*"|\'[^\']*\'|[^>"\'])*>/s',
+            function (array $matches): string {
+                $tag = $matches[0];
+
+                foreach ($this->invalidAttributeNameDomToPublic as $helper => $publicName) {
+                    $pattern = '/(?:"[^"]*"|\'[^\']*\')(*SKIP)(*F)|(?<=\\s)'
+                        . \preg_quote($helper, '/')
+                        . '(?=\\s*=)/i';
+
+                    $tag = (string) \preg_replace_callback(
+                        $pattern,
+                        static function () use ($publicName): string {
+                            return $publicName;
+                        },
+                        $tag
+                    );
+                }
+
+                return $tag;
+            },
+            $html
+        );
+
+        return $restored === null ? $html : $restored;
+    }
+
+    /**
      * Check if the current document was built by the HTML5 parser.
      *
      * @return bool
@@ -162,6 +281,8 @@ class Html5DomParser extends HtmlDomParser
     protected function createDOMDocumentFromPreparedHtml(string $html)
     {
         $this->isDOMDocumentCreatedWithHtml5Parser = false;
+        $this->invalidAttributeNamePublicToDom = [];
+        $this->invalidAttributeNameDomToPublic = [];
 
         if (!static::isHtml5ParserSupported()) {
             throw new \RuntimeException(
@@ -281,6 +402,27 @@ class Html5DomParser extends HtmlDomParser
         \libxml_clear_errors();
         \libxml_use_internal_errors($internalErrors);
 
+        if ($loaded === false && $this->parkXmlInvalidAttributeNames($html5Document)) {
+            $xml = $html5Document->saveXml();
+
+            if ($xml === false || $xml === '') {
+                throw new \RuntimeException('Html5DomParser could not serialize the normalized HTML5 document after parking XML-invalid attribute names.');
+            }
+
+            $document = new \DOMDocument('1.0', $this->getEncoding());
+            $document->preserveWhiteSpace = true;
+            $document->formatOutput = false;
+
+            $internalErrors = \libxml_use_internal_errors(true);
+            \libxml_clear_errors();
+
+            $loaded = $document->loadXML($xml, \LIBXML_NONET);
+            $lastError = \libxml_get_last_error();
+
+            \libxml_clear_errors();
+            \libxml_use_internal_errors($internalErrors);
+        }
+
         if ($loaded === false) {
             $detail = $lastError instanceof \LibXMLError ? ' ' . \trim($lastError->message) : '';
 
@@ -294,6 +436,174 @@ class Html5DomParser extends HtmlDomParser
         $document->encoding = $this->getEncoding();
 
         return $document;
+    }
+
+    /**
+     * Park HTML attribute names that cannot survive the XML transport into collision-safe,
+     * XML-valid helper attributes. This is only called after the first XML bridge attempt
+     * failed, so ordinary documents pay no additional traversal cost.
+     *
+     * @param object $html5Document <p>A "\\Dom\\HTMLDocument" of PHP >= 8.4.</p>
+     *
+     * @return bool <p>TRUE when at least one attribute name was parked.</p>
+     */
+    private function parkXmlInvalidAttributeNames($html5Document): bool
+    {
+        /** @phpstan-ignore class.notFound, argument.type (PHP >= 8.4 only, guarded by isHtml5ParserSupported()) */
+        $xPath = new \Dom\XPath($html5Document);
+        /** @phpstan-ignore class.notFound (\Dom\XPath of PHP >= 8.4) */
+        $elements = $xPath->query('//*');
+        $parked = false;
+
+        foreach ($elements as $element) {
+            $attributes = [];
+
+            /** @phpstan-ignore property.notFound (\Dom\Element of PHP >= 8.4) */
+            foreach ($element->attributes as $attribute) {
+                /** @phpstan-ignore property.notFound, property.notFound, property.notFound (\Dom\Attr of PHP >= 8.4) */
+                $attributes[] = [$attribute->name, $attribute->value, $attribute->namespaceURI];
+            }
+
+            foreach ($attributes as $attribute) {
+                [$name, $value, $namespaceUri] = $attribute;
+
+                if ($namespaceUri !== null && $namespaceUri !== '') {
+                    continue;
+                }
+
+                if (self::isXmlAttributeNameTransportSafe($name)) {
+                    continue;
+                }
+
+                $helper = $this->invalidAttributeNamePublicToDom[$name]
+                    ?? $this->createInvalidAttributeHelperNameForHtml5Document($html5Document, $name);
+
+                $this->registerInvalidAttributeName($name, $helper);
+
+                /** @phpstan-ignore method.notFound (\Dom\Element of PHP >= 8.4) */
+                $element->setAttribute($helper, $value);
+                /** @phpstan-ignore method.notFound (\Dom\Element of PHP >= 8.4) */
+                $element->removeAttribute($name);
+                $parked = true;
+            }
+        }
+
+        return $parked;
+    }
+
+    /**
+     * Determine whether an un-namespaced attribute name can be created and round-tripped by
+     * the legacy XML DOM used for the bridge.
+     *
+     * @param string $name
+     *
+     * @return bool
+     */
+    private static function isXmlAttributeNameTransportSafe(string $name): bool
+    {
+        static $cache = [];
+
+        if (isset($cache[$name])) {
+            return $cache[$name];
+        }
+
+        if (\count($cache) >= 1024) {
+            $cache = [];
+        }
+
+        $probe = new \DOMDocument('1.0', 'UTF-8');
+        $element = $probe->createElement('x');
+        $probe->appendChild($element);
+
+        try {
+            $element->setAttribute($name, '');
+        } catch (\DOMException $e) {
+            $cache[$name] = false;
+
+            return false;
+        }
+
+        $xml = $probe->saveXML();
+        if ($xml === false) {
+            $cache[$name] = false;
+
+            return false;
+        }
+
+        $internalErrors = \libxml_use_internal_errors(true);
+        try {
+            \libxml_clear_errors();
+
+            $roundTrip = new \DOMDocument('1.0', 'UTF-8');
+            $loaded = $roundTrip->loadXML($xml, \LIBXML_NONET);
+
+            $cache[$name] = $loaded !== false;
+
+            return $cache[$name];
+        } finally {
+            \libxml_clear_errors();
+            \libxml_use_internal_errors($internalErrors);
+        }
+    }
+
+    /**
+     * @param string $publicName
+     *
+     * @return string
+     */
+    private function createInvalidAttributeHelperNameForLegacyDocument(string $publicName): string
+    {
+        $base = self::$domHtmlInvalidAttributeHelperPrefix . \bin2hex($publicName);
+        $helper = $base;
+        $suffix = 0;
+        $xPath = new \DOMXPath($this->document);
+
+        while (true) {
+            $nodes = $xPath->query('//*[@' . $helper . ']');
+            if (
+                !isset($this->invalidAttributeNameDomToPublic[$helper])
+                &&
+                ($nodes === false || $nodes->length === 0)
+            ) {
+                return $helper;
+            }
+
+            $helper = $base . '-' . ++$suffix;
+        }
+    }
+
+    /**
+     * @param object $html5Document <p>A "\\Dom\\HTMLDocument" of PHP >= 8.4.</p>
+     * @param string $publicName
+     *
+     * @return string
+     */
+    private function createInvalidAttributeHelperNameForHtml5Document($html5Document, string $publicName): string
+    {
+        $base = self::$domHtmlInvalidAttributeHelperPrefix . \bin2hex($publicName);
+        $helper = $base;
+        $suffix = 0;
+
+        /** @phpstan-ignore class.notFound, argument.type (PHP >= 8.4 only, guarded by isHtml5ParserSupported()) */
+        $xPath = new \Dom\XPath($html5Document);
+        /** @phpstan-ignore class.notFound (\Dom\XPath of PHP >= 8.4) */
+        while ($xPath->query('//*[@' . $helper . ']')->length > 0) {
+            $helper = $base . '-' . ++$suffix;
+        }
+
+        return $helper;
+    }
+
+    /**
+     * @param string $publicName
+     * @param string $helper
+     *
+     * @return void
+     */
+    private function registerInvalidAttributeName(string $publicName, string $helper)
+    {
+        $this->invalidAttributeNamePublicToDom[$publicName] = $helper;
+        $this->invalidAttributeNameDomToPublic[$helper] = $publicName;
     }
 
     /**

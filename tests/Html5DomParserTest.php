@@ -123,13 +123,97 @@ final class Html5DomParserTest extends \PHPUnit\Framework\TestCase
         static::assertSame('<div data-xmlns="caller-value">x</div>', $dom->html());
     }
 
-    public function testXmlBridgeFailureIsExplicitInsteadOfChangingParserSemantics()
+    public function testXmlBridgePreservesHtmlOnlyAttributeNames()
     {
-        $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('could not bridge the normalized HTML5 document');
+        $dom = $this->html5('<div @foo="bar" ,="" normal="ok">x</div>');
+        $div = $dom->findOne('div');
 
-        $dom = new Html5DomParser();
-        $dom->loadHtml('<div @foo="bar">x</div>');
+        static::assertSame('bar', $div->getAttribute('@foo'));
+        static::assertTrue($div->hasAttribute('@foo'));
+        static::assertSame('', $div->getAttribute(','));
+        static::assertTrue($div->hasAttribute(','));
+        static::assertSame('ok', $div->getAttribute('normal'));
+
+        $attributes = $div->getAllAttributes();
+        static::assertSame('bar', $attributes['@foo']);
+        static::assertSame('', $attributes[',']);
+        static::assertSame('ok', $attributes['normal']);
+
+        static::assertStringContainsString('@foo="bar"', $dom->html());
+        static::assertStringContainsString(',=""', $dom->html());
+    }
+
+    public function testXmlBridgeHelperNameDoesNotCollideWithCallerAttribute()
+    {
+        $helper = 'data-simplevokuinvalidattr-40666f6f';
+        $dom = $this->html5('<div @foo="bar" ' . $helper . '="caller">x</div>');
+        $div = $dom->findOne('div');
+
+        static::assertSame('bar', $div->getAttribute('@foo'));
+        static::assertSame('caller', $div->getAttribute($helper));
+        static::assertStringContainsString('@foo="bar"', $dom->html());
+        static::assertStringContainsString($helper . '="caller"', $dom->html());
+    }
+
+    public function testXmlBridgeMappedAttributeCanBeUpdatedAndRemoved()
+    {
+        $dom = $this->html5('<div @foo="bar">x</div>');
+        $div = $dom->findOne('div');
+
+        $div->setAttribute('@foo', 'updated');
+        static::assertSame('updated', $div->getAttribute('@foo'));
+        static::assertStringContainsString('@foo="updated"', $dom->html());
+
+        static::assertStringContainsString('@foo="updated"', $div->outerHtml());
+
+        $div->removeAttribute('@foo');
+        static::assertFalse($div->hasAttribute('@foo'));
+        static::assertStringNotContainsString('@foo=', $dom->html());
+        static::assertStringNotContainsString('data-simplevokuinvalidattr-', $div->outerHtml());
+    }
+
+    public function testXmlBridgeRestorationDoesNotRewriteCallerContent()
+    {
+        $helper = 'data-simplevokuinvalidattr-40666f6f';
+        $dom = $this->html5(
+            '<div @foo="bar" title="caller ' . $helper . ' = value">caller ' . $helper . ' = text</div>'
+        );
+
+        $html = $dom->html();
+
+        static::assertStringContainsString('@foo="bar"', $html);
+        static::assertStringContainsString('title="caller ' . $helper . ' = value"', $html);
+        static::assertStringContainsString('>caller ' . $helper . ' = text</div>', $html);
+    }
+
+    public function testNewHtmlOnlyAttributeUsesCollisionSafeBridgeName()
+    {
+        $helper = 'data-simplevokuinvalidattr-40666f6f';
+        $dom = $this->html5('<div ' . $helper . '="caller">x</div>');
+        $div = $dom->findOne('div');
+
+        $div->setAttribute('@foo', 'new');
+
+        static::assertSame('new', $div->getAttribute('@foo'));
+        static::assertSame('caller', $div->getAttribute($helper));
+        static::assertStringContainsString('@foo="new"', $dom->html());
+        static::assertStringContainsString($helper . '="caller"', $dom->html());
+    }
+
+    public function testPublicWriteMatchingGeneratedHelperDoesNotOverwriteMappedAttribute()
+    {
+        $helper = 'data-simplevokuinvalidattr-40666f6f';
+        $dom = $this->html5('<div @foo="original">x</div>');
+        $div = $dom->findOne('div');
+
+        $div->setAttribute($helper, 'caller');
+
+        static::assertSame('original', $div->getAttribute('@foo'));
+        static::assertSame('caller', $div->getAttribute($helper));
+
+        $html = $dom->html();
+        static::assertStringContainsString('@foo="original"', $html);
+        static::assertStringContainsString($helper . '="caller"', $html);
     }
 
     public function testLiteralLegacyProtectionTokensAreNotDecodedByHtml5Output()

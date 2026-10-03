@@ -131,10 +131,13 @@ if (Html5DomParser::isHtml5ParserSupported()) {
 ```
 
 Parsing throws a `RuntimeException` when the HTML5 backend is unavailable or when its normalized
-tree cannot be represented by the legacy `\DOMDocument` XML bridge (for example an HTML-valid
-attribute name that XML cannot represent). Use `HtmlDomParser` explicitly if legacy parsing is
-the intended fallback. A successful `Html5DomParser` parse therefore always means HTML5 tree
-construction actually happened.
+tree still cannot cross the legacy `\DOMDocument` bridge. HTML-valid attribute names that XML
+cannot represent directly (for example `@foo` or `,`) are parked under collision-safe internal
+names for the bridge and restored by the `SimpleHtmlDom` attribute API and HTML serialization.
+The raw `getDocument()` result necessarily contains those XML-safe internal names because
+legacy `\DOMDocument` cannot store the original names itself. Use `HtmlDomParser` explicitly
+if legacy parsing is the intended fallback. A successful `Html5DomParser` parse therefore always
+means HTML5 tree construction actually happened.
 
 ### Examples
 
