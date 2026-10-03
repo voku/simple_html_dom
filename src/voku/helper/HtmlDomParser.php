@@ -1382,6 +1382,28 @@ class HtmlDomParser extends AbstractDomParser
     }
 
     /**
+     * Build a context-aware fragment for a node mutation when this parser owns such semantics.
+     *
+     * The legacy parser keeps returning NULL so existing HtmlDomParser mutation behavior stays
+     * untouched. Html5DomParser overrides this extension point with the HTML fragment parser.
+     *
+     * @param \DOMElement  $contextNode
+     * @param string       $html
+     * @param \DOMDocument $targetDocument
+     *
+     * @return \DOMDocumentFragment|null
+     *
+     * @internal
+     */
+    public function createHtmlFragmentForContext(
+        \DOMElement $contextNode,
+        string $html,
+        \DOMDocument $targetDocument
+    ): ?\DOMDocumentFragment {
+        return null;
+    }
+
+    /**
      * Parse the already prepared HTML with a backend other than the libxml parser of this
      * class.
      *

@@ -158,20 +158,115 @@ final class Html5DomParserDefaultCompatibilityTest extends \PHPUnit\Framework\Te
     }
 
     /**
-     * SHD-3 evidence for string mutations. HTML5 document parsing inserts tbody here, while
-     * the current mutation path deliberately uses HtmlDomParser and therefore does not.
+     * SHD-3: innerHTML on a table must use the table as the HTML5 fragment context.
      */
-    public function testInnerHtmlMutationCurrentlyUsesLegacyFragmentSemantics()
+    public function testInnerHtmlMutationUsesHtml5TableFragmentSemantics()
+    {
+        $this->requireHtml5Parser();
+
+        $dom = Html5DomParser::str_get_html('<table id="target"></table>');
+        $target = $dom->findOne('#target');
+
+        $target->innerHtml = '<tr><td>x</td></tr>';
+
+        static::assertCount(1, $target->findMulti('tbody'));
+        static::assertSame('<tbody><tr><td>x</td></tr></tbody>', $target->innerHtml());
+    }
+
+    /**
+     * SHD-3: outerHTML must parse against the parent element, just like the HTML fragment
+     * algorithm does in a browser.
+     */
+    public function testOuterHtmlMutationUsesHtml5ParentFragmentSemantics()
+    {
+        $this->requireHtml5Parser();
+
+        $dom = Html5DomParser::str_get_html(
+            '<table><tbody id="target"><tr><td>old</td></tr></tbody></table>'
+        );
+        $target = $dom->findOne('#target');
+
+        $target->outerHtml = '<tr><td>new</td></tr>';
+
+        static::assertSame(
+            '<table><tbody><tr><td>new</td></tr></tbody></table>',
+            $dom->innerHtml()
+        );
+    }
+
+    /**
+     * SHD-3: select fragments must stay in the select insertion mode rather than being
+     * reparsed as an independent document.
+     */
+    public function testInnerHtmlMutationUsesHtml5SelectFragmentSemantics()
+    {
+        $this->requireHtml5Parser();
+
+        $dom = Html5DomParser::str_get_html('<select id="target"></select>');
+        $target = $dom->findOne('#target');
+
+        $target->innerHtml = '<option>one<option>two';
+
+        static::assertCount(2, $target->findMulti('option'));
+        static::assertSame('<option>one</option><option>two</option>', $target->innerHtml());
+    }
+
+    /**
+     * SHD-2 + SHD-3: fragment parsing must use the same collision-safe XML transport as the
+     * full-document bridge for HTML-valid attribute names that legacy DOMDocument cannot
+     * represent directly.
+     */
+    public function testInnerHtmlMutationPreservesXmlInvalidHtmlAttributeNames()
     {
         $this->requireHtml5Parser();
 
         $dom = Html5DomParser::str_get_html('<div id="target"></div>');
         $target = $dom->findOne('#target');
 
-        $target->innerHtml = '<table><tr><td>x</td></tr></table>';
+        $target->innerHtml = '<span @foo="x">value</span>';
 
-        static::assertCount(0, $target->findMulti('tbody'));
-        static::assertSame('<table><tr><td>x</td></tr></table>', $target->innerHtml());
+        static::assertStringContainsString('@foo="x"', $target->innerHtml());
+        static::assertSame('value', $target->findOne('span')->text());
+    }
+
+    /**
+     * The html context remains on the legacy mutation path. The legacy path may unwrap the
+     * document-level body mutation, but it must not introduce the duplicate head/body pair
+     * that the HTML5 fragment path can synthesize for this context.
+     */
+    public function testBodyOuterHtmlMutationDoesNotDuplicateDocumentWrappers()
+    {
+        $this->requireHtml5Parser();
+
+        $dom = Html5DomParser::str_get_html(
+            '<html><head><title>kept</title></head><body id="target"><p>old</p></body></html>'
+        );
+        $target = $dom->findOne('#target');
+
+        $target->outerHtml = '<body><p>new</p></body>';
+
+        static::assertLessThanOrEqual(1, \count($dom->findMulti('head')));
+        static::assertLessThanOrEqual(1, \count($dom->findMulti('body')));
+        static::assertStringContainsString('<p>new</p>', $dom->innerHtml());
+    }
+
+    /**
+     * Template contents are not exposed through the ordinary childNodes collection of the
+     * modern HTML5 DOM, so template mutations deliberately retain the proven legacy path.
+     */
+    public function testTemplateInnerHtmlMutationPreservesSuppliedMarkup()
+    {
+        $this->requireHtml5Parser();
+
+        $dom = Html5DomParser::str_get_html(
+            '<template id="target"><span>old</span></template>'
+        );
+        $target = $dom->findOne('#target');
+
+        $target->innerHtml = '<b>new</b>';
+
+        static::assertSame('<b>new</b>', $target->innerHtml());
+        static::assertSame('new', $target->findOne('b')->text());
     }
 
     /**

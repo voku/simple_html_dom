@@ -262,6 +262,150 @@ class Html5DomParser extends HtmlDomParser
     }
 
     /**
+     * Parse a mutation string as an HTML5 fragment in the supplied element context and bridge
+     * the resulting nodes into the legacy DOMDocument used by this library.
+     *
+     * @param \DOMElement  $contextNode
+     * @param string       $html
+     * @param \DOMDocument $targetDocument
+     *
+     * @throws \RuntimeException
+     *
+     * @return \DOMDocumentFragment|null
+     */
+    public function createHtmlFragmentForContext(
+        \DOMElement $contextNode,
+        string $html,
+        \DOMDocument $targetDocument
+    ): ?\DOMDocumentFragment {
+        if (!static::isHtml5ParserSupported()) {
+            throw new \RuntimeException(
+                'Html5DomParser requires PHP >= 8.4 with "\\\\Dom\\\\HTMLDocument" and "\\\\Dom\\\\HTML_NO_DEFAULT_NS".'
+            );
+        }
+
+        if (!$this->supportsHtml5MutationContext($contextNode)) {
+            return null;
+        }
+
+        [$xml, $xmlnsHelper] = $this->serializeHtml5Fragment($contextNode, $html);
+
+        return $this->bridgeHtml5Fragment($xml, $xmlnsHelper, $targetDocument);
+    }
+
+    /**
+     * Keep contexts with known legacy-bridge side effects on the proven mutation path.
+     */
+    private function supportsHtml5MutationContext(\DOMElement $contextNode): bool
+    {
+        $tagName = \strtolower($contextNode->tagName);
+        if ($tagName === 'head' || $tagName === 'html' || $tagName === 'template') {
+            return false;
+        }
+
+        return $contextNode->namespaceURI === null || $contextNode->namespaceURI === '';
+    }
+
+    /**
+     * Parse through Dom\\Element::innerHTML and serialize the resulting fragment as XML.
+     *
+     * @param \DOMElement $contextNode
+     * @param string      $html
+     *
+     * @return array{0: string, 1: string|null}
+     */
+    private function serializeHtml5Fragment(\DOMElement $contextNode, string $html): array
+    {
+        /** @phpstan-ignore class.notFound (PHP >= 8.4 only, guarded by isHtml5ParserSupported()) */
+        $html5Document = \Dom\HTMLDocument::createEmpty($this->getEncoding());
+        /** @phpstan-ignore method.notFound (Dom\\HTMLDocument of PHP >= 8.4) */
+        $context = $html5Document->createElement($contextNode->tagName);
+        /** @phpstan-ignore method.notFound (Dom\\HTMLDocument of PHP >= 8.4) */
+        $html5Document->appendChild($context);
+
+        /** @phpstan-ignore property.notFound (Dom\\Element::innerHTML of PHP >= 8.4) */
+        $context->innerHTML = $html;
+
+        $xmlnsHelper = \stripos($html, 'xmlns') !== false
+            ? $this->parkXmlnsAttributes($html5Document)
+            : null;
+
+        $this->parkXmlInvalidAttributeNames($html5Document);
+
+        $xml = '';
+        foreach ($context->childNodes as $childNode) {
+            /** @phpstan-ignore method.notFound (Dom\\HTMLDocument::saveXml() of PHP >= 8.4) */
+            $serialized = $html5Document->saveXml($childNode);
+            if ($serialized === false) {
+                throw new \RuntimeException(
+                    'Html5DomParser could not serialize an HTML5 fragment for the DOMDocument bridge.'
+                );
+            }
+
+            // innerHTML has no HTML_NO_DEFAULT_NS option. Strip only the namespace PHP adds
+            // for ordinary HTML elements; foreign namespaces remain intact.
+            $xml .= \str_replace(' xmlns="http://www.w3.org/1999/xhtml"', '', $serialized);
+        }
+
+        return [$xml, $xmlnsHelper];
+    }
+
+    /**
+     * Rebuild a serialized HTML5 fragment as nodes owned by the target legacy DOMDocument.
+     *
+     * @param string       $xml
+     * @param string|null  $xmlnsHelper
+     * @param \DOMDocument $targetDocument
+     *
+     * @return \DOMDocumentFragment
+     */
+    private function bridgeHtml5Fragment(
+        string $xml,
+        ?string $xmlnsHelper,
+        \DOMDocument $targetDocument
+    ): \DOMDocumentFragment {
+        $bridgeDocument = new \DOMDocument('1.0', $this->getEncoding());
+        $bridgeDocument->preserveWhiteSpace = true;
+        $bridgeDocument->formatOutput = false;
+
+        $internalErrors = \libxml_use_internal_errors(true);
+        \libxml_clear_errors();
+
+        $loaded = $bridgeDocument->loadXML(
+            '<simplevokuhtmlfragment>' . $xml . '</simplevokuhtmlfragment>',
+            \LIBXML_NONET
+        );
+        $lastError = \libxml_get_last_error();
+
+        \libxml_clear_errors();
+        \libxml_use_internal_errors($internalErrors);
+
+        if ($loaded === false) {
+            $detail = $lastError instanceof \LibXMLError ? ' ' . \trim($lastError->message) : '';
+
+            throw new \RuntimeException(
+                'Html5DomParser could not bridge the normalized HTML5 fragment into DOMDocument.' . $detail
+            );
+        }
+
+        if ($xmlnsHelper !== null) {
+            $this->restoreXmlnsAttributes($bridgeDocument, $xmlnsHelper);
+        }
+
+        $fragment = $targetDocument->createDocumentFragment();
+        $root = $bridgeDocument->documentElement;
+        if (!$root instanceof \DOMElement) {
+            return $fragment;
+        }
+
+        foreach ($root->childNodes as $childNode) {
+            $fragment->appendChild($targetDocument->importNode($childNode, true));
+        }
+
+        return $fragment;
+    }
+
+    /**
      * Parse the prepared HTML with the HTML5 parser.
      *
      * "keepBrokenHtml" works on top of this: that repair replaced the broken fragments with
