@@ -619,6 +619,37 @@ class HtmlDomParser extends AbstractDomParser
     }
 
     /**
+     * Map a public HTML attribute name to the name stored in the legacy DOM.
+     *
+     * HtmlDomParser stores attribute names unchanged. Html5DomParser overrides this for
+     * HTML-valid names that the XML-backed legacy DOM cannot represent directly.
+     *
+     * @param string $name
+     *
+     * @return string
+     *
+     * @internal Used by SimpleHtmlDom wrappers that retain their originating parser context.
+     */
+    public function mapPublicAttributeNameToDom(string $name): string
+    {
+        return $name;
+    }
+
+    /**
+     * Map a legacy DOM attribute name back to the public HTML attribute name.
+     *
+     * @param string $name
+     *
+     * @return string
+     *
+     * @internal Used by SimpleHtmlDom wrappers that retain their originating parser context.
+     */
+    public function mapDomAttributeNameToPublic(string $name): string
+    {
+        return $name;
+    }
+
+    /**
      * Find list of nodes with a CSS selector within an optional DOMDocument
      * context, optionally applying the parser callback before the XPath query.
      *
