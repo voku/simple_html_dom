@@ -105,7 +105,8 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
         ) {
             $attributes = [];
             foreach ($node->attributes ?? [] as $attr) {
-                $attributes[$attr->name] = HtmlDomParser::putReplacedBackToPreserveHtmlEntities($attr->value);
+                $name = $this->mapDomAttributeNameToPublic($attr->name);
+                $attributes[$name] = HtmlDomParser::putReplacedBackToPreserveHtmlEntities($attr->value);
             }
 
             return $attributes;
@@ -133,7 +134,7 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
     {
         if ($this->node instanceof \DOMElement) {
             return HtmlDomParser::putReplacedBackToPreserveHtmlEntities(
-                $this->node->getAttribute($name)
+                $this->node->getAttribute($this->mapPublicAttributeNameToDom($name))
             );
         }
 
@@ -153,7 +154,35 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
             return false;
         }
 
-        return $this->node->hasAttribute($name);
+        return $this->node->hasAttribute($this->mapPublicAttributeNameToDom($name));
+    }
+
+    /**
+     * @param string $name
+     *
+     * @return string
+     */
+    private function mapPublicAttributeNameToDom(string $name): string
+    {
+        if ($this->queryHtmlDomParser !== null) {
+            return $this->queryHtmlDomParser->mapPublicAttributeNameToDom($name);
+        }
+
+        return $name;
+    }
+
+    /**
+     * @param string $name
+     *
+     * @return string
+     */
+    private function mapDomAttributeNameToPublic(string $name): string
+    {
+        if ($this->queryHtmlDomParser !== null) {
+            return $this->queryHtmlDomParser->mapDomAttributeNameToPublic($name);
+        }
+
+        return $name;
     }
 
     /**
@@ -192,7 +221,7 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
     {
         $node = $this->node();
         if ($node instanceof \DOMElement) {
-            $node->removeAttribute($name);
+            $node->removeAttribute($this->mapPublicAttributeNameToDom($name));
         }
 
         return $this;
@@ -410,7 +439,10 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
             $this->removeAttribute($name);
         } elseif ($node instanceof \DOMElement) {
             /** @noinspection UnusedFunctionResultInspection */
-            $node->setAttribute($name, HtmlDomParser::replaceToPreserveHtmlEntities((string) $value));
+            $node->setAttribute(
+                $this->mapPublicAttributeNameToDom($name),
+                HtmlDomParser::replaceToPreserveHtmlEntities((string) $value)
+            );
         }
 
         return $this;
