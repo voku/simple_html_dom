@@ -166,6 +166,22 @@ class Html5DomParser extends HtmlDomParser
     /**
      * {@inheritdoc}
      */
+    public function mapPublicAttributeNameToDomForWrite(string $name): string
+    {
+        $mappedName = $this->mapPublicAttributeNameToDom($name);
+        if ($mappedName !== $name || self::isXmlAttributeNameTransportSafe($name)) {
+            return $mappedName;
+        }
+
+        $helper = $this->createInvalidAttributeHelperNameForLegacyDocument($name);
+        $this->registerInvalidAttributeName($name, $helper);
+
+        return $helper;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function mapDomAttributeNameToPublic(string $name): string
     {
         return $this->invalidAttributeNameDomToPublic[$name] ?? $name;
@@ -196,18 +212,35 @@ class Html5DomParser extends HtmlDomParser
      */
     public function restorePublicAttributeNamesInHtml(string $html): string
     {
-        foreach ($this->invalidAttributeNameDomToPublic as $helper => $publicName) {
-            $pattern = '/(?<=\\s)' . \preg_quote($helper, '/') . '(?=\\s*=)/i';
-            $html = (string) \preg_replace_callback(
-                $pattern,
-                static function () use ($publicName): string {
-                    return $publicName;
-                },
-                $html
-            );
+        if ($this->invalidAttributeNameDomToPublic === []) {
+            return $html;
         }
 
-        return $html;
+        $restored = \preg_replace_callback(
+            '/<[A-Za-z][A-Za-z0-9:-]*(?:"[^"]*"|\'[^\']*\'|[^>"\'])*>/s',
+            function (array $matches): string {
+                $tag = $matches[0];
+
+                foreach ($this->invalidAttributeNameDomToPublic as $helper => $publicName) {
+                    $pattern = '/(?:"[^"]*"|\'[^\']*\')(*SKIP)(*F)|(?<=\\s)'
+                        . \preg_quote($helper, '/')
+                        . '(?=\\s*=)/i';
+
+                    $tag = (string) \preg_replace_callback(
+                        $pattern,
+                        static function () use ($publicName): string {
+                            return $publicName;
+                        },
+                        $tag
+                    );
+                }
+
+                return $tag;
+            },
+            $html
+        );
+
+        return $restored === null ? $html : $restored;
     }
 
     /**
@@ -466,6 +499,10 @@ class Html5DomParser extends HtmlDomParser
             return $cache[$name];
         }
 
+        if (\count($cache) >= 1024) {
+            $cache = [];
+        }
+
         $probe = new \DOMDocument('1.0', 'UTF-8');
         $element = $probe->createElement('x');
         $probe->appendChild($element);
@@ -498,6 +535,28 @@ class Html5DomParser extends HtmlDomParser
         } finally {
             \libxml_clear_errors();
             \libxml_use_internal_errors($internalErrors);
+        }
+    }
+
+    /**
+     * @param string $publicName
+     *
+     * @return string
+     */
+    private function createInvalidAttributeHelperNameForLegacyDocument(string $publicName): string
+    {
+        $base = self::$domHtmlInvalidAttributeHelperPrefix . \bin2hex($publicName);
+        $helper = $base;
+        $suffix = 0;
+        $xPath = new \DOMXPath($this->document);
+
+        while (true) {
+            $nodes = $xPath->query('//*[@' . $helper . ']');
+            if ($nodes === false || $nodes->length === 0) {
+                return $helper;
+            }
+
+            $helper = $base . '-' . ++$suffix;
         }
     }
 
