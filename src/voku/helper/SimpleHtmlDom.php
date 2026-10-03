@@ -186,6 +186,20 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
     }
 
     /**
+     * @param string $html
+     *
+     * @return string
+     */
+    private function restorePublicAttributeNamesInHtml(string $html): string
+    {
+        if ($this->queryHtmlDomParser !== null) {
+            return $this->queryHtmlDomParser->restorePublicAttributeNamesInHtml($html);
+        }
+
+        return $html;
+    }
+
+    /**
      * Get dom node's outer html.
      *
      * @param bool $multiDecodeNewHtmlEntity
@@ -194,7 +208,9 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
      */
     public function html(bool $multiDecodeNewHtmlEntity = false): string
     {
-        return $this->getHtmlDomParser()->html($multiDecodeNewHtmlEntity);
+        return $this->restorePublicAttributeNamesInHtml(
+            $this->getHtmlDomParser()->html($multiDecodeNewHtmlEntity)
+        );
     }
 
     /**
@@ -207,7 +223,9 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
      */
     public function innerHtml(bool $multiDecodeNewHtmlEntity = false, bool $putBrokenReplacedBack = true): string
     {
-        return $this->getHtmlDomParser()->innerHtml($multiDecodeNewHtmlEntity, $putBrokenReplacedBack);
+        return $this->restorePublicAttributeNamesInHtml(
+            $this->getHtmlDomParser()->innerHtml($multiDecodeNewHtmlEntity, $putBrokenReplacedBack)
+        );
     }
 
     /**
