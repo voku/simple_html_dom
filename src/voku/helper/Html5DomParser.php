@@ -146,10 +146,6 @@ class Html5DomParser extends HtmlDomParser
      * Parse a mutation string as an HTML5 fragment in the supplied element context and bridge
      * the resulting nodes into the legacy DOMDocument used by this library.
      *
-     * PHP 8.4's Dom\\Element::innerHTML setter runs the HTML fragment parsing algorithm, so
-     * table/select insertion modes are preserved instead of treating the string as a new
-     * standalone document.
-     *
      * @param \DOMElement  $contextNode
      * @param string       $html
      * @param \DOMDocument $targetDocument
@@ -169,19 +165,37 @@ class Html5DomParser extends HtmlDomParser
             );
         }
 
-        // A <meta charset=...> inserted into <head> can make legacy DOMDocument::saveHTML()
-        // re-encode the whole document. Keep the proven legacy mutation path for <head>
-        // until serialization is isolated from that libxml side effect.
+        if (!$this->supportsHtml5MutationContext($contextNode)) {
+            return null;
+        }
+
+        [$xml, $xmlnsHelper] = $this->serializeHtml5Fragment($contextNode, $html);
+
+        return $this->bridgeHtml5Fragment($xml, $xmlnsHelper, $targetDocument);
+    }
+
+    /**
+     * Keep contexts with known legacy-bridge side effects on the proven mutation path.
+     */
+    private function supportsHtml5MutationContext(\DOMElement $contextNode): bool
+    {
         if (\strtolower($contextNode->tagName) === 'head') {
-            return null;
+            return false;
         }
 
-        // Foreign-content fragments need their own namespace-aware bridge. Keep the existing
-        // legacy mutation path for those until that contract is covered explicitly.
-        if ($contextNode->namespaceURI !== null && $contextNode->namespaceURI !== '') {
-            return null;
-        }
+        return $contextNode->namespaceURI === null || $contextNode->namespaceURI === '';
+    }
 
+    /**
+     * Parse through Dom\\Element::innerHTML and serialize the resulting fragment as XML.
+     *
+     * @param \DOMElement $contextNode
+     * @param string      $html
+     *
+     * @return array{0: string, 1: string|null}
+     */
+    private function serializeHtml5Fragment(\DOMElement $contextNode, string $html): array
+    {
         /** @phpstan-ignore class.notFound (PHP >= 8.4 only, guarded by isHtml5ParserSupported()) */
         $html5Document = \Dom\HTMLDocument::createEmpty($this->getEncoding());
         /** @phpstan-ignore method.notFound (Dom\\HTMLDocument of PHP >= 8.4) */
@@ -209,6 +223,23 @@ class Html5DomParser extends HtmlDomParser
             $xml .= \str_replace(' xmlns="http://www.w3.org/1999/xhtml"', '', $serialized);
         }
 
+        return [$xml, $xmlnsHelper];
+    }
+
+    /**
+     * Rebuild a serialized HTML5 fragment as nodes owned by the target legacy DOMDocument.
+     *
+     * @param string       $xml
+     * @param string|null  $xmlnsHelper
+     * @param \DOMDocument $targetDocument
+     *
+     * @return \DOMDocumentFragment
+     */
+    private function bridgeHtml5Fragment(
+        string $xml,
+        $xmlnsHelper,
+        \DOMDocument $targetDocument
+    ): \DOMDocumentFragment {
         $bridgeDocument = new \DOMDocument('1.0', $this->getEncoding());
         $bridgeDocument->preserveWhiteSpace = true;
         $bridgeDocument->formatOutput = false;
