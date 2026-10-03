@@ -252,6 +252,43 @@ final class Html5DomParserDefaultCompatibilityTest extends \PHPUnit\Framework\Te
     }
 
     /**
+     * SHD-3: replacing body would use html as the fragment context. Keep that context on the
+     * legacy path so fragment parsing cannot synthesize a second head/body pair.
+     */
+    public function testOuterHtmlBodyMutationKeepsSingleDocumentWrappers()
+    {
+        $this->requireHtml5Parser();
+
+        $dom = Html5DomParser::str_get_html(
+            '<html><head><title>old</title></head><body id="target"><p>old</p></body></html>'
+        );
+        $target = $dom->findOne('#target');
+
+        $target->outerHtml = '<body><p>new</p></body>';
+
+        static::assertCount(1, $dom->findMulti('head'));
+        static::assertCount(1, $dom->findMulti('body'));
+        static::assertSame('new', $dom->findOne('body p')->text());
+    }
+
+    /**
+     * SHD-3: template contents are stored outside the template element's ordinary child list
+     * by the modern DOM API. Keep template mutations on the proven legacy path so markup is
+     * not silently discarded by fragment serialization.
+     */
+    public function testInnerHtmlTemplateMutationPreservesMarkup()
+    {
+        $this->requireHtml5Parser();
+
+        $dom = Html5DomParser::str_get_html('<template id="target"></template>');
+        $target = $dom->findOne('#target');
+
+        $target->innerHtml = '<strong>x</strong>';
+
+        static::assertStringContainsString('<strong>x</strong>', $target->innerHtml());
+    }
+
+    /**
      * Smoke-test the repository's accumulated HTML fixture corpus with both parsers.
      *
      * @dataProvider htmlFixtureCorpusProvider
