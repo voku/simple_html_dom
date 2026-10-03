@@ -39,11 +39,14 @@ namespace voku\helper;
  * point.
  *
  * Choosing this class is a strict parser choice. If the PHP 8.4 HTML5 backend is not
- * available, or the normalized tree cannot be represented by the legacy "\DOMDocument"
- * bridge this library exposes, parsing throws instead of silently switching to libxml. Call
- * "isHtml5ParserSupported()" before selecting this class when an application supports older
- * runtimes, and choose "HtmlDomParser" explicitly when legacy semantics are the desired
- * fallback.
+ * available, or the normalized tree still cannot cross the legacy "\DOMDocument" bridge,
+ * parsing throws instead of silently switching to libxml. HTML-valid attribute names that XML
+ * cannot represent directly are carried through that bridge under collision-safe internal
+ * names and restored by the public HTML wrapper / serialization APIs. The raw legacy
+ * "\DOMDocument" necessarily retains the internal names because it cannot represent the
+ * original HTML-only names itself. Call "isHtml5ParserSupported()" before selecting this class
+ * when an application supports older runtimes, and choose "HtmlDomParser" explicitly when
+ * legacy semantics are the desired fallback.
  *
  * @property-read string $outerText
  *                                 <p>Get dom node's outer html (alias for "outerHtml").</p>
