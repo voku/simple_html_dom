@@ -215,7 +215,9 @@ class Html5DomParser extends HtmlDomParser
             /** @phpstan-ignore method.notFound (Dom\\HTMLDocument::saveXml() of PHP >= 8.4) */
             $serialized = $html5Document->saveXml($childNode);
             if ($serialized === false) {
-                throw new \RuntimeException('Html5DomParser could not serialize an HTML5 fragment for the DOMDocument bridge.');
+                throw new \RuntimeException(
+                    'Html5DomParser could not serialize an HTML5 fragment for the DOMDocument bridge.'
+                );
             }
 
             // innerHTML has no HTML_NO_DEFAULT_NS option. Strip only the namespace PHP adds
