@@ -231,18 +231,7 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
             $contextFragment = $this->createMutationFragment($node, $string);
 
             if ($contextFragment === null) {
-                $newDocument = new HtmlDomParser($string);
-
-                $tmpDomString = $this->normalizeStringForComparison($newDocument);
-                $tmpStr = $this->normalizeStringForComparison($string);
-
-                if ($tmpDomString !== $tmpStr) {
-                    throw new \RuntimeException(
-                        'Not valid HTML fragment!' . "\n" .
-                        $tmpDomString . "\n" .
-                        $tmpStr
-                    );
-                }
+                $newDocument = $this->createLegacyMutationDocument($string);
             }
         }
 
@@ -306,19 +295,7 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
             return $this->replaceNodeWithFragment($node, $contextFragment);
         }
 
-        $newDocument = new HtmlDomParser($string);
-
-        $tmpDomOuterTextString = $this->normalizeStringForComparison($newDocument);
-        $tmpStr = $this->normalizeStringForComparison($string);
-
-        if ($tmpDomOuterTextString !== $tmpStr) {
-            throw new \RuntimeException(
-                'Not valid HTML fragment!' . "\n"
-                . $tmpDomOuterTextString . "\n" .
-                $tmpStr
-            );
-        }
-
+        $newDocument = $this->createLegacyMutationDocument($string);
         $newDocument = $this->cleanHtmlWrapper($newDocument, true);
         $ownerDocument = $node->ownerDocument;
         if (
@@ -367,6 +344,32 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
         }
 
         return $this;
+    }
+
+    /**
+     * Parse and validate a mutation string with the legacy fragment semantics.
+     *
+     * @param string $html
+     *
+     * @throws \RuntimeException
+     *
+     * @return HtmlDomParser
+     */
+    private function createLegacyMutationDocument(string $html): HtmlDomParser
+    {
+        $document = new HtmlDomParser($html);
+        $normalizedDocument = $this->normalizeStringForComparison($document);
+        $normalizedHtml = $this->normalizeStringForComparison($html);
+
+        if ($normalizedDocument !== $normalizedHtml) {
+            throw new \RuntimeException(
+                'Not valid HTML fragment!' . "\n"
+                . $normalizedDocument . "\n"
+                . $normalizedHtml
+            );
+        }
+
+        return $document;
     }
 
     /**
