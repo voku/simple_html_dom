@@ -98,33 +98,42 @@ final class Html5DomParserDefaultCompatibilityTest extends \PHPUnit\Framework\Te
     }
 
     /**
-     * SHD-2 evidence: these attribute names are valid input for the HTML parser but cannot
-     * currently cross the XML transport used to expose the result as legacy DOMDocument.
+     * SHD-2 evidence: HTML-valid attribute names that XML cannot represent directly must
+     * survive the legacy DOM bridge through the public wrapper API and serialization.
      *
      * @dataProvider xmlBridgeBoundaryProvider
      *
      * @param string $html
+     * @param string $selector
+     * @param string $attribute
+     * @param string $expectedValue
      */
-    public function testXmlBridgeBoundaryRemainsExplicit(string $html)
-    {
+    public function testXmlBridgePreservesHtmlOnlyAttributeNames(
+        string $html,
+        string $selector,
+        string $attribute,
+        string $expectedValue
+    ) {
         $this->requireHtml5Parser();
 
-        $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('could not bridge the normalized HTML5 document');
+        $dom = Html5DomParser::str_get_html($html);
+        $element = $dom->findOne($selector);
 
-        Html5DomParser::str_get_html($html);
+        static::assertTrue($element->hasAttribute($attribute));
+        static::assertSame($expectedValue, $element->getAttribute($attribute));
+        static::assertArrayHasKey($attribute, $element->getAllAttributes());
     }
 
     /**
-     * HTML-valid attribute names that the current XML transport cannot represent.
+     * HTML-valid attribute names that require placeholder transport through legacy DOM.
      *
-     * @return array<string, array{0: string}>
+     * @return array<string, array{0: string, 1: string, 2: string, 3: string}>
      */
     public function xmlBridgeBoundaryProvider()
     {
         return [
-            'at-sign attribute' => ['<div @foo="bar">x</div>'],
-            'comma attribute from horrible fixture class' => ['<font size="4" ,="" color="red">x</font>'],
+            'at-sign attribute' => ['<div @foo="bar">x</div>', 'div', '@foo', 'bar'],
+            'comma attribute from horrible fixture class' => ['<font size="4" ,="" color="red">x</font>', 'font', ',', ''],
         ];
     }
 
@@ -203,10 +212,47 @@ final class Html5DomParserDefaultCompatibilityTest extends \PHPUnit\Framework\Te
     }
 
     /**
+     * The HTML element remains on the legacy mutation path because HTML fragment parsing in
+     * that context may synthesize a second head while replacing body.outerHtml.
+     */
+    public function testBodyOuterHtmlMutationDoesNotDuplicateHead()
+    {
+        $this->requireHtml5Parser();
+
+        $dom = Html5DomParser::str_get_html(
+            '<html><head><title>kept</title></head><body id="target"><p>old</p></body></html>'
+        );
+        $target = $dom->findOne('#target');
+
+        $target->outerHtml = '<body><p>new</p></body>';
+
+        static::assertCount(1, $dom->findMulti('head'));
+        static::assertCount(1, $dom->findMulti('body'));
+        static::assertSame('kept', $dom->findOne('title')->text());
+        static::assertSame('<p>new</p>', $dom->findOne('body')->innerHtml());
+    }
+
+    /**
+     * Template contents are not exposed through the ordinary childNodes collection of the
+     * modern HTML5 DOM, so template mutations deliberately retain the proven legacy path.
+     */
+    public function testTemplateInnerHtmlMutationPreservesSuppliedMarkup()
+    {
+        $this->requireHtml5Parser();
+
+        $dom = Html5DomParser::str_get_html(
+            '<template id="target"><span>old</span></template>'
+        );
+        $target = $dom->findOne('#target');
+
+        $target->innerHtml = '<b>new</b>';
+
+        static::assertSame('<b>new</b>', $target->innerHtml());
+        static::assertSame('new', $target->findOne('b')->text());
+    }
+
+    /**
      * Smoke-test the repository's accumulated HTML fixture corpus with both parsers.
-     *
-     * "horrible.html" is excluded here because SHD-2 deliberately pins its XML-invalid
-     * attribute-name bridge failure above.
      *
      * @dataProvider htmlFixtureCorpusProvider
      *
@@ -228,7 +274,7 @@ final class Html5DomParserDefaultCompatibilityTest extends \PHPUnit\Framework\Te
     }
 
     /**
-     * Existing HTML fixtures except the intentionally failing SHD-2 bridge fixture.
+     * Existing HTML fixtures, including the historical malformed-attribute fixture.
      *
      * @return array<string, array{0: string}>
      */
@@ -239,10 +285,6 @@ final class Html5DomParserDefaultCompatibilityTest extends \PHPUnit\Framework\Te
 
         $cases = [];
         foreach ($fixtures as $fixture) {
-            if (\basename($fixture) === 'horrible.html') {
-                continue;
-            }
-
             $cases[\basename($fixture)] = [$fixture];
         }
 
