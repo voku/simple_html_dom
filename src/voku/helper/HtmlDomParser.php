@@ -650,6 +650,20 @@ class HtmlDomParser extends AbstractDomParser
     }
 
     /**
+     * Restore parser-specific internal attribute names in serialized HTML.
+     *
+     * @param string $html
+     *
+     * @return string
+     *
+     * @internal Used when SimpleHtmlDom deliberately serializes through a fresh legacy parser.
+     */
+    public function restorePublicAttributeNamesInHtml(string $html): string
+    {
+        return $html;
+    }
+
+    /**
      * Find list of nodes with a CSS selector within an optional DOMDocument
      * context, optionally applying the parser callback before the XPath query.
      *
