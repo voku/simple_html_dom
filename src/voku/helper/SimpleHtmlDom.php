@@ -176,6 +176,20 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
      *
      * @return string
      */
+    /**
+     * @param string $name
+     *
+     * @return string
+     */
+    private function mapPublicAttributeNameToDomForWrite(string $name): string
+    {
+        if ($this->queryHtmlDomParser !== null) {
+            return $this->queryHtmlDomParser->mapPublicAttributeNameToDomForWrite($name);
+        }
+
+        return $name;
+    }
+
     private function mapDomAttributeNameToPublic(string $name): string
     {
         if ($this->queryHtmlDomParser !== null) {
@@ -458,7 +472,7 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
         } elseif ($node instanceof \DOMElement) {
             /** @noinspection UnusedFunctionResultInspection */
             $node->setAttribute(
-                $this->mapPublicAttributeNameToDom($name),
+                $this->mapPublicAttributeNameToDomForWrite($name),
                 HtmlDomParser::replaceToPreserveHtmlEntities((string) $value)
             );
         }
