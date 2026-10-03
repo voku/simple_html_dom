@@ -228,19 +228,7 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
         $newDocument = null;
 
         if (!empty($string)) {
-            if (
-                $node instanceof \DOMElement
-                &&
-                $node->ownerDocument instanceof \DOMDocument
-                &&
-                $this->queryHtmlDomParser !== null
-            ) {
-                $contextFragment = $this->queryHtmlDomParser->createHtmlFragmentForContext(
-                    $node,
-                    $string,
-                    $node->ownerDocument
-                );
-            }
+            $contextFragment = $this->createMutationFragment($node, $string);
 
             if ($contextFragment === null) {
                 $newDocument = new HtmlDomParser($string);
@@ -313,32 +301,9 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
             return $this;
         }
 
-        if (
-            $node->parentNode instanceof \DOMElement
-            &&
-            $node->ownerDocument instanceof \DOMDocument
-            &&
-            $this->queryHtmlDomParser !== null
-        ) {
-            $contextFragment = $this->queryHtmlDomParser->createHtmlFragmentForContext(
-                $node->parentNode,
-                $string,
-                $node->ownerDocument
-            );
-
-            if ($contextFragment instanceof \DOMDocumentFragment) {
-                $firstReplacementNode = $contextFragment->firstChild;
-                $parentNode = $node->parentNode;
-
-                $parentNode->insertBefore($contextFragment, $node);
-                $parentNode->removeChild($node);
-
-                $this->node = $firstReplacementNode instanceof \DOMNode
-                    ? $firstReplacementNode
-                    : new \DOMText();
-
-                return $this;
-            }
+        $contextFragment = $this->createMutationFragment($node->parentNode, $string);
+        if ($contextFragment instanceof \DOMDocumentFragment) {
+            return $this->replaceNodeWithFragment($node, $contextFragment);
         }
 
         $newDocument = new HtmlDomParser($string);
@@ -400,6 +365,62 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
                 }
             }
         }
+
+        return $this;
+    }
+
+    /**
+     * Ask the originating parser for a context-aware mutation fragment.
+     *
+     * @param \DOMNode|null $contextNode
+     * @param string        $html
+     *
+     * @return \DOMDocumentFragment|null
+     */
+    private function createMutationFragment($contextNode, string $html): ?\DOMDocumentFragment
+    {
+        if (
+            !$contextNode instanceof \DOMElement
+            ||
+            !$contextNode->ownerDocument instanceof \DOMDocument
+            ||
+            $this->queryHtmlDomParser === null
+        ) {
+            return null;
+        }
+
+        return $this->queryHtmlDomParser->createHtmlFragmentForContext(
+            $contextNode,
+            $html,
+            $contextNode->ownerDocument
+        );
+    }
+
+    /**
+     * Replace the wrapped node with an already parsed fragment and keep this wrapper usable.
+     *
+     * @param \DOMNode             $node
+     * @param \DOMDocumentFragment $fragment
+     *
+     * @return SimpleHtmlDomInterface
+     */
+    private function replaceNodeWithFragment(
+        \DOMNode $node,
+        \DOMDocumentFragment $fragment
+    ): SimpleHtmlDomInterface {
+        $parentNode = $node->parentNode;
+        if ($parentNode === null) {
+            return $this;
+        }
+
+        $firstReplacementNode = $fragment->firstChild;
+
+        $parentNode->insertBefore($fragment, $node);
+        $parentNode->removeChild($node);
+
+        $this->node = $firstReplacementNode instanceof \DOMNode
+            ? $firstReplacementNode
+            : new \DOMText();
 
         return $this;
     }
