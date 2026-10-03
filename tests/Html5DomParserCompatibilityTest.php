@@ -1133,12 +1133,12 @@ HTML;
 
     public function testEditLinksPreservesMalformedHtmlOnlyAttributeThroughXmlBridge()
     {
-        $dom = Html5DomParser::str_get_html('<a <a href="http://foobar.de">foo</a><div></div>');
+        $dom = Html5DomParser::str_get_html('<a <a href="https://foobar.de">foo</a><div></div>');
         $link = $dom->findOne('a');
 
         static::assertTrue($link->hasAttribute('<a'));
         static::assertSame('', $link->getAttribute('<a'));
-        static::assertSame('http://foobar.de', $link->getAttribute('href'));
+        static::assertSame('https://foobar.de', $link->getAttribute('href'));
         static::assertSame('foo', $link->text());
     }
 
