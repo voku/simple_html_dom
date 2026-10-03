@@ -26,6 +26,24 @@ final class Html5DomParserLegacyDomAttributeCapabilityTest extends \PHPUnit\Fram
     }
 
     /**
+     * Capture whether libxml's HTML parser can carry names its XML DOM mutator rejects.
+     */
+    public function testLegacyHtmlParserAttributeRepresentability()
+    {
+        $parser = new \voku\helper\HtmlDomParser('<div @foo="bar" ,="" normal="ok">x</div>');
+        $div = $parser->findOne('div');
+
+        $attributes = $div->getAllAttributes();
+
+        \fwrite(
+            STDERR,
+            "\nSHD2_LEGACY_HTML_ATTRIBUTES=" . \json_encode($attributes, \JSON_UNESCAPED_SLASHES) . "\n"
+        );
+
+        static::assertSame('ok', $div->getAttribute('normal'));
+    }
+
+    /**
      * @return array<string, array{0: string}>
      */
     public function invalidXmlAttributeNameProvider()
