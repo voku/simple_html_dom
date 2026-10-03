@@ -149,20 +149,57 @@ final class Html5DomParserDefaultCompatibilityTest extends \PHPUnit\Framework\Te
     }
 
     /**
-     * SHD-3 evidence for string mutations. HTML5 document parsing inserts tbody here, while
-     * the current mutation path deliberately uses HtmlDomParser and therefore does not.
+     * SHD-3: innerHTML on a table must use the table as the HTML5 fragment context.
      */
-    public function testInnerHtmlMutationCurrentlyUsesLegacyFragmentSemantics()
+    public function testInnerHtmlMutationUsesHtml5TableFragmentSemantics()
     {
         $this->requireHtml5Parser();
 
-        $dom = Html5DomParser::str_get_html('<div id="target"></div>');
+        $dom = Html5DomParser::str_get_html('<table id="target"></table>');
         $target = $dom->findOne('#target');
 
-        $target->innerHtml = '<table><tr><td>x</td></tr></table>';
+        $target->innerHtml = '<tr><td>x</td></tr>';
 
-        static::assertCount(0, $target->findMulti('tbody'));
-        static::assertSame('<table><tr><td>x</td></tr></table>', $target->innerHtml());
+        static::assertCount(1, $target->findMulti('tbody'));
+        static::assertSame('<tbody><tr><td>x</td></tr></tbody>', $target->innerHtml());
+    }
+
+    /**
+     * SHD-3: outerHTML must parse against the parent element, just like the HTML fragment
+     * algorithm does in a browser.
+     */
+    public function testOuterHtmlMutationUsesHtml5ParentFragmentSemantics()
+    {
+        $this->requireHtml5Parser();
+
+        $dom = Html5DomParser::str_get_html(
+            '<table><tbody id="target"><tr><td>old</td></tr></tbody></table>'
+        );
+        $target = $dom->findOne('#target');
+
+        $target->outerHtml = '<tr><td>new</td></tr>';
+
+        static::assertSame(
+            '<table><tbody><tr><td>new</td></tr></tbody></table>',
+            $dom->innerHtml()
+        );
+    }
+
+    /**
+     * SHD-3: select fragments must stay in the select insertion mode rather than being
+     * reparsed as an independent document.
+     */
+    public function testInnerHtmlMutationUsesHtml5SelectFragmentSemantics()
+    {
+        $this->requireHtml5Parser();
+
+        $dom = Html5DomParser::str_get_html('<select id="target"></select>');
+        $target = $dom->findOne('#target');
+
+        $target->innerHtml = '<option>one<option>two';
+
+        static::assertCount(2, $target->findMulti('option'));
+        static::assertSame('<option>one</option><option>two</option>', $target->innerHtml());
     }
 
     /**
