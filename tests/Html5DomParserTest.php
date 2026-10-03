@@ -123,13 +123,42 @@ final class Html5DomParserTest extends \PHPUnit\Framework\TestCase
         static::assertSame('<div data-xmlns="caller-value">x</div>', $dom->html());
     }
 
-    public function testXmlBridgeFailureIsExplicitInsteadOfChangingParserSemantics()
+    public function testXmlBridgePreservesHtmlOnlyAttributeNames()
     {
-        $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('could not bridge the normalized HTML5 document');
+        $dom = $this->html5('<div @foo="bar" ,="" normal="ok">x</div>');
+        $div = $dom->findOne('div');
 
-        $dom = new Html5DomParser();
-        $dom->loadHtml('<div @foo="bar">x</div>');
+        static::assertSame('bar', $div->getAttribute('@foo'));
+        static::assertTrue($div->hasAttribute('@foo'));
+        static::assertSame('', $div->getAttribute(','));
+        static::assertTrue($div->hasAttribute(','));
+        static::assertSame('ok', $div->getAttribute('normal'));
+
+        $attributes = $div->getAllAttributes();
+        static::assertSame('bar', $attributes['@foo']);
+        static::assertSame('', $attributes[',']);
+        static::assertSame('ok', $attributes['normal']);
+
+        static::assertStringContainsString('@foo="bar"', $dom->html());
+        static::assertStringContainsString(',=""', $dom->html());
+    }
+
+    public function testXmlBridgeMappedAttributeCanBeUpdatedAndRemoved()
+    {
+        $dom = $this->html5('<div @foo="bar">x</div>');
+        $div = $dom->findOne('div');
+
+        $div->setAttribute('@foo', 'updated');
+        static::assertSame('updated', $div->getAttribute('@foo'));
+        static::assertStringContainsString('@foo="updated"', $dom->html());
+
+        $div->removeAttribute('@foo');
+        static::assertFalse($div->hasAttribute('@foo'));
+        static::assertStringNotContainsString('@foo=', $dom->html());
+
+        $div->setAttribute('@new', 'value');
+        static::assertSame('value', $div->getAttribute('@new'));
+        static::assertStringContainsString('@new="value"', $dom->html());
     }
 
     public function testLiteralLegacyProtectionTokensAreNotDecodedByHtml5Output()
