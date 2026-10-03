@@ -14,6 +14,9 @@ use voku\helper\HtmlDomParser;
  */
 final class Html5DomParserDefaultCompatibilityTest extends \PHPUnit\Framework\TestCase
 {
+    /**
+     * Prevent the copied HTML5 compatibility suite from silently missing future legacy tests.
+     */
     public function testCompatibilitySuiteTracksEveryLegacyParserTest()
     {
         $legacySource = \file_get_contents(__DIR__ . '/HtmlDomParserTest.php');
@@ -53,6 +56,11 @@ final class Html5DomParserDefaultCompatibilityTest extends \PHPUnit\Framework\Te
         static::assertSame($expectedTexts, $this->textsForSelector($html5, $selector));
     }
 
+    /**
+     * Representative markup where callers should observe the same selector/text results.
+     *
+     * @return array<string, array{0: string, 1: string, 2: string[]}>
+     */
     public function commonSelectorCompatibilityProvider()
     {
         return [
@@ -107,6 +115,11 @@ final class Html5DomParserDefaultCompatibilityTest extends \PHPUnit\Framework\Te
         Html5DomParser::str_get_html($html);
     }
 
+    /**
+     * HTML-valid attribute names that the current XML transport cannot represent.
+     *
+     * @return array<string, array{0: string}>
+     */
     public function xmlBridgeBoundaryProvider()
     {
         return [
@@ -119,6 +132,9 @@ final class Html5DomParserDefaultCompatibilityTest extends \PHPUnit\Framework\Te
      * SHD-3 evidence: a node originating from Html5DomParser currently exposes a legacy
      * HtmlDomParser for follow-up parsing. A future default switch must decide this boundary
      * deliberately rather than changing it as a side effect.
+     */
+    /**
+     * Pin the current parser-context boundary for nodes created by Html5DomParser.
      */
     public function testHtml5NodeParserContextCurrentlyFallsBackToLegacyParser()
     {
@@ -174,6 +190,11 @@ final class Html5DomParserDefaultCompatibilityTest extends \PHPUnit\Framework\Te
         static::assertTrue($html5->getIsDOMDocumentCreatedWithHtml5Parser());
     }
 
+    /**
+     * Existing HTML fixtures except the intentionally failing SHD-2 bridge fixture.
+     *
+     * @return array<string, array{0: string}>
+     */
     public function htmlFixtureCorpusProvider()
     {
         $fixtures = \glob(__DIR__ . '/fixtures/*.html');
@@ -191,6 +212,9 @@ final class Html5DomParserDefaultCompatibilityTest extends \PHPUnit\Framework\Te
         return $cases;
     }
 
+    /**
+     * Skip runtime-dependent evidence on PHP versions without the HTML5 backend.
+     */
     private function requireHtml5Parser(): void
     {
         if (!Html5DomParser::isHtml5ParserSupported()) {
