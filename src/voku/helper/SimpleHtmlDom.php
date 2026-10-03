@@ -377,7 +377,7 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
      *
      * @return \DOMDocumentFragment|null
      */
-    private function createMutationFragment($contextNode, string $html): ?\DOMDocumentFragment
+    private function createMutationFragment(?\DOMNode $contextNode, string $html): ?\DOMDocumentFragment
     {
         if (
             !$contextNode instanceof \DOMElement
