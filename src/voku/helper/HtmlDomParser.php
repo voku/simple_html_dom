@@ -1335,6 +1335,8 @@ class HtmlDomParser extends AbstractDomParser
      * @return \DOMDocumentFragment|null
      *
      * @internal
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function createHtmlFragmentForContext(
         \DOMElement $contextNode,
