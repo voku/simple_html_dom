@@ -105,7 +105,8 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
         ) {
             $attributes = [];
             foreach ($node->attributes ?? [] as $attr) {
-                $attributes[$attr->name] = HtmlDomParser::putReplacedBackToPreserveHtmlEntities($attr->value);
+                $name = $this->mapDomAttributeNameToPublic($attr->name);
+                $attributes[$name] = HtmlDomParser::putReplacedBackToPreserveHtmlEntities($attr->value);
             }
 
             return $attributes;
@@ -133,7 +134,7 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
     {
         if ($this->node instanceof \DOMElement) {
             return HtmlDomParser::putReplacedBackToPreserveHtmlEntities(
-                $this->node->getAttribute($name)
+                $this->node->getAttribute($this->mapPublicAttributeNameToDom($name))
             );
         }
 
@@ -153,7 +154,63 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
             return false;
         }
 
-        return $this->node->hasAttribute($name);
+        return $this->node->hasAttribute($this->mapPublicAttributeNameToDom($name));
+    }
+
+    /**
+     * @param string $name
+     *
+     * @return string
+     */
+    private function mapPublicAttributeNameToDom(string $name): string
+    {
+        if ($this->queryHtmlDomParser !== null) {
+            return $this->queryHtmlDomParser->mapPublicAttributeNameToDom($name);
+        }
+
+        return $name;
+    }
+
+    /**
+     * @param string $name
+     *
+     * @return string
+     */
+    /**
+     * @param string $name
+     *
+     * @return string
+     */
+    private function mapPublicAttributeNameToDomForWrite(string $name): string
+    {
+        if ($this->queryHtmlDomParser !== null) {
+            return $this->queryHtmlDomParser->mapPublicAttributeNameToDomForWrite($name);
+        }
+
+        return $name;
+    }
+
+    private function mapDomAttributeNameToPublic(string $name): string
+    {
+        if ($this->queryHtmlDomParser !== null) {
+            return $this->queryHtmlDomParser->mapDomAttributeNameToPublic($name);
+        }
+
+        return $name;
+    }
+
+    /**
+     * @param string $html
+     *
+     * @return string
+     */
+    private function restorePublicAttributeNamesInHtml(string $html): string
+    {
+        if ($this->queryHtmlDomParser !== null) {
+            return $this->queryHtmlDomParser->restorePublicAttributeNamesInHtml($html);
+        }
+
+        return $html;
     }
 
     /**
@@ -165,7 +222,9 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
      */
     public function html(bool $multiDecodeNewHtmlEntity = false): string
     {
-        return $this->getHtmlDomParser()->html($multiDecodeNewHtmlEntity);
+        return $this->restorePublicAttributeNamesInHtml(
+            $this->getHtmlDomParser()->html($multiDecodeNewHtmlEntity)
+        );
     }
 
     /**
@@ -178,7 +237,9 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
      */
     public function innerHtml(bool $multiDecodeNewHtmlEntity = false, bool $putBrokenReplacedBack = true): string
     {
-        return $this->getHtmlDomParser()->innerHtml($multiDecodeNewHtmlEntity, $putBrokenReplacedBack);
+        return $this->restorePublicAttributeNamesInHtml(
+            $this->getHtmlDomParser()->innerHtml($multiDecodeNewHtmlEntity, $putBrokenReplacedBack)
+        );
     }
 
     /**
@@ -192,7 +253,7 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
     {
         $node = $this->node();
         if ($node instanceof \DOMElement) {
-            $node->removeAttribute($name);
+            $node->removeAttribute($this->mapPublicAttributeNameToDom($name));
         }
 
         return $this;
@@ -486,7 +547,10 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
             $this->removeAttribute($name);
         } elseif ($node instanceof \DOMElement) {
             /** @noinspection UnusedFunctionResultInspection */
-            $node->setAttribute($name, HtmlDomParser::replaceToPreserveHtmlEntities((string) $value));
+            $node->setAttribute(
+                $this->mapPublicAttributeNameToDomForWrite($name),
+                HtmlDomParser::replaceToPreserveHtmlEntities((string) $value)
+            );
         }
 
         return $this;
