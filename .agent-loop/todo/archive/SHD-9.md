@@ -7,6 +7,7 @@
 - **Assignee:** claude
 - **Created:** 2026-08-16T20:20:17+00:00
 - **Updated:** 2026-08-16T20:50:21+00:00
+- **Resolved by:** voku/simple_html_dom#150
 - **Summary:** When a caller enables the PHP >= 8.4 HTML5 parser, HtmlDomParser should use it. Today useKeepBrokenHtml() silently disables it, and an input the XML bridge cannot carry silently downgrades the whole document.
 - **Next:** Review the pushed branch
 - **Validation:** php vendor/bin/phpunit -c phpunit.xml
@@ -15,3 +16,6 @@
 
 ## Agent Task Brief
 HtmlDomParser::createDOMDocument() guards the HTML5 branch with 'if ($this->useHtml5Parser && !$this->keepBrokenHtml)'. That guard was added defensively, not because the two features were shown to conflict. Measured evidence (2026-08-15, PHP 8.4.19): with the '!$this->keepBrokenHtml' condition removed and the HTML5 parser forced on, all five existing keepBrokenHtml tests pass unchanged (testBrokenHtmlAtTheBeginOfTheInput, testBrokenHtmlInTheMiddleOfTheInput, testHtmlWithSpecialCommentsAndKeepBrokenHtml, testHtmlWithSpecialCommentsAndKeepBrokenHtml2, HTML5DOMDocumentTest keepBrokenHtml case); the only failing test was HtmlDomParserHtml5Test::testKeepBrokenHtmlFallsBackToTheLegacyParser, which asserts the fallback itself. keepBrokenHtml replaces broken fragments with hashed text placeholders before parsing and restores them after serialization, and those placeholders survive HTML5 parsing. Decide the precedence deliberately, cover it with tests, and review the other silent fallbacks (SHD-2) with the same question: a caller who asked for the HTML5 parser should be able to tell whether they got it.
+
+## Resolution
+Resolved by voku/simple_html_dom#150. The measured keepBrokenHtml compatibility work shipped, and the subsequent SHD-10/SHD-11 separate-parser design removed the remaining silent parser-selection ambiguity by making Html5DomParser an explicit backend choice.
