@@ -224,19 +224,37 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
     protected function replaceChildWithString(string $string, bool $putBrokenReplacedBack = true): SimpleHtmlDomInterface
     {
         $node = $this->node();
+        $contextFragment = null;
+        $newDocument = null;
 
         if (!empty($string)) {
-            $newDocument = new HtmlDomParser($string);
-
-            $tmpDomString = $this->normalizeStringForComparison($newDocument);
-            $tmpStr = $this->normalizeStringForComparison($string);
-
-            if ($tmpDomString !== $tmpStr) {
-                throw new \RuntimeException(
-                    'Not valid HTML fragment!' . "\n" .
-                    $tmpDomString . "\n" .
-                    $tmpStr
+            if (
+                $node instanceof \DOMElement
+                &&
+                $node->ownerDocument instanceof \DOMDocument
+                &&
+                $this->queryHtmlDomParser !== null
+            ) {
+                $contextFragment = $this->queryHtmlDomParser->createHtmlFragmentForContext(
+                    $node,
+                    $string,
+                    $node->ownerDocument
                 );
+            }
+
+            if ($contextFragment === null) {
+                $newDocument = new HtmlDomParser($string);
+
+                $tmpDomString = $this->normalizeStringForComparison($newDocument);
+                $tmpStr = $this->normalizeStringForComparison($string);
+
+                if ($tmpDomString !== $tmpStr) {
+                    throw new \RuntimeException(
+                        'Not valid HTML fragment!' . "\n" .
+                        $tmpDomString . "\n" .
+                        $tmpStr
+                    );
+                }
             }
         }
 
@@ -253,7 +271,13 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
             $node->removeChild($remove_node);
         }
 
-        if (!empty($newDocument)) {
+        if ($contextFragment instanceof \DOMDocumentFragment) {
+            $node->appendChild($contextFragment);
+
+            return $this;
+        }
+
+        if ($newDocument instanceof HtmlDomParser) {
             $newDocument = $this->cleanHtmlWrapper($newDocument);
             $ownerDocument = $node->ownerDocument;
             if (
@@ -287,6 +311,34 @@ class SimpleHtmlDom extends AbstractSimpleHtmlDom implements \IteratorAggregate,
             $this->node = new \DOMText();
 
             return $this;
+        }
+
+        if (
+            $node->parentNode instanceof \DOMElement
+            &&
+            $node->ownerDocument instanceof \DOMDocument
+            &&
+            $this->queryHtmlDomParser !== null
+        ) {
+            $contextFragment = $this->queryHtmlDomParser->createHtmlFragmentForContext(
+                $node->parentNode,
+                $string,
+                $node->ownerDocument
+            );
+
+            if ($contextFragment instanceof \DOMDocumentFragment) {
+                $firstReplacementNode = $contextFragment->firstChild;
+                $parentNode = $node->parentNode;
+
+                $parentNode->insertBefore($contextFragment, $node);
+                $parentNode->removeChild($node);
+
+                $this->node = $firstReplacementNode instanceof \DOMNode
+                    ? $firstReplacementNode
+                    : new \DOMText();
+
+                return $this;
+            }
         }
 
         $newDocument = new HtmlDomParser($string);
