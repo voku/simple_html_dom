@@ -149,6 +149,48 @@ final class Html5DomParserDefaultCompatibilityTest extends \PHPUnit\Framework\Te
         static::assertSame('<table><tr><td>x</td></tr></table>', $target->innerHtml());
     }
 
+    /**
+     * Smoke-test the repository's accumulated HTML fixture corpus with both parsers.
+     *
+     * "horrible.html" is excluded here because SHD-2 deliberately pins its XML-invalid
+     * attribute-name bridge failure above.
+     *
+     * @dataProvider htmlFixtureCorpusProvider
+     *
+     * @param string $fixture
+     */
+    public function testExistingHtmlFixtureCorpusLoadsWithBothParsers(string $fixture)
+    {
+        $this->requireHtml5Parser();
+
+        $html = \file_get_contents($fixture);
+        static::assertNotFalse($html);
+
+        $legacy = HtmlDomParser::str_get_html($html);
+        $html5 = Html5DomParser::str_get_html($html);
+
+        static::assertInstanceOf(\DOMDocument::class, $legacy->getDocument());
+        static::assertInstanceOf(\DOMDocument::class, $html5->getDocument());
+        static::assertTrue($html5->getIsDOMDocumentCreatedWithHtml5Parser());
+    }
+
+    public function htmlFixtureCorpusProvider()
+    {
+        $fixtures = \glob(__DIR__ . '/fixtures/*.html');
+        static::assertNotFalse($fixtures);
+
+        $cases = [];
+        foreach ($fixtures as $fixture) {
+            if (\basename($fixture) === 'horrible.html') {
+                continue;
+            }
+
+            $cases[\basename($fixture)] = [$fixture];
+        }
+
+        return $cases;
+    }
+
     private function requireHtml5Parser(): void
     {
         if (!Html5DomParser::isHtml5ParserSupported()) {
