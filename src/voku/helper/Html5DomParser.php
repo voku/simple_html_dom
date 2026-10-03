@@ -330,6 +330,8 @@ class Html5DomParser extends HtmlDomParser
             ? $this->parkXmlnsAttributes($html5Document)
             : null;
 
+        $this->parkXmlInvalidAttributeNames($html5Document);
+
         $xml = '';
         foreach ($context->childNodes as $childNode) {
             /** @phpstan-ignore method.notFound (Dom\\HTMLDocument::saveXml() of PHP >= 8.4) */

@@ -212,6 +212,24 @@ final class Html5DomParserDefaultCompatibilityTest extends \PHPUnit\Framework\Te
     }
 
     /**
+     * SHD-2 + SHD-3: fragment parsing must use the same collision-safe XML transport as the
+     * full-document bridge for HTML-valid attribute names that legacy DOMDocument cannot
+     * represent directly.
+     */
+    public function testInnerHtmlMutationPreservesXmlInvalidHtmlAttributeNames()
+    {
+        $this->requireHtml5Parser();
+
+        $dom = Html5DomParser::str_get_html('<div id="target"></div>');
+        $target = $dom->findOne('#target');
+
+        $target->innerHtml = '<span @foo="x">value</span>';
+
+        static::assertStringContainsString('@foo="x"', $target->innerHtml());
+        static::assertSame('value', $target->findOne('span')->text());
+    }
+
+    /**
      * The html context remains on the legacy mutation path. The legacy path may unwrap the
      * document-level body mutation, but it must not introduce the duplicate head/body pair
      * that the HTML5 fragment path can synthesize for this context.
