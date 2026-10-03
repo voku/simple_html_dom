@@ -96,14 +96,12 @@ class Html5DomParser extends HtmlDomParser
     /**
      * @var array<string, string>
      *
-     * @phpstan-var array<string, non-empty-string>
      */
     private $invalidAttributeNamePublicToDom = [];
 
     /**
      * @var array<string, string>
      *
-     * @phpstan-var array<non-empty-string, string>
      */
     private $invalidAttributeNameDomToPublic = [];
 
