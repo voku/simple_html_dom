@@ -159,18 +159,7 @@ class Html5DomParser extends HtmlDomParser
      */
     public function mapPublicAttributeNameToDom(string $name): string
     {
-        if (isset($this->invalidAttributeNamePublicToDom[$name])) {
-            return $this->invalidAttributeNamePublicToDom[$name];
-        }
-
-        if (self::isXmlAttributeNameTransportSafe($name)) {
-            return $name;
-        }
-
-        $helper = $this->createInvalidAttributeHelperNameForLegacyDocument($name);
-        $this->registerInvalidAttributeName($name, $helper);
-
-        return $helper;
+        return $this->invalidAttributeNamePublicToDom[$name] ?? $name;
     }
 
     /**
@@ -198,18 +187,26 @@ class Html5DomParser extends HtmlDomParser
     ): string {
         $content = parent::fixHtmlOutput($content, $multiDecodeNewHtmlEntity, $putBrokenReplacedBack);
 
+        return $this->restorePublicAttributeNamesInHtml($content);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function restorePublicAttributeNamesInHtml(string $html): string
+    {
         foreach ($this->invalidAttributeNameDomToPublic as $helper => $publicName) {
             $pattern = '/(?<=\\s)' . \preg_quote($helper, '/') . '(?=\\s*=)/i';
-            $content = (string) \preg_replace_callback(
+            $html = (string) \preg_replace_callback(
                 $pattern,
                 static function () use ($publicName): string {
                     return $publicName;
                 },
-                $content
+                $html
             );
         }
 
-        return $content;
+        return $html;
     }
 
     /**
@@ -519,37 +516,6 @@ class Html5DomParser extends HtmlDomParser
         $xPath = new \Dom\XPath($html5Document);
         /** @phpstan-ignore class.notFound (\Dom\XPath of PHP >= 8.4) */
         while ($xPath->query('//*[@' . $helper . ']')->length > 0) {
-            $helper = $base . '-' . ++$suffix;
-        }
-
-        return $helper;
-    }
-
-    /**
-     * @param string $publicName
-     *
-     * @return string
-     */
-    private function createInvalidAttributeHelperNameForLegacyDocument(string $publicName): string
-    {
-        $base = self::$domHtmlInvalidAttributeHelperPrefix . \bin2hex($publicName);
-        $helper = $base;
-        $suffix = 0;
-        $xPath = new \DOMXPath($this->document);
-
-        while (
-            isset($this->invalidAttributeNameDomToPublic[$helper])
-            ||
-            $xPath->query('//*[@' . $helper . ']')->length > 0
-        ) {
-            if (
-                isset($this->invalidAttributeNameDomToPublic[$helper])
-                &&
-                $this->invalidAttributeNameDomToPublic[$helper] === $publicName
-            ) {
-                return $helper;
-            }
-
             $helper = $base . '-' . ++$suffix;
         }
 
