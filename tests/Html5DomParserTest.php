@@ -200,6 +200,22 @@ final class Html5DomParserTest extends \PHPUnit\Framework\TestCase
         static::assertStringContainsString($helper . '="caller"', $dom->html());
     }
 
+    public function testPublicWriteMatchingGeneratedHelperDoesNotOverwriteMappedAttribute()
+    {
+        $helper = 'data-simplevokuinvalidattr-40666f6f';
+        $dom = $this->html5('<div @foo="original">x</div>');
+        $div = $dom->findOne('div');
+
+        $div->setAttribute($helper, 'caller');
+
+        static::assertSame('original', $div->getAttribute('@foo'));
+        static::assertSame('caller', $div->getAttribute($helper));
+
+        $html = $dom->html();
+        static::assertStringContainsString('@foo="original"', $html);
+        static::assertStringContainsString($helper . '="caller"', $html);
+    }
+
     public function testLiteralLegacyProtectionTokensAreNotDecodedByHtml5Output()
     {
         $html = '<a href="/%5B%5B/%5D%5D/%7B%7B/%7D%7D/%40/%25">x</a>';

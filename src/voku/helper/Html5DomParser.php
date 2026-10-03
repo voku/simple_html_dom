@@ -169,8 +169,16 @@ class Html5DomParser extends HtmlDomParser
     public function mapPublicAttributeNameToDomForWrite(string $name): string
     {
         $mappedName = $this->mapPublicAttributeNameToDom($name);
-        if ($mappedName !== $name || self::isXmlAttributeNameTransportSafe($name)) {
+        if ($mappedName !== $name) {
             return $mappedName;
+        }
+
+        if (
+            self::isXmlAttributeNameTransportSafe($name)
+            &&
+            !isset($this->invalidAttributeNameDomToPublic[$name])
+        ) {
+            return $name;
         }
 
         $helper = $this->createInvalidAttributeHelperNameForLegacyDocument($name);
@@ -552,7 +560,11 @@ class Html5DomParser extends HtmlDomParser
 
         while (true) {
             $nodes = $xPath->query('//*[@' . $helper . ']');
-            if ($nodes === false || $nodes->length === 0) {
+            if (
+                !isset($this->invalidAttributeNameDomToPublic[$helper])
+                &&
+                ($nodes === false || $nodes->length === 0)
+            ) {
                 return $helper;
             }
 
