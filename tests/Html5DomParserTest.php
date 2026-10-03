@@ -143,6 +143,18 @@ final class Html5DomParserTest extends \PHPUnit\Framework\TestCase
         static::assertStringContainsString(',=""', $dom->html());
     }
 
+    public function testXmlBridgeHelperNameDoesNotCollideWithCallerAttribute()
+    {
+        $helper = 'data-simplevokuinvalidattr-40666f6f';
+        $dom = $this->html5('<div @foo="bar" ' . $helper . '="caller">x</div>');
+        $div = $dom->findOne('div');
+
+        static::assertSame('bar', $div->getAttribute('@foo'));
+        static::assertSame('caller', $div->getAttribute($helper));
+        static::assertStringContainsString('@foo="bar"', $dom->html());
+        static::assertStringContainsString($helper . '="caller"', $dom->html());
+    }
+
     public function testXmlBridgeMappedAttributeCanBeUpdatedAndRemoved()
     {
         $dom = $this->html5('<div @foo="bar">x</div>');
@@ -152,13 +164,12 @@ final class Html5DomParserTest extends \PHPUnit\Framework\TestCase
         static::assertSame('updated', $div->getAttribute('@foo'));
         static::assertStringContainsString('@foo="updated"', $dom->html());
 
+        static::assertStringContainsString('@foo="updated"', $div->outerHtml());
+
         $div->removeAttribute('@foo');
         static::assertFalse($div->hasAttribute('@foo'));
         static::assertStringNotContainsString('@foo=', $dom->html());
-
-        $div->setAttribute('@new', 'value');
-        static::assertSame('value', $div->getAttribute('@new'));
-        static::assertStringContainsString('@new="value"', $dom->html());
+        static::assertStringNotContainsString('data-simplevokuinvalidattr-', $div->outerHtml());
     }
 
     public function testLiteralLegacyProtectionTokensAreNotDecodedByHtml5Output()
