@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f29e753e8e6969fbacdfe76dbec62892",
+    "content-hash": "7d6f49ffe7545229233e2b3c30a862b5",
     "packages": [
         {
             "name": "doctrine/deprecations",
@@ -56,23 +56,23 @@
         },
         {
             "name": "fidry/cpu-core-counter",
-            "version": "1.3.0",
+            "version": "1.4.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/theofidry/cpu-core-counter.git",
-                "reference": "db9508f7b1474469d9d3c53b86f817e344732678"
+                "reference": "d384a7d0d6e67aa497327260ca95023e92dc2032"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/theofidry/cpu-core-counter/zipball/db9508f7b1474469d9d3c53b86f817e344732678",
-                "reference": "db9508f7b1474469d9d3c53b86f817e344732678",
+                "url": "https://api.github.com/repos/theofidry/cpu-core-counter/zipball/d384a7d0d6e67aa497327260ca95023e92dc2032",
+                "reference": "d384a7d0d6e67aa497327260ca95023e92dc2032",
                 "shasum": ""
             },
             "require": {
                 "php": "^7.2 || ^8.0"
             },
             "require-dev": {
-                "fidry/makefile": "^0.2.0",
+                "fidry/makefile": "^0.2.0 || ^1.1.2",
                 "fidry/php-cs-fixer-config": "^1.1.2",
                 "phpstan/extension-installer": "^1.2.0",
                 "phpstan/phpstan": "^2.0",
@@ -80,6 +80,7 @@
                 "phpstan/phpstan-phpunit": "^2.0",
                 "phpstan/phpstan-strict-rules": "^2.0",
                 "phpunit/phpunit": "^8.5.31 || ^9.5.26",
+                "symfony/polyfill-mbstring": "^1.33",
                 "webmozarts/strict-phpunit": "^7.5"
             },
             "type": "library",
@@ -105,7 +106,7 @@
             ],
             "support": {
                 "issues": "https://github.com/theofidry/cpu-core-counter/issues",
-                "source": "https://github.com/theofidry/cpu-core-counter/tree/1.3.0"
+                "source": "https://github.com/theofidry/cpu-core-counter/tree/1.4.1"
             },
             "funding": [
                 {
@@ -113,7 +114,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-08-14T07:29:31+00:00"
+            "time": "2026-09-29T22:11:39+00:00"
         },
         {
             "name": "helgesverre/toon",
@@ -183,16 +184,16 @@
         },
         {
             "name": "nikic/php-parser",
-            "version": "v5.8.0",
+            "version": "v5.9.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nikic/PHP-Parser.git",
-                "reference": "044a6a392ff8ad0d61f14370a5fbbd0a0107152f"
+                "reference": "9e33da9553fe7786f0962b35f4e4ecf01be89def"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/044a6a392ff8ad0d61f14370a5fbbd0a0107152f",
-                "reference": "044a6a392ff8ad0d61f14370a5fbbd0a0107152f",
+                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/9e33da9553fe7786f0962b35f4e4ecf01be89def",
+                "reference": "9e33da9553fe7786f0962b35f4e4ecf01be89def",
                 "shasum": ""
             },
             "require": {
@@ -234,26 +235,31 @@
             ],
             "support": {
                 "issues": "https://github.com/nikic/PHP-Parser/issues",
-                "source": "https://github.com/nikic/PHP-Parser/tree/v5.8.0"
+                "source": "https://github.com/nikic/PHP-Parser/tree/v5.9.0"
             },
-            "time": "2026-07-04T14:30:18+00:00"
+            "time": "2026-09-13T18:51:52+00:00"
         },
         {
             "name": "phpdocumentor/reflection-common",
-            "version": "2.2.0",
+            "version": "2.2.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpDocumentor/ReflectionCommon.git",
-                "reference": "1d01c49d4ed62f25aa84a747ad35d5a16924662b"
+                "reference": "ee15a5a2022c8383906b225055e9496a6a5e6e3b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpDocumentor/ReflectionCommon/zipball/1d01c49d4ed62f25aa84a747ad35d5a16924662b",
-                "reference": "1d01c49d4ed62f25aa84a747ad35d5a16924662b",
+                "url": "https://api.github.com/repos/phpDocumentor/ReflectionCommon/zipball/ee15a5a2022c8383906b225055e9496a6a5e6e3b",
+                "reference": "ee15a5a2022c8383906b225055e9496a6a5e6e3b",
                 "shasum": ""
             },
             "require": {
-                "php": "^7.2 || ^8.0"
+                "php": "^7.4 || ^8.0"
+            },
+            "require-dev": {
+                "phpstan/phpstan": "^1.8",
+                "phpunit/phpunit": "^9.5",
+                "vimeo/psalm": "^4.25"
             },
             "type": "library",
             "extra": {
@@ -277,7 +283,7 @@
                 }
             ],
             "description": "Common reflection classes used by phpdocumentor to reflect the code structure",
-            "homepage": "http://www.phpdoc.org",
+            "homepage": "https://www.phpdoc.org",
             "keywords": [
                 "FQSEN",
                 "phpDocumentor",
@@ -287,9 +293,9 @@
             ],
             "support": {
                 "issues": "https://github.com/phpDocumentor/ReflectionCommon/issues",
-                "source": "https://github.com/phpDocumentor/ReflectionCommon/tree/2.x"
+                "source": "https://github.com/phpDocumentor/ReflectionCommon/tree/2.2.1"
             },
-            "time": "2020-06-27T09:03:43+00:00"
+            "time": "2025-11-10T21:21:55+00:00"
         },
         {
             "name": "phpdocumentor/reflection-docblock",
@@ -358,16 +364,16 @@
         },
         {
             "name": "phpdocumentor/type-resolver",
-            "version": "2.0.0",
+            "version": "2.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpDocumentor/TypeResolver.git",
-                "reference": "327a05bbee54120d4786a0dc67aad30226ad4cf9"
+                "reference": "dbe2133bb23e2e33a6834f4ed417f24a1b167769"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpDocumentor/TypeResolver/zipball/327a05bbee54120d4786a0dc67aad30226ad4cf9",
-                "reference": "327a05bbee54120d4786a0dc67aad30226ad4cf9",
+                "url": "https://api.github.com/repos/phpDocumentor/TypeResolver/zipball/dbe2133bb23e2e33a6834f4ed417f24a1b167769",
+                "reference": "dbe2133bb23e2e33a6834f4ed417f24a1b167769",
                 "shasum": ""
             },
             "require": {
@@ -410,22 +416,22 @@
             "description": "A PSR-5 based resolver of Class names, Types and Structural Element Names",
             "support": {
                 "issues": "https://github.com/phpDocumentor/TypeResolver/issues",
-                "source": "https://github.com/phpDocumentor/TypeResolver/tree/2.0.0"
+                "source": "https://github.com/phpDocumentor/TypeResolver/tree/2.1.0"
             },
-            "time": "2026-01-06T21:53:42+00:00"
+            "time": "2026-09-27T19:32:54+00:00"
         },
         {
             "name": "phpstan/phpdoc-parser",
-            "version": "2.3.3",
+            "version": "2.3.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpstan/phpdoc-parser.git",
-                "reference": "fb19eedd2bb67ff8cf7a5502ad329e701d6398a3"
+                "reference": "1427af4647235b4a73b13940b1f1258d3584f36e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpdoc-parser/zipball/fb19eedd2bb67ff8cf7a5502ad329e701d6398a3",
-                "reference": "fb19eedd2bb67ff8cf7a5502ad329e701d6398a3",
+                "url": "https://api.github.com/repos/phpstan/phpdoc-parser/zipball/1427af4647235b4a73b13940b1f1258d3584f36e",
+                "reference": "1427af4647235b4a73b13940b1f1258d3584f36e",
                 "shasum": ""
             },
             "require": {
@@ -457,9 +463,9 @@
             "description": "PHPDoc parser with support for nullable, intersection and generic types",
             "support": {
                 "issues": "https://github.com/phpstan/phpdoc-parser/issues",
-                "source": "https://github.com/phpstan/phpdoc-parser/tree/2.3.3"
+                "source": "https://github.com/phpstan/phpdoc-parser/tree/2.3.6"
             },
-            "time": "2026-07-08T07:01:06+00:00"
+            "time": "2026-09-27T20:07:45+00:00"
         },
         {
             "name": "psr/simple-cache",
@@ -513,17 +519,470 @@
             "time": "2021-10-29T13:26:27+00:00"
         },
         {
-            "name": "voku/agent-kanban",
-            "version": "0.3.2",
+            "name": "symfony/polyfill-iconv",
+            "version": "v1.43.0",
             "source": {
                 "type": "git",
-                "url": "https://github.com/voku/agent-kanban.git",
-                "reference": "9e2d913de673fd58f2a55d92ccc257e880df1b91"
+                "url": "https://github.com/symfony/polyfill-iconv.git",
+                "reference": "254724d95fe01b679cd97d88786e9623ee00bfb7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/voku/agent-kanban/zipball/9e2d913de673fd58f2a55d92ccc257e880df1b91",
-                "reference": "9e2d913de673fd58f2a55d92ccc257e880df1b91",
+                "url": "https://api.github.com/repos/symfony/polyfill-iconv/zipball/254724d95fe01b679cd97d88786e9623ee00bfb7",
+                "reference": "254724d95fe01b679cd97d88786e9623ee00bfb7",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.2"
+            },
+            "provide": {
+                "ext-iconv": "*"
+            },
+            "suggest": {
+                "ext-iconv": "For best performance"
+            },
+            "type": "library",
+            "extra": {
+                "thanks": {
+                    "url": "https://github.com/symfony/polyfill",
+                    "name": "symfony/polyfill"
+                }
+            },
+            "autoload": {
+                "files": [
+                    "bootstrap.php"
+                ],
+                "psr-4": {
+                    "Symfony\\Polyfill\\Iconv\\": ""
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Nicolas Grekas",
+                    "email": "p@tchwork.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                }
+            ],
+            "description": "Symfony polyfill for the Iconv extension",
+            "homepage": "https://symfony.com",
+            "keywords": [
+                "compatibility",
+                "iconv",
+                "polyfill",
+                "portable",
+                "shim"
+            ],
+            "support": {
+                "source": "https://github.com/symfony/polyfill-iconv/tree/v1.43.0"
+            },
+            "funding": [
+                {
+                    "url": "https://symfony.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https://github.com/nicolas-grekas",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2026-09-29T06:25:14+00:00"
+        },
+        {
+            "name": "symfony/polyfill-intl-grapheme",
+            "version": "v1.43.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/polyfill-intl-grapheme.git",
+                "reference": "5cac8f4db97208823aa353f59a01faad2da52c75"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/polyfill-intl-grapheme/zipball/5cac8f4db97208823aa353f59a01faad2da52c75",
+                "reference": "5cac8f4db97208823aa353f59a01faad2da52c75",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.2"
+            },
+            "suggest": {
+                "ext-intl": "For best performance"
+            },
+            "type": "library",
+            "extra": {
+                "thanks": {
+                    "url": "https://github.com/symfony/polyfill",
+                    "name": "symfony/polyfill"
+                }
+            },
+            "autoload": {
+                "files": [
+                    "bootstrap.php"
+                ],
+                "psr-4": {
+                    "Symfony\\Polyfill\\Intl\\Grapheme\\": ""
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Nicolas Grekas",
+                    "email": "p@tchwork.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                }
+            ],
+            "description": "Symfony polyfill for intl's grapheme_* functions",
+            "homepage": "https://symfony.com",
+            "keywords": [
+                "compatibility",
+                "grapheme",
+                "intl",
+                "polyfill",
+                "portable",
+                "shim"
+            ],
+            "support": {
+                "source": "https://github.com/symfony/polyfill-intl-grapheme/tree/v1.43.0"
+            },
+            "funding": [
+                {
+                    "url": "https://symfony.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https://github.com/nicolas-grekas",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2026-09-25T15:46:47+00:00"
+        },
+        {
+            "name": "symfony/polyfill-intl-normalizer",
+            "version": "v1.43.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/polyfill-intl-normalizer.git",
+                "reference": "ebd57ccc7edb93d632e184efbe7693d2517bab3b"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/polyfill-intl-normalizer/zipball/ebd57ccc7edb93d632e184efbe7693d2517bab3b",
+                "reference": "ebd57ccc7edb93d632e184efbe7693d2517bab3b",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.2"
+            },
+            "suggest": {
+                "ext-intl": "For best performance"
+            },
+            "type": "library",
+            "extra": {
+                "thanks": {
+                    "url": "https://github.com/symfony/polyfill",
+                    "name": "symfony/polyfill"
+                }
+            },
+            "autoload": {
+                "files": [
+                    "bootstrap.php"
+                ],
+                "psr-4": {
+                    "Symfony\\Polyfill\\Intl\\Normalizer\\": ""
+                },
+                "classmap": [
+                    "Resources/stubs"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Nicolas Grekas",
+                    "email": "p@tchwork.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                }
+            ],
+            "description": "Symfony polyfill for intl's Normalizer class and related functions",
+            "homepage": "https://symfony.com",
+            "keywords": [
+                "compatibility",
+                "intl",
+                "normalizer",
+                "polyfill",
+                "portable",
+                "shim"
+            ],
+            "support": {
+                "source": "https://github.com/symfony/polyfill-intl-normalizer/tree/v1.43.0"
+            },
+            "funding": [
+                {
+                    "url": "https://symfony.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https://github.com/nicolas-grekas",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2026-09-23T22:02:09+00:00"
+        },
+        {
+            "name": "symfony/polyfill-mbstring",
+            "version": "v1.43.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/polyfill-mbstring.git",
+                "reference": "4d5d331bf731e0aedbc6b2f5e61135b7b7996a72"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/polyfill-mbstring/zipball/4d5d331bf731e0aedbc6b2f5e61135b7b7996a72",
+                "reference": "4d5d331bf731e0aedbc6b2f5e61135b7b7996a72",
+                "shasum": ""
+            },
+            "require": {
+                "ext-iconv": "*",
+                "php": ">=7.2"
+            },
+            "provide": {
+                "ext-mbstring": "*"
+            },
+            "suggest": {
+                "ext-mbstring": "For best performance"
+            },
+            "type": "library",
+            "extra": {
+                "thanks": {
+                    "url": "https://github.com/symfony/polyfill",
+                    "name": "symfony/polyfill"
+                }
+            },
+            "autoload": {
+                "files": [
+                    "bootstrap.php"
+                ],
+                "psr-4": {
+                    "Symfony\\Polyfill\\Mbstring\\": ""
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Nicolas Grekas",
+                    "email": "p@tchwork.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                }
+            ],
+            "description": "Symfony polyfill for the Mbstring extension",
+            "homepage": "https://symfony.com",
+            "keywords": [
+                "compatibility",
+                "mbstring",
+                "polyfill",
+                "portable",
+                "shim"
+            ],
+            "support": {
+                "source": "https://github.com/symfony/polyfill-mbstring/tree/v1.43.0"
+            },
+            "funding": [
+                {
+                    "url": "https://symfony.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https://github.com/nicolas-grekas",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2026-09-24T15:19:04+00:00"
+        },
+        {
+            "name": "symfony/polyfill-php72",
+            "version": "v1.31.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/polyfill-php72.git",
+                "reference": "fa2ae56c44f03bed91a39bfc9822e31e7c5c38ce"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/polyfill-php72/zipball/fa2ae56c44f03bed91a39bfc9822e31e7c5c38ce",
+                "reference": "fa2ae56c44f03bed91a39bfc9822e31e7c5c38ce",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.2"
+            },
+            "type": "metapackage",
+            "extra": {
+                "thanks": {
+                    "url": "https://github.com/symfony/polyfill",
+                    "name": "symfony/polyfill"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Nicolas Grekas",
+                    "email": "p@tchwork.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                }
+            ],
+            "description": "Symfony polyfill backporting some PHP 7.2+ features to lower PHP versions",
+            "homepage": "https://symfony.com",
+            "keywords": [
+                "compatibility",
+                "polyfill",
+                "portable",
+                "shim"
+            ],
+            "support": {
+                "source": "https://github.com/symfony/polyfill-php72/tree/v1.31.0"
+            },
+            "funding": [
+                {
+                    "url": "https://symfony.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2024-09-09T11:45:10+00:00"
+        },
+        {
+            "name": "voku/agent-graph",
+            "version": "0.2.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/voku/agent-graph.git",
+                "reference": "39a45422c997d7c926f916974d9f8c7835c685c4"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/voku/agent-graph/zipball/39a45422c997d7c926f916974d9f8c7835c685c4",
+                "reference": "39a45422c997d7c926f916974d9f8c7835c685c4",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.2"
+            },
+            "require-dev": {
+                "phpstan/phpstan": "^2.2",
+                "phpunit/phpunit": "^11.5"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "voku\\AgentGraph\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Lars Moelleken",
+                    "homepage": "https://github.com/voku"
+                }
+            ],
+            "description": "Deterministic SQLite graph indexing and shared SQLite runtime support for coding-agent tooling.",
+            "homepage": "https://github.com/voku/agent-graph",
+            "keywords": [
+                "Agent",
+                "coding-agent",
+                "graph",
+                "sqlite",
+                "sqlite-vec"
+            ],
+            "support": {
+                "issues": "https://github.com/voku/agent-graph/issues",
+                "source": "https://github.com/voku/agent-graph"
+            },
+            "time": "2026-09-27T12:54:58+00:00"
+        },
+        {
+            "name": "voku/agent-kanban",
+            "version": "0.4.4",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/voku/agent-kanban.git",
+                "reference": "3c8377fa28142e96ae624506963b6e0fa03863f8"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/voku/agent-kanban/zipball/3c8377fa28142e96ae624506963b6e0fa03863f8",
+                "reference": "3c8377fa28142e96ae624506963b6e0fa03863f8",
                 "shasum": ""
             },
             "require": {
@@ -556,35 +1015,54 @@
             ],
             "description": "Markdown TODO Kanban parser, renderer, and verifier for coding-agent workflows.",
             "homepage": "https://github.com/voku/agent-kanban",
+            "keywords": [
+                "Agent",
+                "ai",
+                "coding-agent",
+                "git-native",
+                "kanban",
+                "llm",
+                "markdown",
+                "task-management",
+                "todo"
+            ],
             "support": {
                 "issues": "https://github.com/voku/agent-kanban/issues",
                 "source": "https://github.com/voku/agent-kanban"
             },
-            "time": "2026-08-16T17:07:52+00:00"
+            "funding": [
+                {
+                    "url": "https://github.com/voku",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-09-06T04:50:41+00:00"
         },
         {
             "name": "voku/agent-learning",
-            "version": "0.13.1",
+            "version": "0.18.28",
             "source": {
                 "type": "git",
                 "url": "https://github.com/voku/agent-learning.git",
-                "reference": "43eb7eca381c0974bc707ab0b9cd8c5085ceefdc"
+                "reference": "45f0b0add453663c4ae2bc7fe9599f40931bf6f4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/voku/agent-learning/zipball/43eb7eca381c0974bc707ab0b9cd8c5085ceefdc",
-                "reference": "43eb7eca381c0974bc707ab0b9cd8c5085ceefdc",
+                "url": "https://api.github.com/repos/voku/agent-learning/zipball/45f0b0add453663c4ae2bc7fe9599f40931bf6f4",
+                "reference": "45f0b0add453663c4ae2bc7fe9599f40931bf6f4",
                 "shasum": ""
             },
             "require": {
-                "php": "^8.3"
+                "php": "^8.3",
+                "voku/agent-graph": "^0.2.3"
             },
             "require-dev": {
                 "phpstan/phpstan": "^2.1",
                 "phpunit/phpunit": "^11.5"
             },
             "bin": [
-                "bin/agent-learning"
+                "bin/agent-learning",
+                "bin/agent-learning-note"
             ],
             "type": "library",
             "autoload": {
@@ -604,39 +1082,60 @@
             ],
             "description": "Reviewable finding, proposal, redaction, and decision-history tooling for coding-agent learning loops.",
             "homepage": "https://github.com/voku/agent-learning",
+            "keywords": [
+                "Agent",
+                "ai",
+                "coding-agent",
+                "decision-history",
+                "findings",
+                "learning",
+                "llm",
+                "memory",
+                "precedents",
+                "proposals"
+            ],
             "support": {
                 "issues": "https://github.com/voku/agent-learning/issues",
                 "source": "https://github.com/voku/agent-learning"
             },
-            "time": "2026-08-18T07:14:25+00:00"
+            "funding": [
+                {
+                    "url": "https://github.com/voku",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-10-03T10:50:03+00:00"
         },
         {
             "name": "voku/agent-loop",
-            "version": "0.16.6",
+            "version": "0.20.52",
             "source": {
                 "type": "git",
                 "url": "https://github.com/voku/agent-loop.git",
-                "reference": "3c8ce1be8806f24eabf46d4688dd65c0215eb66a"
+                "reference": "2c38fa53083a07bb2fea29129ead54bd7d4c5f30"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/voku/agent-loop/zipball/3c8ce1be8806f24eabf46d4688dd65c0215eb66a",
-                "reference": "3c8ce1be8806f24eabf46d4688dd65c0215eb66a",
+                "url": "https://api.github.com/repos/voku/agent-loop/zipball/2c38fa53083a07bb2fea29129ead54bd7d4c5f30",
+                "reference": "2c38fa53083a07bb2fea29129ead54bd7d4c5f30",
                 "shasum": ""
             },
             "require": {
                 "helgesverre/toon": "^3.1",
                 "php": "^8.3",
-                "voku/agent-kanban": "^0.3.1",
-                "voku/agent-learning": "^0.13.0",
-                "voku/agent-map": "^0.8.1",
-                "voku/agent-recall-compiler": "^0.13.1",
-                "voku/agent-session": "^0.6.1",
-                "voku/itp-context": "^0.3.0"
+                "voku/agent-kanban": "^0.4.4",
+                "voku/agent-learning": "^0.18.25",
+                "voku/agent-map": "^0.18.3",
+                "voku/agent-recall-compiler": "^0.25.1",
+                "voku/agent-session": "^0.7.1",
+                "voku/portable-utf8": "^6.1"
             },
             "require-dev": {
+                "brianium/paratest": "^7.8",
+                "friendsofphp/php-cs-fixer": "^3.95",
                 "phpstan/phpstan": "^2.1",
-                "phpunit/phpunit": "^11.5"
+                "phpunit/phpunit": "^11.5",
+                "voku/itp-context": "^0.3.0"
             },
             "suggest": {
                 "voku/housekeeping": "Standalone cron runner to auto-run agent-loop maintenance tasks against a target repository."
@@ -647,7 +1146,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-main": "0.16.x-dev"
+                    "dev-main": "0.20.x-dev"
                 }
             },
             "autoload": {
@@ -667,31 +1166,50 @@
             ],
             "description": "Unified Composer CLI for the governed coding-agent loop: edit orchestration, board, session, recall, review, learning, memory review, and verification.",
             "homepage": "https://github.com/voku/agent-loop",
+            "keywords": [
+                "Agent",
+                "agent-loop",
+                "ai",
+                "code-quality",
+                "coding-agent",
+                "developer-tools",
+                "governance",
+                "llm",
+                "orchestration"
+            ],
             "support": {
                 "issues": "https://github.com/voku/agent-loop/issues",
                 "source": "https://github.com/voku/agent-loop"
             },
-            "time": "2026-08-17T00:18:09+00:00"
+            "funding": [
+                {
+                    "url": "https://github.com/voku",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-10-02T07:18:40+00:00"
         },
         {
             "name": "voku/agent-map",
-            "version": "0.8.2",
+            "version": "0.18.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/voku/agent-map.git",
-                "reference": "7175004f1db6d3217655374275922e9fe4b15a34"
+                "reference": "17b5ee02a75ac7fa4b5281b85ef78877df2fb8ec"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/voku/agent-map/zipball/7175004f1db6d3217655374275922e9fe4b15a34",
-                "reference": "7175004f1db6d3217655374275922e9fe4b15a34",
+                "url": "https://api.github.com/repos/voku/agent-map/zipball/17b5ee02a75ac7fa4b5281b85ef78877df2fb8ec",
+                "reference": "17b5ee02a75ac7fa4b5281b85ef78877df2fb8ec",
                 "shasum": ""
             },
             "require": {
                 "composer-runtime-api": "^2.2",
                 "helgesverre/toon": "^3.1",
-                "php": ">=8.2",
-                "voku/simple-php-code-parser": "^0.22",
+                "nikic/php-parser": "^5.0",
+                "php": "^8.3",
+                "voku/agent-graph": "^0.2.3",
+                "voku/simple-php-code-parser": "^0.22.7",
                 "voku/stop-words": "^2.0"
             },
             "require-dev": {
@@ -714,34 +1232,60 @@
             "license": [
                 "MIT"
             ],
+            "authors": [
+                {
+                    "name": "Lars Moelleken",
+                    "homepage": "https://github.com/voku"
+                }
+            ],
             "description": "Compact PHP repository symbol maps for coding-agent navigation.",
+            "homepage": "https://github.com/voku/agent-map",
+            "keywords": [
+                "Agent",
+                "PHPStan",
+                "ai",
+                "ast",
+                "code-index",
+                "coding-agent",
+                "llm",
+                "php",
+                "static-analysis",
+                "symbol-map"
+            ],
             "support": {
                 "issues": "https://github.com/voku/agent-map/issues",
-                "source": "https://github.com/voku/agent-map/tree/0.8.2"
+                "source": "https://github.com/voku/agent-map"
             },
-            "time": "2026-08-18T06:52:39+00:00"
+            "funding": [
+                {
+                    "url": "https://github.com/voku",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-09-30T16:43:09+00:00"
         },
         {
             "name": "voku/agent-recall-compiler",
-            "version": "0.13.6",
+            "version": "0.25.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/voku/agent-recall-compiler.git",
-                "reference": "48163965e84007728246a10ba8ccd4bf9e4de078"
+                "reference": "2fa1851916d0a70a441da6de2728702b0dd54729"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/voku/agent-recall-compiler/zipball/48163965e84007728246a10ba8ccd4bf9e4de078",
-                "reference": "48163965e84007728246a10ba8ccd4bf9e4de078",
+                "url": "https://api.github.com/repos/voku/agent-recall-compiler/zipball/2fa1851916d0a70a441da6de2728702b0dd54729",
+                "reference": "2fa1851916d0a70a441da6de2728702b0dd54729",
                 "shasum": ""
             },
             "require": {
                 "php": "^8.3",
-                "voku/agent-map": "^0.5.0 || ^0.6.0 || ^0.7.0 || ^0.8.0"
+                "voku/agent-map": "^0.18.0"
             },
             "require-dev": {
                 "phpstan/phpstan": "^2.1",
-                "phpunit/phpunit": "^11.5"
+                "phpunit/phpunit": "^11.5",
+                "voku/agent-learning": "^0.18.23"
             },
             "bin": [
                 "bin/agent-recall-compiler"
@@ -764,24 +1308,41 @@
             ],
             "description": "Deterministic L2 Meta-Prompt compiler and briefing manager for coding agents.",
             "homepage": "https://github.com/voku/agent-recall-compiler",
+            "keywords": [
+                "Agent",
+                "ai",
+                "briefing",
+                "coding-agent",
+                "context-compiler",
+                "l2",
+                "llm",
+                "prompt",
+                "recall"
+            ],
             "support": {
                 "issues": "https://github.com/voku/agent-recall-compiler/issues",
                 "source": "https://github.com/voku/agent-recall-compiler"
             },
-            "time": "2026-08-18T09:42:40+00:00"
+            "funding": [
+                {
+                    "url": "https://github.com/voku",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-09-29T18:20:46+00:00"
         },
         {
             "name": "voku/agent-session",
-            "version": "0.6.1",
+            "version": "0.7.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/voku/agent-session.git",
-                "reference": "bf6b804293b502af1ee59a66ca8c01644d393fd2"
+                "reference": "4e08341edfdf0d5321523453cedd4d4d25e97833"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/voku/agent-session/zipball/bf6b804293b502af1ee59a66ca8c01644d393fd2",
-                "reference": "bf6b804293b502af1ee59a66ca8c01644d393fd2",
+                "url": "https://api.github.com/repos/voku/agent-session/zipball/4e08341edfdf0d5321523453cedd4d4d25e97833",
+                "reference": "4e08341edfdf0d5321523453cedd4d4d25e97833",
                 "shasum": ""
             },
             "require": {
@@ -797,7 +1358,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-main": "0.6.x-dev"
+                    "dev-main": "0.7.x-dev"
                 }
             },
             "autoload": {
@@ -817,49 +1378,56 @@
             ],
             "description": "Working-memory layer for coding agents: per-task session plans, decisions, assumptions, checkpoints, claim metadata, and retention.",
             "homepage": "https://github.com/voku/agent-session",
+            "keywords": [
+                "Agent",
+                "ai",
+                "assumptions",
+                "checkpoints",
+                "coding-agent",
+                "decisions",
+                "llm",
+                "session",
+                "working-memory"
+            ],
             "support": {
                 "issues": "https://github.com/voku/agent-session/issues",
                 "source": "https://github.com/voku/agent-session"
             },
-            "time": "2026-08-17T00:03:30+00:00"
+            "funding": [
+                {
+                    "url": "https://github.com/voku",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-09-13T14:21:46+00:00"
         },
         {
-            "name": "voku/itp-context",
-            "version": "0.3.0",
+            "name": "voku/portable-ascii",
+            "version": "2.1.1",
             "source": {
                 "type": "git",
-                "url": "https://github.com/voku/itp-context.git",
-                "reference": "785a61d9ec8cb0eb9a868908a97314ec4b69c173"
+                "url": "https://github.com/voku/portable-ascii.git",
+                "reference": "8e1051fe39379367aecf014f41744ce7539a856f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/voku/itp-context/zipball/785a61d9ec8cb0eb9a868908a97314ec4b69c173",
-                "reference": "785a61d9ec8cb0eb9a868908a97314ec4b69c173",
+                "url": "https://api.github.com/repos/voku/portable-ascii/zipball/8e1051fe39379367aecf014f41744ce7539a856f",
+                "reference": "8e1051fe39379367aecf014f41744ce7539a856f",
                 "shasum": ""
             },
             "require": {
-                "php": ">=8.3.0"
+                "php": ">=7.1.0"
             },
             "require-dev": {
-                "phpstan/phpstan": "^2.1",
-                "phpunit/phpunit": "^11.5"
+                "phpunit/phpunit": "~8.5 || ~9.6 || ~10.5 || ~11.5"
             },
-            "bin": [
-                "bin/itp-context-summarize",
-                "bin/itp-context-validate",
-                "bin/itp-context-generate",
-                "bin/itp-context-export",
-                "bin/itp-context-query"
-            ],
+            "suggest": {
+                "ext-intl": "Use Intl for transliterator_transliterate() support"
+            },
             "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-master": "0.1.x-dev"
-                }
-            },
             "autoload": {
                 "psr-4": {
-                    "ItpContext\\": "src/"
+                    "voku\\": "src/voku/"
                 }
             },
             "notification-url": "https://packagist.org/downloads/",
@@ -869,26 +1437,142 @@
             "authors": [
                 {
                     "name": "Lars Moelleken",
-                    "email": "lars@moelleken.org",
                     "homepage": "https://www.moelleken.org/"
                 }
             ],
-            "description": "Architecture context attributes, inline enum rule definitions, validation and summarization helpers for PHP projects.",
-            "homepage": "https://github.com/voku/itp-context",
+            "description": "Portable ASCII library - performance optimized (ascii) string functions for php.",
+            "homepage": "https://github.com/voku/portable-ascii",
             "keywords": [
-                "Context",
-                "architecture",
-                "attribute",
-                "enum",
-                "php",
-                "rule",
-                "rules"
+                "ascii",
+                "clean",
+                "php"
             ],
             "support": {
-                "issues": "https://github.com/voku/itp-context/issues",
-                "source": "https://github.com/voku/itp-context"
+                "issues": "https://github.com/voku/portable-ascii/issues",
+                "source": "https://github.com/voku/portable-ascii/tree/2.1.1"
             },
-            "time": "2026-05-18T10:38:21+00:00"
+            "funding": [
+                {
+                    "url": "https://www.paypal.me/moelleken",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/voku",
+                    "type": "github"
+                },
+                {
+                    "url": "https://opencollective.com/portable-ascii",
+                    "type": "open_collective"
+                },
+                {
+                    "url": "https://www.patreon.com/voku",
+                    "type": "patreon"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/voku/portable-ascii",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2026-04-26T05:33:54+00:00"
+        },
+        {
+            "name": "voku/portable-utf8",
+            "version": "6.1.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/voku/portable-utf8.git",
+                "reference": "837e32cd4b166320cc3e70e3ffe1ba413e81ee46"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/voku/portable-utf8/zipball/837e32cd4b166320cc3e70e3ffe1ba413e81ee46",
+                "reference": "837e32cd4b166320cc3e70e3ffe1ba413e81ee46",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.1.0",
+                "symfony/polyfill-iconv": "~1.0",
+                "symfony/polyfill-intl-grapheme": "~1.0",
+                "symfony/polyfill-intl-normalizer": "~1.0",
+                "symfony/polyfill-mbstring": "~1.0",
+                "symfony/polyfill-php72": "~1.0",
+                "voku/portable-ascii": "~2.1.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "~6.0 || ~7.0 || ~8.0 || ~9.0"
+            },
+            "suggest": {
+                "ext-ctype": "Use Ctype for e.g. hexadecimal digit detection",
+                "ext-fileinfo": "Use Fileinfo for better binary file detection",
+                "ext-iconv": "Use iconv for best performance",
+                "ext-intl": "Use Intl for best performance",
+                "ext-json": "Use JSON for string detection",
+                "ext-mbstring": "Use Mbstring for best performance"
+            },
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "bootstrap.php"
+                ],
+                "psr-4": {
+                    "voku\\": "src/voku/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "(Apache-2.0 or GPL-2.0)"
+            ],
+            "authors": [
+                {
+                    "name": "Nicolas Grekas",
+                    "email": "p@tchwork.com"
+                },
+                {
+                    "name": "Hamid Sarfraz",
+                    "homepage": "http://pageconfig.com/"
+                },
+                {
+                    "name": "Lars Moelleken",
+                    "homepage": "http://www.moelleken.org/"
+                }
+            ],
+            "description": "Portable UTF-8 library - performance optimized (unicode) string functions for php.",
+            "homepage": "https://github.com/voku/portable-utf8",
+            "keywords": [
+                "UTF",
+                "clean",
+                "php",
+                "unicode",
+                "utf-8",
+                "utf8"
+            ],
+            "support": {
+                "issues": "https://github.com/voku/portable-utf8/issues",
+                "source": "https://github.com/voku/portable-utf8/tree/6.1.1"
+            },
+            "funding": [
+                {
+                    "url": "https://www.paypal.me/moelleken",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/voku",
+                    "type": "github"
+                },
+                {
+                    "url": "https://opencollective.com/portable-utf8",
+                    "type": "open_collective"
+                },
+                {
+                    "url": "https://www.patreon.com/voku",
+                    "type": "patreon"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/voku/portable-utf8",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2026-04-17T02:42:01+00:00"
         },
         {
             "name": "voku/simple-cache",
@@ -972,16 +1656,16 @@
         },
         {
             "name": "voku/simple-php-code-parser",
-            "version": "0.22.3",
+            "version": "0.22.8",
             "source": {
                 "type": "git",
                 "url": "https://github.com/voku/Simple-PHP-Code-Parser.git",
-                "reference": "e664ea91639392bba76157b71530d6c7f5529af8"
+                "reference": "b8573b3ac3718c8153462cc2918b15cfae342b1f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/voku/Simple-PHP-Code-Parser/zipball/e664ea91639392bba76157b71530d6c7f5529af8",
-                "reference": "e664ea91639392bba76157b71530d6c7f5529af8",
+                "url": "https://api.github.com/repos/voku/Simple-PHP-Code-Parser/zipball/b8573b3ac3718c8153462cc2918b15cfae342b1f",
+                "reference": "b8573b3ac3718c8153462cc2918b15cfae342b1f",
                 "shasum": ""
             },
             "require": {
@@ -1023,7 +1707,7 @@
             ],
             "support": {
                 "issues": "https://github.com/voku/Simple-PHP-Code-Parser/issues",
-                "source": "https://github.com/voku/Simple-PHP-Code-Parser/tree/0.22.3"
+                "source": "https://github.com/voku/Simple-PHP-Code-Parser/tree/0.22.8"
             },
             "funding": [
                 {
@@ -1039,7 +1723,7 @@
                     "type": "patreon"
                 }
             ],
-            "time": "2026-08-16T16:02:25+00:00"
+            "time": "2026-10-01T02:27:14+00:00"
         },
         {
             "name": "voku/stop-words",
@@ -1158,11 +1842,11 @@
     "packages-dev": [
         {
             "name": "phpstan/phpstan",
-            "version": "2.2.8",
+            "version": "2.2.16",
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/e285254e60f33c21902efef4a926ca0987c06804",
-                "reference": "e285254e60f33c21902efef4a926ca0987c06804",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/46a6d9060e5a7763adfcc21ebcb8b504ebdbcb92",
+                "reference": "46a6d9060e5a7763adfcc21ebcb8b504ebdbcb92",
                 "shasum": ""
             },
             "require": {
@@ -1218,7 +1902,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-08-04T22:21:45+00:00"
+            "time": "2026-09-25T09:31:51+00:00"
         }
     ],
     "aliases": [],
