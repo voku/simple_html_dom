@@ -143,6 +143,107 @@ class Html5DomParser extends HtmlDomParser
     }
 
     /**
+     * Parse a mutation string as an HTML5 fragment in the supplied element context and bridge
+     * the resulting nodes into the legacy DOMDocument used by this library.
+     *
+     * PHP 8.4's Dom\\Element::innerHTML setter runs the HTML fragment parsing algorithm, so
+     * table/select insertion modes are preserved instead of treating the string as a new
+     * standalone document.
+     *
+     * @param \DOMElement  $contextNode
+     * @param string       $html
+     * @param \DOMDocument $targetDocument
+     *
+     * @throws \RuntimeException
+     *
+     * @return \DOMDocumentFragment|null
+     */
+    public function createHtmlFragmentForContext(
+        \DOMElement $contextNode,
+        string $html,
+        \DOMDocument $targetDocument
+    ): ?\DOMDocumentFragment {
+        if (!static::isHtml5ParserSupported()) {
+            throw new \RuntimeException(
+                'Html5DomParser requires PHP >= 8.4 with "\\\\Dom\\\\HTMLDocument" and "\\\\Dom\\\\HTML_NO_DEFAULT_NS".'
+            );
+        }
+
+        // Foreign-content fragments need their own namespace-aware bridge. Keep the existing
+        // legacy mutation path for those until that contract is covered explicitly.
+        if ($contextNode->namespaceURI !== null && $contextNode->namespaceURI !== '') {
+            return null;
+        }
+
+        /** @phpstan-ignore class.notFound (PHP >= 8.4 only, guarded by isHtml5ParserSupported()) */
+        $html5Document = \Dom\HTMLDocument::createEmpty($this->getEncoding());
+        /** @phpstan-ignore method.notFound (Dom\\HTMLDocument of PHP >= 8.4) */
+        $context = $html5Document->createElement($contextNode->tagName);
+        /** @phpstan-ignore method.notFound (Dom\\HTMLDocument of PHP >= 8.4) */
+        $html5Document->appendChild($context);
+
+        /** @phpstan-ignore property.notFound (Dom\\Element::innerHTML of PHP >= 8.4) */
+        $context->innerHTML = $html;
+
+        $xmlnsHelper = \stripos($html, 'xmlns') !== false
+            ? $this->parkXmlnsAttributes($html5Document)
+            : null;
+
+        $xml = '';
+        foreach ($context->childNodes as $childNode) {
+            /** @phpstan-ignore method.notFound (Dom\\HTMLDocument::saveXml() of PHP >= 8.4) */
+            $serialized = $html5Document->saveXml($childNode);
+            if ($serialized === false) {
+                throw new \RuntimeException('Html5DomParser could not serialize an HTML5 fragment for the DOMDocument bridge.');
+            }
+
+            // innerHTML has no HTML_NO_DEFAULT_NS option. Strip only the namespace PHP adds
+            // for ordinary HTML elements; foreign namespaces remain intact.
+            $xml .= \str_replace(' xmlns="http://www.w3.org/1999/xhtml"', '', $serialized);
+        }
+
+        $bridgeDocument = new \DOMDocument('1.0', $this->getEncoding());
+        $bridgeDocument->preserveWhiteSpace = true;
+        $bridgeDocument->formatOutput = false;
+
+        $internalErrors = \libxml_use_internal_errors(true);
+        \libxml_clear_errors();
+
+        $loaded = $bridgeDocument->loadXML(
+            '<simplevokuhtmlfragment>' . $xml . '</simplevokuhtmlfragment>',
+            \LIBXML_NONET
+        );
+        $lastError = \libxml_get_last_error();
+
+        \libxml_clear_errors();
+        \libxml_use_internal_errors($internalErrors);
+
+        if ($loaded === false) {
+            $detail = $lastError instanceof \LibXMLError ? ' ' . \trim($lastError->message) : '';
+
+            throw new \RuntimeException(
+                'Html5DomParser could not bridge the normalized HTML5 fragment into DOMDocument.' . $detail
+            );
+        }
+
+        if ($xmlnsHelper !== null) {
+            $this->restoreXmlnsAttributes($bridgeDocument, $xmlnsHelper);
+        }
+
+        $fragment = $targetDocument->createDocumentFragment();
+        $root = $bridgeDocument->documentElement;
+        if (!$root instanceof \DOMElement) {
+            return $fragment;
+        }
+
+        foreach ($root->childNodes as $childNode) {
+            $fragment->appendChild($targetDocument->importNode($childNode, true));
+        }
+
+        return $fragment;
+    }
+
+    /**
      * Parse the prepared HTML with the HTML5 parser.
      *
      * "keepBrokenHtml" works on top of this: that repair replaced the broken fragments with
