@@ -237,7 +237,7 @@ class Html5DomParser extends HtmlDomParser
      */
     private function bridgeHtml5Fragment(
         string $xml,
-        $xmlnsHelper,
+        ?string $xmlnsHelper,
         \DOMDocument $targetDocument
     ): \DOMDocumentFragment {
         $bridgeDocument = new \DOMDocument('1.0', $this->getEncoding());
