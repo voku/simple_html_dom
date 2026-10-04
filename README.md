@@ -113,10 +113,12 @@ more transient memory. Measure it for your own input:
 php build/benchmark_html5_parser.php
 ```
 
-On the fixtures of this repository the complete `loadHtml()` + query + `html()` round-trip is
-currently *faster* than the libxml path (factor 0.72 - 0.95), because the HTML5 parser needs
-none of the string preprocessing that path does; small synthetic fragments are slower
-(factor ~1.3 - 1.5), and peak memory is higher in both cases.
+The pre-5.1.0 performance re-check on PHP 8.4.26 and 8.5.11 repeated the complete benchmark
+three times per runtime and kept the aggregate HTML5-vs-libxml factor at **0.84** on both.
+Small and specialized inputs can still be slower, and peak memory is higher because the
+bridge temporarily owns both DOM implementations. The full method, scenario caveats and
+late SHD-2 / SHD-3 measurements are recorded in
+[`docs/html5-parser-performance.md`](docs/html5-parser-performance.md).
 
 `Html5DomParser` is a strict parser choice. It does **not** silently switch back to
 `HtmlDomParser`, because that would make the class name lie about the parsing semantics. On an

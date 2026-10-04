@@ -230,6 +230,81 @@ final class Html5DomParserDefaultCompatibilityTest extends \PHPUnit\Framework\Te
     }
 
     /**
+     * The mapping created while importing an HTML5 fragment must remain usable by later
+     * public attribute writes and removals on the imported legacy DOM node.
+     */
+    public function testInnerHtmlMutationKeepsHtmlOnlyAttributeMappingWritable()
+    {
+        $this->requireHtml5Parser();
+
+        $dom = Html5DomParser::str_get_html('<div id="target"></div>');
+        $target = $dom->findOne('#target');
+        $target->innerHtml = '<span @foo="x">value</span>';
+
+        $span = $target->findOne('span');
+        static::assertSame('x', $span->getAttribute('@foo'));
+
+        $span->setAttribute('@foo', 'updated');
+        static::assertSame('updated', $span->getAttribute('@foo'));
+        static::assertStringContainsString('@foo="updated"', $target->innerHtml());
+
+        $span->removeAttribute('@foo');
+        static::assertFalse($span->hasAttribute('@foo'));
+        static::assertStringNotContainsString('@foo=', $target->innerHtml());
+    }
+
+    /**
+     * Fragment-local bridge names must not collide with caller-owned attributes that happen
+     * to look exactly like the generated helper name for the HTML-only attribute.
+     */
+    public function testInnerHtmlMutationKeepsBridgeHelperCollisionsSeparate()
+    {
+        $this->requireHtml5Parser();
+
+        $helper = 'data-simplevokuinvalidattr-40666f6f';
+        $dom = Html5DomParser::str_get_html('<div id="target"></div>');
+        $target = $dom->findOne('#target');
+
+        $target->innerHtml = '<span @foo="x" ' . $helper . '="caller">value</span>';
+
+        $span = $target->findOne('span');
+        static::assertSame('x', $span->getAttribute('@foo'));
+        static::assertSame('caller', $span->getAttribute($helper));
+
+        $span->setAttribute($helper, 'changed');
+
+        static::assertSame('x', $span->getAttribute('@foo'));
+        static::assertSame('changed', $span->getAttribute($helper));
+        static::assertStringContainsString('@foo="x"', $target->innerHtml());
+        static::assertStringContainsString($helper . '="changed"', $target->innerHtml());
+    }
+
+    /**
+     * Combine select insertion-mode parsing with the SHD-2 bridge. The attributes must
+     * survive while the HTML5 parser also auto-closes the option elements.
+     */
+    public function testSelectFragmentMutationPreservesHtmlOnlyAttributeNames()
+    {
+        $this->requireHtml5Parser();
+
+        $dom = Html5DomParser::str_get_html('<select id="target"></select>');
+        $target = $dom->findOne('#target');
+
+        $target->innerHtml = '<option @foo="x">one<option @foo="y">two';
+
+        $attributes = [];
+        foreach ($target->findMulti('option') as $option) {
+            $attributes[] = $option->getAttribute('@foo');
+        }
+
+        static::assertSame(['x', 'y'], $attributes);
+        static::assertSame(
+            '<option @foo="x">one</option><option @foo="y">two</option>',
+            $target->innerHtml()
+        );
+    }
+
+    /**
      * The html context remains on the legacy mutation path. The legacy path may unwrap the
      * document-level body mutation, but it must not introduce the duplicate head/body pair
      * that the HTML5 fragment path can synthesize for this context.
