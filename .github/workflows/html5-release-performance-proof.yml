@@ -1,0 +1,151 @@
+name: HTML5 5.1 release performance proof
+
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.4', '8.5']
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+          extensions: zip
+          tools: composer
+
+      - name: Install dependencies
+        run: composer update --prefer-dist --no-interaction --no-progress
+
+      - name: Runtime
+        run: |
+          php -v
+          php -r 'printf("HTML5=%s\n", class_exists("Dom\\HTMLDocument") ? "yes" : "no");'
+
+      - name: Full parser benchmark
+        run: |
+          for run in 1 2 3; do
+            echo "::group::full benchmark run ${run}"
+            php build/benchmark_html5_parser.php 100
+            echo "::endgroup::"
+          done
+
+      - name: SHD-2 and SHD-3 focused benchmark
+        run: |
+          cat > /tmp/html5-focused-benchmark.php <<'PHP'
+          <?php
+          declare(strict_types=1);
+
+          require getcwd() . '/vendor/autoload.php';
+
+          use voku\helper\Html5DomParser;
+          use voku\helper\HtmlDomParser;
+
+          if (!Html5DomParser::isHtml5ParserSupported()) {
+              fwrite(STDERR, "HTML5 parser unavailable\n");
+              exit(1);
+          }
+
+          function median(array $values): float
+          {
+              sort($values);
+              $count = count($values);
+              $middle = intdiv($count, 2);
+
+              return $count % 2 === 0
+                  ? ($values[$middle - 1] + $values[$middle]) / 2
+                  : $values[$middle];
+          }
+
+          function measure(callable $operation, int $iterations = 300, int $samples = 7): float
+          {
+              for ($i = 0; $i < 20; ++$i) {
+                  $operation();
+              }
+
+              $times = [];
+              for ($sample = 0; $sample < $samples; ++$sample) {
+                  gc_collect_cycles();
+                  $start = hrtime(true);
+                  for ($i = 0; $i < $iterations; ++$i) {
+                      $operation();
+                  }
+                  $times[] = (hrtime(true) - $start) / 1_000_000 / $iterations;
+              }
+
+              return median($times);
+          }
+
+          $safeLoad = measure(static function (): void {
+              $dom = Html5DomParser::str_get_html('<div data-foo="bar"><span>x</span></div>');
+              $dom->html();
+          });
+
+          $invalidLoad = measure(static function (): void {
+              $dom = Html5DomParser::str_get_html('<div @foo="bar"><span>x</span></div>');
+              $dom->html();
+          });
+
+          $legacyTableMutation = measure(static function (): void {
+              $dom = HtmlDomParser::str_get_html('<table id="target"></table>');
+              $target = $dom->findOne('#target');
+              $target->innerHtml = '<tr><td>x</td></tr>';
+              $dom->html();
+          });
+
+          $html5TableMutation = measure(static function (): void {
+              $dom = Html5DomParser::str_get_html('<table id="target"></table>');
+              $target = $dom->findOne('#target');
+              $target->innerHtml = '<tr><td>x</td></tr>';
+              $dom->html();
+          });
+
+          $safeFragmentMutation = measure(static function (): void {
+              $dom = Html5DomParser::str_get_html('<div id="target"></div>');
+              $target = $dom->findOne('#target');
+              $target->innerHtml = '<span data-foo="x">value</span>';
+              $dom->html();
+          });
+
+          $invalidFragmentMutation = measure(static function (): void {
+              $dom = Html5DomParser::str_get_html('<div id="target"></div>');
+              $target = $dom->findOne('#target');
+              $target->innerHtml = '<span @foo="x">value</span>';
+              $dom->html();
+          });
+
+          printf("PHP %s\n", PHP_VERSION);
+          printf("SHD-2 safe load+serialize       %.4f ms/op\n", $safeLoad);
+          printf("SHD-2 @foo load+serialize       %.4f ms/op  factor %.2f vs safe\n", $invalidLoad, $invalidLoad / $safeLoad);
+          printf("SHD-3 legacy table mutation     %.4f ms/op\n", $legacyTableMutation);
+          printf("SHD-3 html5 table mutation      %.4f ms/op  factor %.2f vs legacy\n", $html5TableMutation, $html5TableMutation / $legacyTableMutation);
+          printf("SHD-2/3 safe fragment mutation  %.4f ms/op\n", $safeFragmentMutation);
+          printf("SHD-2/3 @foo fragment mutation  %.4f ms/op  factor %.2f vs safe\n", $invalidFragmentMutation, $invalidFragmentMutation / $safeFragmentMutation);
+
+          // Correctness tripwires, so a fast wrong result cannot win the benchmark.
+          $table = Html5DomParser::str_get_html('<table id="target"></table>');
+          $table->findOne('#target')->innerHtml = '<tr><td>x</td></tr>';
+          if ($table->findMulti('tbody')->count() !== 1) {
+              throw new RuntimeException('HTML5 table mutation lost tbody semantics.');
+          }
+
+          $attribute = Html5DomParser::str_get_html('<div id="target"></div>');
+          $attribute->findOne('#target')->innerHtml = '<span @foo="x">value</span>';
+          if ($attribute->findOne('span')->getAttribute('@foo') !== 'x') {
+              throw new RuntimeException('HTML-only fragment attribute did not survive.');
+          }
+          PHP
+
+          php /tmp/html5-focused-benchmark.php
