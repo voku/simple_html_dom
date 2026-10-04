@@ -8,6 +8,7 @@
 5: add "tests/Html5DomParserCompatibilityTest.php": the HtmlDomParser test suite run against Html5DomParser, with every intentional HTML5 difference pinned
 6: add "build/benchmark_html5_parser.php" to compare both parsers using the PR #146 method (interleaved samples, discarded warm-up, median, phase timings, peak memory)
 7: "Html5DomParser" -> preserve HTML5 fragment context for node string mutations such as table rows and select options; unsafe document/template/foreign contexts retain the legacy mutation path
+8: re-check final HTML5 performance on PHP 8.4 / 8.5 after SHD-2 and SHD-3: aggregate factor remains 0.84 vs. HtmlDomParser; document focused bridge / fragment costs in "docs/html5-parser-performance.md"
 
 [PHP Simple HTML Dom v5.0.0 - 2026-04-21]
 1: BREAKING: require PHP >= 7.1.0 and drop PHP 7.0 support
