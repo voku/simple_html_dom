@@ -52,7 +52,8 @@
                 "issues": "https://github.com/doctrine/deprecations/issues",
                 "source": "https://github.com/doctrine/deprecations/tree/1.1.6"
             },
-            "time": "2026-02-07T07:09:04+00:00"
+            "time": "2026-02-07T07:09:04+00:00",
+            "published-time": "2026-02-07T07:10:09+00:00"
         },
         {
             "name": "fidry/cpu-core-counter",
@@ -114,7 +115,8 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-09-29T22:11:39+00:00"
+            "time": "2026-09-29T22:11:39+00:00",
+            "published-time": "2026-09-29T22:12:43+00:00"
         },
         {
             "name": "helgesverre/toon",
@@ -180,7 +182,8 @@
                 "issues": "https://github.com/HelgeSverre/toon-php/issues",
                 "source": "https://github.com/HelgeSverre/toon-php/tree/v3.2.1"
             },
-            "time": "2026-07-08T15:55:13+00:00"
+            "time": "2026-07-08T15:55:13+00:00",
+            "published-time": "2026-07-08T15:56:23+00:00"
         },
         {
             "name": "nikic/php-parser",
@@ -237,7 +240,8 @@
                 "issues": "https://github.com/nikic/PHP-Parser/issues",
                 "source": "https://github.com/nikic/PHP-Parser/tree/v5.9.0"
             },
-            "time": "2026-09-13T18:51:52+00:00"
+            "time": "2026-09-13T18:51:52+00:00",
+            "published-time": "2026-09-13T18:53:16+00:00"
         },
         {
             "name": "phpdocumentor/reflection-common",
@@ -295,7 +299,8 @@
                 "issues": "https://github.com/phpDocumentor/ReflectionCommon/issues",
                 "source": "https://github.com/phpDocumentor/ReflectionCommon/tree/2.2.1"
             },
-            "time": "2025-11-10T21:21:55+00:00"
+            "time": "2025-11-10T21:21:55+00:00",
+            "published-time": "2026-09-27T10:14:49+00:00"
         },
         {
             "name": "phpdocumentor/reflection-docblock",
@@ -360,7 +365,8 @@
                 "issues": "https://github.com/phpDocumentor/ReflectionDocBlock/issues",
                 "source": "https://github.com/phpDocumentor/ReflectionDocBlock/tree/6.0.3"
             },
-            "time": "2026-03-18T20:49:53+00:00"
+            "time": "2026-03-18T20:49:53+00:00",
+            "published-time": "2026-03-18T20:51:16+00:00"
         },
         {
             "name": "phpdocumentor/type-resolver",
@@ -418,7 +424,8 @@
                 "issues": "https://github.com/phpDocumentor/TypeResolver/issues",
                 "source": "https://github.com/phpDocumentor/TypeResolver/tree/2.1.0"
             },
-            "time": "2026-09-27T19:32:54+00:00"
+            "time": "2026-09-27T19:32:54+00:00",
+            "published-time": "2026-09-28T18:39:55+00:00"
         },
         {
             "name": "phpstan/phpdoc-parser",
@@ -465,7 +472,8 @@
                 "issues": "https://github.com/phpstan/phpdoc-parser/issues",
                 "source": "https://github.com/phpstan/phpdoc-parser/tree/2.3.6"
             },
-            "time": "2026-09-27T20:07:45+00:00"
+            "time": "2026-09-27T20:07:45+00:00",
+            "published-time": "2026-09-27T20:08:57+00:00"
         },
         {
             "name": "psr/simple-cache",
@@ -516,7 +524,8 @@
             "support": {
                 "source": "https://github.com/php-fig/simple-cache/tree/3.0.0"
             },
-            "time": "2021-10-29T13:26:27+00:00"
+            "time": "2021-10-29T13:26:27+00:00",
+            "published-time": "2021-10-29T13:27:19+00:00"
         },
         {
             "name": "symfony/polyfill-iconv",
@@ -600,7 +609,8 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-09-29T06:25:14+00:00"
+            "time": "2026-09-29T06:25:14+00:00",
+            "published-time": "2026-09-30T10:23:39+00:00"
         },
         {
             "name": "symfony/polyfill-intl-grapheme",
@@ -682,7 +692,8 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-09-25T15:46:47+00:00"
+            "time": "2026-09-25T15:46:47+00:00",
+            "published-time": "2026-09-30T10:23:37+00:00"
         },
         {
             "name": "symfony/polyfill-intl-normalizer",
@@ -767,7 +778,8 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-09-23T22:02:09+00:00"
+            "time": "2026-09-23T22:02:09+00:00",
+            "published-time": "2026-09-30T10:23:47+00:00"
         },
         {
             "name": "symfony/polyfill-mbstring",
@@ -852,7 +864,8 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-09-24T15:19:04+00:00"
+            "time": "2026-09-24T15:19:04+00:00",
+            "published-time": "2026-09-30T10:23:35+00:00"
         },
         {
             "name": "symfony/polyfill-php72",
@@ -917,20 +930,84 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-09-09T11:45:10+00:00"
+            "time": "2024-09-09T11:45:10+00:00",
+            "published-time": "2024-09-09T12:24:36+00:00"
         },
         {
-            "name": "voku/agent-graph",
-            "version": "0.2.3",
+            "name": "voku/agent-edit",
+            "version": "0.6.1",
             "source": {
                 "type": "git",
-                "url": "https://github.com/voku/agent-graph.git",
-                "reference": "39a45422c997d7c926f916974d9f8c7835c685c4"
+                "url": "https://github.com/voku/agent-edit.git",
+                "reference": "4532a99f148c33d64d60c0e036a4d892f9712fa7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/voku/agent-graph/zipball/39a45422c997d7c926f916974d9f8c7835c685c4",
-                "reference": "39a45422c997d7c926f916974d9f8c7835c685c4",
+                "url": "https://api.github.com/repos/voku/agent-edit/zipball/4532a99f148c33d64d60c0e036a4d892f9712fa7",
+                "reference": "4532a99f148c33d64d60c0e036a4d892f9712fa7",
+                "shasum": ""
+            },
+            "require": {
+                "helgesverre/toon": "^3.1",
+                "nikic/php-parser": "^5.2",
+                "php": "^8.3",
+                "voku/agent-map": "^0.20.0 || ^0.21.0 || ^0.22.0",
+                "voku/simple-php-code-parser": "^0.22.14"
+            },
+            "require-dev": {
+                "phpstan/phpstan": "^2.1",
+                "phpunit/phpunit": "^11.5"
+            },
+            "bin": [
+                "bin/agent-edit"
+            ],
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "voku\\AgentEdit\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Lars Moelleken",
+                    "homepage": "https://github.com/voku"
+                }
+            ],
+            "description": "Deterministic, evidence-backed source mutation for coding agents: validate, apply transactionally and verify agent-map plans.",
+            "homepage": "https://github.com/voku/agent-edit",
+            "keywords": [
+                "Agent",
+                "agent-map",
+                "ai",
+                "coding-agent",
+                "llm",
+                "php",
+                "refactoring",
+                "source-mutation"
+            ],
+            "support": {
+                "issues": "https://github.com/voku/agent-edit/issues",
+                "source": "https://github.com/voku/agent-edit"
+            },
+            "time": "2026-10-24T21:03:23+00:00",
+            "published-time": "2026-10-24T21:06:58+00:00"
+        },
+        {
+            "name": "voku/agent-graph",
+            "version": "0.3.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/voku/agent-graph.git",
+                "reference": "3c26e8ffabdbd39ad63560bb9cd4754f38e7e802"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/voku/agent-graph/zipball/3c26e8ffabdbd39ad63560bb9cd4754f38e7e802",
+                "reference": "3c26e8ffabdbd39ad63560bb9cd4754f38e7e802",
                 "shasum": ""
             },
             "require": {
@@ -969,20 +1046,21 @@
                 "issues": "https://github.com/voku/agent-graph/issues",
                 "source": "https://github.com/voku/agent-graph"
             },
-            "time": "2026-09-27T12:54:58+00:00"
+            "time": "2026-10-29T02:42:21+00:00",
+            "published-time": "2026-10-29T02:47:52+00:00"
         },
         {
             "name": "voku/agent-kanban",
-            "version": "0.4.4",
+            "version": "0.4.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/voku/agent-kanban.git",
-                "reference": "3c8377fa28142e96ae624506963b6e0fa03863f8"
+                "reference": "38d820cb5e32f98f26e93311ff66a7e5fe975e60"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/voku/agent-kanban/zipball/3c8377fa28142e96ae624506963b6e0fa03863f8",
-                "reference": "3c8377fa28142e96ae624506963b6e0fa03863f8",
+                "url": "https://api.github.com/repos/voku/agent-kanban/zipball/38d820cb5e32f98f26e93311ff66a7e5fe975e60",
+                "reference": "38d820cb5e32f98f26e93311ff66a7e5fe975e60",
                 "shasum": ""
             },
             "require": {
@@ -992,7 +1070,7 @@
             "require-dev": {
                 "friendsofphp/php-cs-fixer": "^3.75",
                 "phpstan/phpstan": "^2.1",
-                "phpunit/phpunit": "^11.5"
+                "phpunit/phpunit": "^12.0"
             },
             "bin": [
                 "bin/agent-kanban"
@@ -1036,29 +1114,30 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-09-06T04:50:41+00:00"
+            "time": "2026-10-24T21:03:23+00:00",
+            "published-time": "2026-10-24T21:06:52+00:00"
         },
         {
             "name": "voku/agent-learning",
-            "version": "0.18.28",
+            "version": "0.18.37",
             "source": {
                 "type": "git",
                 "url": "https://github.com/voku/agent-learning.git",
-                "reference": "45f0b0add453663c4ae2bc7fe9599f40931bf6f4"
+                "reference": "7f1267174573002b067d75ffd1d759f2b675ac09"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/voku/agent-learning/zipball/45f0b0add453663c4ae2bc7fe9599f40931bf6f4",
-                "reference": "45f0b0add453663c4ae2bc7fe9599f40931bf6f4",
+                "url": "https://api.github.com/repos/voku/agent-learning/zipball/7f1267174573002b067d75ffd1d759f2b675ac09",
+                "reference": "7f1267174573002b067d75ffd1d759f2b675ac09",
                 "shasum": ""
             },
             "require": {
                 "php": "^8.3",
-                "voku/agent-graph": "^0.2.3"
+                "voku/agent-graph": "^0.2.3 || ^0.3.0"
             },
             "require-dev": {
                 "phpstan/phpstan": "^2.1",
-                "phpunit/phpunit": "^11.5"
+                "phpunit/phpunit": "^11.5 || ^12.0"
             },
             "bin": [
                 "bin/agent-learning",
@@ -1104,38 +1183,42 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-10-03T10:50:03+00:00"
+            "time": "2026-10-24T22:59:19+00:00",
+            "published-time": "2026-10-24T23:01:09+00:00"
         },
         {
             "name": "voku/agent-loop",
-            "version": "0.20.52",
+            "version": "0.20.75",
             "source": {
                 "type": "git",
                 "url": "https://github.com/voku/agent-loop.git",
-                "reference": "2c38fa53083a07bb2fea29129ead54bd7d4c5f30"
+                "reference": "e8295feed6a749cf349d38f0ffbc647bfb1c9c3f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/voku/agent-loop/zipball/2c38fa53083a07bb2fea29129ead54bd7d4c5f30",
-                "reference": "2c38fa53083a07bb2fea29129ead54bd7d4c5f30",
+                "url": "https://api.github.com/repos/voku/agent-loop/zipball/e8295feed6a749cf349d38f0ffbc647bfb1c9c3f",
+                "reference": "e8295feed6a749cf349d38f0ffbc647bfb1c9c3f",
                 "shasum": ""
             },
             "require": {
                 "helgesverre/toon": "^3.1",
                 "php": "^8.3",
-                "voku/agent-kanban": "^0.4.4",
-                "voku/agent-learning": "^0.18.25",
-                "voku/agent-map": "^0.18.3",
-                "voku/agent-recall-compiler": "^0.25.1",
-                "voku/agent-session": "^0.7.1",
+                "voku/agent-edit": "^0.6.1",
+                "voku/agent-kanban": "^0.4.6",
+                "voku/agent-learning": "^0.18.36",
+                "voku/agent-map": "^0.22.3",
+                "voku/agent-recall-compiler": "^0.25.9",
+                "voku/agent-session": "^0.7.2",
                 "voku/portable-utf8": "^6.1"
             },
             "require-dev": {
                 "brianium/paratest": "^7.8",
+                "composer/semver": "^3.4",
                 "friendsofphp/php-cs-fixer": "^3.95",
                 "phpstan/phpstan": "^2.1",
-                "phpunit/phpunit": "^11.5",
-                "voku/itp-context": "^0.3.0"
+                "phpunit/phpunit": "^12.0.1",
+                "symfony/yaml": "^7.4",
+                "voku/itp-context": "^0.4.0"
             },
             "suggest": {
                 "voku/housekeeping": "Standalone cron runner to auto-run agent-loop maintenance tasks against a target repository."
@@ -1187,20 +1270,21 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-10-02T07:18:40+00:00"
+            "time": "2026-10-28T16:10:29+00:00",
+            "published-time": "2026-10-28T16:20:13+00:00"
         },
         {
             "name": "voku/agent-map",
-            "version": "0.18.3",
+            "version": "0.22.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/voku/agent-map.git",
-                "reference": "17b5ee02a75ac7fa4b5281b85ef78877df2fb8ec"
+                "reference": "5e5b179176ce8b9fa961c795daf84d1c692bc064"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/voku/agent-map/zipball/17b5ee02a75ac7fa4b5281b85ef78877df2fb8ec",
-                "reference": "17b5ee02a75ac7fa4b5281b85ef78877df2fb8ec",
+                "url": "https://api.github.com/repos/voku/agent-map/zipball/5e5b179176ce8b9fa961c795daf84d1c692bc064",
+                "reference": "5e5b179176ce8b9fa961c795daf84d1c692bc064",
                 "shasum": ""
             },
             "require": {
@@ -1208,13 +1292,13 @@
                 "helgesverre/toon": "^3.1",
                 "nikic/php-parser": "^5.0",
                 "php": "^8.3",
-                "voku/agent-graph": "^0.2.3",
-                "voku/simple-php-code-parser": "^0.22.7",
+                "voku/agent-graph": "^0.3.2",
+                "voku/simple-php-code-parser": "^0.22.15",
                 "voku/stop-words": "^2.0"
             },
             "require-dev": {
                 "phpstan/phpstan": "^2.2",
-                "phpunit/phpunit": "^11.0"
+                "phpunit/phpunit": "^11.0 || ^12.0"
             },
             "suggest": {
                 "phpstan/phpstan": "Enables PHPStan-backed semantic relation analysis; without it agent-map builds structural-only maps."
@@ -1262,29 +1346,30 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-09-30T16:43:09+00:00"
+            "time": "2026-10-29T07:57:53+00:00",
+            "published-time": "2026-10-29T08:04:06+00:00"
         },
         {
             "name": "voku/agent-recall-compiler",
-            "version": "0.25.1",
+            "version": "0.25.9",
             "source": {
                 "type": "git",
                 "url": "https://github.com/voku/agent-recall-compiler.git",
-                "reference": "2fa1851916d0a70a441da6de2728702b0dd54729"
+                "reference": "d7325a77fd4c7cf1a81201e4a6e9273e7c487562"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/voku/agent-recall-compiler/zipball/2fa1851916d0a70a441da6de2728702b0dd54729",
-                "reference": "2fa1851916d0a70a441da6de2728702b0dd54729",
+                "url": "https://api.github.com/repos/voku/agent-recall-compiler/zipball/d7325a77fd4c7cf1a81201e4a6e9273e7c487562",
+                "reference": "d7325a77fd4c7cf1a81201e4a6e9273e7c487562",
                 "shasum": ""
             },
             "require": {
                 "php": "^8.3",
-                "voku/agent-map": "^0.18.0"
+                "voku/agent-map": "^0.20.0 || ^0.21.0 || ^0.22.0"
             },
             "require-dev": {
                 "phpstan/phpstan": "^2.1",
-                "phpunit/phpunit": "^11.5",
+                "phpunit/phpunit": "^11.5 || ^12.0",
                 "voku/agent-learning": "^0.18.23"
             },
             "bin": [
@@ -1329,20 +1414,21 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-09-29T18:20:46+00:00"
+            "time": "2026-10-24T21:03:23+00:00",
+            "published-time": "2026-10-24T21:19:43+00:00"
         },
         {
             "name": "voku/agent-session",
-            "version": "0.7.1",
+            "version": "0.7.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/voku/agent-session.git",
-                "reference": "4e08341edfdf0d5321523453cedd4d4d25e97833"
+                "reference": "0c485ed53729a533b01d77176ffcbfef4844dfcd"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/voku/agent-session/zipball/4e08341edfdf0d5321523453cedd4d4d25e97833",
-                "reference": "4e08341edfdf0d5321523453cedd4d4d25e97833",
+                "url": "https://api.github.com/repos/voku/agent-session/zipball/0c485ed53729a533b01d77176ffcbfef4844dfcd",
+                "reference": "0c485ed53729a533b01d77176ffcbfef4844dfcd",
                 "shasum": ""
             },
             "require": {
@@ -1350,7 +1436,7 @@
             },
             "require-dev": {
                 "phpstan/phpstan": "^2.1",
-                "phpunit/phpunit": "^11.5"
+                "phpunit/phpunit": "^11.5 || ^12.0"
             },
             "bin": [
                 "bin/agent-session"
@@ -1399,7 +1485,8 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-09-13T14:21:46+00:00"
+            "time": "2026-10-24T21:03:23+00:00",
+            "published-time": "2026-10-24T21:06:49+00:00"
         },
         {
             "name": "voku/portable-ascii",
@@ -1473,7 +1560,8 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-04-26T05:33:54+00:00"
+            "time": "2026-04-26T05:33:54+00:00",
+            "published-time": "2026-04-26T05:43:38+00:00"
         },
         {
             "name": "voku/portable-utf8",
@@ -1572,7 +1660,8 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-04-17T02:42:01+00:00"
+            "time": "2026-04-17T02:42:01+00:00",
+            "published-time": "2026-04-17T02:42:57+00:00"
         },
         {
             "name": "voku/simple-cache",
@@ -1652,20 +1741,21 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-04-24T00:48:22+00:00"
+            "time": "2026-04-24T00:48:22+00:00",
+            "published-time": "2026-04-24T00:49:08+00:00"
         },
         {
             "name": "voku/simple-php-code-parser",
-            "version": "0.22.8",
+            "version": "0.22.15",
             "source": {
                 "type": "git",
                 "url": "https://github.com/voku/Simple-PHP-Code-Parser.git",
-                "reference": "b8573b3ac3718c8153462cc2918b15cfae342b1f"
+                "reference": "08e2018bde2fad85026a090d0dd737a3cefb76b6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/voku/Simple-PHP-Code-Parser/zipball/b8573b3ac3718c8153462cc2918b15cfae342b1f",
-                "reference": "b8573b3ac3718c8153462cc2918b15cfae342b1f",
+                "url": "https://api.github.com/repos/voku/Simple-PHP-Code-Parser/zipball/08e2018bde2fad85026a090d0dd737a3cefb76b6",
+                "reference": "08e2018bde2fad85026a090d0dd737a3cefb76b6",
                 "shasum": ""
             },
             "require": {
@@ -1707,7 +1797,7 @@
             ],
             "support": {
                 "issues": "https://github.com/voku/Simple-PHP-Code-Parser/issues",
-                "source": "https://github.com/voku/Simple-PHP-Code-Parser/tree/0.22.8"
+                "source": "https://github.com/voku/Simple-PHP-Code-Parser/tree/0.22.15"
             },
             "funding": [
                 {
@@ -1723,7 +1813,8 @@
                     "type": "patreon"
                 }
             ],
-            "time": "2026-10-01T02:27:14+00:00"
+            "time": "2026-10-09T09:16:13+00:00",
+            "published-time": "2026-10-09T09:17:31+00:00"
         },
         {
             "name": "voku/stop-words",
@@ -1770,7 +1861,8 @@
                 "issues": "https://github.com/voku/stop-words/issues",
                 "source": "https://github.com/voku/stop-words/tree/master"
             },
-            "time": "2018-11-23T01:37:27+00:00"
+            "time": "2018-11-23T01:37:27+00:00",
+            "published-time": "2018-11-23T01:38:10+00:00"
         },
         {
             "name": "webmozart/assert",
@@ -1836,7 +1928,8 @@
                 "issues": "https://github.com/webmozarts/assert/issues",
                 "source": "https://github.com/webmozarts/assert/tree/2.4.1"
             },
-            "time": "2026-06-15T15:31:57+00:00"
+            "time": "2026-06-15T15:31:57+00:00",
+            "published-time": "2026-06-15T15:38:13+00:00"
         }
     ],
     "packages-dev": [
@@ -1914,5 +2007,5 @@
         "php": ">=8.3"
     },
     "platform-dev": {},
-    "plugin-api-version": "2.9.0"
+    "plugin-api-version": "2.11.0"
 }
