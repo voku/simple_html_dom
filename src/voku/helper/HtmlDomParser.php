@@ -553,10 +553,18 @@ class HtmlDomParser extends AbstractDomParser
                 $this->document->loadHTML($html, $optionsXml);
             }
 
-            // remove the "xml-encoding" hack
+            // Remove the temporary encoding marker. Newer libxml versions can
+            // expose it as a comment instead of a processing instruction.
             if ($xmlHackUsed) {
+                $encodingComment = '?xml encoding="' . $this->getEncoding() . '" ?';
                 foreach ($this->document->childNodes as $child) {
-                    if ($child->nodeType === \XML_PI_NODE) {
+                    if (
+                        $child->nodeType === \XML_PI_NODE
+                        || (
+                            $child->nodeType === \XML_COMMENT_NODE
+                            && $child->nodeValue === $encodingComment
+                        )
+                    ) {
                         $this->document->removeChild($child);
 
                         break;
